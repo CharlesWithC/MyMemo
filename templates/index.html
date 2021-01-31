@@ -1,0 +1,396 @@
+<title>Word Memorizer</title>
+<script src="/static/canvasInput.min.js"></script>
+<script src="/static/jquery-3.5.1.min.js"></script>
+<link href="/static/themes/mint.css" rel="stylesheet">
+<style>
+    @font-face {
+        font-family: 'Comic Sans MS';
+        src: url('/static/ComicSansMS3.ttf')  format('truetype');
+    }
+</style>
+<canvas id="canvas" width="1000" height="600"></canvas>
+<script>
+    var canvas=document.getElementById("canvas");
+    var ctx=canvas.getContext('2d');
+
+    function getRndColor(min,max) {
+        var r = min+(max-min)*Math.random()|0,
+            g = min+(max-min)*Math.random()|0,
+            b = min+(max-min)*Math.random()|0;
+        return 'rgb(' + r + ',' + g + ',' + b + ')';
+    }
+
+    CanvasRenderingContext2D.prototype.roundRect = function (x, y, width, height, radius=40) {
+        if (width < 2 * radius) radius = width / 2;
+        if (height < 2 * radius) radius = height / 2;
+        this.beginPath();
+        this.moveTo(x + radius, y);
+        this.arcTo(x + width, y, x + width, y + height, radius);
+        this.arcTo(x + width, y + height, x, y + height, radius);
+        this.arcTo(x, y + height, x, y, radius);
+        this.arcTo(x, y, x + width, y, radius);
+        this.closePath();
+        this.fill();
+        return this;
+    }
+
+    var fontsize=40;
+    var largefontsize=60;
+
+    var btnMargin=0.5;
+    var lineheight=50;
+    var bottomOffset=100;
+
+    var buttons=[];
+    var btncnt=8;
+    if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)){
+        fontsize=80;
+        largefontsize=120;
+
+        btnMargin=0.2;
+        lineheight=100;
+        bottomOffset=250;
+
+        buttons[0]={name:"start",x:0,y:0,w:600,h:100};
+        buttons[1]={name:"previous",x:0,y:0,w:340,h:100};
+        buttons[2]={name:"next",x:0,y:0,w:340,h:100};
+        buttons[3]={name:"sound",x:0,y:0,w:100,h:100};
+        buttons[4]={name:"mode1",x:0,y:0,w:340,h:100};
+        buttons[5]={name:"mode2",x:0,y:0,w:340,h:100};
+        buttons[6]={name:"tag",x:0,y:0,w:340,h:100};
+        buttons[7]={name:"mode3",x:0,y:0,w:800,h:100};
+    }
+    else{
+        buttons[0]={name:"start",x:0,y:0,w:300,h:50};
+        buttons[1]={name:"previous",x:0,y:0,w:170,h:50};
+        buttons[2]={name:"next",x:0,y:0,w:170,h:50};
+        buttons[3]={name:"sound",x:0,y:0,w:50,h:50};
+        buttons[4]={name:"mode1",x:0,y:0,w:170,h:50};
+        buttons[5]={name:"mode2",x:0,y:0,w:170,h:50};
+        buttons[6]={name:"tag",x:0,y:0,w:170,h:50};
+        buttons[7]={name:"mode3",x:0,y:0,w:400,h:50};
+    }
+
+    var started=0;
+    var random=0;
+    var swap=0;
+    var showtagged=0;
+    var alterdefinition=0;
+    var alterword=1;
+
+    var wordid=localStorage.getItem("wordid");
+    var definitionid=0;
+    if(wordid=="null"){wordid=0;}
+
+    var startfrom=null;
+    var word="";
+    var definition="";
+    $.ajax({url:'/getword?showtagged='+showtagged+'&wordid='+wordid, async:false, success: function(r) { word=r; } } );
+    if(word==""){
+        wordid=0;
+        localStorage.setItem("wordid",0);
+        $.ajax({url: '/getword?showtagged='+showtagged+'&wordid='+wordid, async: false, success: function(r) { word=r; } });
+    }
+
+    var wordcount=0;
+    $.ajax({ url: '/getwordcount?showtagged='+showtagged, async: false, success: function(r){ wordcount=parseInt(r); } });
+
+    function drawStartPage(){
+        canvas.width=document.body.clientWidth;
+        canvas.height=document.body.clientHeight;
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        ctx.font=largefontsize+"px Comic Sans MS";
+        ctx.fillStyle=getRndColor(10,100);
+        ctx.textAlign="center";
+        ctx.fillText("Word Memorizer",canvas.width/2,canvas.height/2-100);
+
+        buttons[0].x=canvas.width/2-buttons[0].w/2;
+        buttons[0].y=canvas.height/2+buttons[0].h;
+        ctx.fillStyle=getRndColor(160,250);
+        ctx.roundRect(buttons[0].x,buttons[0].y,buttons[0].w,buttons[0].h);
+        ctx.font=fontsize+"px Comic Sans MS";
+        ctx.fillStyle=getRndColor(10,100);
+        ctx.textAlign="center";
+        ctx.fillText("Start",buttons[0].x+buttons[0].w/2,buttons[0].y+buttons[0].h/1.4);
+
+        buttons[4].x=canvas.width/2-buttons[4].w;
+        buttons[4].y=canvas.height/2+buttons[4].h*3;
+        ctx.fillStyle=getRndColor(160,250);
+        ctx.roundRect(buttons[4].x,buttons[4].y,buttons[4].w,buttons[4].h);
+        ctx.font=fontsize+"px Comic Sans MS";
+        ctx.fillStyle=getRndColor(10,100);
+        ctx.textAlign="center";
+        if(random){
+            ctx.fillText("Random",buttons[4].x+buttons[4].w/2,buttons[4].y+buttons[4].h/1.4);
+        }else{
+            ctx.fillText("Sequence",buttons[4].x+buttons[4].w/2,buttons[4].y+buttons[4].h/1.4);
+        }
+
+        buttons[5].x=canvas.width/2;
+        buttons[5].y=canvas.height/2+buttons[5].h*3;
+        ctx.fillStyle=getRndColor(160,250);
+        ctx.roundRect(buttons[5].x,buttons[5].y,buttons[5].w,buttons[5].h);
+        ctx.font=fontsize+"px Comic Sans MS";
+        ctx.fillStyle=getRndColor(10,100);
+        ctx.textAlign="center";
+        if(swap){
+            alterdefinition=1;
+            alterword=0;
+            ctx.fillText("Swap",buttons[5].x+buttons[5].w/2,buttons[5].y+buttons[5].h/1.4);
+        }else{
+            alterdefinition=0;
+            alterword=1;
+            ctx.fillText("Default",buttons[5].x+buttons[5].w/2,buttons[5].y+buttons[5].h/1.4);
+        }
+
+        buttons[7].x=canvas.width/2-buttons[7].w/2;
+        buttons[7].y=canvas.height/2+buttons[7].h*4;
+        ctx.fillStyle=getRndColor(160,250);
+        ctx.roundRect(buttons[7].x,buttons[7].y,buttons[7].w,buttons[7].h);
+        ctx.font=fontsize+"px Comic Sans MS";
+        ctx.fillStyle=getRndColor(10,100);
+        ctx.textAlign="center";
+        if(showtagged){
+            ctx.fillText("Show tagged",buttons[7].x+buttons[7].w/2,buttons[7].y+buttons[7].h/1.4);
+        }else{
+            ctx.fillText("Do not show tagged",buttons[7].x+buttons[7].w/2,buttons[7].y+buttons[7].h/1.4);
+        }
+
+        if(startfrom!=null){
+            startfrom.destroy();
+        }
+        startfrom=new CanvasInput({
+            canvas: document.getElementById('canvas'),
+            fontSize: fontsize,
+            fontFamily: "Comic Sans MS",
+            x: buttons[0].x,
+            y: buttons[0].y-buttons[0].h-20,
+            height: buttons[0].h-14,
+            width: buttons[0].w-14,
+            placeHolder: word
+        });
+    }
+    drawStartPage();
+    window.onresize=drawStartPage;
+
+    function startinit(){
+        buttons[0].x=canvas.width+1;
+        buttons[0].y=canvas.height+1;
+        buttons[4].x=canvas.width+1;
+        buttons[4].y=canvas.height+1;
+        buttons[5].x=canvas.width+1;
+        buttons[5].y=canvas.height+1;
+        buttons[7].x=canvas.width+1;
+        buttons[7].y=canvas.height+1;
+    }
+
+    function drawWord(){
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        canvas.width=document.body.clientWidth;
+        canvas.height=document.body.clientHeight;
+
+        localStorage.setItem("wordid", wordid);
+
+        if(alterdefinition&&definitionid!=wordid){
+            definitionid=wordid;
+            $.ajax({ url: '/getdefinition?showtagged='+showtagged+'&wordid='+wordid, async: false, success: function(r){ definition=r; } });
+        }
+
+        ctx.font=fontsize+"px Comic Sans MS";
+        ctx.fillStyle="#000000";
+        ctx.textAlign="center";
+        if(alterword){
+            ctx.fillText(word,canvas.width/2,canvas.height/2-300);
+        }
+        if(alterdefinition){
+            var lines=definition.split('\n');
+            for (var i = 0; i<lines.length; i++)
+                ctx.fillText(lines[i], canvas.width/2, canvas.height/2-200 + (i*lineheight) );
+        }
+
+        blockcolor=getRndColor(160,250);
+        textcolor=getRndColor(10,100);
+
+        buttons[1].x=canvas.width/2-buttons[1].w*(1+btnMargin);
+        buttons[1].y=canvas.height-bottomOffset;
+        ctx.fillStyle=blockcolor;
+        ctx.roundRect(buttons[1].x,buttons[1].y,buttons[1].w,buttons[1].h);
+        ctx.font=fontsize+"px Comic Sans MS";
+        ctx.fillStyle=textcolor;
+        ctx.fillText("Previous",buttons[1].x+buttons[1].w/2,buttons[1].y+buttons[1].h/1.4);
+
+        buttons[2].x=canvas.width/2+buttons[2].w*btnMargin;
+        buttons[2].y=canvas.height-bottomOffset;
+        ctx.fillStyle=blockcolor;
+        ctx.roundRect(buttons[2].x,buttons[2].y,buttons[2].w,buttons[2].h);
+        ctx.font=fontsize+"px Comic Sans MS";
+        ctx.fillStyle=textcolor;
+        ctx.fillText("Next",buttons[2].x+buttons[2].w/2,buttons[2].y+buttons[2].h/1.4);
+
+        if(alterword){
+            buttons[3].x=canvas.width/2-buttons[3].w/2;
+            buttons[3].y=canvas.height-bottomOffset;
+            ctx.fillStyle=blockcolor;
+            ctx.roundRect(buttons[3].x,buttons[3].y,buttons[3].w,buttons[3].h);
+            ctx.font=fontsize+"px Comic Sans MS";
+            ctx.fillStyle=textcolor;
+            ctx.fillText("🔈",buttons[3].x+buttons[3].w/2,buttons[3].y+buttons[3].h/1.4);
+        }
+
+        buttons[6].x=canvas.width/2+buttons[6].w*btnMargin;
+        buttons[6].y=canvas.height-bottomOffset-buttons[6].h*1.5;
+        ctx.fillStyle=blockcolor;
+        ctx.roundRect(buttons[6].x,buttons[6].y,buttons[6].w,buttons[6].h);
+        ctx.font=fontsize+"px Comic Sans MS";
+        ctx.fillStyle=textcolor;
+        ctx.fillText("Tag",buttons[6].x+buttons[6].w/2,buttons[6].y+buttons[6].h/1.4);
+
+        if(!alterdefinition&&definitionid!=wordid){
+            definitionid=wordid;
+            $.ajax({ url: '/getdefinition?showtagged='+showtagged+'&wordid='+wordid, async: false, success: function(r){ definition=r; } });
+        }
+    }
+
+    function clickHandler(e){
+        var relativeX=e.clientX-canvas.offsetLeft;
+        var relativeY=e.clientY-canvas.offsetTop;
+        var btntriggered=0;
+        for(var i=0;i<btncnt;i++){
+            if(relativeX>=buttons[i].x && relativeX<=buttons[i].x+buttons[i].w && relativeY>=buttons[i].y && relativeY<=buttons[i].y+buttons[i].h){
+                btntriggered=1;
+                if(buttons[i].name=="start"){
+                    startword=startfrom.selectText()._value;
+                    if(wordid!="null"&&startword==""){
+                        started=1;
+                        startfrom.destroy();
+                        word=startword;
+                        startinit();
+                        drawWord();
+                        window.onresize=drawWord;
+                    }
+                    else{
+                        $.ajax({
+                            url: '/getwordid?showtagged='+showtagged+'&word='+startword,
+                            async: false,
+                            success: function(r){
+                                wordid=parseInt(r);
+                                if(wordid>=0){
+                                    started=1;
+                                    startfrom.destroy();
+                                    word=startword;
+                                    startinit();
+                                    drawWord();
+                                    window.onresize=drawWord;
+                                }
+                            }
+                        });
+                    }
+                }
+                else if(buttons[i].name=="previous"){
+                    if(swap){alterword=0;}
+                    else{alterdefinition=0;}
+
+                    t=parseInt(wordid)-1;
+                    if(random){t=Math.floor(wordcount*Math.random());}
+
+                    $.ajax({
+                        url: '/getword?showtagged='+showtagged+'&wordid='+t,
+                        async: false,
+                        success: function(r){
+                            if(r!=""){
+                                word=r;
+                                wordid=t;
+                                drawWord();
+                                window.onresize=drawWord;
+                            }
+                        }
+                    });
+                }
+                else if(buttons[i].name=="next"){
+                    if(swap){alterword=0;}
+                    else{alterdefinition=0;}
+
+                    t=parseInt(wordid)+1;
+                    if(random){t=Math.floor(wordcount*Math.random());}
+
+                    $.ajax({
+                        url: '/getword?showtagged='+showtagged+'&wordid='+t,
+                        async: false,
+                        success: function(r){
+                            if(r!=""){
+                                word=r;
+                                wordid=t;
+                                drawWord();
+                                window.onresize=drawWord;
+                            }
+                        }
+                    });
+                    $.ajax({
+                        url: '/getdefinition?showtagged='+showtagged+'&wordid='+wordid,
+                        async: false,
+                        success: function(r){
+                            definition=r;
+                            if(word!=""){
+                                drawWord();
+                            }
+                        }
+                    });
+                }
+                else if(buttons[i].name=="sound"){
+                    if(alterword){
+                        var msg = new SpeechSynthesisUtterance();
+                        msg.text = word;
+                        window.speechSynthesis.speak(msg);
+                    }
+                }
+                else if(buttons[i].name=="mode1"){
+                    random=1-random;
+                    drawStartPage();
+                }
+                else if(buttons[i].name=="mode2"){
+                    swap=1-swap;
+                    drawStartPage();
+                }
+                else if(buttons[i].name=="tag"){
+                    $.ajax({
+                        url: '/tagword?showtagged='+showtagged+'&wordid='+wordid,
+                        async: false,
+                        success: function(r){
+                            buttons[6].x=canvas.width/2+buttons[6].w*btnMargin;
+                            buttons[6].y=canvas.height-bottomOffset-buttons[6].h*1.5;
+                            ctx.fillStyle=blockcolor;
+                            ctx.roundRect(buttons[6].x,buttons[6].y,buttons[6].w,buttons[6].h);
+                            ctx.font=fontsize+"px Comic Sans MS";
+                            ctx.fillStyle=textcolor;
+                            if(r=="Tagged"){
+                                ctx.fillText("Untag",buttons[6].x+buttons[6].w/2,buttons[6].y+buttons[6].h/1.4);
+                            }else{
+                                ctx.fillText("Tag",buttons[6].x+buttons[6].w/2,buttons[6].y+buttons[6].h/1.4);
+                            }
+                        }
+                    });
+                }
+                else if(buttons[i].name=="mode3"){
+                    showtagged=1-showtagged;
+                    drawStartPage();
+                }
+            }
+        }
+
+        if(!btntriggered&&started){
+            if(swap){alterword=1-alterword;}
+            else{alterdefinition=1-alterdefinition;}
+            drawWord();
+        }
+    }
+
+    document.addEventListener("click",clickHandler,false);
+</script>
+<style>
+    html, body {
+        overflow: hidden;
+    }
+</style>
