@@ -1,5 +1,5 @@
 from flask import Flask,render_template,request
-import random
+import random,json
 
 wordlist=[]
 import pandas as pd
@@ -41,42 +41,38 @@ def getwordid():
         wl=untaggedWordList
     for i in range(len(wl)):
         if wl[i][0].startswith(word):
-            return str(i)
-    return str(-1)
+            return json.dumps({"wordid":i})
+    return json.dumps({"wordid":-1})
 
 @app.route("/getword")
 def getword():
     wordid=int(request.args["wordid"])
     showtagged=int(request.args["showtagged"])
-    wl=[]
-    if showtagged:
-        wl=wordlist
-    else:
-        wl=untaggedWordList
-    if wordid>=0 and len(wl)>wordid:
-        return wl[wordid][0]
-    else:
-        return ""
+    splitline=int(request.args["splitline"])
 
-@app.route("/getdefinition")
-def getdefinition():
-    wordid=int(request.args["wordid"])
-    showtagged=int(request.args["showtagged"])
     wl=[]
     if showtagged:
         wl=wordlist
     else:
         wl=untaggedWordList
+
     if wordid>=0 and len(wl)>wordid:
+        word=wl[wordid][0]
+
         definition=wl[wordid][1]
         if definition.find("\n")!=-1:
             d=definition.split("\n")
-            definition=d[0]+"\n"+insert_newlines('\n'.join(d[1:]))
+            definition=d[0]+"\n"+insert_newlines('\n'.join(d[1:]),splitline)
         else:
-            definition=insert_newlines(definition)
-        return definition
+            definition=insert_newlines(definition,splitline)
+        
+        tagged=False
+        if word in taglist:
+            tagged=True
+
+        return json.dumps({"wordid":wordid,"word":word,"definition":definition,"tagged":tagged})
     else:
-        return ""
+        abort(404)
 
 @app.route("/tagword")
 def tagword():
@@ -92,7 +88,7 @@ def tagword():
         taglist.append(word)
         open("tagdata","a").write(word+"\n")
         untaggedWordList.remove(wl[wordid])
-        return "Tagged"
+        return json.dumps({"tagged":True})
     else:
         taglist.remove(word)
         f=open("tagdata","w")
@@ -100,12 +96,12 @@ def tagword():
             f.write(tag+"\n")
         f.close()
         untaggedWordList.append(wl[wordid])
-        return "Untagged"
+        return json.dumps({"tagged":False})
 
 @app.route("/getwordcount")
 def getwordcount():
-    return str(len(wordlist))
+    return json.dumps({"count":len(wordlist)})
 
 app.jinja_env.auto_reload = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True
-app.run("0.0.0.0")
+app.run("0.0.0.0",8888)
