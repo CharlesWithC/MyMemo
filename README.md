@@ -1,24 +1,26 @@
 # WordMemorizer
 *A light word / phrase memorizer made with python flask + html5 canvas*
 
-*It's only tested in python3.8 + Chrome browser environment. But it should support python3.\* and most browsers.*
+*It's only tested in python3.8 + Chrome / Firefox browser environment. But it should support python3.\* and most browsers.*
 
 ## How to install
-### First, prepare the dataset.
-Simply create a Excel Table, save it as `data.xlsx` and put it in the folder where the script will be ran.
-### Next, install dependencies
+### 0.Clone this repo
+`git clone https://github.com/Charles-1414/WordMemorizer`
+### 1.Prepare the dataset.
+Simply create a Excel Table, save it as `data.xlsx` and put it in the folder where the script will be ran.\
+**The headings must be 'Word','Pronounciation','Definition'**\
+You can update this table using your browser in the future.
+### 2.Install dependencies
 `python3 -m pip install flask`
-### Then, run the code
+### 3.Run the code
 `python3 app.py`
-### Finally, open your browser and enter URL `localhost:5000`
+### 4.Open your browser and enter URL `localhost:8888`
 **You can change the port manually, just edit the last line of app.py** \
 For example, if you want the app to run on 80 port, kindly change that line of code to `app.run("0.0.0.0",80)`
 
-## How to use
-There are settings buttons on the webpage, click them to alter the settings. The text it's showing means the current settings.\
-Once you finished the settings, you could choose to enter a word / phrase in the inputbox (it's optional). Then press `Start`.\
-You can `Tag` / `Untag` the words / phrases, they will be hidden if you chose `Do not show tagged words` in the settings.\
-The script will store your progress in Local Storage and allow you to restart from it when you reopen the page.
+## Usage
+### It's easy to use, just click around and you'll find how to use
+To upload new data at client side, press the "Upload" button in the right-bottom cornor of the home page. Then enter the Upload Password and upload the file. The default password is 123456. You can change it at /changepwd
 
 ## More Info
 Please open an issue if you met any bugs during the use.

@@ -60,7 +60,7 @@
         buttons[4]={name:"mode1",x:0,y:0,w:340,h:100};
         buttons[5]={name:"mode2",x:0,y:0,w:340,h:100};
         buttons[6]={name:"tag",x:0,y:0,w:340,h:100};
-        buttons[7]={name:"mode3",x:0,y:0,w:800,h:100};
+        buttons[7]={name:"mode3",x:0,y:0,w:340,h:100};
         buttons[8]={name:"homepage",x:0,y:0,w:340,h:100};
         buttons[9]={name:"upload",x:0,y:0,w:400,h:100};
     }
@@ -72,7 +72,7 @@
         buttons[4]={name:"mode1",x:0,y:0,w:170,h:50};
         buttons[5]={name:"mode2",x:0,y:0,w:170,h:50};
         buttons[6]={name:"tag",x:0,y:0,w:170,h:50};
-        buttons[7]={name:"mode3",x:0,y:0,w:400,h:50};
+        buttons[7]={name:"mode3",x:0,y:0,w:170,h:50};
         buttons[8]={name:"homepage",x:0,y:0,w:170,h:50};
         buttons[9]={name:"upload",x:0,y:0,w:200,h:50};
     }
@@ -131,47 +131,50 @@
         ctx.textAlign="center";
         ctx.fillText("Start",buttons[0].x+buttons[0].w/2,buttons[0].y+buttons[0].h/1.4);
 
-        buttons[4].x=canvas.width/2-buttons[4].w;
-        buttons[4].y=canvas.height/2+buttons[4].h*3;
+        buttons[4].x=canvas.width/2+buttons[4].w/1.2;
+        buttons[4].y=canvas.height/2+buttons[5].h*3;
         ctx.fillStyle=getRndColor(160,250);
         ctx.roundRect(buttons[4].x,buttons[4].y,buttons[4].w,buttons[4].h);
         ctx.font=fontsize+"px Comic Sans MS";
         ctx.fillStyle=getRndColor(10,100);
         ctx.textAlign="center";
+        ctx.fillText("Display order: ",buttons[4].x-buttons[4].w*1.2,buttons[4].y+buttons[4].h/1.4);
         if(random){
             ctx.fillText("Random",buttons[4].x+buttons[4].w/2,buttons[4].y+buttons[4].h/1.4);
         }else{
             ctx.fillText("Sequence",buttons[4].x+buttons[4].w/2,buttons[4].y+buttons[4].h/1.4);
         }
 
-        buttons[5].x=canvas.width/2;
-        buttons[5].y=canvas.height/2+buttons[5].h*3;
+        buttons[5].x=canvas.width/2+buttons[5].w/1.2;
+        buttons[5].y=canvas.height/2+buttons[5].h*4;
         ctx.fillStyle=getRndColor(160,250);
         ctx.roundRect(buttons[5].x,buttons[5].y,buttons[5].w,buttons[5].h);
         ctx.font=fontsize+"px Comic Sans MS";
         ctx.fillStyle=getRndColor(10,100);
         ctx.textAlign="center";
+        ctx.fillText("Swap word & definition? ",buttons[5].x-buttons[5].w*1.2,buttons[5].y+buttons[5].h/1.4);
         if(swap){
             alterdefinition=1;
             alterword=0;
-            ctx.fillText("Swap",buttons[5].x+buttons[5].w/2,buttons[5].y+buttons[5].h/1.4);
+            ctx.fillText("Yes",buttons[5].x+buttons[5].w/2,buttons[5].y+buttons[5].h/1.4);
         }else{
             alterdefinition=0;
             alterword=1;
-            ctx.fillText("Default",buttons[5].x+buttons[5].w/2,buttons[5].y+buttons[5].h/1.4);
+            ctx.fillText("No",buttons[5].x+buttons[5].w/2,buttons[5].y+buttons[5].h/1.4);
         }
 
-        buttons[7].x=canvas.width/2-buttons[7].w/2;
-        buttons[7].y=canvas.height/2+buttons[7].h*4;
+        buttons[7].x=canvas.width/2+buttons[7].w/1.2;
+        buttons[7].y=canvas.height/2+buttons[7].h*5;
         ctx.fillStyle=getRndColor(160,250);
         ctx.roundRect(buttons[7].x,buttons[7].y,buttons[7].w,buttons[7].h);
         ctx.font=fontsize+"px Comic Sans MS";
         ctx.fillStyle=getRndColor(10,100);
         ctx.textAlign="center";
+        ctx.fillText("Show tagged words? ",buttons[7].x-buttons[7].w*1.2,buttons[7].y+buttons[7].h/1.4);
         if(showtagged){
-            ctx.fillText("Show tagged",buttons[7].x+buttons[7].w/2,buttons[7].y+buttons[7].h/1.4);
+            ctx.fillText("Yes",buttons[7].x+buttons[7].w/2,buttons[7].y+buttons[7].h/1.4);
         }else{
-            ctx.fillText("Do not show tagged",buttons[7].x+buttons[7].w/2,buttons[7].y+buttons[7].h/1.4);
+            ctx.fillText("No",buttons[7].x+buttons[7].w/2,buttons[7].y+buttons[7].h/1.4);
         }
         
         buttons[9].x=canvas.width-buttons[9].w*1.2;
