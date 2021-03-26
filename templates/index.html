@@ -42,7 +42,7 @@
     var bottomOffset=100;
 
     var buttons=[];
-    var btncnt=10;
+    var btncnt=11;
 
     if(isphone){
         fontsize=80;
@@ -63,6 +63,7 @@
         buttons[7]={name:"mode3",x:0,y:0,w:340,h:100};
         buttons[8]={name:"homepage",x:0,y:0,w:340,h:100};
         buttons[9]={name:"upload",x:0,y:0,w:400,h:100};
+        buttons[10]={name:"mode4",x:0,y:0,w:340,h:100};
     }
     else{
         buttons[0]={name:"start",x:0,y:0,w:300,h:50};
@@ -75,6 +76,7 @@
         buttons[7]={name:"mode3",x:0,y:0,w:170,h:50};
         buttons[8]={name:"homepage",x:0,y:0,w:170,h:50};
         buttons[9]={name:"upload",x:0,y:0,w:200,h:50};
+        buttons[10]={name:"mode4",x:0,y:0,w:170,h:50};
     }
 
     var started=0;
@@ -83,6 +85,8 @@
     var showtagged=0;
     var alterdefinition=0;
     var alterword=1;
+    var autoplay=0;//0: none | 1: slow (8 sec) | 2:medium (5 sec) | 3.fast (3 sec)
+    var apinterval=null;
 
     var wordid=localStorage.getItem("wordid");
     if(wordid=="null"){wordid=0;}
@@ -139,11 +143,8 @@
         ctx.fillStyle=getRndColor(10,100);
         ctx.textAlign="center";
         ctx.fillText("Display order: ",buttons[4].x-buttons[4].w*1.2,buttons[4].y+buttons[4].h/1.4);
-        if(random){
-            ctx.fillText("Random",buttons[4].x+buttons[4].w/2,buttons[4].y+buttons[4].h/1.4);
-        }else{
-            ctx.fillText("Sequence",buttons[4].x+buttons[4].w/2,buttons[4].y+buttons[4].h/1.4);
-        }
+        l=["Sequence","Random"]
+        ctx.fillText(l[random],buttons[4].x+buttons[4].w/2,buttons[4].y+buttons[4].h/1.4);
 
         buttons[5].x=canvas.width/2+buttons[5].w/1.2;
         buttons[5].y=canvas.height/2+buttons[5].h*4;
@@ -156,12 +157,12 @@
         if(swap){
             alterdefinition=1;
             alterword=0;
-            ctx.fillText("Yes",buttons[5].x+buttons[5].w/2,buttons[5].y+buttons[5].h/1.4);
         }else{
             alterdefinition=0;
             alterword=1;
-            ctx.fillText("No",buttons[5].x+buttons[5].w/2,buttons[5].y+buttons[5].h/1.4);
         }
+        l=["No","Yes"];
+        ctx.fillText(l[swap],buttons[5].x+buttons[5].w/2,buttons[5].y+buttons[5].h/1.4);
 
         buttons[7].x=canvas.width/2+buttons[7].w/1.2;
         buttons[7].y=canvas.height/2+buttons[7].h*5;
@@ -171,11 +172,19 @@
         ctx.fillStyle=getRndColor(10,100);
         ctx.textAlign="center";
         ctx.fillText("Show tagged words? ",buttons[7].x-buttons[7].w*1.2,buttons[7].y+buttons[7].h/1.4);
-        if(showtagged){
-            ctx.fillText("Yes",buttons[7].x+buttons[7].w/2,buttons[7].y+buttons[7].h/1.4);
-        }else{
-            ctx.fillText("No",buttons[7].x+buttons[7].w/2,buttons[7].y+buttons[7].h/1.4);
-        }
+        l=["No","Yes"];
+        ctx.fillText(l[showtagged],buttons[7].x+buttons[7].w/2,buttons[7].y+buttons[7].h/1.4);
+
+        buttons[10].x=canvas.width/2+buttons[10].w/1.2;
+        buttons[10].y=canvas.height/2+buttons[10].h*6;
+        ctx.fillStyle=getRndColor(160,250);
+        ctx.roundRect(buttons[10].x,buttons[10].y,buttons[10].w,buttons[10].h);
+        ctx.font=fontsize+"px Comic Sans MS";
+        ctx.fillStyle=getRndColor(10,100);
+        ctx.textAlign="center";
+        ctx.fillText("Autoplay:",buttons[10].x-buttons[10].w*1.2,buttons[10].y+buttons[10].h/1.4);
+        l=["None","Slow","Medium","Fast"];
+        ctx.fillText(l[autoplay],buttons[10].x+buttons[10].w/2,buttons[10].y+buttons[10].h/1.4);
         
         buttons[9].x=canvas.width-buttons[9].w*1.2;
         buttons[9].y=canvas.height-buttons[9].h*1.2;
@@ -271,6 +280,36 @@
         ctx.font=fontsize+"px Comic Sans MS";
         ctx.fillStyle=textcolor;
         ctx.fillText("Home",buttons[8].x+buttons[8].w/2,buttons[8].y+buttons[8].h/1.4);
+
+        if(autoplay!=0){
+            if(alterword){
+                var msg = new SpeechSynthesisUtterance();
+                msg.text = word;
+                window.speechSynthesis.speak(msg);
+            }
+        }
+    }
+
+    function autoplayer(){ // = auto next button presser + sound maker
+        console.log("auto player running");
+        if(swap){alterword=0;}
+        else{alterdefinition=0;}
+        
+        t=parseInt(wordid)+1;
+        if(random){t=Math.floor(wordcount*Math.random());}
+
+        $.ajax({
+            url: '/getword?splitline='+splitline+'&showtagged='+showtagged+'&wordid='+t,
+            async: false, dataType: "json",
+            success: function(r){
+                word=r.word;
+                definition=r.definition;
+                tagged=r.tagged;
+                wordid=r.wordid;
+                drawWord();
+                if(!isphone){window.onresize=drawWord;}
+            }
+        });
     }
 
     function clickHandler(e){
@@ -282,6 +321,10 @@
                 btntriggered=1;
                 console.log(buttons[i].name+" button triggered");
                 if(buttons[i].name=="start"){
+                    if(autoplay!=0){
+                        apdelay=[99999,8,5,3];
+                        apinterval=setInterval(autoplayer,apdelay[autoplay]*1000);
+                    }
                     startword=startfrom.selectText()._value;
                     if(startword!=""){
                         started=1;
@@ -329,6 +372,7 @@
                 }
                 else if(buttons[i].name=="homepage"){
                     started=0;
+                    clearInterval(apinterval);
                     btninit();
                     drawHomePage();
                 }
@@ -392,9 +436,13 @@
                     showtagged=1-showtagged;
                     drawHomePage();
                 }
+                else if(buttons[i].name=="mode4"){
+                    autoplay+=1;
+                    if(autoplay==4) autoplay=0;
+                    drawHomePage();
+                }
                 else if(buttons[i].name=="upload"){
                     window.location.href="/upload";
-
                 }
             }
         }
