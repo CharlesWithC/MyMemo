@@ -280,6 +280,7 @@
         for(var i=0;i<btncnt;i++){
             if(relativeX>=buttons[i].x && relativeX<=buttons[i].x+buttons[i].w && relativeY>=buttons[i].y && relativeY<=buttons[i].y+buttons[i].h){
                 btntriggered=1;
+                console.log(buttons[i].name+" button triggered");
                 if(buttons[i].name=="start"){
                     startword=startfrom.selectText()._value;
                     if(startword!=""){
@@ -331,7 +332,7 @@
                     btninit();
                     drawHomePage();
                 }
-                else if(buttons[i].name=="previous"||buttons[i].name=="next"){
+                else if(started&&(buttons[i].name=="previous"||buttons[i].name=="next")){
                     if(swap){alterword=0;}
                     else{alterdefinition=0;}
                     
@@ -352,7 +353,7 @@
                         }
                     });
                 }
-                else if(buttons[i].name=="sound"){
+                else if(started&&buttons[i].name=="sound"){
                     if(alterword){
                         var msg = new SpeechSynthesisUtterance();
                         msg.text = word;
@@ -367,7 +368,7 @@
                     swap=1-swap;
                     drawHomePage();
                 }
-                else if(buttons[i].name=="tag"){
+                else if(started&&buttons[i].name=="tag"){
                     $.ajax({
                         url: '/tagword?showtagged='+showtagged+'&wordid='+wordid,
                         async: false, dataType: "json",
