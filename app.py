@@ -1,9 +1,9 @@
-from flask import Flask,render_template,request
-import random,json
+from flask import Flask,render_template,request,abort
+import os,random,json,time,hashlib,threading
 
 wordlist=[]
 import pandas as pd
-data=pd.read_excel("data.xlsx")
+data=pd.read_excel("./data.xlsx")
 for i in range(len(data["Word"])):
     word=""
     pronouncation=data['Pronounciation'][i]
@@ -102,6 +102,47 @@ def tagword():
 def getwordcount():
     return json.dumps({"count":len(wordlist)})
 
+def restart():
+    time.sleep(1)
+    os.system("python3 app.py &")
+    os.system("./app &")
+    os.system(f"kill -KILL {os.getpid()}")
+
+@app.route("/upload",methods=['GET','POST'])
+def upload():
+    if request.method=='POST':
+        password=request.form["password"]
+        hashed=hashlib.sha256(hashlib.sha256(password.encode("utf-8")).hexdigest().encode("utf-8")).hexdigest()
+        if hashed != open("./password","r").read().replace("\n",""):
+            return render_template("uploadmsg.html",MESSAGE="Invalid upload password!")
+
+        if 'file' not in request.files:
+            return render_template("uploadmsg.html",MESSAGE="Invalid upload! E1 No file found")
+        file = request.files['file']
+        if file.filename == '':
+            return render_template("uploadmsg.html",MESSAGE="Invalid upload! E2 Empty file name")
+        if not file.filename.endswith(".xlsx"):
+            return render_template("uploadmsg.html",MESSAGE="Only .xlsx files are supported!")
+        ts=int(time.time())
+        file.save(f"/tmp/data{ts}.xlsx")
+
+        try:
+            uploaded=pd.read_excel(f"/tmp/data{ts}.xlsx")
+            if len(uploaded.keys())!=3 or not (uploaded.keys()==['Word','Pronounciation','Definition']).all():
+                os.system(f"rm -f /tmp/data{ts}.xlsx")
+                return render_template("uploadmsg.html",MESSAGE="Invalid format! The headings must be 'Word','Pronounciation','Definition'!")
+        except:
+            os.system(f"rm -f /tmp/data{ts}.xlsx")
+            return render_template("uploadmsg.html",MESSAGE="Invalid format! The headings must be 'Word','Pronounciation','Definition'!")
+        
+        os.system(f"mv /tmp/data{ts}.xlsx ./data.xlsx")
+
+        threading.Thread(target=restart).start()
+
+        return render_template("uploadmsg.html",MESSAGE="Data uploaded!")
+    else:
+        return render_template("upload.html")
+
 app.jinja_env.auto_reload = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True
-app.run("0.0.0.0",8888)
+app.run("127.0.0.1",8888)

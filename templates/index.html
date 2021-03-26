@@ -42,7 +42,7 @@
     var bottomOffset=100;
 
     var buttons=[];
-    var btncnt=9;
+    var btncnt=10;
 
     if(isphone){
         fontsize=80;
@@ -62,6 +62,7 @@
         buttons[6]={name:"tag",x:0,y:0,w:340,h:100};
         buttons[7]={name:"mode3",x:0,y:0,w:800,h:100};
         buttons[8]={name:"homepage",x:0,y:0,w:340,h:100};
+        buttons[9]={name:"upload",x:0,y:0,w:400,h:100};
     }
     else{
         buttons[0]={name:"start",x:0,y:0,w:300,h:50};
@@ -73,6 +74,7 @@
         buttons[6]={name:"tag",x:0,y:0,w:170,h:50};
         buttons[7]={name:"mode3",x:0,y:0,w:400,h:50};
         buttons[8]={name:"homepage",x:0,y:0,w:170,h:50};
+        buttons[9]={name:"upload",x:0,y:0,w:200,h:50};
     }
 
     var started=0;
@@ -171,6 +173,15 @@
         }else{
             ctx.fillText("Do not show tagged",buttons[7].x+buttons[7].w/2,buttons[7].y+buttons[7].h/1.4);
         }
+        
+        buttons[9].x=canvas.width-buttons[9].w*1.2;
+        buttons[9].y=canvas.height-buttons[9].h*1.2;
+        ctx.fillStyle=getRndColor(160,250);
+        ctx.roundRect(buttons[9].x,buttons[9].y,buttons[9].w,buttons[9].h);
+        ctx.font=fontsize+"px Comic Sans MS";
+        ctx.fillStyle=getRndColor(10,100);
+        ctx.textAlign="center";
+        ctx.fillText("Upload",buttons[9].x+buttons[9].w/2,buttons[9].y+buttons[9].h/1.4);
 
         if(startfrom!=null){
             startfrom.destroy();
@@ -376,6 +387,10 @@
                     $.ajax({ url: '/getwordcount?showtagged='+showtagged, async: false, dataType: "json", success: function(r){ wordcount=r.count; } });
                     showtagged=1-showtagged;
                     drawHomePage();
+                }
+                else if(buttons[i].name=="upload"){
+                    window.location.href="/upload";
+
                 }
             }
         }
