@@ -102,6 +102,27 @@ def tagword():
 def getwordcount():
     return json.dumps({"count":len(wordlist)})
 
+@app.route("/changepwd",methods=['GET','POST'])
+def changepwd():
+    if request.method=='POST':
+        oldpwd=request.form["oldpwd"]
+        newpwd=request.form["newpwd"]
+        cfmpwd=request.form["cfmpwd"]
+
+        oldhashed=hashlib.sha256(hashlib.sha256(oldpwd.encode("utf-8")).hexdigest().encode("utf-8")).hexdigest()
+        if oldhashed != open("./password","r").read().replace("\n",""):
+            return render_template("changepwd.html",MESSAGE="Incorrect old password!")
+        
+        if newpwd!=cfmpwd:
+            return render_template("changepwd.html",MESSAGE="New password and confirm password mismatch!")
+
+        newhashed=hashlib.sha256(hashlib.sha256(newpwd.encode("utf-8")).hexdigest().encode("utf-8")).hexdigest()
+        open("./password","w").write(newhashed)
+
+        return render_template("changepwd.html",MESSAGE="Password updated!")
+    else:
+        return render_template("changepwd.html",MESSAGE="")
+
 def restart():
     time.sleep(1)
     os.system("python3 app.py &")
@@ -114,15 +135,15 @@ def upload():
         password=request.form["password"]
         hashed=hashlib.sha256(hashlib.sha256(password.encode("utf-8")).hexdigest().encode("utf-8")).hexdigest()
         if hashed != open("./password","r").read().replace("\n",""):
-            return render_template("uploadmsg.html",MESSAGE="Invalid upload password!")
+            return render_template("upload.html",MESSAGE="Invalid upload password!")
 
         if 'file' not in request.files:
-            return render_template("uploadmsg.html",MESSAGE="Invalid upload! E1 No file found")
+            return render_template("upload.html",MESSAGE="Invalid upload! E1 No file found")
         file = request.files['file']
         if file.filename == '':
-            return render_template("uploadmsg.html",MESSAGE="Invalid upload! E2 Empty file name")
+            return render_template("upload.html",MESSAGE="Invalid upload! E2 Empty file name")
         if not file.filename.endswith(".xlsx"):
-            return render_template("uploadmsg.html",MESSAGE="Only .xlsx files are supported!")
+            return render_template("upload.html",MESSAGE="Only .xlsx files are supported!")
         ts=int(time.time())
         file.save(f"/tmp/data{ts}.xlsx")
 
@@ -130,18 +151,18 @@ def upload():
             uploaded=pd.read_excel(f"/tmp/data{ts}.xlsx")
             if len(uploaded.keys())!=3 or not (uploaded.keys()==['Word','Pronounciation','Definition']).all():
                 os.system(f"rm -f /tmp/data{ts}.xlsx")
-                return render_template("uploadmsg.html",MESSAGE="Invalid format! The headings must be 'Word','Pronounciation','Definition'!")
+                return render_template("upload.html",MESSAGE="Invalid format! The headings must be 'Word','Pronounciation','Definition'!")
         except:
             os.system(f"rm -f /tmp/data{ts}.xlsx")
-            return render_template("uploadmsg.html",MESSAGE="Invalid format! The headings must be 'Word','Pronounciation','Definition'!")
+            return render_template("upload.html",MESSAGE="Invalid format! The headings must be 'Word','Pronounciation','Definition'!")
         
         os.system(f"mv /tmp/data{ts}.xlsx ./data.xlsx")
 
         threading.Thread(target=restart).start()
 
-        return render_template("uploadmsg.html",MESSAGE="Data uploaded!")
+        return render_template("upload.html",MESSAGE="Data uploaded!")
     else:
-        return render_template("upload.html")
+        return render_template("upload.html",MESSAGE="")
 
 app.jinja_env.auto_reload = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True
