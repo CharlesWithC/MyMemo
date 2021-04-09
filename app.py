@@ -1,25 +1,11 @@
 from flask import Flask,render_template,request,abort
 import os,random,json,time,hashlib,threading
 
-wordlist=[]
 import pandas as pd
-data=pd.read_excel("./data.xlsx")
-for i in range(len(data["Word"])):
-    word=""
-    pronouncation=data['Pronounciation'][i]
-    if str(pronouncation)=="nan":
-        word=data['Word'][i]
-    else:
-        word=data['Word'][i]
-    wordlist.append((word,data['Definition'][i]))
 
-taglist=open("tagdata","r").read().replace("\n\n","\n").split("\n")
-
-untaggedWordList=wordlist.copy()
-for i in range(len(wordlist)):
-    info=wordlist[i]
-    if info[0] in taglist:
-        untaggedWordList.remove(info)
+wordlist=pd.DataFrame()
+if os.path.exists("./data.xlsx"):
+    wordlist=pd.read_excel("./data.xlsx")
 
 def insert_newlines(string, every=16):
     return '\n'.join(string[i:i+every] for i in range(0, len(string), every))
@@ -30,77 +16,92 @@ app=Flask(__name__)
 def index():
     return render_template("index.html")
 
-@app.route("/getwordid")
-def getwordid():
+@app.route("/getWordID")
+def getWordID():
     word=request.args["word"].replace("%20"," ")
-    showtagged=int(request.args["showtagged"])
-    wl=[]
-    if showtagged:
-        wl=wordlist
-    else:
-        wl=untaggedWordList
-    for i in range(len(wl)):
-        if wl[i][0].startswith(word):
+    for i in range(len(wordlist)):
+        if wordlist["Word"][i].startswith(word):
             return json.dumps({"wordid":i})
     return json.dumps({"wordid":-1})
 
-@app.route("/getword")
-def getword():
+@app.route("/getWord")
+def getWord():
     wordid=int(request.args["wordid"])
-    showtagged=int(request.args["showtagged"])
     splitline=int(request.args["splitline"])
 
-    wl=[]
-    if showtagged:
-        wl=wordlist
-    else:
-        wl=untaggedWordList
+    if wordid>=0 and len(wordlist)>wordid:
+        word=wordlist["Word"][wordid]
 
-    if wordid>=0 and len(wl)>wordid:
-        word=wl[wordid][0]
-
-        definition=wl[wordid][1]
+        definition=wordlist["Definition"][wordid]
         if definition.find("\n")!=-1:
             d=definition.split("\n")
             definition=d[0]+"\n"+insert_newlines('\n'.join(d[1:]),splitline)
         else:
             definition=insert_newlines(definition,splitline)
-        
-        tagged=False
-        if word in taglist:
-            tagged=True
 
-        return json.dumps({"wordid":wordid,"word":word,"definition":definition,"tagged":tagged})
+        status=wordlist["Status"][wordid]
+
+        l={"Default":0,"Tagged":1,"Removed":2}
+        return json.dumps({"wordid":wordid,"word":word,"definition":definition,"status":l[status]})
     else:
         abort(404)
 
-@app.route("/tagword")
-def tagword():
-    wordid=int(request.args["wordid"])
-    showtagged=int(request.args["showtagged"])
-    wl=[]
-    if showtagged:
-        wl=wordlist
-    else:
-        wl=untaggedWordList
-    word=wl[wordid][0]
-    if not word in taglist:
-        taglist.append(word)
-        open("tagdata","a").write(word+"\n")
-        untaggedWordList.remove(wl[wordid])
-        return json.dumps({"tagged":True})
-    else:
-        taglist.remove(word)
-        f=open("tagdata","w")
-        for tag in taglist:
-            f.write(tag+"\n")
-        f.close()
-        untaggedWordList.append(wl[wordid])
-        return json.dumps({"tagged":False})
+@app.route("/getNext")
+def getNext():
+    wordid=-1
+    current=int(request.args["wordid"])
+    status=int(request.args["status"])
+    movetype=request.args["movetype"]
 
-@app.route("/getwordcount")
-def getwordcount():
+    l=["Default","Tagged","Removed"]
+    status=l[status]
+
+    st=-1
+    ed=-1
+    stp=0
+    if movetype=="previous":
+        (st,ed,stp)=(current-1,-1,-1)
+    elif movetype=="next":
+        (st,ed,stp)=(current+1,len(wordlist),1)
+
+    for i in range(st,ed,stp):
+        if status=="Default" and wordlist["Status"][i] in ["Default","Tagged"] or \
+            status=="Tagged" and wordlist["Status"][i] in ["Tagged"] or \
+            status=="Removed" and wordlist["Status"][i] in ["Removed"]:
+            wordid=i
+            break
+
+    if wordid==-1:
+        abort(404)
+
+    splitline=int(request.args["splitline"])
+
+    word=wordlist["Word"][wordid]
+
+    definition=wordlist["Definition"][wordid]
+    if definition.find("\n")!=-1:
+        d=definition.split("\n")
+        definition=d[0]+"\n"+insert_newlines('\n'.join(d[1:]),splitline)
+    else:
+        definition=insert_newlines(definition,splitline)
+
+    status=wordlist["Status"][wordid]
+
+    l={"Default":0,"Tagged":1,"Removed":2}
+    return json.dumps({"wordid":wordid,"word":word,"definition":definition,"status":l[status]})
+
+@app.route("/getWordCount")
+def getWordCount():
     return json.dumps({"count":len(wordlist)})
+
+@app.route("/updateWordStatus")
+def updateWordStatus():
+    wordid=int(request.args["wordid"])
+    status=int(request.args["status"])
+    l=["Default","Tagged","Removed"]
+    wordlist["Status"][wordid]=l[status]
+    wordlist.to_excel('./data.xlsx',sheet_name='Data',index=False)
+    return json.dumps({"succeed":True})
 
 @app.route("/changepwd",methods=['GET','POST'])
 def changepwd():
@@ -123,12 +124,6 @@ def changepwd():
     else:
         return render_template("changepwd.html",MESSAGE="")
 
-def restart():
-    time.sleep(1)
-    os.system("python3 app.py &")
-    os.system("./app &")
-    os.system(f"kill -KILL {os.getpid()}")
-
 @app.route("/upload",methods=['GET','POST'])
 def upload():
     if request.method=='POST':
@@ -149,16 +144,30 @@ def upload():
 
         try:
             uploaded=pd.read_excel(f"/tmp/data{ts}.xlsx")
-            if len(uploaded.keys())!=3 or not (uploaded.keys()==['Word','Pronounciation','Definition']).all():
+            if len(uploaded.keys())!=2 or not (uploaded.keys()==['Word','Definition']).all():
                 os.system(f"rm -f /tmp/data{ts}.xlsx")
-                return render_template("upload.html",MESSAGE="Invalid format! The headings must be 'Word','Pronounciation','Definition'!")
+                return render_template("upload.html",MESSAGE="Invalid format! The headings must be 'Word','Definition'!")
         except:
             os.system(f"rm -f /tmp/data{ts}.xlsx")
-            return render_template("upload.html",MESSAGE="Invalid format! The headings must be 'Word','Pronounciation','Definition'!")
+            return render_template("upload.html",MESSAGE="Invalid format! The headings must be 'Word','Definition'!")
         
-        os.system(f"mv /tmp/data{ts}.xlsx ./data.xlsx")
+        global wordlist
+        uptype=request.form["uptype"]
+        if uptype=="append":
+            newlist=pd.read_excel(f"/tmp/data{ts}.xlsx")
+            for i in range(0,len(newlist)):
+                word=pd.DataFrame([[newlist["Word"][i],newlist["Definition"][i],"Default"]],columns=["Word","Definition","Status"],index=[len(wordlist)])
+                wordlist=wordlist.append(word)
+            wordlist.to_excel('./data.xlsx',sheet_name='Data',index=False)
+        elif uptype=="overwrite":
+            newlist=pd.read_excel(f"/tmp/data{ts}.xlsx")
+            wordlist=pd.DataFrame() # clear old data
+            for i in range(0,len(newlist)):
+                word=pd.DataFrame([[newlist["Word"][i],newlist["Definition"][i],"Default"]],columns=["Word","Definition","Status"],index=[len(wordlist)])
+                wordlist=wordlist.append(word)
+            wordlist.to_excel('./data.xlsx',sheet_name='Data',index=False)
 
-        threading.Thread(target=restart).start()
+        os.system(f"rm -f /tmp/data{ts}.xlsx")
 
         return render_template("upload.html",MESSAGE="Data uploaded!")
     else:

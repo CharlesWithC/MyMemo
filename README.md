@@ -6,21 +6,19 @@
 ## How to install
 ### 0.Clone this repo
 `git clone https://github.com/Charles-1414/WordMemorizer`
-### 1.Prepare the dataset.
-Simply create a Excel Table, save it as `data.xlsx` and put it in the folder where the script will be ran.\
-**The headings must be 'Word','Pronounciation','Definition'**\
-You can update this table using your browser in the future.
-### 2.Install dependencies
+### 1.Install dependencies
 `python3 -m pip install flask`
-### 3.Run the code
+### 2.Run the code
 `python3 app.py`
-### 4.Open your browser and enter URL `localhost:8888`
+### 3.Open your browser and enter URL `localhost:8888`
 **You can change the port manually, just edit the last line of app.py** \
 For example, if you want the app to run on 8080 port, kindly change that line of code to `app.run("0.0.0.0",8080)`
+### 4.Press 'Upload' to set a word list and start using
+**The headings must be 'Word','Definition'**\
+The default Upload Password is 123456. You can change it at /changepwd
 
 ## Usage
 ### It's easy to use, just click around and you'll find how to use
-To upload new data at client side, press the "Upload" button in the right-bottom cornor of the home page. Then enter the Upload Password and upload the file. The default password is 123456. You can change it at /changepwd
 
 ## More Info
 Please open an issue if you met any bugs during the use.

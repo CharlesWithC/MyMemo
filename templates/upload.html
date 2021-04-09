@@ -8,5 +8,11 @@
 <form action="/upload" method="POST" enctype="multipart/form-data">
     <p>Password: <input type="password" name="password" /></p>
     <p>File: <input type="file" name="file" /></p>
+    <p>Type: 
+        <input type="radio" id="append" name="uptype" value="append" checked>
+        <label for="append">Append</label>
+        <input type="radio" id="overwrite" name="uptype" value="overwrite">
+        <label for="overwrite">Overwrite</label>
+    </p>
     <input type="submit" value="Upload" />
 </form>

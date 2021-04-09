@@ -42,7 +42,7 @@
     var bottomOffset=100;
 
     var buttons=[];
-    var btncnt=11;
+    var btncnt=12;
 
     if(isphone){
         fontsize=80;
@@ -64,6 +64,7 @@
         buttons[8]={name:"homepage",x:0,y:0,w:340,h:100};
         buttons[9]={name:"upload",x:0,y:0,w:400,h:100};
         buttons[10]={name:"mode4",x:0,y:0,w:340,h:100};
+        buttons[11]={name:"remove",x:0,y:0,w:340,h:100};
     }
     else{
         buttons[0]={name:"start",x:0,y:0,w:300,h:50};
@@ -77,12 +78,13 @@
         buttons[8]={name:"homepage",x:0,y:0,w:170,h:50};
         buttons[9]={name:"upload",x:0,y:0,w:200,h:50};
         buttons[10]={name:"mode4",x:0,y:0,w:170,h:50};
+        buttons[11]={name:"remove",x:0,y:0,w:170,h:50};
     }
 
     var started=0;
     var random=0;
     var swap=0;
-    var showtagged=0;
+    var showstatus=0;//0: default (normal + tagged) | 1: tagged | 2: removed
     var alterdefinition=0;
     var alterword=1;
     var autoplay=0;//0: none | 1: slow (8 sec) | 2:medium (5 sec) | 3.fast (3 sec)
@@ -94,17 +96,17 @@
     var startfrom=null;
     var word="";
     var definition="";
-    var tagged=0;
+    var status=0;
 
-    $.ajax({url:'/getword?splitline='+splitline+'&showtagged='+showtagged+'&wordid='+wordid, async:false, dataType: "json", success: function(r) { word=r.word; definition=r.definition; tagged=r.tagged; } } );
+    $.ajax({url:'/getWord?splitline='+splitline+'&wordid='+wordid, async:false, dataType: "json", success: function(r) { word=r.word; definition=r.definition; status=r.status; } } );
     if(word==""){
         wordid=0;
         localStorage.setItem("wordid",0);
-        $.ajax({url: '/getword?splitline='+splitline+'&showtagged='+showtagged+'&wordid='+wordid, async: false, dataType: "json", success: function(r) { word=r.word; definition=r.definition; tagged=r.tagged; } });
+        $.ajax({url: '/getWord?splitline='+splitline+'&wordid='+wordid, async: false, dataType: "json", success: function(r) { word=r.word; definition=r.definition; status=r.status; } });
     }
 
     var wordcount=0;
-    $.ajax({ url: '/getwordcount?showtagged='+showtagged, async: false, dataType: "json", success: function(r){ wordcount=r.count; } });
+    $.ajax({ url: '/getWordCount', async: false, dataType: "json", success: function(r){ wordcount=r.count; } });
 
     function btninit(){
         for(var i=0;i<btncnt;i++){
@@ -171,9 +173,9 @@
         ctx.font=fontsize+"px Comic Sans MS";
         ctx.fillStyle=getRndColor(10,100);
         ctx.textAlign="center";
-        ctx.fillText("Show tagged words? ",buttons[7].x-buttons[7].w*1.2,buttons[7].y+buttons[7].h/1.4);
-        l=["No","Yes"];
-        ctx.fillText(l[showtagged],buttons[7].x+buttons[7].w/2,buttons[7].y+buttons[7].h/1.4);
+        ctx.fillText("What to show? ",buttons[7].x-buttons[7].w*1.2,buttons[7].y+buttons[7].h/1.4);
+        l=["All","Tagged","Removed"];
+        ctx.fillText(l[showstatus],buttons[7].x+buttons[7].w/2,buttons[7].y+buttons[7].h/1.4);
 
         buttons[10].x=canvas.width/2+buttons[10].w/1.2;
         buttons[10].y=canvas.height/2+buttons[10].h*6;
@@ -268,10 +270,23 @@
         ctx.roundRect(buttons[6].x,buttons[6].y,buttons[6].w,buttons[6].h);
         ctx.font=fontsize+"px Comic Sans MS";
         ctx.fillStyle=textcolor;
-        if(tagged)
+        if(status==1)
             ctx.fillText("Untag",buttons[6].x+buttons[6].w/2,buttons[6].y+buttons[6].h/1.4);
         else
             ctx.fillText("Tag",buttons[6].x+buttons[6].w/2,buttons[6].y+buttons[6].h/1.4);
+
+        buttons[11].x=canvas.width/2+buttons[11].w*btnMargin;
+        buttons[11].y=canvas.height-bottomOffset-buttons[11].h*3;
+        ctx.fillStyle=blockcolor;
+        ctx.roundRect(buttons[11].x,buttons[11].y,buttons[11].w,buttons[11].h);
+        ctx.font=fontsize+"px Comic Sans MS";
+        ctx.fillStyle=textcolor;
+        if(status==2){
+            ctx.font=(fontsize*0.9)+"px Comic Sans MS";
+            ctx.fillText("Undelete",buttons[11].x+buttons[11].w/2,buttons[11].y+buttons[11].h/1.4);
+        }
+        else
+            ctx.fillText("Remove",buttons[11].x+buttons[11].w/2,buttons[11].y+buttons[11].h/1.4);
 
         buttons[8].x=canvas.width/2-buttons[8].w*(1+btnMargin);
         buttons[8].y=canvas.height-bottomOffset-buttons[8].h*1.5;
@@ -299,12 +314,12 @@
         if(random){t=Math.floor(wordcount*Math.random());}
 
         $.ajax({
-            url: '/getword?splitline='+splitline+'&showtagged='+showtagged+'&wordid='+t,
+            url: '/getWord?splitline='+splitline+'&wordid='+t,
             async: false, dataType: "json",
             success: function(r){
                 word=r.word;
                 definition=r.definition;
-                tagged=r.tagged;
+                status=r.status;
                 wordid=r.wordid;
                 drawWord();
                 if(!isphone){window.onresize=drawWord;}
@@ -333,18 +348,18 @@
                         btninit();
 
                         $.ajax({
-                            url: '/getwordid?showtagged='+showtagged+'&word='+startword,
+                            url: '/getWordID?word='+startword,
                             async: false, dataType: "json",
                             success: function(r){
                                 wordid=r.wordid;
 
                                 $.ajax({
-                                    url: '/getword?splitline='+splitline+'&showtagged='+showtagged+'&wordid='+wordid,
+                                    url: '/getWord?splitline='+splitline+'&wordid='+wordid,
                                     async: false, dataType: "json",
                                     success: function(r){
                                         word=r.word;
                                         definition=r.definition;
-                                        tagged=r.tagged;
+                                        status=r.status;
                                         wordid=r.wordid;
                                         drawWord();
                                         if(!isphone){window.onresize=drawWord;}
@@ -380,17 +395,16 @@
                     if(swap){alterword=0;}
                     else{alterdefinition=0;}
                     
-                    if(buttons[i].name=="previous"){t=parseInt(wordid)-1;}
-                    else if(buttons[i].name=="next"){t=parseInt(wordid)+1;}
+                    t=wordid;
                     if(random){t=Math.floor(wordcount*Math.random());}
 
                     $.ajax({
-                        url: '/getword?splitline='+splitline+'&showtagged='+showtagged+'&wordid='+t,
+                        url: '/getNext?splitline='+splitline+'&wordid='+t+'&status='+showstatus+'&movetype='+buttons[i].name,
                         async: false, dataType: "json",
                         success: function(r){
                             word=r.word;
                             definition=r.definition;
-                            tagged=r.tagged;
+                            status=r.status;
                             wordid=r.wordid;
                             drawWord();
                             if(!isphone){window.onresize=drawWord;}
@@ -412,9 +426,17 @@
                     swap=1-swap;
                     drawHomePage();
                 }
-                else if(started&&buttons[i].name=="tag"){
+                else if(started&&(buttons[i].name=="tag"||buttons[i].name=="remove")){
+                    if(buttons[i].name=="tag"){
+                        if(status==1) status=0;
+                        else if(status==0||status==2) status=1;
+                    }
+                    else if(buttons[i].name=="remove"){
+                        if(status==2) status=0;
+                        else if(status==0||status==1) status=2;
+                    }
                     $.ajax({
-                        url: '/tagword?showtagged='+showtagged+'&wordid='+wordid,
+                        url: '/updateWordStatus?wordid='+wordid+'&status='+status,
                         async: false, dataType: "json",
                         success: function(r){
                             buttons[6].x=canvas.width/2+buttons[6].w*btnMargin;
@@ -423,17 +445,28 @@
                             ctx.roundRect(buttons[6].x,buttons[6].y,buttons[6].w,buttons[6].h);
                             ctx.font=fontsize+"px Comic Sans MS";
                             ctx.fillStyle=textcolor;
-                            if(r.tagged==true){
+                            if(status==1)
                                 ctx.fillText("Untag",buttons[6].x+buttons[6].w/2,buttons[6].y+buttons[6].h/1.4);
-                            }else{
+                            else
                                 ctx.fillText("Tag",buttons[6].x+buttons[6].w/2,buttons[6].y+buttons[6].h/1.4);
-                            }
+
+                            buttons[11].x=canvas.width/2+buttons[11].w*btnMargin;
+                            buttons[11].y=canvas.height-bottomOffset-buttons[11].h*3;
+                            ctx.fillStyle=blockcolor;
+                            ctx.roundRect(buttons[11].x,buttons[11].y,buttons[11].w,buttons[11].h);
+                            ctx.font=fontsize+"px Comic Sans MS";
+                            ctx.fillStyle=textcolor;
+                            if(status==2){
+                                ctx.font=(fontsize*0.9)+"px Comic Sans MS";
+                                ctx.fillText("Undelete",buttons[11].x+buttons[11].w/2,buttons[11].y+buttons[11].h/1.4);
+                            }else
+                                ctx.fillText("Remove",buttons[11].x+buttons[11].w/2,buttons[11].y+buttons[11].h/1.4);
                         }
                     });
                 }
                 else if(buttons[i].name=="mode3"){
-                    $.ajax({ url: '/getwordcount?showtagged='+showtagged, async: false, dataType: "json", success: function(r){ wordcount=r.count; } });
-                    showtagged=1-showtagged;
+                    showstatus+=1;
+                    if(showstatus==3) showstatus=0;
                     drawHomePage();
                 }
                 else if(buttons[i].name=="mode4"){
