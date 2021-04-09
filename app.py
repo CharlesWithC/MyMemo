@@ -1,4 +1,4 @@
-from flask import Flask,render_template,request,abort
+from flask import Flask,render_template,request,abort,send_file
 import os,random,json,time,hashlib,threading
 
 import pandas as pd
@@ -144,26 +144,32 @@ def upload():
 
         try:
             uploaded=pd.read_excel(f"/tmp/data{ts}.xlsx")
-            if len(uploaded.keys())!=2 or not (uploaded.keys()==['Word','Definition']).all():
+            if list(uploaded.keys()).count("Word")!=1 or list(uploaded.keys()).count("Definition")!=1:
                 os.system(f"rm -f /tmp/data{ts}.xlsx")
-                return render_template("upload.html",MESSAGE="Invalid format! The headings must be 'Word','Definition'!")
+                return render_template("upload.html",MESSAGE="Invalid format! The columns must contain 'Word','Definition'!")
         except:
             os.system(f"rm -f /tmp/data{ts}.xlsx")
-            return render_template("upload.html",MESSAGE="Invalid format! The headings must be 'Word','Definition'!")
+            return render_template("upload.html",MESSAGE="Invalid format! The columns must contain 'Word','Definition'!")
         
         global wordlist
         uptype=request.form["uptype"]
         if uptype=="append":
             newlist=pd.read_excel(f"/tmp/data{ts}.xlsx")
             for i in range(0,len(newlist)):
-                word=pd.DataFrame([[newlist["Word"][i],newlist["Definition"][i],"Default"]],columns=["Word","Definition","Status"],index=[len(wordlist)])
+                status="Default"
+                if list(uploaded.keys()).count("Status")==1 and newlist["Status"][i] in ["Default","Tagged","Removed"]:
+                    status=newlist["Status"][i]
+                word=pd.DataFrame([[newlist["Word"][i],newlist["Definition"][i],status]],columns=["Word","Definition","Status"],index=[len(wordlist)])
                 wordlist=wordlist.append(word)
             wordlist.to_excel('./data.xlsx',sheet_name='Data',index=False)
         elif uptype=="overwrite":
             newlist=pd.read_excel(f"/tmp/data{ts}.xlsx")
             wordlist=pd.DataFrame() # clear old data
             for i in range(0,len(newlist)):
-                word=pd.DataFrame([[newlist["Word"][i],newlist["Definition"][i],"Default"]],columns=["Word","Definition","Status"],index=[len(wordlist)])
+                status="Default"
+                if list(uploaded.keys()).count("Status")==1 and newlist["Status"][i] in ["Default","Tagged","Removed"]:
+                    status=newlist["Status"][i]
+                word=pd.DataFrame([[newlist["Word"][i],newlist["Definition"][i],status]],columns=["Word","Definition","Status"],index=[len(wordlist)])
                 wordlist=wordlist.append(word)
             wordlist.to_excel('./data.xlsx',sheet_name='Data',index=False)
 
@@ -172,6 +178,10 @@ def upload():
         return render_template("upload.html",MESSAGE="Data uploaded!")
     else:
         return render_template("upload.html",MESSAGE="")
+
+@app.route("/download")
+def download():
+    return send_file("./data.xlsx",as_attachment=True)
 
 app.jinja_env.auto_reload = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True

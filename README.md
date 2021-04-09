@@ -14,7 +14,7 @@
 **You can change the port manually, just edit the last line of app.py** \
 For example, if you want the app to run on 8080 port, kindly change that line of code to `app.run("0.0.0.0",8080)`
 ### 4.Press 'Upload' to set a word list and start using
-**The headings must be 'Word','Definition'**\
+**The columns must contain 'Word','Definition'**\
 The default Upload Password is 123456. You can change it at /changepwd
 
 ## Usage
@@ -23,3 +23,4 @@ The default Upload Password is 123456. You can change it at /changepwd
 ## More Info
 Please open an issue if you met any bugs during the use.
 You could also open an issue for good suggestions and I'll decide whether to add it.
+**This product can also be used to memorize any other thing such as formulas in Math!**
