@@ -223,7 +223,7 @@
             y: buttons[0].y-buttons[0].h-20,
             height: buttons[0].h-14,
             width: buttons[0].w-14,
-            placeHolder: word
+            value: word
         });
     }
     drawHomePage();
@@ -404,6 +404,21 @@
                         });
                     }
                     else{
+                        wordid=0;
+                        
+                        $.ajax({
+                            url: '/getWord?splitline='+splitline+'&wordid='+wordid,
+                            async: false, dataType: "json",
+                            success: function(r){
+                                word=r.word;
+                                definition=r.definition;
+                                status=r.status;
+                                wordid=r.wordid;
+                                drawWord();
+                                if(!isphone){window.onresize=drawWord;}
+                            }
+                        });
+                        
                         started=1;
                         startfrom.destroy();
                         startfrom=null;
@@ -414,6 +429,7 @@
                 }
                 else if(buttons[i].name=="homepage"){
                     started=0;
+                    appaused=0;
                     clearInterval(apinterval);
                     btninit();
                     drawHomePage();
