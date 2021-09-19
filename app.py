@@ -94,26 +94,35 @@ def getWordID():
 def getNext():
     wordId = -1
 
-    current = int(request.args["wordId"])
-
     op = {-1: "<", 1: ">"}
     order = {-1: "DESC", 1: "ASC"}
-    moveType = int(request.args["moveType"]) # -1: previous, 1: next
-    op = op[moveType]
-    order = order[moveType]
+    moveType = int(request.args["moveType"]) # -1: previous, 1: next, 0: random
+    if moveType in [-1,1]:
+        op = op[moveType]
+        order = order[moveType]
+
+    current = -1
+    if moveType in [-1, 1]:
+        current = int(request.args["wordId"])
 
     statusRequirement = {1: "status = 1 OR status = 2", 2: "status = 2", 3: "status = 3"}
     status = int(request.args["status"])
     statusRequirement = statusRequirement[status]
 
-    cur.execute(f"SELECT wordId, word, definition, status FROM WordList WHERE wordId{op}{current} AND {statusRequirement} ORDER BY wordId {order} LIMIT 1")
-    d = cur.fetchall()
-    if len(d) == 0: # no matching results, then find result from first / end
-        cur.execute(f"SELECT wordId, word, definition, status FROM WordList WHERE {statusRequirement} ORDER BY wordId {order} LIMIT 1")
+    if moveType in [-1,1]:
+        cur.execute(f"SELECT wordId, word, definition, status FROM WordList WHERE wordId{op}{current} AND {statusRequirement} ORDER BY wordId {order} LIMIT 1")
         d = cur.fetchall()
-        if len(d) == 0:
-            abort(404)
-    
+        if len(d) == 0: # no matching results, then find result from first / end
+            cur.execute(f"SELECT wordId, word, definition, status FROM WordList WHERE {statusRequirement} ORDER BY wordId {order} LIMIT 1")
+            d = cur.fetchall()
+
+    elif moveType == 0:
+        cur.execute(f"SELECT wordId, word, definition, status FROM WordList WHERE {statusRequirement} ORDER BY RANDOM() LIMIT 1")
+        d = cur.fetchall()
+
+    if len(d) == 0:
+        abort(404)
+
     (wordId, word, definition, status) = d[0]
     word = decode(word)
     definition = decode(definition)
