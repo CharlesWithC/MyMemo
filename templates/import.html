@@ -1,0 +1,33 @@
+<style>h1,h2,p,input{font-family: 'Comic Sans MS'; src: url('/static/ComicSansMS3.ttf') format('truetype');}</style>
+<title>Word Memorizer - Import Data</title>
+<h1>Import Data - <a href='/'>Go back to homepage</a></h1>
+<br>
+<p>You can upload a new word list here, the file must be a .xlsx table.</p>
+<p>The columns must contain 'Word','Definition'. (It can also contain other columns but Word and Definition are required)</p>
+<p>'Status' is an optional column. If you set it, the script will decide the status of the word.</p>
+<br>
+<p>The "Check duplicate word" option is a function to check for duplicate words between the server-side database and the file you upload.</p>
+<p>If you select "Yes" and set "Type" to "Append", when duplicate words are found, the server will reject the upload and warn you.</p>
+<p>If you select "No", the server will not do the check and all words will be inserted to database.</p>
+<p>Please note that if you search for a word which is duplicated, only the first-imported one will be shown.</p>
+<br>
+<p>To prevent abusing, you must enter your password.</p>
+<p>You can change password <a href="/changePassword">here</a></p>
+<p style="color:red">{{ MESSAGE }}</p>
+<form action="/importData" method="POST" enctype="multipart/form-data">
+    <p>Password: <input type="password" name="password" /></p>
+    <p>File: <input type="file" name="file" /></p>
+    <p>Type: 
+        <input type="radio" id="append" name="updateType" value="append" checked>
+        <label for="append">Append</label>
+        <input type="radio" id="overwrite" name="updateType" value="overwrite">
+        <label for="overwrite">Overwrite</label>
+    </p>
+    <p>Check duplicate word? 
+        <input type="radio" id="yes" name="checkDuplicate" value="yes" checked>
+        <label for="yes">Yes</label>
+        <input type="radio" id="no" name="checkDuplicate" value="no">
+        <label for="no">No</label>
+    </p>
+    <input type="submit" value="Import" />
+</form>

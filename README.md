@@ -15,7 +15,7 @@
 For example, if you want the app to run on 8080 port, kindly change that line of code to `app.run("0.0.0.0",8080)`
 ### 4.Press 'Upload' to set a word list and start using
 **The columns must contain 'Word','Definition'**\
-The default Upload Password is 123456. You can change it at /changepwd
+The default Upload Password is 123456. You can change it at /changePassword
 
 ## Usage
 ### It's easy to use, just click around and you'll find how to use
