@@ -1,7 +1,7 @@
 # Author: @Charles-1414
 
 from flask import Flask, render_template, request, abort, send_file
-import os, random, json, time, base64, hashlib, threading, math
+import os, random, json, time, base64, hashlib
 import urllib.parse
 import sqlite3
 import pandas as pd
@@ -14,12 +14,30 @@ db_exists = os.path.exists("database.db")
 conn = sqlite3.connect("database.db", check_same_thread=False)
 cur = conn.cursor()
 if not db_exists:
-    cur.execute(f"CREATE TABLE WordList (wordId INT, word VARCHAR(1024), definition VARCHAR(1024), status INT)")
+    cur.execute(f"CREATE TABLE WordList (wordId INT, word VARCHAR(1024), translation VARCHAR(1024), status INT)")
     # wordId is unique for each word, when the word is removed, its wordId will refer to null
-    # word and definition are encoded with base64 to prevent datalose
+    # word and translation are encoded with base64 to prevent datalose
     # status is a status code while 1 refers to Default, 2 refers to Tagged and 3 refers to removed
 
-    cur.execute(f"CREATE TABLE DeletedWordList (wordId INT, word VARCHAR(1024), definition VARCHAR(1024), status INT, deleteTimestamp INT)")
+    cur.execute(f"CREATE TABLE ChallengeData (wordId INT, nextChallenge INT, lastChallenge INT)")
+    # Challenge Data is a table that tells when to display the word next time
+    # nextChallenge and lastChallenge are both timestamps
+    # When a new word is added, there should be a record of it with nextChallenge = 0, lastChallenge = -1
+    # When the user says that he/she memorized the word, then nextChallenge will be extended to a longer time based on forgetting curve
+    # When the user says that he/she forgot the word, then nextChallenge will be set to 1 hour later
+
+    # In challenge mode, the words to display contains all the words in the wordlist
+    # The percentage of showing a word is:
+    # 35%: Words that are tagged
+    # 30%: NextChallenge != 0 && NextChallenge <= int(time.time())
+    # 30%: NextChallenge == 0
+    # 5%: Words that are deleted (to make sure the user still remember it)
+
+    cur.execute(f"CREATE TABLE ChallengeRecord (wordId INT, memorized INT, timestamp INT)")
+    # This is the record of historical challenges
+
+    cur.execute(f"CREATE TABLE DeletedWordList (wordId INT, word VARCHAR(1024), translation VARCHAR(1024), status INT, deleteTimestamp INT)")
+    # This is the list of all permanently deleted words (which will never be shown on user side)
 
     cur.execute(f"CREATE TABLE StatusUpdate (wordId INT, wordUpdateId INT, updateTo INT, timestamp INT)")
     # wordUpdateId is the Id for the specific word
@@ -28,11 +46,19 @@ if not db_exists:
     
     cur.execute(f"CREATE TABLE UserInfo (password VARCHAR(256))")
     cur.execute(f"INSERT INTO UserInfo VALUES ('49dc52e6bf2abe5ef6e2bb5b0f1ee2d765b922ae6cc8b95d39dc06c21c848f8c')")
+    # Default password is 123456
 
     conn.commit()
 
 def insert_newlines(string, every=16):
-    return '\n'.join(string[i:i+every] for i in range(0, len(string), every))
+    pos = 0
+    for i in range(0, len(string)):
+        if string[i] == '\n':
+            pos = i
+        if i > pos + every:
+            string = string[:i] + '\n' + string[i:]
+            pos = i
+    return string
 
 def encode(s):
     return base64.b64encode(s.encode()).decode()
@@ -64,18 +90,18 @@ def getWord():
     wordId = int(request.args["wordId"])
     splitLine = int(request.args["splitLine"])
     
-    cur.execute(f"SELECT word, definition, status FROM WordList WHERE wordId = {wordId}")
+    cur.execute(f"SELECT word, translation, status FROM WordList WHERE wordId = {wordId}")
     d = cur.fetchall()
 
     if len(d) == 0:
         abort(404)
     
-    (word, definition, status) = d[0]
+    (word, translation, status) = d[0]
     word = decode(word)
-    definition = decode(definition)
-    definition = insert_newlines(definition, splitLine)
+    translation = decode(translation)
+    translation = insert_newlines(translation, splitLine)
 
-    return json.dumps({"wordId": wordId, "word":word, "definition": definition, "status": status})
+    return json.dumps({"wordId": wordId, "word":word, "translation": translation, "status": status})
 
 @app.route("/getWordId")
 def getWordID():
@@ -110,27 +136,169 @@ def getNext():
     statusRequirement = statusRequirement[status]
 
     if moveType in [-1,1]:
-        cur.execute(f"SELECT wordId, word, definition, status FROM WordList WHERE wordId{op}{current} AND {statusRequirement} ORDER BY wordId {order} LIMIT 1")
+        cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE wordId{op}{current} AND {statusRequirement} ORDER BY wordId {order} LIMIT 1")
         d = cur.fetchall()
         if len(d) == 0: # no matching results, then find result from first / end
-            cur.execute(f"SELECT wordId, word, definition, status FROM WordList WHERE {statusRequirement} ORDER BY wordId {order} LIMIT 1")
+            cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE {statusRequirement} ORDER BY wordId {order} LIMIT 1")
             d = cur.fetchall()
 
     elif moveType == 0:
-        cur.execute(f"SELECT wordId, word, definition, status FROM WordList WHERE {statusRequirement} ORDER BY RANDOM() LIMIT 1")
+        cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE {statusRequirement} ORDER BY RANDOM() LIMIT 1")
         d = cur.fetchall()
 
     if len(d) == 0:
         abort(404)
 
-    (wordId, word, definition, status) = d[0]
+    (wordId, word, translation, status) = d[0]
     word = decode(word)
-    definition = decode(definition)
+    translation = decode(translation)
 
     splitLine = int(request.args["splitLine"])
-    definition = insert_newlines(definition, splitLine)
+    translation = insert_newlines(translation, splitLine)
 
-    return json.dumps({"wordId": wordId, "word": word, "definition": definition, "status": status})
+    return json.dumps({"wordId": wordId, "word": word, "translation": translation, "status": status})
+
+rnd=[1,1,1,1,1,1,1,2,2,2,2,2,2,3,3,3,3,3,3,4]
+def getChallengeWordId(nofour = False):
+    wordId = -1
+
+    # just an interesting random function
+    rnd.remove(4)
+    random.shuffle(rnd)
+    t = rnd[random.randint(0,len(rnd)-1)]
+    rnd.append(4)
+    
+    if t == 1:
+        cur.execute(f"SELECT wordId FROM ChallengeData WHERE lastChallenge <= {int(time.time()) - 1200} ORDER BY wordId ASC")
+        d1 = cur.fetchall()
+        cur.execute(f"SELECT wordId FROM WordList WHERE status = 2 ORDER BY RANDOM()")
+        d2 = cur.fetchall()
+        for dd in d2:
+            if (dd[0],) in d1:
+                wordId = dd[0]
+                break
+
+        if wordId == -1:
+            t = 2
+    
+    if t == 2:
+        cur.execute(f"SELECT wordId FROM ChallengeData WHERE nextChallenge <= {int(time.time())} AND nextChallenge != 0 ORDER BY nextChallenge ASC")
+        d1 = cur.fetchall()
+        cur.execute(f"SELECT wordId FROM WordList WHERE status = 1 ORDER BY wordId ASC")
+        d2 = cur.fetchall()
+        for dd in d1:
+            if (dd[0],) in d2:
+                wordId = dd[0]
+                break
+        
+        if wordId == -1:
+            t = 3
+    
+    if t == 3:
+        cur.execute(f"SELECT wordId FROM ChallengeData WHERE nextChallenge = 0 ORDER BY RANDOM() ASC")
+        d1 = cur.fetchall()
+        cur.execute(f"SELECT wordId FROM WordList WHERE status = 1 ORDER BY wordId ASC")
+        d2 = cur.fetchall()
+        for dd in d1:
+            if (dd[0],) in d2:
+                wordId = dd[0]
+                break
+        
+        if wordId == -1:
+            t = 5
+    
+    if t == 5:
+        cur.execute(f"SELECT wordId FROM ChallengeData WHERE lastChallenge <= {int(time.time()) - 1200} AND nextChallenge != 0 ORDER BY nextChallenge ASC")
+        d1 = cur.fetchall()
+        cur.execute(f"SELECT wordId FROM WordList WHERE status = 1 ORDER BY wordId ASC")
+        d2 = cur.fetchall()
+        for dd in d1:
+            if (dd[0],) in d2:
+                wordId = dd[0]
+                break
+        
+        if wordId == -1:
+            t = 4
+    
+    if t == 4:
+        cur.execute(f"SELECT wordId FROM WordList WHERE status = 3 ORDER BY RANDOM() LIMIT 1")
+        d = cur.fetchall()
+
+        if len(d) != 0:
+            wordId = d[0][0]
+        
+        if wordId == -1:
+            wordId = getChallengeWordId(nofour = True)
+    
+    return wordId
+
+@app.route("/getNextChallenge")
+def getNextChallenge():
+    wordId = getChallengeWordId()
+
+    splitLine = int(request.args["splitLine"])
+    if wordId == -1:
+        return json.dumps({"wordId": wordId, "word": "Out of challenge", "translation": insert_newlines("You are super!\nNo more challenge can be done!",splitLine), "status": 1})
+
+    cur.execute(f"SELECT word, translation, status FROM WordList WHERE wordId = {wordId}")
+    d = cur.fetchall()
+    (word, translation, status) = d[0]
+    word = decode(word)
+    translation = decode(translation)
+
+    translation = insert_newlines(translation, splitLine)
+
+    return json.dumps({"wordId": wordId, "word": word, "translation": translation, "status": status})
+
+# addtime = [20 minute, 1 hour, 3 hour, 8 hour, 1 day, 2 day, 5 day, 10 day]
+addtime = [300, 1200, 3600, 10800, 28800, 86400, 172800, 432000, 864000]
+@app.route("/updateChallengeRecord")
+def updateChallengeRecord():
+    wordId = int(request.args["wordId"])
+    memorized = int(request.args["memorized"])
+    getNext = int(request.args["getNext"])
+    ts = int(time.time())
+
+    cur.execute(f"SELECT memorized, timestamp FROM ChallengeRecord WHERE wordId = {wordId} ORDER BY timestamp DESC")
+    d = cur.fetchall()
+
+    cur.execute(f"INSERT INTO ChallengeRecord VALUES ({wordId},{memorized},{ts})")
+    cur.execute(f"UPDATE ChallengeData SET lastChallenge = {ts} WHERE wordId = {wordId}")
+
+    if memorized == 1:
+        tot = 1
+        for dd in d:
+            if dd[0] == 1:
+                tot += 1
+        if tot > 8:
+            tot = 8
+        cur.execute(f"UPDATE ChallengeData SET nextChallenge = {ts + addtime[tot]} WHERE wordId = {wordId}")
+
+    elif memorized == 0:
+        cur.execute(f"UPDATE ChallengeData SET nextChallenge = {ts + addtime[0]} WHERE wordId = {wordId}")
+    
+    conn.commit()
+
+    if getNext == 1:
+        wordId = getChallengeWordId()
+
+        splitLine = int(request.args["splitLine"])
+        if wordId == -1:
+            return json.dumps({"wordId": wordId, "word": "Out of challenge", "translation": insert_newlines("You are super! No more challenge can be done!",splitLine), "status": 1})
+
+        cur.execute(f"SELECT word, translation, status FROM WordList WHERE wordId = {wordId}")
+        d = cur.fetchall()
+        (word, translation, status) = d[0]
+        word = decode(word)
+        translation = decode(translation)
+
+        translation = insert_newlines(translation, splitLine)
+
+        return json.dumps({"wordId": wordId, "word": word, "translation": translation, "status": status})
+
+    else:
+        return json.dumps({"success": True})
+
 
 @app.route("/getWordCount")
 def getCount():
@@ -204,12 +372,12 @@ def importData():
 
         try:
             uploaded = pd.read_excel(f"/tmp/data{ts}.xlsx")
-            if list(uploaded.keys()).count("Word") != 1 or list(uploaded.keys()).count("Definition")!=1:
+            if list(uploaded.keys()).count("Word") != 1 or list(uploaded.keys()).count("Translation")!=1:
                 os.system(f"rm -f /tmp/data{ts}.xlsx")
-                return render_template("import.html", MESSAGE = "Invalid format! The columns must contain 'Word','Definition'!")
+                return render_template("import.html", MESSAGE = "Invalid format! The columns must contain 'Word','Translation'!")
         except:
             os.system(f"rm -f /tmp/data{ts}.xlsx")
-            return render_template("import.html", MESSAGE = "Invalid format! The columns must contain 'Word','Definition'!")
+            return render_template("import.html", MESSAGE = "Invalid format! The columns must contain 'Word','Translation'!")
         
         #####
         
@@ -259,11 +427,12 @@ def importData():
             
             if type(newlist['Word'][i]) != str:
                 newlist['Word'][i] = "[Unknown word]"
-            if type(newlist['Definition'][i]) != str:
-                newlist['Definition'][i] = "[Unknown definition]"
+            if type(newlist['Translation'][i]) != str:
+                newlist['Translation'][i] = "[Unknown translation]"
 
-            cur.execute(f"INSERT INTO WordList VALUES ({wordId}, '{encode(newlist['Word'][i])}', '{encode(newlist['Definition'][i])}', {status})")
-            
+            cur.execute(f"INSERT INTO WordList VALUES ({wordId}, '{encode(newlist['Word'][i])}', '{encode(newlist['Translation'][i])}', {status})")
+            cur.execute(f"INSERT INTO ChallengeData VALUES ({wordId}, 0, -1)")
+
         conn.commit()
 
         os.system(f"rm -f /tmp/data{ts}.xlsx")
@@ -287,14 +456,14 @@ def exportData():
         exportType = request.form["exportType"]
 
         if exportType == "xlsx":
-            cur.execute(f"SELECT word, definition, status FROM WordList")
+            cur.execute(f"SELECT word, translation, status FROM WordList")
             d = cur.fetchall()
             if len(d) == 0:
                 return render_template("export.html", MESSAGE = "Empty word list!")
             
             xlsx = pd.DataFrame()
             for dd in d:
-                word = pd.DataFrame([[decode(dd[0]), decode(dd[1]), StatusToStatusText[dd[2]]]],columns=["Word","Definition","Status"],index=[len(d)])
+                word = pd.DataFrame([[decode(dd[0]), decode(dd[1]), StatusToStatusText[dd[2]]]],columns=["Word","Translation","Status"],index=[len(d)])
                 xlsx = xlsx.append(word)
 
             xlsx.to_excel('/tmp/export.xlsx', sheet_name='Data', index=False)

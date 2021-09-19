@@ -1,8 +1,10 @@
 <title>Word Memorizer</title>
 <script src="/static/canvasInput.min.js"></script>
+<script src="/static/functions.min.js"></script>
 <script src="/static/jquery-3.5.1.min.js"></script>
 <link href="/static/themes/mint.css" rel="stylesheet">
 <canvas id="canvas" width="1000" height="600"></canvas>
+<input id="startfrom" type="text" style="display:none" />
 <script>
     // Update text font (adding this directly to html does not work)
     $("head").prepend(
@@ -19,29 +21,6 @@
         isphone = 1;
     }
 
-    // A function to generate random color
-    function getRndColor(min, max) {
-        var r = min + (max - min) * Math.random() | 0,
-            g = min + (max - min) * Math.random() | 0,
-            b = min + (max - min) * Math.random() | 0;
-        return 'rgb(' + r + ',' + g + ',' + b + ')';
-    }
-
-    // The canvas type for round rectangle
-    CanvasRenderingContext2D.prototype.roundRect = function (x, y, width, height, radius = 40) {
-        if (width < 2 * radius) radius = width / 2;
-        if (height < 2 * radius) radius = height / 2;
-        this.beginPath();
-        this.moveTo(x + radius, y);
-        this.arcTo(x + width, y, x + width, y + height, radius);
-        this.arcTo(x + width, y + height, x, y + height, radius);
-        this.arcTo(x, y + height, x, y, radius);
-        this.arcTo(x, y, x + width, y, radius);
-        this.closePath();
-        this.fill();
-        return this;
-    }
-
     // Prepare constants for different types of devices
     var fontsize = 40;
     var largefontsize = 60;
@@ -52,7 +31,7 @@
     var bottomOffset = 100;
 
     var buttons = [];
-    var btncnt = 15;
+    var btncnt = 18;
 
     if (isphone) {
         fontsize = 80;
@@ -64,36 +43,42 @@
         bottomOffset = 250;
 
         buttons[0] = {name: "start",x: 0,y: 0,w: 600,h: 100};
+        buttons[6] = {name: "tag",x: 0,y: 0,w: 340,h: 100};
+        buttons[11] = {name: "remove",x: 0,y: 0,w: 340,h: 100};
         buttons[1] = {name: "previous",x: 0,y: 0,w: 340,h: 100};
         buttons[2] = {name: "next",x: 0,y: 0,w: 340,h: 100};
         buttons[3] = {name: "sound",x: 0,y: 0,w: 100,h: 100};
+        buttons[13] = {name: "pauseap",x: 0,y: 0,w: 340,h: 100};
+        buttons[16] = {name: "challengeyes",x: 0,y: 0,w: 340,h: 100};
+        buttons[17] = {name: "challengeno",x: 0,y: 0,w: 340,h: 100};
+        buttons[15] = {name: "mode0",x: 0,y: 0,w: 500,h: 100};
         buttons[4] = {name: "mode1",x: 0,y: 0,w: 340,h: 100};
         buttons[5] = {name: "mode2",x: 0,y: 0,w: 340,h: 100};
-        buttons[6] = {name: "tag",x: 0,y: 0,w: 340,h: 100};
         buttons[7] = {name: "mode3",x: 0,y: 0,w: 340,h: 100};
-        buttons[8] = {name: "homepage",x: 0,y: 0,w: 340,h: 100};
-        buttons[9] = {name: "import",x: 0,y: 0,w: 400,h: 100};
         buttons[10] = {name: "mode4",x: 0,y: 0,w: 340,h: 100};
-        buttons[11] = {name: "remove",x: 0,y: 0,w: 340,h: 100};
-        buttons[12] = {name: "export",x: 0,y: 0,w: 400,h: 100};
-        buttons[13] = {name: "pauseap",x: 0,y: 0,w: 340,h: 100};
+        buttons[8] = {name: "homepage",x: 0,y: 0,w: 340,h: 100};
         buttons[14] = {name: "settings",x: 0,y: 0,w: 400,h: 100};
+        buttons[9] = {name: "import",x: 0,y: 0,w: 400,h: 100};
+        buttons[12] = {name: "export",x: 0,y: 0,w: 400,h: 100};
     } else {
         buttons[0] = {name: "start",x: 0,y: 0,w: 300,h: 50};
+        buttons[6] = {name: "tag",x: 0,y: 0,w: 170,h: 50};
+        buttons[11] = {name: "remove",x: 0,y: 0,w: 170,h: 50};
         buttons[1] = {name: "previous",x: 0,y: 0,w: 170,h: 50};
         buttons[2] = {name: "next",x: 0,y: 0,w: 170,h: 50};
         buttons[3] = {name: "sound",x: 0,y: 0,w: 50,h: 50};
+        buttons[13] = {name: "pauseap",x: 0,y: 0,w: 170,h: 50};
+        buttons[16] = {name: "challengeyes",x: 0,y: 0,w: 170,h: 50};
+        buttons[17] = {name: "challengeno",x: 0,y: 0,w: 170,h: 50};
+        buttons[15] = {name: "mode0",x: 0,y: 0,w: 250,h: 50};
         buttons[4] = {name: "mode1",x: 0,y: 0,w: 170,h: 50};
         buttons[5] = {name: "mode2",x: 0,y: 0,w: 170,h: 50};
-        buttons[6] = {name: "tag",x: 0,y: 0,w: 170,h: 50};
         buttons[7] = {name: "mode3",x: 0,y: 0,w: 170,h: 50};
-        buttons[8] = {name: "homepage",x: 0,y: 0,w: 170,h: 50};
-        buttons[9] = {name: "import",x: 0,y: 0,w: 200,h: 50};
         buttons[10] = {name: "mode4",x: 0,y: 0,w: 170,h: 50};
-        buttons[11] = {name: "remove",x: 0,y: 0,w: 170,h: 50};
-        buttons[12] = {name: "export",x: 0,y: 0,w: 200,h: 50};
-        buttons[13] = {name: "pauseap",x: 0,y: 0,w: 170,h: 50};
+        buttons[8] = {name: "homepage",x: 0,y: 0,w: 170,h: 50};
         buttons[14] = {name: "settings",x: 0,y: 0,w: 200,h: 50};
+        buttons[9] = {name: "import",x: 0,y: 0,w: 200,h: 50};
+        buttons[12] = {name: "export",x: 0,y: 0,w: 200,h: 50};
     }
 
     // Settings variables
@@ -108,7 +93,7 @@
         swap = 1;
     }
     swap = parseInt(swap);
-    var showStatus = localStorage.getItem("showStatus"); //1: default (normal + tagged) | 2: tagged | 3: removed
+    var showStatus = localStorage.getItem("showStatus"); //1: default (normal + tagged) | 2: tagged | 3: deleted
     if (showStatus == null) {
         showStatus = 1;
     }
@@ -121,15 +106,25 @@
     var apinterval = -1;
     var appaused = 0;
 
+    displayMode = localStorage.getItem("displayMode");
+    if (displayMode == null){
+        displayMode = 1;
+    }
+    displayMode = parseInt(displayMode);
+
     var wordId = localStorage.getItem("wordId");
 
-    var startfrom = null;
     var word = "";
-    var definition = "";
+    var translation = "";
     var status = 0;
 
+    var lastpage = 0;
     var currentpage = 0; // 0: homepage, 1: wordpage, 2: settings
     var speaker = window.speechSynthesis;
+
+    var displayingAnswer = 0;
+
+    var challengeStatus = 0;
 
     if (wordId != null) {
         // Get the word to start from
@@ -139,7 +134,7 @@
             dataType: "json",
             success: function (r) {
                 word = r.word;
-                definition = r.definition;
+                translation = r.translation;
                 status = r.status;
             }
         });
@@ -154,11 +149,33 @@
             success: function (r) {
                 wordId = r.wordId;
                 word = r.word;
-                definition = r.definition;
+                translation = r.translation;
                 status = r.status;
             }
         });
     }
+
+    lastInputChange = 0;
+    function displayRandomWord(){
+        if(lastInputChange<Date.now()-10000){
+            $.ajax({
+                url: '/getNext?splitLine=' + splitLine + '&status=' + showStatus + '&moveType=0',
+                async: false,
+                dataType: "json",
+                success: function (r) {
+                    wordId = r.wordId;
+                    word = r.word;
+                    translation = r.translation;
+                    status = r.status;
+                    $("#startfrom").val(word);
+                }
+            });
+        }
+    }
+    $('#startfrom').on('input', function() {
+        lastInputChange = Date.now();
+    });
+    randomDisplayer = setInterval(displayRandomWord, 5000);
 
     // Get word count
     var wordcount = 0;
@@ -203,25 +220,11 @@
         ctx.fillStyle = getRndColor(10, 100);
         ctx.textAlign = "center";
         ctx.fillText("Start", buttons[0].x + buttons[0].w / 2, buttons[0].y + buttons[0].h / 1.4);
-
-        buttons[9].x = canvas.width - buttons[9].w * 1.2;
-        buttons[9].y = canvas.height - buttons[9].h * 1.2;
-        ctx.fillStyle = getRndColor(160, 250);
-        ctx.roundRect(buttons[9].x, buttons[9].y, buttons[9].w, buttons[9].h);
-        ctx.font = fontsize + "px Comic Sans MS";
-        ctx.fillStyle = getRndColor(10, 100);
-        ctx.textAlign = "center";
-        ctx.fillText("Import", buttons[9].x + buttons[9].w / 2, buttons[9].y + buttons[9].h / 1.4);
-
-        buttons[12].x = canvas.width - buttons[12].w * 1.2;
-        buttons[12].y = canvas.height - buttons[12].h * 2.5;
-        ctx.fillStyle = getRndColor(160, 250);
-        ctx.roundRect(buttons[12].x, buttons[12].y, buttons[12].w, buttons[12].h);
-        ctx.font = fontsize * 0.9 + "px Comic Sans MS";
-        ctx.fillStyle = getRndColor(10, 100);
-        ctx.textAlign = "center";
-        ctx.fillText("Export", buttons[12].x + buttons[12].w / 2, buttons[12].y + buttons[12].h / 1.4);
-
+        if(displayMode == 0){
+            ctx.fillText("Practice Mode", buttons[0].x + buttons[0].w / 2, buttons[0].y + buttons[0].h * 2.2);
+        } else if(displayMode == 1){
+            ctx.fillText("Challenge Mode", buttons[0].x + buttons[0].w / 2, buttons[0].y + buttons[0].h * 2.2);
+        }
         buttons[14].x = canvas.width - buttons[14].w * 1.2;
         buttons[14].y = buttons[14].h * 0.2;
         ctx.fillStyle = getRndColor(160, 250);
@@ -232,30 +235,21 @@
         ctx.fillText("Settings", buttons[14].x + buttons[14].w / 2, buttons[14].y + buttons[14].h / 1.4);
 
         // Draw the input box "Start from"
-        if (startfrom != null) {
-            startfrom.destroy();
-            startfrom = null;
+        $("#startfrom").attr("style","position:absolute;left:"+(buttons[0].x+15)+";top:"+(buttons[0].y-buttons[0].h-20)+";height:"+(buttons[0].h)+";width:"+(buttons[0].w-14)+";font-size:"+fontsize+";font-family:Comic Sans MS");
+        if(randomDisplayer == -1){
+            randomDisplayer = setInterval(displayRandomWord, 5000);
         }
-        startfrom = new CanvasInput({
-            canvas: document.getElementById('canvas'),
-            fontSize: fontsize,
-            fontFamily: "Comic Sans MS",
-            x: buttons[0].x,
-            y: buttons[0].y - buttons[0].h - 20,
-            height: buttons[0].h - 14,
-            width: buttons[0].w - 14,
-            value: word
-        });
     }
     drawHomePage();
 
-    var pausedForSettings = false;
     // Draw settings buttons on canvas
     function drawSettings() {
-        if(startfrom != null){
-            startfrom.destroy();
-            startfrom = null;
+        if(randomDisplayer != -1){
+            clearInterval(randomDisplayer);
+            randomDisplayer = -1;
         }
+        $("#startfrom").val("");
+        $("#startfrom").hide();
         btninit();
         // Get page width & height
         canvas.width = document.body.clientWidth;
@@ -265,51 +259,117 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // Draw buttons
-        buttons[4].x = canvas.width / 2 + buttons[4].w / 1.2;
-        buttons[4].y = buttons[4].h * 2;
+        buttons[15].x = canvas.width / 2 + buttons[15].w / 2.5;
+        buttons[15].y = buttons[15].h * 2;
         ctx.fillStyle = getRndColor(160, 250);
-        ctx.roundRect(buttons[4].x, buttons[4].y, buttons[4].w, buttons[4].h);
+        ctx.roundRect(buttons[15].x, buttons[15].y, buttons[15].w, buttons[15].h);
         ctx.font = fontsize + "px Comic Sans MS";
         ctx.fillStyle = getRndColor(10, 100);
         ctx.textAlign = "center";
-        ctx.fillText("Display order: ", buttons[4].x - buttons[4].w * 1.2, buttons[4].y + buttons[4].h / 1.4);
-        l = ["Sequence", "Random"]
-        ctx.fillText(l[random], buttons[4].x + buttons[4].w / 2, buttons[4].y + buttons[4].h / 1.4);
+        ctx.fillText("Mode:", buttons[15].x - buttons[15].w * 0.7, buttons[15].y + buttons[15].h / 1.4);
+        l = ["Practice", "Challenge"];
+        ctx.fillText(l[displayMode], buttons[15].x + buttons[15].w / 2, buttons[15].y + buttons[15].h / 1.4);
 
-        buttons[5].x = canvas.width / 2 + buttons[5].w / 1.2;
-        buttons[5].y = buttons[5].h * 3.5;
+        if(displayMode == 0){
+            buttons[4].x = canvas.width / 2 + buttons[4].w / 1.2;
+            buttons[4].y = buttons[4].h * 3.5;
+            ctx.fillStyle = getRndColor(160, 250);
+            ctx.roundRect(buttons[4].x, buttons[4].y, buttons[4].w, buttons[4].h);
+            ctx.font = fontsize + "px Comic Sans MS";
+            ctx.fillStyle = getRndColor(10, 100);
+            ctx.textAlign = "center";
+            ctx.fillText("Display order: ", buttons[4].x - buttons[4].w * 1.2, buttons[4].y + buttons[4].h / 1.4);
+            l = ["Sequence", "Random"]
+            ctx.fillText(l[random], buttons[4].x + buttons[4].w / 2, buttons[4].y + buttons[4].h / 1.4);
+
+            buttons[5].x = canvas.width / 2 + buttons[5].w / 1.2;
+            buttons[5].y = buttons[5].h * 5;
+            ctx.fillStyle = getRndColor(160, 250);
+            ctx.roundRect(buttons[5].x, buttons[5].y, buttons[5].w, buttons[5].h);
+            ctx.font = fontsize + "px Comic Sans MS";
+            ctx.fillStyle = getRndColor(10, 100);
+            ctx.textAlign = "center";
+            ctx.fillText("Swap word & translation? ", buttons[5].x - buttons[5].w * 1.2, buttons[5].y + buttons[5].h / 1.4);
+            l = ["No", "Yes"];
+            ctx.fillText(l[swap], buttons[5].x + buttons[5].w / 2, buttons[5].y + buttons[5].h / 1.4);
+            
+            buttons[7].x = canvas.width / 2 + buttons[7].w / 1.2;
+            buttons[7].y = buttons[7].h * 6.5;
+            ctx.fillStyle = getRndColor(160, 250);
+            ctx.roundRect(buttons[7].x, buttons[7].y, buttons[7].w, buttons[7].h);
+            ctx.font = fontsize + "px Comic Sans MS";
+            ctx.fillStyle = getRndColor(10, 100);
+            ctx.textAlign = "center";
+            ctx.fillText("What to show? ", buttons[7].x - buttons[7].w * 1.2, buttons[7].y + buttons[7].h / 1.4);
+            l = ["", "All", "Tagged", "Deleted"];
+            ctx.fillText(l[showStatus], buttons[7].x + buttons[7].w / 2, buttons[7].y + buttons[7].h / 1.4);
+
+            buttons[10].x = canvas.width / 2 + buttons[10].w / 1.2;
+            buttons[10].y = buttons[10].h * 8;
+            ctx.fillStyle = getRndColor(160, 250);
+            ctx.roundRect(buttons[10].x, buttons[10].y, buttons[10].w, buttons[10].h);
+            ctx.font = fontsize + "px Comic Sans MS";
+            ctx.fillStyle = getRndColor(10, 100);
+            ctx.textAlign = "center";
+            ctx.fillText("Auto play:", buttons[10].x - buttons[10].w * 1.2, buttons[10].y + buttons[10].h / 1.4);
+            l = ["Disabled", "Slow", "Medium", "Fast"];
+            ctx.fillText(l[autoPlay], buttons[10].x + buttons[10].w / 2, buttons[10].y + buttons[10].h / 1.4);
+        }else if(displayMode == 1){
+            x = canvas.width / 2 + buttons[4].w / 1.2;
+            y = buttons[4].h * 3.5;
+            ctx.font = fontsize + "px Comic Sans MS";
+            ctx.fillStyle = getRndColor(10, 100);
+            ctx.textAlign = "center";
+            ctx.fillText("Display order: ", x - buttons[4].w * 1.2, y + buttons[4].h / 1.4);
+            ctx.fillText("Random", x + buttons[4].w / 2, y + buttons[4].h / 1.4);
+            
+            buttons[5].x = canvas.width / 2 + buttons[5].w / 1.2;
+            buttons[5].y = buttons[5].h * 5;
+            ctx.fillStyle = getRndColor(160, 250);
+            ctx.roundRect(buttons[5].x, buttons[5].y, buttons[5].w, buttons[5].h);
+            ctx.font = fontsize + "px Comic Sans MS";
+            ctx.fillStyle = getRndColor(10, 100);
+            ctx.textAlign = "center";
+            ctx.fillText("Swap word & translation? ", buttons[5].x - buttons[5].w * 1.2, buttons[5].y + buttons[5].h / 1.4);
+            l = ["No", "Yes"];
+            ctx.fillText(l[swap], buttons[5].x + buttons[5].w / 2, buttons[5].y + buttons[5].h / 1.4);
+            
+            x = canvas.width / 2 + buttons[7].w / 1.2;
+            y = buttons[7].h * 6.5;
+            ctx.font = fontsize + "px Comic Sans MS";
+            ctx.fillStyle = getRndColor(10, 100);
+            ctx.textAlign = "center";
+            ctx.fillText("What to show? ", x - buttons[7].w * 1.2, y + buttons[7].h / 1.4);
+            ctx.fillText("Everything", x + buttons[7].w / 2, y + buttons[7].h / 1.4);
+
+            x = canvas.width / 2 + buttons[10].w / 1.2;
+            y = buttons[10].h * 8;
+            ctx.font = fontsize + "px Comic Sans MS";
+            ctx.fillStyle = getRndColor(10, 100);
+            ctx.textAlign = "center";
+            ctx.fillText("Auto play:", x - buttons[10].w * 1.2, y + buttons[10].h / 1.4);
+            ctx.fillText("Disabled", x + buttons[10].w / 2, y + buttons[10].h / 1.4);
+        }
+
+        buttons[9].x = canvas.width / 2 - buttons[9].w * (1 + btnMargin * 0.6);
+        buttons[9].y = canvas.height - buttons[9].h * 1.2;
         ctx.fillStyle = getRndColor(160, 250);
-        ctx.roundRect(buttons[5].x, buttons[5].y, buttons[5].w, buttons[5].h);
+        ctx.roundRect(buttons[9].x, buttons[9].y, buttons[9].w, buttons[9].h);
         ctx.font = fontsize + "px Comic Sans MS";
         ctx.fillStyle = getRndColor(10, 100);
         ctx.textAlign = "center";
-        ctx.fillText("Swap word & definition? ", buttons[5].x - buttons[5].w * 1.2, buttons[5].y + buttons[5].h / 1.4);
-        l = ["No", "Yes"];
-        ctx.fillText(l[swap], buttons[5].x + buttons[5].w / 2, buttons[5].y + buttons[5].h / 1.4);
+        ctx.fillText("Import", buttons[9].x + buttons[9].w / 2, buttons[9].y + buttons[9].h / 1.4);
 
-        buttons[7].x = canvas.width / 2 + buttons[7].w / 1.2;
-        buttons[7].y = buttons[7].h * 5;
+        buttons[12].x = canvas.width / 2 + buttons[12].w * btnMargin * 0.6;
+        buttons[12].y = canvas.height - buttons[12].h * 1.2;
         ctx.fillStyle = getRndColor(160, 250);
-        ctx.roundRect(buttons[7].x, buttons[7].y, buttons[7].w, buttons[7].h);
-        ctx.font = fontsize + "px Comic Sans MS";
+        ctx.roundRect(buttons[12].x, buttons[12].y, buttons[12].w, buttons[12].h);
+        ctx.font = fontsize * 0.9 + "px Comic Sans MS";
         ctx.fillStyle = getRndColor(10, 100);
         ctx.textAlign = "center";
-        ctx.fillText("What to show? ", buttons[7].x - buttons[7].w * 1.2, buttons[7].y + buttons[7].h / 1.4);
-        l = ["", "All", "Tagged", "Removed"];
-        ctx.fillText(l[showStatus], buttons[7].x + buttons[7].w / 2, buttons[7].y + buttons[7].h / 1.4);
+        ctx.fillText("Export", buttons[12].x + buttons[12].w / 2, buttons[12].y + buttons[12].h / 1.4);
 
-        buttons[10].x = canvas.width / 2 + buttons[10].w / 1.2;
-        buttons[10].y = buttons[10].h * 6.5;
-        ctx.fillStyle = getRndColor(160, 250);
-        ctx.roundRect(buttons[10].x, buttons[10].y, buttons[10].w, buttons[10].h);
-        ctx.font = fontsize + "px Comic Sans MS";
-        ctx.fillStyle = getRndColor(10, 100);
-        ctx.textAlign = "center";
-        ctx.fillText("Auto play speed:", buttons[10].x - buttons[10].w * 1.2, buttons[10].y + buttons[10].h / 1.4);
-        l = ["None", "Slow", "Medium", "Fast"];
-        ctx.fillText(l[autoPlay], buttons[10].x + buttons[10].w / 2, buttons[10].y + buttons[10].h / 1.4);
-
-        if(!pausedForSettings){
+        if(lastpage != 1){
             buttons[8].x = buttons[8].w * 0.2;
             buttons[8].y = buttons[8].h * 0.2;
             ctx.fillStyle = getRndColor(160, 250);
@@ -317,7 +377,7 @@
             ctx.font = fontsize + "px Comic Sans MS";
             ctx.fillStyle = getRndColor(10, 100);
             ctx.fillText("Home", buttons[8].x + buttons[8].w / 2, buttons[8].y + buttons[8].h / 1.4);
-        }else if(pausedForSettings){
+        }else if(lastpage == 1){
             buttons[0].x = buttons[8].w * 0.2;
             buttons[0].y = buttons[8].h * 0.2;
             ctx.fillStyle = getRndColor(160, 250);
@@ -325,12 +385,17 @@
             ctx.font = fontsize + "px Comic Sans MS";
             ctx.fillStyle = getRndColor(10, 100);
             ctx.fillText("Resume", buttons[0].x + buttons[8].w / 2, buttons[0].y + buttons[8].h / 1.4);
-            ctx.fillText("Paused", buttons[10].x - buttons[10].w * 1.2, buttons[0].y + buttons[8].h / 1.4);         
+            ctx.fillText("Paused", canvas.width / 2, buttons[8].h * 0.2 + buttons[8].h / 1.4);
         }
     }
 
     // Draw word information on canvas
     function drawWord(showSwapped = 0, cancelSpeaker = 0) {
+        if(randomDisplayer != -1){
+            clearInterval(randomDisplayer);
+            randomDisplayer = -1;
+        }
+
         btninit();
         // Get page width & height
         canvas.width = document.body.clientWidth;
@@ -342,41 +407,25 @@
         // Update word id
         localStorage.setItem("wordId", wordId);
 
-        // Display word and definition
+        // Display word or translation
         ctx.font = fontsize + "px Comic Sans MS";
         ctx.fillStyle = "#000000";
         ctx.textAlign = "center";
-        if (swap == 0 || swap == 1 && showSwapped == 1) {
-            ctx.fillText(word, canvas.width / 2, canvas.height / 2 - 300);
+        if (swap == 0 || swap == 1 && showSwapped == 1 || swap == 1 && challengeStatus == 1 || displayMode == 1 && wordId == -1) {
+            ctx.fillText(word, canvas.width / 2, canvas.height / 2 - 200);
         }
-        if (swap == 1 || swap == 0 && showSwapped == 1) {
-            var lines = definition.split('\n');
+        if (swap == 1 || swap == 0 && showSwapped == 1 || swap == 0 && challengeStatus == 1 || swap == 0 && challengeStatus == 3 || displayMode == 1 && wordId == -1) {
+            var lines = translation.split('\n');
             for (var i = 0; i < lines.length; i++)
-                ctx.fillText(lines[i], canvas.width / 2, canvas.height / 2 - 200 + (i * lineheight));
+                ctx.fillText(lines[i], canvas.width / 2, canvas.height / 2 - 100 + (i * lineheight));
         }
+        $("#startfrom").val(word);
 
         // Get random color
         blockcolor = getRndColor(160, 250);
         textcolor = getRndColor(10, 100);
 
-        // Draw buttons
-        buttons[1].x = canvas.width / 2 - buttons[1].w * (1 + btnMargin);
-        buttons[1].y = canvas.height - bottomOffset;
-        ctx.fillStyle = blockcolor;
-        ctx.roundRect(buttons[1].x, buttons[1].y, buttons[1].w, buttons[1].h);
-        ctx.font = fontsize + "px Comic Sans MS";
-        ctx.fillStyle = textcolor;
-        ctx.fillText("Previous", buttons[1].x + buttons[1].w / 2, buttons[1].y + buttons[1].h / 1.4);
-
-        buttons[2].x = canvas.width / 2 + buttons[2].w * btnMargin;
-        buttons[2].y = canvas.height - bottomOffset;
-        ctx.fillStyle = blockcolor;
-        ctx.roundRect(buttons[2].x, buttons[2].y, buttons[2].w, buttons[2].h);
-        ctx.font = fontsize + "px Comic Sans MS";
-        ctx.fillStyle = textcolor;
-        ctx.fillText("Next", buttons[2].x + buttons[2].w / 2, buttons[2].y + buttons[2].h / 1.4);
-
-        if (swap == 0) {
+        if ((swap == 0 || swap == 1 && showSwapped == 1 || displayMode == 1 && challengeStatus > 0) && wordId != -1) {
             buttons[3].x = canvas.width / 2 - buttons[3].w / 2;
             buttons[3].y = canvas.height - bottomOffset;
             ctx.fillStyle = blockcolor;
@@ -386,45 +435,108 @@
             ctx.fillText("🔈", buttons[3].x + buttons[3].w / 2, buttons[3].y + buttons[3].h / 1.4);
         }
 
-        buttons[6].x = canvas.width / 2 + buttons[6].w * btnMargin;
-        buttons[6].y = canvas.height - bottomOffset - buttons[6].h * 1.5;
-        ctx.fillStyle = blockcolor;
-        ctx.roundRect(buttons[6].x, buttons[6].y, buttons[6].w, buttons[6].h);
-        ctx.font = fontsize + "px Comic Sans MS";
-        ctx.fillStyle = textcolor;
-        if (status == 2)
-            ctx.fillText("Untag", buttons[6].x + buttons[6].w / 2, buttons[6].y + buttons[6].h / 1.4);
-        else
-            ctx.fillText("Tag", buttons[6].x + buttons[6].w / 2, buttons[6].y + buttons[6].h / 1.4);
+        if(displayMode == 0){ // Practice mode
+            ctx.fillText("Practice Mode", canvas.width / 2, buttons[0].h * 0.2 + buttons[0].h / 1.4);
 
-        buttons[11].x = canvas.width / 2 + buttons[11].w * btnMargin;
-        buttons[11].y = canvas.height - bottomOffset - buttons[11].h * 3;
-        ctx.fillStyle = blockcolor;
-        ctx.roundRect(buttons[11].x, buttons[11].y, buttons[11].w, buttons[11].h);
-        ctx.font = fontsize + "px Comic Sans MS";
-        ctx.fillStyle = textcolor;
-        if (status == 3) {
-            ctx.font = (fontsize * 0.9) + "px Comic Sans MS";
-            ctx.fillText("Undelete", buttons[11].x + buttons[11].w / 2, buttons[11].y + buttons[11].h / 1.4);
-        } else
-            ctx.fillText("Delete", buttons[11].x + buttons[11].w / 2, buttons[11].y + buttons[11].h / 1.4);
+            // Draw buttons
+            buttons[1].x = canvas.width / 2 - buttons[1].w * (1 + btnMargin);
+            buttons[1].y = canvas.height - bottomOffset;
+            ctx.fillStyle = blockcolor;
+            ctx.roundRect(buttons[1].x, buttons[1].y, buttons[1].w, buttons[1].h);
+            ctx.font = fontsize + "px Comic Sans MS";
+            ctx.fillStyle = textcolor;
+            ctx.fillText("Previous", buttons[1].x + buttons[1].w / 2, buttons[1].y + buttons[1].h / 1.4);
 
-        buttons[8].x = canvas.width / 2 - buttons[8].w * (1 + btnMargin);
-        buttons[8].y = canvas.height - bottomOffset - buttons[8].h * 1.5;
-        ctx.fillStyle = blockcolor;
-        ctx.roundRect(buttons[8].x, buttons[8].y, buttons[8].w, buttons[8].h);
-        ctx.font = fontsize + "px Comic Sans MS";
-        ctx.fillStyle = textcolor;
-        ctx.fillText("Home", buttons[8].x + buttons[8].w / 2, buttons[8].y + buttons[8].h / 1.4);
+            buttons[2].x = canvas.width / 2 + buttons[2].w * btnMargin;
+            buttons[2].y = canvas.height - bottomOffset;
+            ctx.fillStyle = blockcolor;
+            ctx.roundRect(buttons[2].x, buttons[2].y, buttons[2].w, buttons[2].h);
+            ctx.font = fontsize + "px Comic Sans MS";
+            ctx.fillStyle = textcolor;
+            ctx.fillText("Next", buttons[2].x + buttons[2].w / 2, buttons[2].y + buttons[2].h / 1.4);
 
-        buttons[14].x = canvas.width - buttons[14].w * 1.2;
-        buttons[14].y = buttons[14].h * 0.2;
-        ctx.fillStyle = getRndColor(160, 250);
-        ctx.roundRect(buttons[14].x, buttons[14].y, buttons[14].w, buttons[14].h);
-        ctx.font = fontsize * 0.9 + "px Comic Sans MS";
-        ctx.fillStyle = getRndColor(10, 100);
-        ctx.textAlign = "center";
-        ctx.fillText("Settings", buttons[14].x + buttons[14].w / 2, buttons[14].y + buttons[14].h / 1.4);
+            buttons[6].x = canvas.width / 2 - buttons[6].w * (1 + btnMargin);
+            buttons[6].y = canvas.height - bottomOffset - buttons[6].h * 1.5;
+            ctx.fillStyle = blockcolor;
+            ctx.roundRect(buttons[6].x, buttons[6].y, buttons[6].w, buttons[6].h);
+            ctx.font = fontsize + "px Comic Sans MS";
+            ctx.fillStyle = textcolor;
+            if (status == 2)
+                ctx.fillText("Untag", buttons[6].x + buttons[6].w / 2, buttons[6].y + buttons[6].h / 1.4);
+            else
+                ctx.fillText("Tag", buttons[6].x + buttons[6].w / 2, buttons[6].y + buttons[6].h / 1.4);
+
+            buttons[11].x = canvas.width / 2 + buttons[11].w * btnMargin;
+            buttons[11].y = canvas.height - bottomOffset - buttons[11].h * 1.5;
+            ctx.fillStyle = blockcolor;
+            ctx.roundRect(buttons[11].x, buttons[11].y, buttons[11].w, buttons[11].h);
+            ctx.font = fontsize + "px Comic Sans MS";
+            ctx.fillStyle = textcolor;
+            if (status == 3) {
+                ctx.font = (fontsize * 0.9) + "px Comic Sans MS";
+                ctx.fillText("Undelete", buttons[11].x + buttons[11].w / 2, buttons[11].y + buttons[11].h / 1.4);
+            } else
+                ctx.fillText("Delete", buttons[11].x + buttons[11].w / 2, buttons[11].y + buttons[11].h / 1.4);
+        } else if(displayMode == 1){ // Challenge mode
+            ctx.fillText("Challenge Mode", canvas.width / 2, buttons[0].h * 0.2 + buttons[0].h / 1.4);
+            
+            if(wordId != -1){
+                if(challengeStatus != 3){
+                    buttons[16].x = canvas.width / 2 - buttons[16].w * (1 + btnMargin);
+                    buttons[16].y = canvas.height - bottomOffset - buttons[16].h * 1.5;
+                    ctx.fillStyle = blockcolor;
+                    ctx.roundRect(buttons[16].x, buttons[16].y, buttons[16].w, buttons[16].h);
+                    ctx.font = fontsize + "px Comic Sans MS";
+                    ctx.fillStyle = textcolor;
+                    ctx.fillText("Yes", buttons[16].x + buttons[16].w / 2, buttons[16].y + buttons[16].h / 1.4);
+                }
+
+                if(challengeStatus == 0) {
+                    ctx.fillText("Do you remember it?",buttons[16].x + buttons[16].w * 1.5, buttons[16].y - buttons[16].h / 1.4);
+                } else if(challengeStatus == 1) {
+                    ctx.fillText("Are you correct?",buttons[16].x + buttons[16].w * 1.6, buttons[16].y - buttons[16].h / 1.4);
+                } else if(challengeStatus == 3){
+                    x = canvas.width / 2 - buttons[16].w * (1 + btnMargin);
+                    y = canvas.height - bottomOffset - buttons[16].h * 1.5;
+                    ctx.fillText("Try to memorize it!",x + buttons[16].w * 1.5, y - buttons[16].h / 1.4);
+                }
+
+                buttons[17].x = canvas.width / 2 + buttons[17].w * btnMargin;
+                buttons[17].y = canvas.height - bottomOffset - buttons[17].h * 1.5;
+                ctx.fillStyle = blockcolor;
+                ctx.roundRect(buttons[17].x, buttons[17].y, buttons[17].w, buttons[17].h);
+                ctx.font = fontsize + "px Comic Sans MS";
+                ctx.fillStyle = textcolor;
+                if(challengeStatus != 3){
+                    ctx.fillText("No", buttons[17].x + buttons[17].w / 2, buttons[17].y + buttons[17].h / 1.4);
+                } else {
+                    ctx.fillText("Next", buttons[17].x + buttons[17].w / 2, buttons[17].y + buttons[17].h / 1.4);
+                }
+
+                buttons[6].x = canvas.width / 2 - buttons[6].w * (1 + btnMargin);
+                buttons[6].y = canvas.height - bottomOffset;
+                ctx.fillStyle = blockcolor;
+                ctx.roundRect(buttons[6].x, buttons[6].y, buttons[6].w, buttons[6].h);
+                ctx.font = fontsize + "px Comic Sans MS";
+                ctx.fillStyle = textcolor;
+                if (status == 2)
+                    ctx.fillText("Untag", buttons[6].x + buttons[6].w / 2, buttons[6].y + buttons[6].h / 1.4);
+                else
+                    ctx.fillText("Tag", buttons[6].x + buttons[6].w / 2, buttons[6].y + buttons[6].h / 1.4);
+
+                buttons[11].x = canvas.width / 2 + buttons[11].w * btnMargin;
+                buttons[11].y = canvas.height - bottomOffset;
+                ctx.fillStyle = blockcolor;
+                ctx.roundRect(buttons[11].x, buttons[11].y, buttons[11].w, buttons[11].h);
+                ctx.font = fontsize + "px Comic Sans MS";
+                ctx.fillStyle = textcolor;
+                if (status == 3) {
+                    ctx.font = (fontsize * 0.9) + "px Comic Sans MS";
+                    ctx.fillText("Undelete", buttons[11].x + buttons[11].w / 2, buttons[11].y + buttons[11].h / 1.4);
+                } else
+                    ctx.fillText("Delete", buttons[11].x + buttons[11].w / 2, buttons[11].y + buttons[11].h / 1.4);
+            }
+        }
 
         // If autoplayer is on, then autoplay
         if (autoPlay != 0) {
@@ -447,6 +559,34 @@
                 speaker.speak(msg);
             }
         }
+        
+        function showTopBtn(){
+            buttons[8].x = buttons[8].w * 0.2;
+            buttons[8].y = buttons[8].h * 0.2;
+            ctx.fillStyle = getRndColor(160, 250);
+            ctx.roundRect(buttons[8].x, buttons[8].y, buttons[8].w, buttons[8].h);
+            ctx.font = fontsize + "px Comic Sans MS";
+            ctx.fillStyle = getRndColor(10, 100);
+            ctx.fillText("Home", buttons[8].x + buttons[8].w / 2, buttons[8].y + buttons[8].h / 1.4);
+
+            buttons[14].x = canvas.width - buttons[14].w * 1.2;
+            buttons[14].y = buttons[14].h * 0.2;
+            ctx.fillStyle = getRndColor(160, 250);
+            ctx.roundRect(buttons[14].x, buttons[14].y, buttons[14].w, buttons[14].h);
+            ctx.font = fontsize * 0.9 + "px Comic Sans MS";
+            ctx.fillStyle = getRndColor(10, 100);
+            ctx.textAlign = "center";
+            ctx.fillText("Settings", buttons[14].x + buttons[14].w / 2, buttons[14].y + buttons[14].h / 1.4);
+        }
+        if(lastpage == 0 || lastpage == 2){
+            sleep(50).then(() => {
+                showTopBtn();
+            })
+        }
+        else{
+            showTopBtn();
+        }
+        lastpage = 1;
     }
 
     // Draw current page
@@ -484,17 +624,97 @@
             dataType: "json",
             success: function (r) {
                 word = r.word;
-                definition = r.definition;
+                translation = r.translation;
                 status = r.status;
                 wordId = r.wordId;
+                displayingAnswer = 0;
                 drawWord();
             },
             error: function (r,textStatus, errorThrown) {
                 word = textStatus + " " + errorThrown;
-                definition = "Maybe change the settings?\nOr check your connection?";
+                translation = "Maybe change the settings?\nOr check your connection?";
                 drawWord(1,1);
             }
         });
+    }
+
+    function startfunc(){
+        if(displayMode == 0){ // Practice mode
+            // If autoplayer is on, then autoplay
+            if ($("#startfrom").val()!="") {
+                startword = $("#startfrom").val();
+                // User decided a word to start from
+                // Get its word id
+                $.ajax({
+                    url: '/getWordId?word=' + startword,
+                    async: false,
+                    dataType: "json",
+                    success: function (r) {
+                        lastpage = currentpage;
+                        currentpage = 1;
+                        wordId = r.wordId;
+                        started = 1;
+                        btninit();
+                        $("#startfrom").hide();
+                        $("#startfrom").val("");
+
+                        // Word exist and get info of the word
+                        $.ajax({
+                            url: '/getWord?splitLine=' + splitLine + '&wordId=' + wordId,
+                            async: false,
+                            dataType: "json",
+                            success: function (r) {
+                                word = r.word;
+                                translation = r.translation;
+                                status = r.status;
+                                wordId = r.wordId;
+                                drawWord();
+                            }
+                        });
+                        
+                        if (apinterval == -1 && autoPlay != 0) {
+                            apinterval = setInterval(autoPlayer, apdelay[autoPlay] * 1000);
+                        }
+                    },
+
+                    // Word doesn't exist then start from default
+                    error: function (r) {
+                        $("#startfrom").val("Not found!");
+                    }
+                });
+            } else {
+                // User didn't entered a word to start from, then start from default
+                lastpage = currentpage;
+                currentpage = 1;
+                started = 1;
+                $("#startfrom").hide();
+                btninit();
+                drawWord();
+                if (apinterval == -1 && autoPlay != 0) {
+                    apinterval = setInterval(autoPlayer, apdelay[autoPlay] * 1000);
+                }
+            }
+        }
+        else if(displayMode == 1){ // Challenge mode
+            started = 1;
+            lastpage = currentpage;
+            currentpage = 1;
+            $.ajax({
+                url: '/getNextChallenge?splitLine=' + splitLine,
+                async: false,
+                dataType: "json",
+                success: function (r) {
+                    $("#startfrom").hide();
+                    word = r.word;
+                    $("#startfrom").val(word);
+                    translation = r.translation;
+                    status = r.status;
+                    wordId = r.wordId;
+                    btninit();
+                    drawWord();
+                }
+            });
+        }
     }
 
     // Handle user click
@@ -511,76 +731,7 @@
                 console.log(buttons[i].name + " button triggered");
                 // Start memorizing mode
                 if (buttons[i].name == "start") {
-                    // If autoplayer is on, then autoplay
-                    if (startfrom != null && startfrom.selectText()._value != "") {
-                        startword = startfrom.selectText()._value;
-                        // User decided a word to start from
-                        // Get its word id
-                        $.ajax({
-                            url: '/getWordId?word=' + startword,
-                            async: false,
-                            dataType: "json",
-                            success: function (r) {
-                                currentpage = 1;
-                                wordId = r.wordId;
-                                started = 1;
-                                btninit();
-                                startfrom.destroy();
-                                startfrom = null;
-
-                                // Word exist and get info of the word
-                                $.ajax({
-                                    url: '/getWord?splitLine=' + splitLine + '&wordId=' + wordId,
-                                    async: false,
-                                    dataType: "json",
-                                    success: function (r) {
-                                        word = r.word;
-                                        definition = r.definition;
-                                        status = r.status;
-                                        wordId = r.wordId;
-                                        drawWord();
-                                    }
-                                });
-                                
-                                if (apinterval == -1 && autoPlay != 0) {
-                                    apinterval = setInterval(autoPlayer, apdelay[autoPlay] * 1000);
-                                }
-                            },
-
-                            // Word doesn't exist then start from default
-                            error: function (r) {
-                                startfrom.value = "Not found!"
-                            }
-                        });
-                    } else {
-                        // User didn't entered a word to start from, then start from default
-                        currentpage = 1;
-                        started = 1;
-                        if(startfrom!=null){
-                            startfrom.destroy();
-                            startfrom = null;
-                        }
-                        btninit();
-                        drawWord();
-                        if (apinterval == -1 && autoPlay != 0) {
-                            apinterval = setInterval(autoPlayer, apdelay[autoPlay] * 1000);
-                        }
-                    }
-                } else if (buttons[i].name == "homepage") {
-                    currentpage = 0;
-                    started = 0;
-                    appaused = 0;
-                    clearInterval(apinterval); apinterval = -1;
-                    speaker.cancel();
-                    drawCurrentPage();
-                } else if (buttons[i].name == "settings") {
-                    if(started!=0) pausedForSettings = true;
-                    currentpage = 2;
-                    started = 0;
-                    appaused = 0;
-                    clearInterval(apinterval); apinterval = -1;
-                    speaker.cancel();
-                    drawSettings();
+                    startfunc();
                 } else if (started && (buttons[i].name == "previous" || buttons[i].name == "next")) {
                     // Go to previous / next word
                     t = wordId;
@@ -595,6 +746,8 @@
                         moveType = 1;
                     }
 
+                    displayingAnswer = 0;
+
                     $.ajax({
                         url: '/getNext?splitLine=' + splitLine + '&wordId=' + t + '&status=' + showStatus +
                             '&moveType=' + moveType,
@@ -602,30 +755,17 @@
                         dataType: "json",
                         success: function (r) {
                             word = r.word;
-                            definition = r.definition;
+                            translation = r.translation;
                             status = r.status;
                             wordId = r.wordId;
                             drawWord();
                         },
                         error: function (r, textStatus, errorThrown) {
                             word = textStatus + " " + errorThrown;
-                            definition = "Maybe change the settings?\nOr check your connection?";
+                            translation = "Maybe change the settings?\nOr check your connection?";
                             drawWord(1,1);
                         }
                     });
-                } else if (started && buttons[i].name == "sound" && !speaker.speaking) {
-                    if (swap == 0) {
-                        msg = new SpeechSynthesisUtterance(word);
-                        speaker.speak(msg);
-                    }
-                } else if (buttons[i].name == "mode1") {
-                    random = 1 - random;
-                    localStorage.setItem("random",random);
-                    drawCurrentPage();
-                } else if (buttons[i].name == "mode2") {
-                    swap = 1 - swap;
-                    localStorage.setItem("swap",swap);
-                    drawCurrentPage();
                 } else if (started && (buttons[i].name == "tag" || buttons[i].name == "remove")) {
                     // Update word status
                     if (buttons[i].name == "tag") {
@@ -668,7 +808,77 @@
                                     buttons[11].h / 1.4);
                         }
                     });
-                } else if (buttons[i].name == "mode3") {
+                } else if (started && buttons[i].name == "sound" && !speaker.speaking) {
+                    msg = new SpeechSynthesisUtterance(word);
+                    speaker.speak(msg);
+                } else if (buttons[i].name == "challengeyes"){
+                    if(challengeStatus == 0){
+                        challengeStatus = 1;
+                        drawWord();
+                    }else if(challengeStatus == 1){
+                        $.ajax({
+                            url: '/updateChallengeRecord?wordId=' + wordId + '&memorized=1&getNext=1&splitLine=' + splitLine,
+                            async: false,
+                            dataType: "json",
+                            success: function (r) {
+                                challengeStatus = 0;
+                                word = r.word;
+                                translation = r.translation;
+                                status = r.status;
+                                wordId = r.wordId;
+                                drawWord();
+                            }
+                        });                
+                    }
+                } else if (buttons[i].name == "challengeno"){
+                    if(challengeStatus == 0 || challengeStatus == 1){
+                        challengeStatus = 3;
+                        drawWord();
+                        $.ajax({
+                            url: '/updateChallengeRecord?wordId=' + wordId + '&memorized=0&getNext=0',
+                            async: false,
+                            dataType: "json"
+                        }); 
+                    } else if(challengeStatus == 3){
+                        $.ajax({
+                            url: '/getNextChallenge?splitLine=' + splitLine,
+                            async: false,
+                            dataType: "json",
+                            success: function (r) {
+                                challengeStatus = 0;
+                                word = r.word;
+                                translation = r.translation;
+                                status = r.status;
+                                wordId = r.wordId;
+                                drawWord();
+                            }
+                        });
+                    }
+                }else if (buttons[i].name == "homepage") {
+                    lastpage = currentpage;
+                    currentpage = 0;
+                    started = 0;
+                    appaused = 0;
+                    clearInterval(apinterval); apinterval = -1;
+                    speaker.cancel();
+                    drawCurrentPage();
+                } else if (buttons[i].name == "settings") {
+                    lastpage = currentpage;
+                    currentpage = 2;
+                    started = 0;
+                    appaused = 0;
+                    clearInterval(apinterval); apinterval = -1;
+                    speaker.cancel();
+                    drawSettings();
+                } else if (buttons[i].name == "mode1") {
+                    random = 1 - random;
+                    localStorage.setItem("random",random);
+                    drawCurrentPage();
+                } else if (buttons[i].name == "mode2") {
+                    swap = 1 - swap;
+                    localStorage.setItem("swap",swap);
+                    drawCurrentPage();
+                }else if (buttons[i].name == "mode3") {
                     showStatus += 1;
                     if (showStatus == 4) showStatus = 1;
                     localStorage.setItem("showStatus",showStatus);
@@ -677,6 +887,10 @@
                     autoPlay += 1;
                     if (autoPlay == 4) autoPlay = 0;
                     localStorage.setItem("autoPlay",autoPlay);
+                    drawCurrentPage();
+                } else if (buttons[i].name == "mode0") {
+                    displayMode = 1 - displayMode;
+                    localStorage.setItem("displayMode",displayMode);
                     drawCurrentPage();
                 } else if (buttons[i].name == "pauseap") {
                     if (appaused && apinterval == -1) apinterval = setInterval(autoPlayer, apdelay[autoPlay] * 1000);
@@ -690,11 +904,18 @@
                 }
             }
         }
-
+        
         if (!btntriggered && started) {
-            drawWord(1);
+            displayingAnswer = 1 - displayingAnswer;
+            drawWord(displayingAnswer);
         }
     }
+
+    $("#startfrom").on('keypress',function(e) {
+        if(e.which == 13) {
+            startfunc();
+        }
+    });
 
     document.addEventListener("click", clickHandler, false);
 </script>
