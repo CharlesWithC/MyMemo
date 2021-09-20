@@ -494,10 +494,22 @@ def changePassword():
     else:
         return render_template("changepwd.html", MESSAGE = "")
 
+duplicate = []
 @app.route("/addWord")
 def addWord():
-    word = encode(request.form["word"])
-    translation = encode(request.form["translation"])
+    word = urllib.parse.unquote(request.args["word"])
+    word = encode(word)
+
+    if not word in duplicate:
+        cur.execute(f"SELECT * FROM WordList WHERE word = '{word}'")
+        if len(cur.fetchall()) != 0:
+            duplicate.append(word)
+            return json.dumps({"duplicate":True})
+    else:
+        duplicate.remove(word)
+
+    translation = urllib.parse.unquote(request.args["translation"].replace("<br>","\n"))
+    translation = encode(translation)
 
     cur.execute(f"SELECT wordId FROM WordList ORDER BY wordId DESC LIMIT 1")
     d = cur.fetchall()
