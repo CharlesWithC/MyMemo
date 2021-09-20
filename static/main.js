@@ -1,3 +1,7 @@
+// Copyright (C) 2021 Charles All rights reserved.
+// Author: @Charles-1414
+// License: GNU General Public License v3.0
+
 // Update text font (adding this directly to html does not work)
 $("head").prepend(
     "<style> @font-face { font-family: 'Comic Sans MS'; src: url('/static/ComicSansMS3.ttf') format('truetype'); } </style>"
@@ -515,8 +519,8 @@ $.ajax({
 // Initialize button position
 function btninit() {
     for (var i = 0; i < btncnt; i++) {
-        buttons[i].x = canvas.width + 1;
-        buttons[i].y = canvas.height + 1;
+        buttons[i].x = canvas.width + 5000;
+        buttons[i].y = canvas.height + 5000;
     }
 }
 
