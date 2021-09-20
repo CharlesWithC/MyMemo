@@ -1,7 +1,7 @@
 # Author: @Charles-1414
 
 from flask import Flask, render_template, request, abort, send_file
-import os, random, json, time, base64, hashlib
+import os, random, json, datetime, time, base64, hashlib
 import urllib.parse
 import sqlite3
 import pandas as pd
@@ -115,6 +115,155 @@ def getWordID():
         # NOTE: The user should be warned when they try to insert multiple records with the same word
 
     return json.dumps({"wordId" : wordId})
+
+@app.route("/getWordStat")
+def getWordStat():
+    wordId = int(request.args["wordId"])
+    cur.execute(f"SELECT word FROM WordList WHERE wordId = {wordId}")
+    d = cur.fetchall()
+    if len(d) == 0:
+        abort(404)
+    word = decode(d[0][0])
+    
+    cur.execute(f"SELECT updateTo, timestamp FROM StatusUpdate WHERE wordId = {wordId} AND updateTo <= 0")
+    d = cur.fetchall()[0]
+    astatus = d[0] # how it is added
+    ats = d[1] # addition timestamp
+
+    cur.execute(f"SELECT updateTo, timestamp FROM StatusUpdate WHERE wordId = {wordId}")
+    d = cur.fetchall()
+
+    status = 1
+
+    tagcnt = 0
+    lsttag = 0
+    untagcnt = 0
+    lstuntag = 0
+
+    delcnt = 0
+    lstdel = 0
+    undelcnt = 0
+    lstundel = 0
+
+    for i in range(2, len(d)):
+        if status == 1 and d[i][0] == 2:
+            tagcnt += 1
+            lsttag = d[i][1]
+        elif status == 2 and d[i][0] == 1:
+            untagcnt += 1
+            lstuntag = d[i][1]
+        elif status == 1 and d[i][0] == 3:
+            delcnt += 1
+            lstdel = d[i][1]
+        elif status == 3 and d[i][0] == 1:
+            undelcnt += 1
+            lstundel = d[i][1]
+        status = d[i][0]
+    
+    cur.execute(f"SELECT nextChallenge, lastChallenge FROM ChallengeData WHERE wordId = {wordId}")
+    d = cur.fetchall()[0]
+    nxt = d[0]
+    lst = d[1]
+
+    cur.execute(f"SELECT memorized, timestamp FROM ChallengeRecord WHERE wordId = {wordId}")
+    d = cur.fetchall()
+    appeared = len(d)
+    mem = 0
+    lstmem = 0
+    fgt = 0
+    lstfgt = 0
+    for dd in d:
+        if dd[0] == 1:
+            mem += 1
+            lstmem = dd[1]
+        elif dd[0] == 0:
+            fgt += 1
+            lstfgt = dd[1]
+    lst30d = 0
+    lst30dmem = 0
+    lst7d = 0
+    lst7dmem = 0
+    lst1d = 0
+    lst1dmem = 0
+    for dd in d:
+        if (time.time() - dd[1]) <= 86400*30:
+            lst30d += 1
+            lst30dmem += dd[0]
+        if (time.time() - dd[1]) <= 86400*7:
+            lst7d += 1
+            lst7dmem += dd[0]
+        if (time.time() - dd[1]) <= 86400:
+            lst1d += 1
+            lst1dmem += dd[0]
+    
+    def ts2dt(ts):
+        return datetime.datetime.fromtimestamp(ts)
+
+    res = f"About {word}\n"
+
+    if astatus == 0:
+        res += f"Added at {ts2dt(ats)} with .xlsx importer.\n"    
+    elif astatus == -1:
+        res += f"Added at {ts2dt(ats)} on website.\n"    
+
+    if tagcnt > 0:
+        res += f"Tagged for {tagcnt} times\n(Last time: {ts2dt(lsttag)}),\n"
+    else:
+        res += f"Never tagged,\n"
+    if delcnt > 0:
+        res += f"Deleted for {delcnt} times\n(Last time: {ts2dt(lstdel)}).\n"
+    else:
+        res += f"Never deleted.\n"
+
+    res += "\n"
+
+    res += "In Challenge Mode,\n"
+    if appeared > 0:
+        res += f"It has appeared for {appeared} times,\n"
+        if mem > 0:
+            if fgt == 0:
+                res += f"You remembered it every time. Good job!\n"
+            else:
+                res += f"While recorded as memorized for {mem} times,\n"
+                if fgt > 0:
+                    res += f"And recorded as forgotten for {fgt} times.\n"
+        else:
+            res += f"You never memorized it.\n"
+        
+        res += "\n"
+
+        # res += f"In the last 30 days,"
+        # if lst30d > 0:
+        #     res += f"it appeared {lst30d} times\nAnd you remembered it for {lst30dmem} times.\n"
+        # else:
+        #     res += f"it hasn't appeared."
+        # if lst7d > 0:
+        #     res += f"it appeared {lst7d} times\nAnd you remembered it for {lst7dmem} times.\n"
+        # else:
+        #     res += f"it hasn't appeared."
+        # if lst1d > 0:
+        #     res += f"it appeared {lst1d} times\nAnd you remembered it for {lst1dmem} times.\n"
+        # else:
+        #     res += f"it hasn't appeared."
+        
+        res += f"The last time it appeared is at\n{ts2dt(lst)},\n"
+        if lstmem < lstfgt:
+            res += "And you forgot it that time.\n"
+        else:
+            res += "And you remembered it that time.\n"
+
+        res += "\n"
+
+        res += f"Normally, it will appear again at around\n{ts2dt(nxt)},\n"
+        res += f"If you do Challenge Mode at that time.\n"
+
+        res += "\n"
+        res += "[Time in UTC + 0]"
+
+    else:
+        res += f"It hasn't appeared yet."
+    
+    return json.dumps({"msg":res})
 
 @app.route("/getNext")
 def getNext():
@@ -344,6 +493,24 @@ def changePassword():
         
     else:
         return render_template("changepwd.html", MESSAGE = "")
+
+@app.route("/addWord")
+def addWord():
+    word = encode(request.form["word"])
+    translation = encode(request.form["translation"])
+
+    cur.execute(f"SELECT wordId FROM WordList ORDER BY wordId DESC LIMIT 1")
+    d = cur.fetchall()
+    if len(d) != 0:
+        wordId = d[0][0]
+
+    cur.execute(f"INSERT INTO WordList VALUES ({wordId+1},'{word}','{translation}',1)")
+    cur.execute(f"INSERT INTO ChallengeData VALUES ({wordId+1},0,-1)")
+    updateWordStatus(wordId+1,-1)
+    updateWordStatus(wordId+1,1)
+    conn.commit()
+
+    return json.dumps({"success":True})
 
 @app.route("/importData", methods = ['GET', 'POST'])
 def importData():

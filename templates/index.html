@@ -23,6 +23,7 @@
 
     // Prepare constants for different types of devices
     var fontsize = 40;
+    var smallfontsize = 20;
     var largefontsize = 60;
     var splitLine = 16;
 
@@ -31,10 +32,11 @@
     var bottomOffset = 100;
 
     var buttons = [];
-    var btncnt = 18;
+    var btncnt = 20;
 
     if (isphone) {
         fontsize = 80;
+        smallfontsize = 40;
         largefontsize = 120;
         splitLine = 12;
 
@@ -58,6 +60,7 @@
         buttons[10] = {name: "mode4",x: 0,y: 0,w: 340,h: 100};
         buttons[8] = {name: "homepage",x: 0,y: 0,w: 340,h: 100};
         buttons[14] = {name: "settings",x: 0,y: 0,w: 400,h: 100};
+        buttons[18] = {name: "statistics",x: 0,y: 0,w: 400,h: 100};
         buttons[9] = {name: "import",x: 0,y: 0,w: 400,h: 100};
         buttons[12] = {name: "export",x: 0,y: 0,w: 400,h: 100};
     } else {
@@ -77,6 +80,7 @@
         buttons[10] = {name: "mode4",x: 0,y: 0,w: 170,h: 50};
         buttons[8] = {name: "homepage",x: 0,y: 0,w: 170,h: 50};
         buttons[14] = {name: "settings",x: 0,y: 0,w: 200,h: 50};
+        buttons[18] = {name: "statistics",x: 0,y: 0,w: 200,h: 50};
         buttons[9] = {name: "import",x: 0,y: 0,w: 200,h: 50};
         buttons[12] = {name: "export",x: 0,y: 0,w: 200,h: 50};
     }
@@ -120,6 +124,7 @@
 
     var lastpage = 0;
     var currentpage = 0; // 0: homepage, 1: wordpage, 2: settings
+    var statson = 0; // statistics ondisplay
     var speaker = window.speechSynthesis;
 
     var displayingAnswer = 0;
@@ -160,7 +165,7 @@
         if(lastInputChange<Date.now()-10000){
             $.ajax({
                 url: '/getNext?splitLine=' + splitLine + '&status=' + showStatus + '&moveType=0',
-                async: false,
+                async: true,
                 dataType: "json",
                 success: function (r) {
                     wordId = r.wordId;
@@ -236,6 +241,9 @@
 
         // Draw the input box "Start from"
         $("#startfrom").attr("style","position:absolute;left:"+(buttons[0].x+15)+";top:"+(buttons[0].y-buttons[0].h-20)+";height:"+(buttons[0].h)+";width:"+(buttons[0].w-14)+";font-size:"+fontsize+";font-family:Comic Sans MS");
+        if(displayMode == 2){
+            $("#startfrom").attr("disabled","disabled");
+        }
         if(randomDisplayer == -1){
             randomDisplayer = setInterval(displayRandomWord, 5000);
         }
@@ -560,6 +568,15 @@
             }
         }
         
+        buttons[18].x = canvas.width - buttons[18].w * 1.2;
+        buttons[18].y = buttons[18].h * 1.5;
+        ctx.fillStyle = getRndColor(160, 250);
+        ctx.roundRect(buttons[18].x, buttons[18].y, buttons[18].w, buttons[18].h);
+        ctx.font = fontsize * 0.9 + "px Comic Sans MS";
+        ctx.fillStyle = getRndColor(10, 100);
+        ctx.textAlign = "center";
+        ctx.fillText("Statistics", buttons[18].x + buttons[18].w / 2, buttons[18].y + buttons[18].h / 1.4);
+        
         function showTopBtn(){
             buttons[8].x = buttons[8].w * 0.2;
             buttons[8].y = buttons[8].h * 0.2;
@@ -620,7 +637,7 @@
         // Get next word
         $.ajax({
             url: url,
-            async: false,
+            async: true,
             dataType: "json",
             success: function (r) {
                 word = r.word;
@@ -751,7 +768,7 @@
                     $.ajax({
                         url: '/getNext?splitLine=' + splitLine + '&wordId=' + t + '&status=' + showStatus +
                             '&moveType=' + moveType,
-                        async: false,
+                        async: true,
                         dataType: "json",
                         success: function (r) {
                             word = r.word;
@@ -769,37 +786,33 @@
                 } else if (started && (buttons[i].name == "tag" || buttons[i].name == "remove")) {
                     // Update word status
                     if (buttons[i].name == "tag") {
-                        if (status == 1) status = 0;
-                        else if (status == 0 || status == 2) status = 1;
+                        if (status == 2) status = 1;
+                        else if (status == 1 || status == 3) status = 2;
                     } else if (buttons[i].name == "remove") {
-                        if (status == 2) status = 0;
-                        else if (status == 0 || status == 1) status = 2;
+                        if (status == 3) status = 1;
+                        else if (status == 1 || status == 2) status = 3;
                     }
                     $.ajax({
-                        url: '/updateWordStatus?wordId=' + wordId + '&status=' + status,
-                        async: false,
+                        url: '/updateStatus?wordId=' + wordId + '&status=' + status,
+                        async: true,
                         dataType: "json",
                         success: function (r) {
-                            buttons[6].x = canvas.width / 2 + buttons[6].w * btnMargin;
-                            buttons[6].y = canvas.height - bottomOffset - buttons[6].h * 1.5;
                             ctx.fillStyle = blockcolor;
                             ctx.roundRect(buttons[6].x, buttons[6].y, buttons[6].w, buttons[6].h);
                             ctx.font = fontsize + "px Comic Sans MS";
                             ctx.fillStyle = textcolor;
-                            if (status == 1)
+                            if (status == 2)
                                 ctx.fillText("Untag", buttons[6].x + buttons[6].w / 2, buttons[6].y +
                                     buttons[6].h / 1.4);
                             else
                                 ctx.fillText("Tag", buttons[6].x + buttons[6].w / 2, buttons[6].y + buttons[
                                     6].h / 1.4);
 
-                            buttons[11].x = canvas.width / 2 + buttons[11].w * btnMargin;
-                            buttons[11].y = canvas.height - bottomOffset - buttons[11].h * 3;
                             ctx.fillStyle = blockcolor;
                             ctx.roundRect(buttons[11].x, buttons[11].y, buttons[11].w, buttons[11].h);
                             ctx.font = fontsize + "px Comic Sans MS";
                             ctx.fillStyle = textcolor;
-                            if (status == 2) {
+                            if (status == 3) {
                                 ctx.font = (fontsize * 0.9) + "px Comic Sans MS";
                                 ctx.fillText("Undelete", buttons[11].x + buttons[11].w / 2, buttons[11].y +
                                     buttons[11].h / 1.4);
@@ -818,7 +831,7 @@
                     }else if(challengeStatus == 1){
                         $.ajax({
                             url: '/updateChallengeRecord?wordId=' + wordId + '&memorized=1&getNext=1&splitLine=' + splitLine,
-                            async: false,
+                            async: true,
                             dataType: "json",
                             success: function (r) {
                                 challengeStatus = 0;
@@ -833,16 +846,16 @@
                 } else if (buttons[i].name == "challengeno"){
                     if(challengeStatus == 0 || challengeStatus == 1){
                         challengeStatus = 3;
-                        drawWord();
                         $.ajax({
                             url: '/updateChallengeRecord?wordId=' + wordId + '&memorized=0&getNext=0',
-                            async: false,
+                            async: true,
                             dataType: "json"
                         }); 
+                        drawWord();
                     } else if(challengeStatus == 3){
                         $.ajax({
                             url: '/getNextChallenge?splitLine=' + splitLine,
-                            async: false,
+                            async: true,
                             dataType: "json",
                             success: function (r) {
                                 challengeStatus = 0;
@@ -870,6 +883,28 @@
                     clearInterval(apinterval); apinterval = -1;
                     speaker.cancel();
                     drawSettings();
+                } else if (buttons[i].name == "statistics"){
+                    statson = 1;
+                    statistics = "[Failed to fetch statistics]"
+                    $.ajax({
+                        url: '/getWordStat?wordId=' + wordId,
+                        async: true,
+                        dataType: "json",
+                        success: function (r) {
+                            statistics = r.msg;
+                            ctx.fillStyle = getRndColor(10, 100);
+                            ctx.roundRect(buttons[6].x-5, canvas.height/2 - 240 - 5, buttons[11].x - buttons[6].x + buttons[11].w + 10, canvas.height - bottomOffset - (canvas.height/2 - 220) + 50);
+                            ctx.fillStyle = getRndColor(160, 250);
+                            ctx.roundRect(buttons[6].x, canvas.height/2 - 240, buttons[11].x - buttons[6].x + buttons[11].w, canvas.height - bottomOffset - (canvas.height/2 - 220) + 40);   
+                            ctx.font = smallfontsize + "px Comic Sans MS";
+                            ctx.fillStyle = getRndColor(10, 100);
+                            ctx.textAlign = "center";
+                            var lines = statistics.split('\n');
+                            var lineheight = smallfontsize + 5;
+                            for (var i = 0; i < lines.length; i++)
+                                ctx.fillText(lines[i], canvas.width/2, canvas.height/2 - 220 + (i * lineheight));
+                        }
+                    });
                 } else if (buttons[i].name == "mode1") {
                     random = 1 - random;
                     localStorage.setItem("random",random);
@@ -906,7 +941,8 @@
         }
         
         if (!btntriggered && started) {
-            displayingAnswer = 1 - displayingAnswer;
+            if(statson == 0){ displayingAnswer = 1 - displayingAnswer; }
+            else statson = 0;
             drawWord(displayingAnswer);
         }
     }
