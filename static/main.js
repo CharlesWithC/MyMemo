@@ -24,7 +24,7 @@ var lineheight = 50;
 var bottomOffset = 100;
 
 var buttons = [];
-var btncnt = 21;
+var btncnt = 22;
 
 if (isphone) {
     fontsize = 80;
@@ -183,6 +183,13 @@ if (isphone) {
         w: 600,
         h: 100
     };
+    buttons[21] = {
+        name: "cleardeleted",
+        x: 0,
+        y: 0,
+        w: 1000,
+        h: 100
+    };
 } else {
     buttons[0] = {
         name: "start",
@@ -329,6 +336,13 @@ if (isphone) {
         x: 0,
         y: 0,
         w: 300,
+        h: 50
+    };
+    buttons[21] = {
+        name: "cleardeleted",
+        x: 0,
+        y: 0,
+        w: 500,
         h: 50
     };
 }
@@ -680,13 +694,22 @@ function drawSettings() {
     }
 
     buttons[19].x = canvas.width / 2 - buttons[19].w / 2;
-    buttons[19].y = canvas.height - buttons[19].h * 3;
+    buttons[19].y = canvas.height - buttons[19].h * 4;
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[19].x, buttons[19].y, buttons[19].w, buttons[19].h);
     ctx.font = fontsize + "px Comic Sans MS";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.textAlign = "center";
     ctx.fillText("Add Word", buttons[19].x + buttons[19].w / 2, buttons[19].y + buttons[19].h / 1.4);
+
+    buttons[21].x = canvas.width / 2 - buttons[21].w / 2;
+    buttons[21].y = canvas.height - buttons[21].h * 2.5;
+    ctx.fillStyle = getRndColor(160, 250);
+    ctx.roundRect(buttons[21].x, buttons[21].y, buttons[21].w, buttons[21].h);
+    ctx.font = fontsize + "px Comic Sans MS";
+    ctx.fillStyle = getRndColor(10, 100);
+    ctx.textAlign = "center";
+    ctx.fillText("Clear deleted words", buttons[21].x + buttons[21].w / 2, buttons[21].y + buttons[21].h / 1.4);
 
     buttons[9].x = canvas.width / 2 - buttons[9].w * (1 + btnMargin * 0.6);
     buttons[9].y = canvas.height - buttons[9].h * 1.2;
@@ -1130,7 +1153,7 @@ function startfunc() {
                     word = r.word;
                     translation = r.translation;
                     status = r.status;
-                    
+
                     drawWord();
                 },
                 error: function (r) {
@@ -1413,7 +1436,7 @@ function clickHandler(e) {
                     ctx.textAlign = "center";
 
                     word = $("#addword_word").val();
-                    translation = $("#addword_translation").val().replaceAll("\n", "<br>");
+                    translation = $("#addword_translation").val();
                     if (word == "" || translation == "") {
                         ctx.fillStyle = "white";
                         ctx.roundRect(0, buttons[19].y - buttons[19].h * 2.5, canvas.width, buttons[19].h * 1.5 + 5);
@@ -1464,6 +1487,32 @@ function clickHandler(e) {
                     $("#addword_word").val("");
                     $("#addword_translation").val("");
                     drawAddWord();
+                }
+            } else if (buttons[i].name == "cleardeleted") {
+                if (confirm('Are you sure to delete all the words that are marked as "Deleted" permanently? This operation cannot be undone!')) {
+                    $.ajax({
+                        url: '/api/clearDeleted',
+                        method: 'POST',
+                        async: true,
+                        dataType: "json",
+                        data: {
+                            userId: localStorage.getItem("userId"),
+                            token: localStorage.getItem("token")
+                        },
+                        success: function (r) {
+                            alert("Done");
+                        },
+                        error: function (r) {
+                            if (r.status == 401) {
+                                alert("Login session expired! Please login again!");
+                                localStorage.removeItem("userId");
+                                localStorage.removeItem("token");
+                                window.location.href = "/user";
+                            }
+                        }
+                    });
+                } else {
+                    alert("Canceled");
                 }
             } else if (buttons[i].name == "statistics") {
                 statson = 1;
@@ -1543,7 +1592,7 @@ function clickHandler(e) {
         if (statson == 0) {
             displayingAnswer = 1 - displayingAnswer;
         } else statson = 0;
-        if(displayMode == 0)
+        if (displayMode == 0)
             drawWord(displayingAnswer);
     }
 }

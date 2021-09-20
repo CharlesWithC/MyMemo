@@ -1,8 +1,11 @@
 # Author: @Charles-1414
 
 from flask import Flask, render_template, request, abort, send_file
-import os, random, json, datetime, time, base64, bcrypt, validators, uuid
-import urllib.parse
+import os, datetime, time, threading
+import random, uuid
+import base64, bcrypt
+import json
+import validators
 import sqlite3
 import pandas as pd
 
@@ -43,6 +46,7 @@ if not db_exists:
     # User Session History, updated when user logs out
     # If user logged out manually, then logout time is his/her logout time and "expire" will be set to 0
     # If the token expired, then logout time is the expireTime and "expire" will be set to 1
+    # When the user changes his/her password, all of the sessions will be logged out, and expire will be set to 2
 
     cur.execute(f"CREATE TABLE PendingAccountDeletion (userId INT, deletionTime INT)")
 
@@ -148,6 +152,10 @@ def apiRegister():
     if not invitationCode.isalnum():
         return json.dumps({"success": False, "msg": "Invitation code can only contain alphabets and digits!"})
 
+    cur.execute(f"SELECT username FROM UserInfo WHERE username = '{username}'")
+    if len(cur.fetchall()) != 0:
+        return json.dumps({"success": False, "msg": "Username already registered!"})
+
     password = hashpwd(password)
     
     cur.execute(f"SELECT userId FROM UserInfo WHERE inviteCode = '{invitationCode}'")
@@ -155,6 +163,9 @@ def apiRegister():
     if len(d) == 0:
         return json.dumps({"success": False, "msg": "Invalid invitation code!"})
     inviter = d[0][0]
+    cur.execute(f"SELECT username FROM UserInfo WHERE userId = {inviter}")
+    if cur.fetchall()[0][0] == "@deleted":
+        return json.dumps({"success": False, "msg": "Invalid invitation code!"})
 
     inviteCode = gencode()
 
@@ -188,6 +199,7 @@ def apiLogin():
     if not userId in recoverAccount:
         cur.execute(f"SELECT * FROM PendingAccountDeletion WHERE userId = {userId}")
         if len(cur.fetchall()) > 0:
+            recoverAccount.append(userId)
             return json.dumps({"success": False, "msg": "Account marked for deletion, login again to recover it!"})
     else:
         recoverAccount.remove(userId)
@@ -233,7 +245,7 @@ def validateToken(userId, token):
 @app.route("/api/logout", methods = ['POST'])
 def apiLogout():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
         return json.dumps({"success": True})
 
     userId = int(request.form["userId"])
@@ -253,7 +265,7 @@ def apiLogout():
 @app.route("/api/deleteAccount", methods = ['POST'])
 def apiDeleteAccount():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
         abort(401)
 
     userId = int(request.form["userId"])
@@ -282,7 +294,7 @@ def apiDeleteAccount():
 @app.route("/api/validateToken", methods = ['POST'])
 def apiValidateToken():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
         return json.dumps({"validation": False})
     userId = int(request.form["userId"])
     token = request.form["token"]
@@ -291,7 +303,7 @@ def apiValidateToken():
 @app.route("/api/getUserInfo", methods = ['POST'])
 def apiGetUserInfo():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
         abort(401)
 
     userId = int(request.form["userId"])
@@ -299,8 +311,11 @@ def apiGetUserInfo():
     if not validateToken(userId, token):
         abort(401)
     
-    cur.execute(f"SELECT username, email, inviteCode FROM UserInfo WHERE userId = {userId}")
+    cur.execute(f"SELECT username, email, inviteCode, inviter FROM UserInfo WHERE userId = {userId}")
     d = cur.fetchall()[0]
+
+    cur.execute(f"SELECT username FROM UserInfo WHERE userId = {d[3]}")
+    inviter = cur.fetchall()[0][0]
 
     cur.execute(f"SELECT COUNT(*) FROM WordList WHERE userId = {userId}")
     cnt = cur.fetchall()[0][0]
@@ -314,13 +329,13 @@ def apiGetUserInfo():
     cur.execute(f"SELECT COUNT(*) FROM ChallengeRecord WHERE userId = {userId}")
     chcnt = cur.fetchall()[0][0]
 
-    return json.dumps({"username": d[0], "email": d[1], "invitationCode": d[2], "cnt": cnt, "tagcnt": tagcnt, "delcnt": delcnt, "chcnt": chcnt})
+    return json.dumps({"username": d[0], "email": d[1], "invitationCode": d[2], "inviter": inviter, "cnt": cnt, "tagcnt": tagcnt, "delcnt": delcnt, "chcnt": chcnt})
 
 
 @app.route("/api/getWord", methods = ['POST'])
 def apiGetWord():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
         abort(401)
 
     userId = int(request.form["userId"])
@@ -347,7 +362,7 @@ def apiGetWord():
 @app.route("/api/getWordId", methods = ['POST'])
 def apiGetWordID():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
         abort(401)
         
     userId = int(request.form["userId"])
@@ -369,7 +384,7 @@ def apiGetWordID():
 @app.route("/api/getWordStat", methods = ['POST'])
 def apiGetWordStat():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
         abort(401)
         
     userId = int(request.form["userId"])
@@ -527,7 +542,7 @@ def apiGetWordStat():
 @app.route("/api/getNext", methods = ['POST'])
 def apiGetNext():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
         abort(401)
         
     userId = int(request.form["userId"])
@@ -553,18 +568,18 @@ def apiGetNext():
     statusRequirement = statusRequirement[status]
 
     if moveType in [-1,1]:
-        cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE wordId{op}{current} AND {statusRequirement} AND userId = {userId} ORDER BY wordId {order} LIMIT 1")
+        cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE wordId{op}{current} AND ({statusRequirement}) AND userId = {userId} ORDER BY wordId {order} LIMIT 1")
         d = cur.fetchall()
         if len(d) == 0: # no matching results, then find result from first / end
-            cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE {statusRequirement} AND userId = {userId} ORDER BY wordId {order} LIMIT 1")
+            cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE ({statusRequirement}) AND userId = {userId} ORDER BY wordId {order} LIMIT 1")
             d = cur.fetchall()
 
     elif moveType == 0:
-        cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE {statusRequirement} AND userId = {userId} ORDER BY RANDOM() LIMIT 1")
+        cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE ({statusRequirement}) AND userId = {userId} ORDER BY RANDOM() LIMIT 1")
         d = cur.fetchall()
 
     if len(d) == 0:
-        abort(404)
+        return json.dumps({"wordId": -1, "word": "[No more word]", "translation": "Maybe change the settings?\nOr check your connection?", "status": 1})
 
     (wordId, word, translation, status) = d[0]
     word = decode(word)
@@ -581,15 +596,16 @@ def getChallengeWordId(userId, nofour = False):
     wordId = -1
 
     # just an interesting random function
-    rnd.remove(4)
     random.shuffle(rnd)
     t = rnd[random.randint(0,len(rnd)-1)]
-    rnd.append(4)
+    while t == 4 and nofour:
+        random.shuffle(rnd)
+        t = rnd[random.randint(0,len(rnd)-1)]
     
     if t == 1:
         cur.execute(f"SELECT wordId FROM ChallengeData WHERE lastChallenge <= {int(time.time()) - 1200} AND userId = {userId} ORDER BY wordId ASC")
         d1 = cur.fetchall()
-        cur.execute(f"SELECT wordId FROM WordList WHERE status = 2 ORDER BY RANDOM() AND userId = {userId}")
+        cur.execute(f"SELECT wordId FROM WordList WHERE status = 2 AND userId = {userId} ORDER BY RANDOM()")
         d2 = cur.fetchall()
         for dd in d2:
             if (dd[0],) in d1:
@@ -638,8 +654,8 @@ def getChallengeWordId(userId, nofour = False):
         if wordId == -1:
             t = 4
     
-    if t == 4:
-        cur.execute(f"SELECT wordId FROM WordList WHERE status = 3 ORDER BY RANDOM() LIMIT 1 AND userId = {userId}")
+    if t == 4 and not nofour:
+        cur.execute(f"SELECT wordId FROM WordList WHERE status = 3 AND userId = {userId} ORDER BY RANDOM() LIMIT 1")
         d = cur.fetchall()
 
         if len(d) != 0:
@@ -653,7 +669,7 @@ def getChallengeWordId(userId, nofour = False):
 @app.route("/api/getNextChallenge", methods = ['POST'])
 def apiGetNextChallenge():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
         abort(401)
         
     userId = int(request.form["userId"])
@@ -682,7 +698,7 @@ addtime = [300, 1200, 3600, 10800, 28800, 86401, 172800, 432000, 864010]
 @app.route("/api/updateChallengeRecord", methods = ['POST'])
 def apiUpdateChallengeRecord():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
         abort(401)
         
     userId = int(request.form["userId"])
@@ -737,8 +753,7 @@ def apiUpdateChallengeRecord():
 
 @app.route("/api/getWordCount", methods = ['POST'])
 def apiGetWordCount():
-    cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
         abort(401)
         
     userId = int(request.form["userId"])
@@ -751,7 +766,7 @@ def apiGetWordCount():
 @app.route("/api/updateWordStatus", methods = ['POST'])
 def apiUpdateWordStatus():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
         abort(401)
         
     userId = int(request.form["userId"])
@@ -777,7 +792,7 @@ def apiUpdateWordStatus():
 @app.route("/api/changePassword", methods=['POST'])
 def apiChangePassword():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
         abort(401)
         
     userId = int(request.form["userId"])
@@ -791,14 +806,20 @@ def apiChangePassword():
     
     cur.execute(f"SELECT password FROM UserInfo WHERE userId = {userId}")
     pwd = cur.fetchall()[0][0]
-    if not checkpwd(oldpwd, pwd):
+    if not checkpwd(oldpwd, decode(pwd)):
         return json.dumps({"success": False, "msg": "Incorrect old password!"})
 
     if newpwd != cfmpwd:
         return json.dumps({"success": False, "msg": "New password and confirm password mismatch!"})
 
     newhashed = hashpwd(newpwd)
-    cur.execute(f"UPDATE UserInfo SET password = '{newhashed}' AND userId = {userId}")
+    cur.execute(f"UPDATE UserInfo SET password = '{encode(newhashed)}' WHERE userId = {userId}")
+    
+    cur.execute(f"SELECT * FROM ActiveUserLogin WHERE userId = {userId}")
+    d = cur.fetchall()
+    for dd in d:
+        cur.execute(f"INSERT INTO UserSessionHistory VALUES ({userId}, {dd[2]}, {int(time.time())}, 2)")
+    cur.execute(f"DELETE FROM ActiveUserLogin WHERE userId = {userId}")
     conn.commit()
 
     return json.dumps({"success": True})
@@ -808,7 +829,7 @@ duplicate = []
 @app.route("/api/addWord", methods = ['POST'])
 def apiAddWord():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
         abort(401)
         
     userId = int(request.form["userId"])
@@ -830,6 +851,7 @@ def apiAddWord():
     translation = request.form["translation"]
     translation = encode(translation)
 
+    wordId = -1
     cur.execute(f"SELECT wordId FROM WordList WHERE userId = {userId} ORDER BY wordId DESC LIMIT 1")
     d = cur.fetchall()
     if len(d) != 0:
@@ -843,11 +865,32 @@ def apiAddWord():
 
     return json.dumps({"success":True})
 
+@app.route("/api/clearDeleted", methods = ['POST'])
+def apiClearDeleted():
+    cur = conn.cursor()
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+        abort(401)
+        
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    if not validateToken(userId, token):
+        abort(401)
+
+    cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE userId = {userId} AND status = 3")
+    d = cur.fetchall()
+    ts = int(time.time())
+    for dd in d:
+        cur.execute(f"INSERT INTO DeletedWordList VALUES ({userId},{dd[0]}, '{dd[1]}', '{dd[2]}', {dd[3]}, {ts})")
+    cur.execute(f"DELETE FROM WordList WHERE userId = {userId} AND status = 3")
+    conn.commit()
+
+    return json.dumps({"success": True})
+
 @app.route("/importData", methods = ['GET', 'POST'])
 def importData():
     cur = conn.cursor()
     if request.method == 'POST':
-        if not "userId" in request.form.keys() or not "token" in request.form.keys():
+        if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
             return render_template("import.html", MESSAGE = "Login first!")
 
         userId = int(request.form["userId"])
@@ -900,13 +943,13 @@ def importData():
         wordId = 0
 
         if updateType == "append":
-            cur.execute(f"SELECT wordId FROM WordList ORDER BY wordId AND userId = {userId} DESC LIMIT 1")
+            cur.execute(f"SELECT wordId FROM WordList WHERE userId = {userId} ORDER BY wordId DESC LIMIT 1")
             d = cur.fetchall()
             if len(d) != 0:
                 wordId = d[0][0]
                 
         elif updateType  == "overwrite":
-            cur.execute(f"SELECT * FROM WordList WHERE userId = {userId}")
+            cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE userId = {userId}")
             d = cur.fetchall()
             ts = int(time.time())
             for dd in d:
@@ -945,7 +988,7 @@ def importData():
 def exportData():
     cur = conn.cursor()
     if request.method == "POST":
-        if not "userId" in request.form.keys() or not "token" in request.form.keys():
+        if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
             return render_template("export.html", MESSAGE = "Login first!")
 
         userId = int(request.form["userId"])
@@ -990,6 +1033,33 @@ def exportData():
 
     else:
         return render_template("export.html", MESSAGE = "")
+
+def PendingAccountDeletion():
+    cur = conn.cursor()
+    while 1:
+        cur.execute(f"SELECT userId FROM PendingAccountDeletion WHERE deletionTime <= {int(time.time())}")
+        d = cur.fetchall()
+        for dd in d:
+            userId = dd[0]
+            cur.execute(f"UPDATE UserInfo SET username = '@deleted' WHERE userId = {userId}")
+            cur.execute(f"UPDATE UserInfo SET email = '' WHERE userId = {userId}")
+            cur.execute(f"UPDATE UserInfo SET password = '' WHERE userId = {userId}")
+            
+            cur.execute(f"DELETE FROM ActiveUserLogin WHERE userId = {userId}")
+            cur.execute(f"DELETE FROM UserSessionHistory WHERE userId = {userId}")
+            cur.execute(f"DELETE FROM PendingAccountDeletion WHERE userId = {userId}")
+
+            cur.execute(f"DELETE FROM WordList WHERE userId = {userId}")
+            cur.execute(f"DELETE FROM ChallengeData WHERE userId = {userId}")
+            cur.execute(f"DELETE FROM ChallengeRecord WHERE userId = {userId}")
+            cur.execute(f"DELETE FROM DeletedWordList WHERE userId = {userId}")
+            cur.execute(f"DELETE FROM StatusUpdate WHERE userId = {userId}")
+
+            conn.commit()
+
+        time.sleep(3600)
+
+threading.Thread(target = PendingAccountDeletion).start()
 
 app.jinja_env.auto_reload = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True
