@@ -1,4 +1,5 @@
 <style>h1,h2,p,input{font-family: 'Comic Sans MS'; src: url('/static/ComicSansMS3.ttf') format('truetype');}</style>
+<script src="/static/jquery-3.5.1.min.js"></script>
 <title>Word Memorizer - Export Data</title>
 <h1>Export Data - <a href='/'>Go back to homepage</a></h1>
 <br>
@@ -9,16 +10,19 @@
 <p>Please note that the words and translations stored in the raw database file are encoded with base64. Status code are integars: {1: "Default", 2: "Tagged", 3: "Removed"}</p>
 <p>And by the way, for server safety, you are not allowed to upload database directly. If you want to do so, please upload the file using console.</p>
 <br>
-<p>To prevent abusing, you must enter the import password.</p>
-<p>You can change password <a href="/changePassword">here</a></p>
 <p style="color:red">{{ MESSAGE }}</p>
 <form action="/exportData" method="POST" enctype="multipart/form-data">
-    <p>Password: <input type="password" name="password" /></p>
     <p>Type: 
         <input type="radio" id="xlsx" name="exportType" value="xlsx" checked>
         <label for="xlsx">Excel Table File</label>
         <input type="radio" id="rawdb" name="exportType" value="rawdb">
         <label for="rawdb">Raw Database File</label>
     </p>
+    <input type="userId" id="userId" name="userId" style="display:none;" />
+    <input type="token" id="token" name="token" style="display:none;" />
     <input type="submit" value="Export" />
 </form>
+<script>
+    $("#userId").val(localStorage.getItem("userId"));
+    $("#token").val(localStorage.getItem("token"));
+</script>

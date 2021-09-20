@@ -1,4 +1,5 @@
 <style>h1,h2,p,input{font-family: 'Comic Sans MS'; src: url('/static/ComicSansMS3.ttf') format('truetype');}</style>
+<script src="/static/jquery-3.5.1.min.js"></script>
 <title>Word Memorizer - Import Data</title>
 <h1>Import Data - <a href='/'>Go back to homepage</a></h1>
 <br>
@@ -11,11 +12,8 @@
 <p>If you select "No", the server will not do the check and all words will be inserted to database.</p>
 <p>Please note that if you search for a word which is duplicated, only the first-imported one will be shown.</p>
 <br>
-<p>To prevent abusing, you must enter your password.</p>
-<p>You can change password <a href="/changePassword">here</a></p>
 <p style="color:red">{{ MESSAGE }}</p>
 <form action="/importData" method="POST" enctype="multipart/form-data">
-    <p>Password: <input type="password" name="password" /></p>
     <p>File: <input type="file" name="file" /></p>
     <p>Type: 
         <input type="radio" id="append" name="updateType" value="append" checked>
@@ -29,5 +27,11 @@
         <input type="radio" id="no" name="checkDuplicate" value="no">
         <label for="no">No</label>
     </p>
+    <input type="userId" id="userId" name="userId" style="display:none;" />
+    <input type="token" id="token" name="token" style="display:none;" />
     <input type="submit" value="Import" />
 </form>
+<script>
+    $("#userId").val(localStorage.getItem("userId"));
+    $("#token").val(localStorage.getItem("token"));
+</script>
