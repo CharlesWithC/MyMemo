@@ -11,6 +11,8 @@ import validators
 import sqlite3
 import pandas as pd
 
+import sessions
+
 StatusTextToStatus = {"Default": 1, "Tagged": 2, "Removed": 3}
 StatusToStatusText = {1: "Default", 2: "Tagged", 3: "Removed"}
 wordCnt = 0
@@ -39,24 +41,9 @@ if not db_exists:
     cur.execute(f"INSERT INTO UserInfo VALUES (0,'default','None','{defaultpwd}',-1,'vu8tCM')")
     # Default user system's password is 123456
 
-    cur.execute(f"CREATE TABLE ActiveUserLogin (userId INT, token CHAR(46), loginTime INT, expireTime INT)")
-    # Active user login data
-    # Remove data when expired / logged out
-    # Token = 9-digit-userId + '-' + uuid.uuid(4)
-
-    cur.execute(f"CREATE TABLE UserSessionHistory (userId INT, loginTime INT, logoutTime INT, expire INT)")
-    # User Session History, updated when user logs out
-    # If user logged out manually, then logout time is his/her logout time and "expire" will be set to 0
-    # If the token expired, then logout time is the expireTime and "expire" will be set to 1
-    # When the user changes his/her password, all of the sessions will be logged out, and expire will be set to 2
-
-    cur.execute(f"CREATE TABLE PendingAccountDeletion (userId INT, deletionTime INT)")
-
-
-
-    cur.execute(f"CREATE TABLE WordList (userId INT, wordId INT, word VARCHAR(1024), translation VARCHAR(1024), status INT)")
+    cur.execute(f"CREATE TABLE WordList (userId INT, wordBookId INT, wordId INT, word VARCHAR(1024), translation VARCHAR(1024), status INT)")
     # wordId is unique for each word, when the word is removed, its wordId will refer to null
-    # NOTE: wordId counts for only specific user
+    # EXAMPLE: WordBook 1 has wordId 1,2 and WordBook 2 has wordId 3
     # word and translation are encoded with base64 to prevent datalose
     # status is a status code while 1 refers to Default, 2 refers to Tagged and 3 refers to removed
 
@@ -125,6 +112,15 @@ def updateWordStatus(userId, wordId, status):
         wordUpdateId = d[0][0]
     cur.execute(f"INSERT INTO StatusUpdate VALUES ({userId},{wordId},{wordUpdateId},{status},{int(time.time())})")
 
+def validateToken(userId, token):
+    cur = conn.cursor()
+    cur.execute(f"SELECT username FROM UserInfo WHERE userId = {userId}")
+    d = cur.fetchall()
+    if len(d) == 0 or d[0][0] == "@deleted":
+        return False
+    
+    return sessions.validateToken(userId, token)
+
 
 app=Flask(__name__)
 
@@ -135,6 +131,13 @@ def index():
 @app.route("/user", methods = ['GET'])
 def userIndex():
     return render_template("user.html")
+
+
+
+
+
+##########
+# User API
 
 @app.route("/api/register", methods = ['POST'])
 def apiRegister():
@@ -148,7 +151,7 @@ def apiRegister():
         or username.replace(" ","") == "" or email.replace(" ","") == "" or password.replace(" ","") == "" or invitationCode.replace(" ","") == "":
         return json.dumps({"success": False, "msg": "All the fields must be filled!"})
     if not username.replace("_","").isalnum():
-        return json.dumps({"success": False, "msg": "Username can only contain alphabets, digits and underscode!"})
+        return json.dumps({"success": False, "msg": "Username can only contain alphabets, digits and underscore!"})
     if validators.email(email) != True:
         return json.dumps({"success": False, "msg": "Invalid email!"})
     if not invitationCode.isalnum():
@@ -185,7 +188,7 @@ def apiLogin():
     username = request.form["username"]
     password = request.form["password"]
     if not username.replace("_","").isalnum():
-        return json.dumps({"success": False, "msg": "Username can only contain alphabets, digits and underscode!"})
+        return json.dumps({"success": False, "msg": "Username can only contain alphabets, digits and underscore!"})
     
     cur.execute(f"SELECT userId, password FROM UserInfo WHERE username = '{username}'")
     d = cur.fetchall()
@@ -199,70 +202,27 @@ def apiLogin():
     userId = d[0]
 
     if not userId in recoverAccount:
-        cur.execute(f"SELECT * FROM PendingAccountDeletion WHERE userId = {userId}")
-        if len(cur.fetchall()) > 0:
+        if sessions.checkDeletionMark(userId):
             recoverAccount.append(userId)
             return json.dumps({"success": False, "msg": "Account marked for deletion, login again to recover it!"})
     else:
         recoverAccount.remove(userId)
-        cur.execute(f"DELETE FROM PendingAccountDeletion WHERE userId = {userId}")
-        conn.commit()
+        sessions.removeDeletionMark(userId)
 
-    token = str(userId).zfill(9) + "-" + str(uuid.uuid4())
-    loginTime = int(time.time())
-    expireTime = loginTime + 7200 # 2 hours
-
-    cur.execute(f"INSERT INTO ActiveUserLogin VALUES ({userId}, '{token}', {loginTime}, {expireTime})")
-    conn.commit()
+    token = sessions.login(userId)
 
     return json.dumps({"success": True, "userId": userId, "token": token})
 
-def validateToken(userId, token):
-    cur = conn.cursor()
-    if not token.replace("-","").isalnum():
-        return False
-    
-    cur.execute(f"SELECT username FROM UserInfo WHERE userId = {userId}")
-    d = cur.fetchall()
-    if len(d) == 0 or d[0][0] == "@deleted":
-        return False
-
-    cur.execute(f"SELECT loginTime, expireTime FROM ActiveUserLogin WHERE userId = {userId} AND token = '{token}'")
-    d = cur.fetchall()
-    if len(d) == 0:
-        return False
-
-    loginTime = d[0][0]
-    expireTime = d[0][1]
-
-    if expireTime <= int(time.time()):
-        cur.execute(f"DELETE FROM ActiveUserLogin WHERE userId = {userId} AND token = '{token}'")
-        cur.execute(f"INSERT INTO UserSessionHistory VALUES ({userId}, {loginTime}, {expireTime}, 1)")
-        conn.commit()
-        return False
-    
-    else:
-        return True
-
 @app.route("/api/logout", methods = ['POST'])
 def apiLogout():
-    cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
         return json.dumps({"success": True})
 
     userId = int(request.form["userId"])
     token = request.form["token"]
-    if not validateToken(userId, token):
-        return json.dumps({"success": True})
-    
-    cur.execute(f"SELECT loginTime FROM ActiveUserLogin WHERE userId = {userId} AND token = '{token}'")
-    d = cur.fetchall()
-    loginTime = d[0][0]
-    cur.execute(f"DELETE FROM ActiveUserLogin WHERE userId = {userId} AND token = '{token}'")
-    cur.execute(f"INSERT INTO UserSessionHistory VALUES ({userId}, {loginTime}, {int(time.time())}, 0)")
-    conn.commit()
+    ret = sessions.logout(userId, token)
 
-    return json.dumps({"success": True})
+    return json.dumps({"success": ret})
 
 @app.route("/api/deleteAccount", methods = ['POST'])
 def apiDeleteAccount():
@@ -282,20 +242,14 @@ def apiDeleteAccount():
     if not checkpwd(password,decode(pwdhash)):
         return json.dumps({"success": False, "msg": "Invalid password!"})
     
-    cur.execute(f"INSERT INTO PendingAccountDeletion VALUES ({userId}, {int(time.time()+86401*14)})")
+    sessions.markDeletion(userId)
 
-    cur.execute(f"SELECT loginTime FROM ActiveUserLogin WHERE userId = {userId} AND token = '{token}'")
-    d = cur.fetchall()
-    loginTime = d[0][0]
-    cur.execute(f"DELETE FROM ActiveUserLogin WHERE userId = {userId} AND token = '{token}'")
-    cur.execute(f"INSERT INTO UserSessionHistory VALUES ({userId}, {loginTime}, {int(time.time())}, 0)")
-    conn.commit()
+    sessions.logout(userId, token)
 
     return json.dumps({"success": True})
 
 @app.route("/api/validateToken", methods = ['POST'])
 def apiValidateToken():
-    cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
         return json.dumps({"validation": False})
     userId = int(request.form["userId"])
@@ -333,6 +287,42 @@ def apiGetUserInfo():
 
     return json.dumps({"username": d[0], "email": d[1], "invitationCode": d[2], "inviter": inviter, "cnt": cnt, "tagcnt": tagcnt, "delcnt": delcnt, "chcnt": chcnt})
 
+@app.route("/api/changePassword", methods=['POST'])
+def apiChangePassword():
+    cur = conn.cursor()
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+        abort(401)
+        
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    if not validateToken(userId, token):
+        abort(401)
+    
+    oldpwd = request.form["oldpwd"]
+    newpwd = request.form["newpwd"]
+    cfmpwd = request.form["cfmpwd"]
+    
+    cur.execute(f"SELECT password FROM UserInfo WHERE userId = {userId}")
+    pwd = cur.fetchall()[0][0]
+    if not checkpwd(oldpwd, decode(pwd)):
+        return json.dumps({"success": False, "msg": "Incorrect old password!"})
+
+    if newpwd != cfmpwd:
+        return json.dumps({"success": False, "msg": "New password and confirm password mismatch!"})
+
+    newhashed = hashpwd(newpwd)
+    cur.execute(f"UPDATE UserInfo SET password = '{encode(newhashed)}' WHERE userId = {userId}")
+    
+    sessions.logoutAll(userId)
+
+    return json.dumps({"success": True})
+
+
+
+
+
+##########
+# Word API
 
 @app.route("/api/getWord", methods = ['POST'])
 def apiGetWord():
@@ -791,42 +781,6 @@ def apiUpdateWordStatus():
 
     return json.dumps({"succeed": True})
 
-@app.route("/api/changePassword", methods=['POST'])
-def apiChangePassword():
-    cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
-        abort(401)
-        
-    userId = int(request.form["userId"])
-    token = request.form["token"]
-    if not validateToken(userId, token):
-        abort(401)
-    
-    oldpwd = request.form["oldpwd"]
-    newpwd = request.form["newpwd"]
-    cfmpwd = request.form["cfmpwd"]
-    
-    cur.execute(f"SELECT password FROM UserInfo WHERE userId = {userId}")
-    pwd = cur.fetchall()[0][0]
-    if not checkpwd(oldpwd, decode(pwd)):
-        return json.dumps({"success": False, "msg": "Incorrect old password!"})
-
-    if newpwd != cfmpwd:
-        return json.dumps({"success": False, "msg": "New password and confirm password mismatch!"})
-
-    newhashed = hashpwd(newpwd)
-    cur.execute(f"UPDATE UserInfo SET password = '{encode(newhashed)}' WHERE userId = {userId}")
-    
-    cur.execute(f"SELECT * FROM ActiveUserLogin WHERE userId = {userId}")
-    d = cur.fetchall()
-    for dd in d:
-        cur.execute(f"INSERT INTO UserSessionHistory VALUES ({userId}, {dd[2]}, {int(time.time())}, 2)")
-    cur.execute(f"DELETE FROM ActiveUserLogin WHERE userId = {userId}")
-    conn.commit()
-
-    return json.dumps({"success": True})
-        
-
 duplicate = []
 @app.route("/api/addWord", methods = ['POST'])
 def apiAddWord():
@@ -887,6 +841,13 @@ def apiClearDeleted():
     conn.commit()
 
     return json.dumps({"success": True})
+
+
+
+
+
+##########
+# Data API
 
 @app.route("/importData", methods = ['GET', 'POST'])
 def importData():
@@ -1020,9 +981,6 @@ def exportData():
             export_conn = sqlite3.connect(f"/tmp/export{userId}.db")
             export_cur = export_conn.cursor()
             export_cur.execute(f"DELETE FROM UserInfo WHERE userId != {userId}")
-            export_cur.execute(f"DROP TABLE ActiveUserLogin")
-            export_cur.execute(f"DROP TABLE UserSessionHistory")
-            export_cur.execute(f"DROP TABLE PendingAccountDeletion")
             export_cur.execute(f"DELETE FROM WordList WHERE userId != {userId}")
             export_cur.execute(f"DELETE FROM ChallengeData WHERE userId != {userId}")
             export_cur.execute(f"DELETE FROM ChallengeRecord WHERE userId != {userId}")
@@ -1036,32 +994,8 @@ def exportData():
     else:
         return render_template("export.html", MESSAGE = "")
 
-def PendingAccountDeletion():
-    cur = conn.cursor()
-    while 1:
-        cur.execute(f"SELECT userId FROM PendingAccountDeletion WHERE deletionTime <= {int(time.time())}")
-        d = cur.fetchall()
-        for dd in d:
-            userId = dd[0]
-            cur.execute(f"UPDATE UserInfo SET username = '@deleted' WHERE userId = {userId}")
-            cur.execute(f"UPDATE UserInfo SET email = '' WHERE userId = {userId}")
-            cur.execute(f"UPDATE UserInfo SET password = '' WHERE userId = {userId}")
-            
-            cur.execute(f"DELETE FROM ActiveUserLogin WHERE userId = {userId}")
-            cur.execute(f"DELETE FROM UserSessionHistory WHERE userId = {userId}")
-            cur.execute(f"DELETE FROM PendingAccountDeletion WHERE userId = {userId}")
 
-            cur.execute(f"DELETE FROM WordList WHERE userId = {userId}")
-            cur.execute(f"DELETE FROM ChallengeData WHERE userId = {userId}")
-            cur.execute(f"DELETE FROM ChallengeRecord WHERE userId = {userId}")
-            cur.execute(f"DELETE FROM DeletedWordList WHERE userId = {userId}")
-            cur.execute(f"DELETE FROM StatusUpdate WHERE userId = {userId}")
-
-            conn.commit()
-
-        time.sleep(3600)
-
-threading.Thread(target = PendingAccountDeletion).start()
+threading.Thread(target = sessions.PendingAccountDeletion).start()
 
 app.jinja_env.auto_reload = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True

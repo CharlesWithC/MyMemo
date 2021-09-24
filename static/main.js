@@ -378,7 +378,7 @@ var appaused = 0;
 
 displayMode = localStorage.getItem("displayMode");
 if (displayMode == null) {
-    displayMode = 1;
+    displayMode = 0;
 }
 displayMode = parseInt(displayMode);
 
