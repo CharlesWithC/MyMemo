@@ -205,7 +205,7 @@ function drawHomePage() {
     ctx.font = largefontsize + "px Comic Sans MS";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.textAlign = "center";
-    ctx.fillText("Word Memorizer", canvas.width / 2, canvas.height / 2 - 250);
+    ctx.fillText("Word Memo", canvas.width / 2, canvas.height / 2 - 250);
 
     ctx.font = fontsize + "px Comic Sans MS";
     ctx.fillText("User Information", canvas.width / 2, canvas.height / 2 - 180);
@@ -296,7 +296,7 @@ function drawLoginPage() {
     ctx.font = largefontsize + "px Comic Sans MS";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.textAlign = "center";
-    ctx.fillText("Word Memorizer", canvas.width / 2, canvas.height / 2 - 200);
+    ctx.fillText("Word Memo", canvas.width / 2, canvas.height / 2 - 200);
 
     ctx.font = fontsize + "px Comic Sans MS";
     ctx.fillText("Login", canvas.width / 2, canvas.height / 2 - 130);
@@ -356,7 +356,7 @@ function drawRegisterPage() {
     ctx.font = largefontsize + "px Comic Sans MS";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.textAlign = "center";
-    ctx.fillText("Word Memorizer", canvas.width / 2, canvas.height / 2 - 200);
+    ctx.fillText("Word Memo", canvas.width / 2, canvas.height / 2 - 200);
 
     ctx.font = fontsize + "px Comic Sans MS";
     ctx.fillText("Register", canvas.width / 2, canvas.height / 2 - 130);

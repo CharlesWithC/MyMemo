@@ -1,4 +1,4 @@
-# WordMemorizer
+# WordMemo
 *A light-weight word / phrase memorizer made with python flask + html5 canvas which supports multiple users.*  
 [Website](https://word.charles14.xyz/)
 

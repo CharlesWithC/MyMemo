@@ -47,6 +47,11 @@ if not db_exists:
     # word and translation are encoded with base64 to prevent datalose
     # status is a status code while 1 refers to Default, 2 refers to Tagged and 3 refers to removed
 
+    cur.execute(f"CREATE TABLE WordBook (userId INT, wordBookId INT, name VARCHAR(1024))")
+    cur.execute(f"CREATE TABLE WordBookData (userId INT, wordBookId INT, wordId INT)")
+    # When a new word is added, it belongs to no word book
+    # A word can belong to many word books
+
     cur.execute(f"CREATE TABLE ChallengeData (userId INT, wordId INT, nextChallenge INT, lastChallenge INT)")
     # Challenge Data is a table that tells when to display the word next time
     # nextChallenge and lastChallenge are both timestamps
@@ -323,6 +328,129 @@ def apiChangePassword():
 
 ##########
 # Word API
+
+@app.route("/api/getWordBook", methods = ['POST'])
+def apiGetWordBook():
+    cur = conn.cursor()
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+        abort(401)
+
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    if not validateToken(userId, token):
+        abort(401)
+    
+    ret = []
+    cur.execute(f"SELECT wordBookId, name FROM WordBook WHERE userId = {userId}")
+    d = cur.fetchall()
+    for dd in d:
+        ret.append({"wordBookId": dd[0], "name": decode(dd[1])})
+    
+    return json.dumps(ret)
+
+@app.route("/api/createWordBook", methods = ['POST'])
+def apiCreateWordBook():
+    cur = conn.cursor()
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+        abort(401)
+
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    if not validateToken(userId, token):
+        abort(401)
+    
+    name = request.form["name"]
+    name = encode(name)
+
+    wordBookId = 1
+    cur.execute(f"SELECT MAX(wordBookId) FROM WordBook WHERE userId = {userId}")
+    d = cur.fetchall()
+    if len(d) != 0:
+        wordBookId = d[0][0] + 1
+    
+    cur.execute(f"INSERT INTO WordBook VALUES ({userId}, {wordBookId}, '{name}')")
+    conn.commit()
+    return json.dumps({"success": True})
+
+@app.route("/api/deleteWordBook", methods = ['POST'])
+def apiDeleteWordBook():
+    cur = conn.cursor()
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+        abort(401)
+
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    if not validateToken(userId, token):
+        abort(401)
+    
+    wordBookId = int(request.form["wordBookId"])
+    cur.execute(f"SELECT name FROM WordBook WHERE userId = {userId} AND wordBookId = {wordBookId}")
+    if len(cur.fetchall()) == 0:
+        return json.dumps({"success": False, "msg": "Word book does not exist!"})
+
+    cur.execute(f"DELETE FROM WordBook WHERE userId = {userId} AND wordBookId = {wordBookId}")
+    cur.execute(f"DELETE FROM WordBookData WHERE userId = {userId} AND wordBookId = {wordBookId}")
+    conn.commit()
+
+    return json.dumps({"success": True})
+
+@app.route("/api/addToWordBook", methods = ['POST'])
+def apiAddToWordBook():
+    cur = conn.cursor()
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+        abort(401)
+
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    if not validateToken(userId, token):
+        abort(401)
+    
+    wordIds = request.form["wordIds"].split(" ")
+    wordBookId = int(request.form["wordBookId"])
+
+    cur.execute(f"SELECT name FROM WordBook WHERE userId = {userId} AND wordBookId = {wordBookId}")
+    if len(cur.fetchall()) == 0:
+        return json.dumps({"success": False, "msg": "Word book does not exist!"})
+    
+    cur.execute(f"SELECT wordId FROM WordList WHERE userId = {userId}")
+    d = cur.fetchall()
+
+    for wordId in wordIds:
+        wordId = int(wordId)
+        if (wordId,) in d:
+            cur.execute(f"INSERT INTO WordBookData VALUES ({userId}, {wordBookId}, {wordId})")
+    conn.commit()
+
+    return json.dumps({"success": True})
+
+@app.route("/api/deleteFromWordBook", methods = ['POST'])
+def apiDeleteFromWordBook():
+    cur = conn.cursor()
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+        abort(401)
+
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    if not validateToken(userId, token):
+        abort(401)
+    
+    wordIds = request.form["wordIds"].split(" ")
+    wordBookId = int(request.form["wordBookId"])
+
+    cur.execute(f"SELECT name FROM WordBook WHERE userId = {userId} AND wordBookId = {wordBookId}")
+    if len(cur.fetchall()) == 0:
+        return json.dumps({"success": False, "msg": "Word book does not exist!"})
+    
+    cur.execute(f"SELECT wordId FROM WordBook WHERE userId = {userId} AND wordBookId = {wordBookId}")
+    d = cur.fetchall()
+
+    for wordId in wordIds:
+        wordId = int(wordId)
+        if (wordId,) in d:
+            cur.execute(f"DELETE FROM WordBookData WHERE userId = {userId} AND wordBookId = {wordBookId} AND wordId = {wordId}")
+    conn.commit()
+
+    return json.dumps({"success": True})
 
 @app.route("/api/getWord", methods = ['POST'])
 def apiGetWord():

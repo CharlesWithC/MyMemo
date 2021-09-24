@@ -538,7 +538,7 @@ function drawHomePage() {
     ctx.font = largefontsize + "px Comic Sans MS";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.textAlign = "center";
-    ctx.fillText("Word Memorizer", canvas.width / 2, canvas.height / 2 - 100);
+    ctx.fillText("Word Memo", canvas.width / 2, canvas.height / 2 - 100);
 
     buttons[0].x = canvas.width / 2 - buttons[0].w / 2;
     buttons[0].y = canvas.height / 2 + buttons[0].h;
