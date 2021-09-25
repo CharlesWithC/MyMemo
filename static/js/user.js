@@ -195,8 +195,8 @@ function btninit() {
 function drawHomePage() {
     btninit();
     // Get page width & height
-    canvas.width = document.body.clientWidth;
-    canvas.height = document.body.clientHeight;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
     // Clear existing canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -286,8 +286,8 @@ function drawHomePage() {
 function drawLoginPage() {
     btninit();
     // Get page width & height
-    canvas.width = document.body.clientWidth;
-    canvas.height = document.body.clientHeight;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
     // Clear existing canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -346,8 +346,8 @@ function drawLoginPage() {
 function drawRegisterPage() {
     btninit();
     // Get page width & height
-    canvas.width = document.body.clientWidth;
-    canvas.height = document.body.clientHeight;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
     // Clear existing canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -413,8 +413,8 @@ function drawSettings() {
 
     btninit();
     // Get page width & height
-    canvas.width = document.body.clientWidth;
-    canvas.height = document.body.clientHeight;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
     // Clear existing canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -455,8 +455,8 @@ function drawSettings() {
 function drawChangepwd(){
     btninit();
     // Get page width & height
-    canvas.width = document.body.clientWidth;
-    canvas.height = document.body.clientHeight;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
     // Clear existing canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -503,8 +503,8 @@ function drawChangepwd(){
 function drawDeleteacc(){
     btninit();
     // Get page width & height
-    canvas.width = document.body.clientWidth;
-    canvas.height = document.body.clientHeight;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
     // Clear existing canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);

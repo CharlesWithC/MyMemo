@@ -41,7 +41,7 @@ if not db_exists:
     cur.execute(f"INSERT INTO UserInfo VALUES (0,'default','None','{defaultpwd}',-1,'vu8tCM')")
     # Default user system's password is 123456
 
-    cur.execute(f"CREATE TABLE WordList (userId INT, wordBookId INT, wordId INT, word VARCHAR(1024), translation VARCHAR(1024), status INT)")
+    cur.execute(f"CREATE TABLE WordList (userId INT, wordId INT, word VARCHAR(1024), translation VARCHAR(1024), status INT)")
     # wordId is unique for each word, when the word is removed, its wordId will refer to null
     # EXAMPLE: WordBook 1 has wordId 1,2 and WordBook 2 has wordId 3
     # word and translation are encoded with base64 to prevent datalose
@@ -451,6 +451,25 @@ def apiDeleteFromWordBook():
     conn.commit()
 
     return json.dumps({"success": True})
+
+@app.route("/api/getWordList", methods = ['POST'])
+def apiGetWordList():
+    cur = conn.cursor()
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+        abort(401)
+
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    if not validateToken(userId, token):
+        abort(401)
+    
+    ret = []
+    cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE userId = {userId}")
+    d = cur.fetchall()
+    for dd in d:
+        ret.append({"wordId": dd[0], "word": decode(dd[1]), "translation": decode(dd[2]), "status": dd[3]})
+    
+    return json.dumps(ret)
 
 @app.route("/api/getWord", methods = ['POST'])
 def apiGetWord():

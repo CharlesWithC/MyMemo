@@ -28,327 +28,190 @@ var lineheight = 50;
 var bottomOffset = 100;
 
 var buttons = [];
-var btncnt = 22;
+var btncnt = 23;
+
+var ratio = 0.5;
+if(!isphone){
+    ratio = 1;
+}
 
 if (isphone) {
-    fontsize = 80;
-    smallfontsize = 40;
-    largefontsize = 120;
-    splitLine = 12;
+    fontsize /= ratio;
+    smallfontsize /= ratio;
+    largefontsize /= ratio;
+    splitLine /= ratio;
 
     btnMargin = 0.2;
     lineheight = 100;
     bottomOffset = 250;
+}
+buttons[0] = {
+    name: "start",
+    x: 0,
+    y: 0,
+    w: 300,
+    h: 50
+};
+buttons[6] = {
+    name: "tag",
+    x: 0,
+    y: 0,
+    w: 170,
+    h: 50
+};
+buttons[11] = {
+    name: "remove",
+    x: 0,
+    y: 0,
+    w: 170,
+    h: 50
+};
+buttons[1] = {
+    name: "previous",
+    x: 0,
+    y: 0,
+    w: 170,
+    h: 50
+};
+buttons[2] = {
+    name: "next",
+    x: 0,
+    y: 0,
+    w: 170,
+    h: 50
+};
+buttons[3] = {
+    name: "sound",
+    x: 0,
+    y: 0,
+    w: 50,
+    h: 50
+};
+buttons[13] = {
+    name: "pauseap",
+    x: 0,
+    y: 0,
+    w: 170,
+    h: 50
+};
+buttons[16] = {
+    name: "challengeyes",
+    x: 0,
+    y: 0,
+    w: 170,
+    h: 50
+};
+buttons[17] = {
+    name: "challengeno",
+    x: 0,
+    y: 0,
+    w: 170,
+    h: 50
+};
+buttons[15] = {
+    name: "mode0",
+    x: 0,
+    y: 0,
+    w: 250,
+    h: 50
+};
+buttons[4] = {
+    name: "mode1",
+    x: 0,
+    y: 0,
+    w: 170,
+    h: 50
+};
+buttons[5] = {
+    name: "mode2",
+    x: 0,
+    y: 0,
+    w: 170,
+    h: 50
+};
+buttons[7] = {
+    name: "mode3",
+    x: 0,
+    y: 0,
+    w: 170,
+    h: 50
+};
+buttons[10] = {
+    name: "mode4",
+    x: 0,
+    y: 0,
+    w: 170,
+    h: 50
+};
+buttons[8] = {
+    name: "homepage",
+    x: 0,
+    y: 0,
+    w: 170,
+    h: 50
+};
+buttons[14] = {
+    name: "settings",
+    x: 0,
+    y: 0,
+    w: 200,
+    h: 50
+};
+buttons[20] = {
+    name: "account",
+    x: 0,
+    y: 0,
+    w: 200,
+    h: 50
+};
+buttons[18] = {
+    name: "statistics",
+    x: 0,
+    y: 0,
+    w: 200,
+    h: 50
+};
+buttons[22] = {
+    name: "list",
+    x: 0,
+    y: 0,
+    w: 250,
+    h: 50
+};
+buttons[9] = {
+    name: "import",
+    x: 0,
+    y: 0,
+    w: 200,
+    h: 50
+};
+buttons[12] = {
+    name: "export",
+    x: 0,
+    y: 0,
+    w: 200,
+    h: 50
+};
+buttons[19] = {
+    name: "addword",
+    x: 0,
+    y: 0,
+    w: 300,
+    h: 50
+};
+buttons[21] = {
+    name: "cleardeleted",
+    x: 0,
+    y: 0,
+    w: 500,
+    h: 50
+};
 
-    buttons[0] = {
-        name: "start",
-        x: 0,
-        y: 0,
-        w: 600,
-        h: 100
-    };
-    buttons[6] = {
-        name: "tag",
-        x: 0,
-        y: 0,
-        w: 340,
-        h: 100
-    };
-    buttons[11] = {
-        name: "remove",
-        x: 0,
-        y: 0,
-        w: 340,
-        h: 100
-    };
-    buttons[1] = {
-        name: "previous",
-        x: 0,
-        y: 0,
-        w: 340,
-        h: 100
-    };
-    buttons[2] = {
-        name: "next",
-        x: 0,
-        y: 0,
-        w: 340,
-        h: 100
-    };
-    buttons[3] = {
-        name: "sound",
-        x: 0,
-        y: 0,
-        w: 100,
-        h: 100
-    };
-    buttons[13] = {
-        name: "pauseap",
-        x: 0,
-        y: 0,
-        w: 340,
-        h: 100
-    };
-    buttons[16] = {
-        name: "challengeyes",
-        x: 0,
-        y: 0,
-        w: 340,
-        h: 100
-    };
-    buttons[17] = {
-        name: "challengeno",
-        x: 0,
-        y: 0,
-        w: 340,
-        h: 100
-    };
-    buttons[15] = {
-        name: "mode0",
-        x: 0,
-        y: 0,
-        w: 500,
-        h: 100
-    };
-    buttons[4] = {
-        name: "mode1",
-        x: 0,
-        y: 0,
-        w: 340,
-        h: 100
-    };
-    buttons[5] = {
-        name: "mode2",
-        x: 0,
-        y: 0,
-        w: 340,
-        h: 100
-    };
-    buttons[7] = {
-        name: "mode3",
-        x: 0,
-        y: 0,
-        w: 340,
-        h: 100
-    };
-    buttons[10] = {
-        name: "mode4",
-        x: 0,
-        y: 0,
-        w: 340,
-        h: 100
-    };
-    buttons[8] = {
-        name: "homepage",
-        x: 0,
-        y: 0,
-        w: 340,
-        h: 100
-    };
-    buttons[14] = {
-        name: "settings",
-        x: 0,
-        y: 0,
-        w: 401,
-        h: 100
-    };
-    buttons[20] = {
-        name: "account",
-        x: 0,
-        y: 0,
-        w: 401,
-        h: 100
-    };
-    buttons[18] = {
-        name: "statistics",
-        x: 0,
-        y: 0,
-        w: 401,
-        h: 100
-    };
-    buttons[9] = {
-        name: "import",
-        x: 0,
-        y: 0,
-        w: 401,
-        h: 100
-    };
-    buttons[12] = {
-        name: "export",
-        x: 0,
-        y: 0,
-        w: 401,
-        h: 100
-    };
-    buttons[19] = {
-        name: "addword",
-        x: 0,
-        y: 0,
-        w: 600,
-        h: 100
-    };
-    buttons[21] = {
-        name: "cleardeleted",
-        x: 0,
-        y: 0,
-        w: 1000,
-        h: 100
-    };
-} else {
-    buttons[0] = {
-        name: "start",
-        x: 0,
-        y: 0,
-        w: 300,
-        h: 50
-    };
-    buttons[6] = {
-        name: "tag",
-        x: 0,
-        y: 0,
-        w: 170,
-        h: 50
-    };
-    buttons[11] = {
-        name: "remove",
-        x: 0,
-        y: 0,
-        w: 170,
-        h: 50
-    };
-    buttons[1] = {
-        name: "previous",
-        x: 0,
-        y: 0,
-        w: 170,
-        h: 50
-    };
-    buttons[2] = {
-        name: "next",
-        x: 0,
-        y: 0,
-        w: 170,
-        h: 50
-    };
-    buttons[3] = {
-        name: "sound",
-        x: 0,
-        y: 0,
-        w: 50,
-        h: 50
-    };
-    buttons[13] = {
-        name: "pauseap",
-        x: 0,
-        y: 0,
-        w: 170,
-        h: 50
-    };
-    buttons[16] = {
-        name: "challengeyes",
-        x: 0,
-        y: 0,
-        w: 170,
-        h: 50
-    };
-    buttons[17] = {
-        name: "challengeno",
-        x: 0,
-        y: 0,
-        w: 170,
-        h: 50
-    };
-    buttons[15] = {
-        name: "mode0",
-        x: 0,
-        y: 0,
-        w: 250,
-        h: 50
-    };
-    buttons[4] = {
-        name: "mode1",
-        x: 0,
-        y: 0,
-        w: 170,
-        h: 50
-    };
-    buttons[5] = {
-        name: "mode2",
-        x: 0,
-        y: 0,
-        w: 170,
-        h: 50
-    };
-    buttons[7] = {
-        name: "mode3",
-        x: 0,
-        y: 0,
-        w: 170,
-        h: 50
-    };
-    buttons[10] = {
-        name: "mode4",
-        x: 0,
-        y: 0,
-        w: 170,
-        h: 50
-    };
-    buttons[8] = {
-        name: "homepage",
-        x: 0,
-        y: 0,
-        w: 170,
-        h: 50
-    };
-    buttons[14] = {
-        name: "settings",
-        x: 0,
-        y: 0,
-        w: 200,
-        h: 50
-    };
-    buttons[20] = {
-        name: "account",
-        x: 0,
-        y: 0,
-        w: 200,
-        h: 50
-    };
-    buttons[18] = {
-        name: "statistics",
-        x: 0,
-        y: 0,
-        w: 200,
-        h: 50
-    };
-    buttons[9] = {
-        name: "import",
-        x: 0,
-        y: 0,
-        w: 200,
-        h: 50
-    };
-    buttons[12] = {
-        name: "export",
-        x: 0,
-        y: 0,
-        w: 200,
-        h: 50
-    };
-    buttons[19] = {
-        name: "addword",
-        x: 0,
-        y: 0,
-        w: 300,
-        h: 50
-    };
-    buttons[21] = {
-        name: "cleardeleted",
-        x: 0,
-        y: 0,
-        w: 500,
-        h: 50
-    };
+if (isphone) {
+    for (var i = 0; i < btncnt; i++) {
+        buttons[i].w /= ratio;
+        buttons[i].h /= ratio;
+    }
 }
 
 // Settings variables
@@ -360,7 +223,7 @@ if (random == null) {
 random = parseInt(random);
 var swap = localStorage.getItem("swap");
 if (swap == null) {
-    swap = 1;
+    swap = 0;
 }
 swap = parseInt(swap);
 var showStatus = localStorage.getItem("showStatus"); //1: default (normal + tagged) | 2: tagged | 3: deleted
@@ -516,6 +379,35 @@ $.ajax({
     }
 });
 
+wordList = [];
+$.ajax({
+    url: "/api/getWordList",
+    method: 'POST',
+    async: true,
+    dataType: "json",
+    data: {
+        userId: localStorage.getItem("userId"),
+        token: localStorage.getItem("token")
+    },
+    success: function (r) {
+        wordList = r;
+        l = ["", "Default", "Tagged", "Deleted"];
+        table = $("#wordList").DataTable();
+        for(var i = 0 ; i < wordList.length ; i++){
+            table.row.add([[wordList[i].word],[wordList[i].translation],[l[wordList[i].status]]]);
+        }
+        table.draw();
+    },
+    error: function (r, textStatus, errorThrown) {
+        if (r.status == 401) {
+            alert("Login session expired! Please login again!");
+            localStorage.removeItem("userId");
+            localStorage.removeItem("token");
+            window.location.href = "/user";
+        }
+    }
+});
+
 // Initialize button position
 function btninit() {
     for (var i = 0; i < btncnt; i++) {
@@ -527,9 +419,10 @@ function btninit() {
 // Draw home page on canvas
 function drawHomePage() {
     btninit();
+    $("#wordList_wrapper").hide();
     // Get page width & height
-    canvas.width = document.body.clientWidth;
-    canvas.height = document.body.clientHeight;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
     // Clear existing canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -571,6 +464,15 @@ function drawHomePage() {
     ctx.textAlign = "center";
     ctx.fillText("Settings", buttons[14].x + buttons[14].w / 2, buttons[14].y + buttons[14].h / 1.4);
 
+    buttons[22].x = buttons[22].w * 0.2;
+    buttons[22].y = buttons[22].h * 0.2;
+    ctx.fillStyle = getRndColor(160, 250);
+    ctx.roundRect(buttons[22].x, buttons[22].y, buttons[22].w, buttons[22].h);
+    ctx.font = fontsize + "px Comic Sans MS";
+    ctx.fillStyle = getRndColor(10, 100);
+    ctx.textAlign = "center";
+    ctx.fillText("Word List", buttons[22].x + buttons[22].w / 2, buttons[22].y + buttons[22].h / 1.4);
+
     // Draw the input box "Start from"
     $("#startfrom").attr("style", "position:absolute;left:" + (buttons[0].x + 15) + ";top:" + (buttons[0].y - buttons[0].h - 20) + ";height:" + (buttons[0].h) + ";width:" + (buttons[0].w - 14) + ";font-size:" + fontsize * 0.6 + ";font-family:Comic Sans MS");
     if (displayMode == 1) {
@@ -582,7 +484,6 @@ function drawHomePage() {
         randomDisplayer = setInterval(displayRandomWord, 5000);
     }
 }
-drawHomePage();
 
 // Draw settings buttons on canvas
 function drawSettings() {
@@ -597,9 +498,10 @@ function drawSettings() {
     $("#addword_translation").val("");
     $("#addword_translation").hide();
     btninit();
+
     // Get page width & height
-    canvas.width = document.body.clientWidth;
-    canvas.height = document.body.clientHeight;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
     // Clear existing canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -740,6 +642,7 @@ function drawSettings() {
         ctx.roundRect(buttons[8].x, buttons[8].y, buttons[8].w, buttons[8].h);
         ctx.font = fontsize + "px Comic Sans MS";
         ctx.fillStyle = getRndColor(10, 100);
+        ctx.textAlign = "center";
         ctx.fillText("Home", buttons[8].x + buttons[8].w / 2, buttons[8].y + buttons[8].h / 1.4);
     } else if (lastpage == 1) {
         buttons[0].x = buttons[8].w * 0.2;
@@ -748,6 +651,7 @@ function drawSettings() {
         ctx.roundRect(buttons[0].x, buttons[0].y, buttons[8].w, buttons[8].h);
         ctx.font = fontsize + "px Comic Sans MS";
         ctx.fillStyle = getRndColor(10, 100);
+        ctx.textAlign = "center";
         ctx.fillText("Resume", buttons[0].x + buttons[8].w / 2, buttons[0].y + buttons[8].h / 1.4);
     }
 
@@ -757,8 +661,8 @@ function drawSettings() {
 
 function drawAddWord() {
     // Get page width & height
-    canvas.width = document.body.clientWidth;
-    canvas.height = document.body.clientHeight;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
     // Clear existing canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -805,8 +709,8 @@ function drawWord(showSwapped = 0, cancelSpeaker = 0) {
 
     btninit();
     // Get page width & height
-    canvas.width = document.body.clientWidth;
-    canvas.height = document.body.clientHeight;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
     // Clear existing canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -996,17 +900,51 @@ function drawWord(showSwapped = 0, cancelSpeaker = 0) {
     lastpage = 1;
 }
 
+// Draw word list using html table
+function drawWordList() {
+    btninit();
+    // Get page width & height
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // Clear existing canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    $("#startfrom").hide();
+
+    // Draw buttons    
+    buttons[8].x = buttons[8].w * 0.2;
+    buttons[8].y = buttons[8].h * 0.2;
+    ctx.fillStyle = getRndColor(160, 250);
+    ctx.roundRect(buttons[8].x, buttons[8].y, buttons[8].w, buttons[8].h);
+    ctx.font = fontsize + "px Comic Sans MS";
+    ctx.fillStyle = getRndColor(10, 100);
+    ctx.textAlign = "center";
+    ctx.fillText("Home", buttons[8].x + buttons[8].w / 2, buttons[8].y + buttons[8].h / 1.4);
+    
+    // Draw table
+    $("#wordList_wrapper").show();
+    $("#wordList").show();
+    $("#wordList_wrapper").attr("style", "test-align:center;position:absolute;left:" + (canvas.width / 2 - 500 / ratio )+";top:" + (buttons[8].x + buttons[8].h) + ";height:" + (500 / ratio) + ";width:" + (1000 / ratio) + ";font-size:" + fontsize * 0.6 + ";font-family:Comic Sans MS");
+
+    // Add title
+    ctx.fillText("Word List", canvas.width / 2, buttons[8].h * 0.2 + buttons[8].h / 1.4);
+}
+
 // Draw current page
 function drawCurrentPage() {
-    if (currentpage == 0) {
-        drawHomePage();
-    } else if (currentpage == 1) {
-        drawWord();
-    } else if (currentpage == 2) {
-        drawSettings();
-    } else if (currentpage == 3) {
-        drawAddWord();
-    }
+    sleep(50).then(() => {
+        if (currentpage == 0) {
+            drawHomePage();
+        } else if (currentpage == 1) {
+            drawWord();
+        } else if (currentpage == 2) {
+            drawSettings();
+        } else if (currentpage == 3) {
+            drawAddWord();
+        } else if (currentpage == 4) {
+            drawWordList();
+        }
+    })
 }
 
 // Update canvas when page resizes to prevent content floating out of the page
@@ -1432,6 +1370,17 @@ function clickHandler(e) {
                 sleep(50).then(() => {
                     drawCurrentPage();
                 })
+            } else if (buttons[i].name == "list") {
+                lastpage = currentpage;
+                currentpage = 4;
+                started = 0;
+                appaused = 0;
+                clearInterval(apinterval);
+                apinterval = -1;
+                speaker.cancel();
+                sleep(50).then(() => {
+                    drawCurrentPage();
+                })
             } else if (buttons[i].name == "account") {
                 window.location.href = "/user";
             } else if (buttons[i].name == "addword") {
@@ -1490,7 +1439,7 @@ function clickHandler(e) {
                     currentpage = 3;
                     $("#addword_word").val("");
                     $("#addword_translation").val("");
-                    drawAddWord();
+                    drawCurrentPage();
                 }
             } else if (buttons[i].name == "cleardeleted") {
                 if (confirm('Are you sure to delete all the words that are marked as "Deleted" permanently? This operation cannot be undone!')) {
@@ -1608,3 +1557,10 @@ $("#startfrom").on('keypress', function (e) {
 });
 
 document.addEventListener("click", clickHandler, false);
+
+$('#wordList').DataTable( {
+    "pagingType": "full_numbers"
+} );
+$("#wordList_wrapper").hide();
+
+drawHomePage();
