@@ -1,35 +1,16 @@
 <title>Word Memo</title>
 
-<style>
-    html,
-    body {
-        overflow: hidden;
-    }
-
-    table,
-    th,
-    td {
-        text-align: center;
-    }
-
-    .footer {
-        position: fixed;
-        right: 10;
-        bottom: 0;
-        width: 100%;
-        text-align: right;
-        font-family: Comic Sans MS;
-    }
+<style>table, th, td{ text-align: center;} .footer{ position: fixed; right: 10; bottom: 0; width: 100%; text-align: right; font-family: Comic Sans MS;}
 </style>
 <script src="/static/js/functions.min.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script src="/static/js/jquery-3.6.0.min.js"></script>
 <link href="/static/noty/themes/mint.css" rel="stylesheet">
 <script src="/static/noty/noty.min.js" type="text/javascript"></script>
 
 <link rel="stylesheet" href="/static/dataTables/jquery.dataTables.min.css">
 <script src="/static/dataTables/jquery.dataTables.min.js"></script>
 
-<canvas id="canvas" width="1000" height="600"></canvas>
+<canvas id="canvas" width="1000" height="600" style="margin:0"></canvas>
 <input id="startfrom" type="text" style="display:none" />
 <input id="addword_word" style="display:none" />
 <textarea id="addword_translation" style="display:none"></textarea>

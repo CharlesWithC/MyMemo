@@ -23,6 +23,13 @@ def hashpwd(password):
 def checkpwd(password, hsh):
     return bcrypt.checkpw(password.encode(),hsh.encode())
 
+st="abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+def gencode(length = 6):
+    ret = ""
+    for _ in range(length):
+        ret += st[random.randint(0,len(st)-1)]
+    return ret
+
 db_exists = os.path.exists("database.db")
 conn = sqlite3.connect("database.db", check_same_thread=False)
 cur = conn.cursor()
@@ -38,7 +45,7 @@ if not db_exists:
     # But his/her userId will persist forever, while it represents an empty account named "Deleted Account"
 
     defaultpwd = hashpwd("123456")
-    cur.execute(f"INSERT INTO UserInfo VALUES (0,'default','None','{defaultpwd}',-1,'vu8tCM')")
+    cur.execute(f"INSERT INTO UserInfo VALUES (0,'default','None','{defaultpwd}',-1,'{gencode()}')")
     # Default user system's password is 123456
 
     cur.execute(f"CREATE TABLE WordList (userId INT, wordId INT, word VARCHAR(1024), translation VARCHAR(1024), status INT)")
@@ -79,13 +86,6 @@ if not db_exists:
 
     conn.commit()
 del cur
-
-st="abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-def gencode(length = 6):
-    ret = ""
-    for _ in range(length):
-        ret += st[random.randint(0,len(st)-1)]
-    return ret
 
 def insert_newlines(string, every=16):
     pos = 0
