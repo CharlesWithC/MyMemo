@@ -300,37 +300,16 @@ if (word == "") { // Then show a random word to start from
 lastInputChange = 0;
 
 function displayRandomWord() {
-    if (localStorage.getItem("token") != null && localStorage.getItem("token") != "") {
-        if (lastInputChange < Date.now() - 10000) {
-            $.ajax({
-                url: '/api/getNext',
-                method: 'POST',
-                async: false,
-                dataType: "json",
-                data: {
-                    status: showStatus,
-                    moveType: 0,
-                    splitLine: splitLine,
-                    userId: localStorage.getItem("userId"),
-                    token: localStorage.getItem("token")
-                },
-                success: function (r) {
-                    wordId = r.wordId;
-                    word = r.word;
-                    translation = r.translation;
-                    status = r.status;
-                    $("#startfrom").val(word);
-                },
-                error: function (r) {
-                    if (r.status == 401) {
-                        alert("Login session expired! Please login again!");
-                        localStorage.removeItem("userId");
-                        localStorage.removeItem("token");
-                        window.location.href = "/user";
-                    }
-                }
-            });
-        }
+    if(wordList != []){
+        wordId = parseInt(Math.random()*1050);
+        word = wordList[wordId].word;
+        translation = wordList[wordId].translation;
+        status = wordList[wordId].status;
+        $("#startfrom").val(word);
+        
+        // In backend database, wordId starts from 1
+        // But in frontend array, wordId starts from 0
+        wordId += 1;
     }
 }
 
@@ -340,20 +319,7 @@ $('#startfrom').on('input', function () {
 var randomDisplayer = setInterval(displayRandomWord, 5000);
 
 // Get word count
-var wordcount = 0;
-$.ajax({
-    url: '/api/getWordCount',
-    method: 'POST',
-    async: false,
-    dataType: "json",
-    data: {
-        userId: localStorage.getItem("userId"),
-        token: localStorage.getItem("token")
-    },
-    success: function (r) {
-        wordcount = r.count;
-    }
-});
+var wordcount = wordList.length;
 
 
 
