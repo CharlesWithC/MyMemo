@@ -5,7 +5,9 @@
 *Date: 2021/10/3*  
 Added offline mode which use local word list  
 (No tagging / deleting allowed in offline mode)
-In offline mode, user can use the website without logging in
+In offline mode, user can use the website without logging in  
+
+Added an admin option to restart backend program + a reverse proxy (authentication) protected endpoint for restarting backend program  
 
 ## v2.0.4
 

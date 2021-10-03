@@ -35,7 +35,7 @@ var lineheight = 50;
 var bottomOffset = 100;
 
 var buttons = [];
-var btncnt = 8;
+var btncnt = 9;
 
 if (isphone) {
     btnMargin = 0.2;
@@ -52,7 +52,8 @@ buttons[3]={name:"switchToRegister",x:0,y:0,w:100,h:25,orgw:100,orgh:25},
 buttons[4]={name:"switchToLogin",x:0,y:0,w:100,h:25,orgw:100,orgh:25},
 buttons[5]={name:"deleteacc",x:0,y:0,w:400,h:50,orgw:400,orgh:50},
 buttons[6]={name:"settings",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
-buttons[7]={name:"changepwd",x:0,y:0,w:400,h:50,orgw:400,orgh:50};
+buttons[7]={name:"changepwd",x:0,y:0,w:400,h:50,orgw:400,orgh:50},
+buttons[8]={name:"restart",x:0,y:0,w:400,h:50,orgw:400,orgh:50};
 
 if (isphone) {
     for (var i = 0; i < btncnt; i++) {
@@ -355,11 +356,17 @@ function renderSettings() {
     // Clear existing canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    isAdmin = (localStorage.getItem("admin") == "true");
+
     // Render title
     ctx.font = fontSize + "px Comic Sans MS";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.textAlign = "center";
-    ctx.fillText("Account settings", canvas.width / 2, buttons[1].h * 0.2 + buttons[1].h / 1.4);
+    if (isAdmin) {
+        ctx.fillText("Admin settings", canvas.width / 2, buttons[1].h * 0.2 + buttons[1].h / 1.4);
+    } else {
+        ctx.fillText("Account settings", canvas.width / 2, buttons[1].h * 0.2 + buttons[1].h / 1.4);
+    }
 
     // Render buttons
     buttons[1].x = buttons[1].w * 0.2;
@@ -380,14 +387,26 @@ function renderSettings() {
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Change Password", buttons[7].x + buttons[7].w / 2, buttons[7].y + buttons[7].h / 1.4);
     ////
-    buttons[5].x = canvas.width / 2 - buttons[5].w / 2;
-    buttons[5].y = canvas.height * 3 / 4;
-    ctx.fillStyle = getRndColor(160, 250);
-    ctx.roundRect(buttons[5].x, buttons[5].y, buttons[5].w, buttons[5].h);
+    if (!isAdmin) {
+        buttons[5].x = canvas.width / 2 - buttons[5].w / 2;
+        buttons[5].y = canvas.height * 3 / 4;
+        ctx.fillStyle = "red";
+        ctx.roundRect(buttons[5].x, buttons[5].y, buttons[5].w, buttons[5].h);
 
-    ctx.font = fontSize + "px Comic Sans MS";
-    ctx.fillStyle = getRndColor(10, 100);
-    ctx.fillText("Delete Account", buttons[5].x + buttons[5].w / 2, buttons[5].y + buttons[5].h / 1.4);
+        ctx.font = fontSize + "px Comic Sans MS";
+        ctx.fillStyle = "black"
+        ctx.fillText("Delete Account", buttons[5].x + buttons[5].w / 2, buttons[5].y + buttons[5].h / 1.4);
+    } else {
+        buttons[8].x = canvas.width / 2 - buttons[8].w / 2;
+        buttons[8].y = canvas.height * 3 / 4;
+        ctx.fillStyle = getRndColor(160, 250);
+        ctx.roundRect(buttons[8].x, buttons[8].y, buttons[8].w, buttons[8].h);
+
+        ctx.font = fontSize + "px Comic Sans MS";
+        ctx.fillStyle = getRndColor(10, 100);
+        ctx.fillText("Restart Server", buttons[8].x + buttons[8].w / 2, buttons[8].y + buttons[8].h / 1.4);
+        // This will only restart the Word Memo backend program
+    }
 }
 
 function renderChangepwd() {
@@ -583,6 +602,9 @@ function loginfunc() {
                         delcnt = r.delcnt;
                         chcnt = r.chcnt;
                         inviter = r.inviter;
+                        if (r.isAdmin) {
+                            localStorage.setItem("admin", "true");
+                        }
                     }
                 });
                 sleep(2000).then(() => {
@@ -807,6 +829,22 @@ function clickHandler(e) {
                 sleep(100).then(() => {
                     ctx.fillStyle = "green";
                     ctx.fillText("Loggod out successfully!", canvas.width / 2, buttons[0].y - buttons[0].h * 0.5);
+                });
+            } else if (buttons[i].name == "restart") {
+                $.ajax({
+                    url: "/api/admin/restart",
+                    method: 'POST',
+                    async: true,
+                    dataType: "json",
+                    data: {
+                        userId: localStorage.getItem("userId"),
+                        token: localStorage.getItem("token")
+                    },
+                    success: function (r) {
+                        if (r.success == false) {
+                            alert(r.msg);
+                        }
+                    }
                 });
             }
         }

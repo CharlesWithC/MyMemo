@@ -3,7 +3,7 @@
 # License: GNU General Public License v3.0
 
 from flask import Flask, render_template, request, abort, send_file
-import os, datetime, time, threading
+import os, sys, datetime, time, threading
 import random, uuid
 import base64, bcrypt
 import json
@@ -47,6 +47,9 @@ if not db_exists:
     defaultpwd = hashpwd("123456")
     cur.execute(f"INSERT INTO UserInfo VALUES (0,'default','None','{defaultpwd}',-1,'{gencode()}')")
     # Default user system's password is 123456
+
+    cur.execute(f"CREATE TABLE AdminList (userId INT)")
+    # Currently this admin list can only be edited from backend using database operations
 
     cur.execute(f"CREATE TABLE WordList (userId INT, wordId INT, word VARCHAR(1024), translation VARCHAR(1024), status INT)")
     # wordId is unique for each word, when the word is removed, its wordId will refer to null
@@ -184,10 +187,13 @@ def apiRegister():
 
     inviteCode = gencode()
 
-    cur.execute(f"SELECT MAX(userId) FROM UserInfo")
-    userId = cur.fetchall()[0][0] + 1
-    cur.execute(f"INSERT INTO UserInfo VALUES ({userId}, '{username}', '{email}', '{encode(password)}', {inviter}, '{inviteCode}')")
-    conn.commit()
+    try:
+        cur.execute(f"SELECT MAX(userId) FROM UserInfo")
+        userId = cur.fetchall()[0][0] + 1
+        cur.execute(f"INSERT INTO UserInfo VALUES ({userId}, '{username}', '{email}', '{encode(password)}', {inviter}, '{inviteCode}')")
+        conn.commit()
+    except:
+        sessions.errcnt += 1
 
     return json.dumps({"success": True, "msg": "You are registered! Now you can login!"})
 
@@ -200,12 +206,15 @@ def apiLogin():
     if not username.replace("_","").isalnum():
         return json.dumps({"success": False, "msg": "Username can only contain alphabets, digits and underscore!"})
     
-    cur.execute(f"SELECT userId, password FROM UserInfo WHERE username = '{username}'")
-    d = cur.fetchall()
-    if len(d) == 0:
-        return json.dumps({"success": False, "msg": "User does not exist!"})
-    d = d[0]
-    
+    try:
+        cur.execute(f"SELECT userId, password FROM UserInfo WHERE username = '{username}'")
+        d = cur.fetchall()
+        if len(d) == 0:
+            return json.dumps({"success": False, "msg": "User does not exist!"})
+        d = d[0]
+    except:
+        sessions.errcnt += 1
+        
     if not checkpwd(password,decode(d[1])):
         return json.dumps({"success": False, "msg": "Invalid password!"})
     
@@ -221,7 +230,12 @@ def apiLogin():
 
     token = sessions.login(userId)
 
-    return json.dumps({"success": True, "userId": userId, "token": token})
+    isAdmin = False
+    cur.execute(f"SELECT userId FROM AdminList WHERE userId = {userId}")
+    if len(cur.fetchall()) != 0:
+        isAdmin = True
+
+    return json.dumps({"success": True, "userId": userId, "token": token, "isAdmin": isAdmin})
 
 @app.route("/api/logout", methods = ['POST'])
 def apiLogout():
@@ -327,6 +341,52 @@ def apiChangePassword():
 
     return json.dumps({"success": True})
 
+
+
+
+
+##########
+# Admin API
+
+@app.route("/api/admin/restart", methods = ['POST'])
+def apiAdminRestart():
+    cur = conn.cursor()
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+        abort(401)
+
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    if not validateToken(userId, token):
+        abort(401)
+    
+    cur.execute(f"SELECT userId FROM AdminList WHERE userId = {userId}")
+    if len(cur.fetchall()) == 0:
+        abort(401)
+    
+    if os.path.exists("/tmp/WordMemoLastManualRestart"):
+        lst = int(open("/tmp/WordMemoLastManualRestart","r").read())
+        if int(time.time()) - lst <= 1800:
+            return json.dumps({"success": False, "msg": "Only one restart in each 30 minutes is allowed!"})
+    
+    open("/tmp/WordMemoLastManualRestart","w").write(str(int(time.time())))
+
+    os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
+    sys.exit(0)
+
+# NOTE It's dangerous
+# Make sure this route is protected by reverse proxy (nginx / apache) authentication
+# Otherwise remove the route to prevent your server from being attacked
+@app.route("/protected/restart", methods = ['GET'])
+def nginxProtectedRestart():
+    if os.path.exists("/tmp/WordMemoLastManualRestart"):
+        lst = int(open("/tmp/WordMemoLastManualRestart","r").read())
+        if int(time.time()) - lst <= 1800:
+            return "Only one restart in each 30 minutes is allowed!"
+    
+    open("/tmp/WordMemoLastManualRestart","w").write(str(int(time.time())))
+
+    os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
+    sys.exit(0)
 
 
 
@@ -1146,8 +1206,16 @@ def exportData():
     else:
         return render_template("export.html", MESSAGE = "")
 
+def autoRestart():
+    while 1:
+        if sessions.errcnt >= 5:
+            os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
+            sys.exit(0)
+        time.sleep(5)
 
+time.sleep(5)
 threading.Thread(target = sessions.PendingAccountDeletion).start()
+threading.Thread(target = autoRestart).start()
 
 app.jinja_env.auto_reload = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True
