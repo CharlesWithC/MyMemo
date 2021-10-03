@@ -51,29 +51,213 @@ if (isphone) {
 
 var windowOrgW = 1536;
 var windowOrgH = 864;
-buttons[0]={name:"start",x:0,y:0,w:300,h:50,orgw:300,orgh:50},
-buttons[6]={name:"tag",x:0,y:0,w:170,h:50,orgw:170,orgh:50},
-buttons[11]={name:"remove",x:0,y:0,w:170,h:50,orgw:170,orgh:50},
-buttons[1]={name:"previous",x:0,y:0,w:170,h:50,orgw:170,orgh:50},
-buttons[2]={name:"next",x:0,y:0,w:170,h:50,orgw:170,orgh:50},
-buttons[3]={name:"sound",x:0,y:0,w:50,h:50,orgw:50,orgh:50},
-buttons[13]={name:"pauseap",x:0,y:0,w:170,h:50,orgw:170,orgh:50},
-buttons[16]={name:"challengeyes",x:0,y:0,w:170,h:50,orgw:170,orgh:50},
-buttons[17]={name:"challengeno",x:0,y:0,w:170,h:50,orgw:170,orgh:50},
-buttons[15]={name:"mode0",x:0,y:0,w:250,h:50,orgw:250,orgh:50},
-buttons[4]={name:"mode1",x:0,y:0,w:170,h:50,orgw:170,orgh:50},
-buttons[5]={name:"mode2",x:0,y:0,w:170,h:50,orgw:170,orgh:50},
-buttons[7]={name:"mode3",x:0,y:0,w:170,h:50,orgw:170,orgh:50},
-buttons[10]={name:"mode4",x:0,y:0,w:170,h:50,orgw:170,orgh:50},
-buttons[8]={name:"homepage",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
-buttons[14]={name:"settings",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
-buttons[20]={name:"account",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
-buttons[18]={name:"statistics",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
-buttons[22]={name:"list",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
-buttons[9]={name:"import",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
-buttons[12]={name:"export",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
-buttons[19]={name:"addword",x:0,y:0,w:300,h:50,orgw:300,orgh:50},
-buttons[21]={name:"cleardeleted",x:0,y:0,w:500,h:50,orgw:500,orgh:50};
+buttons[0] = {
+        name: "start",
+        x: 0,
+        y: 0,
+        w: 300,
+        h: 50,
+        orgw: 300,
+        orgh: 50
+    },
+    buttons[6] = {
+        name: "tag",
+        x: 0,
+        y: 0,
+        w: 170,
+        h: 50,
+        orgw: 170,
+        orgh: 50
+    },
+    buttons[11] = {
+        name: "remove",
+        x: 0,
+        y: 0,
+        w: 170,
+        h: 50,
+        orgw: 170,
+        orgh: 50
+    },
+    buttons[1] = {
+        name: "previous",
+        x: 0,
+        y: 0,
+        w: 170,
+        h: 50,
+        orgw: 170,
+        orgh: 50
+    },
+    buttons[2] = {
+        name: "next",
+        x: 0,
+        y: 0,
+        w: 170,
+        h: 50,
+        orgw: 170,
+        orgh: 50
+    },
+    buttons[3] = {
+        name: "sound",
+        x: 0,
+        y: 0,
+        w: 50,
+        h: 50,
+        orgw: 50,
+        orgh: 50
+    },
+    buttons[13] = {
+        name: "pauseap",
+        x: 0,
+        y: 0,
+        w: 170,
+        h: 50,
+        orgw: 170,
+        orgh: 50
+    },
+    buttons[16] = {
+        name: "challengeyes",
+        x: 0,
+        y: 0,
+        w: 170,
+        h: 50,
+        orgw: 170,
+        orgh: 50
+    },
+    buttons[17] = {
+        name: "challengeno",
+        x: 0,
+        y: 0,
+        w: 170,
+        h: 50,
+        orgw: 170,
+        orgh: 50
+    },
+    buttons[15] = {
+        name: "mode0",
+        x: 0,
+        y: 0,
+        w: 250,
+        h: 50,
+        orgw: 250,
+        orgh: 50
+    },
+    buttons[4] = {
+        name: "mode1",
+        x: 0,
+        y: 0,
+        w: 170,
+        h: 50,
+        orgw: 170,
+        orgh: 50
+    },
+    buttons[5] = {
+        name: "mode2",
+        x: 0,
+        y: 0,
+        w: 170,
+        h: 50,
+        orgw: 170,
+        orgh: 50
+    },
+    buttons[7] = {
+        name: "mode3",
+        x: 0,
+        y: 0,
+        w: 170,
+        h: 50,
+        orgw: 170,
+        orgh: 50
+    },
+    buttons[10] = {
+        name: "mode4",
+        x: 0,
+        y: 0,
+        w: 170,
+        h: 50,
+        orgw: 170,
+        orgh: 50
+    },
+    buttons[8] = {
+        name: "homepage",
+        x: 0,
+        y: 0,
+        w: 200,
+        h: 50,
+        orgw: 200,
+        orgh: 50
+    },
+    buttons[14] = {
+        name: "settings",
+        x: 0,
+        y: 0,
+        w: 200,
+        h: 50,
+        orgw: 200,
+        orgh: 50
+    },
+    buttons[20] = {
+        name: "account",
+        x: 0,
+        y: 0,
+        w: 200,
+        h: 50,
+        orgw: 200,
+        orgh: 50
+    },
+    buttons[18] = {
+        name: "statistics",
+        x: 0,
+        y: 0,
+        w: 200,
+        h: 50,
+        orgw: 200,
+        orgh: 50
+    },
+    buttons[22] = {
+        name: "list",
+        x: 0,
+        y: 0,
+        w: 200,
+        h: 50,
+        orgw: 200,
+        orgh: 50
+    },
+    buttons[9] = {
+        name: "import",
+        x: 0,
+        y: 0,
+        w: 200,
+        h: 50,
+        orgw: 200,
+        orgh: 50
+    },
+    buttons[12] = {
+        name: "export",
+        x: 0,
+        y: 0,
+        w: 200,
+        h: 50,
+        orgw: 200,
+        orgh: 50
+    },
+    buttons[19] = {
+        name: "addword",
+        x: 0,
+        y: 0,
+        w: 300,
+        h: 50,
+        orgw: 300,
+        orgh: 50
+    },
+    buttons[21] = {
+        name: "cleardeleted",
+        x: 0,
+        y: 0,
+        w: 500,
+        h: 50,
+        orgw: 500,
+        orgh: 50
+    };
 
 if (isphone) {
     for (var i = 0; i < btncnt; i++) {
@@ -113,6 +297,33 @@ fontresize();
 
 
 
+
+// Check network status
+
+var online = true;
+validateMsg = (Math.random()).toString();
+$.ajax({
+    url: "/ping",
+    method: 'POST',
+    async: true,
+    dataType: "json",
+    data: {
+        "msg": validateMsg
+    },
+    success: function (r) {
+        if (r.msg != validateMsg) {
+            online = false;
+        }
+    },
+    erorr: function (r) {
+        online = false;
+    }
+});
+
+if (!online) {
+    alert("It seems that you or the server is not online, offline mode is enabled automatically!");
+    displayMode = 2;
+}
 
 // Fetch word list
 
@@ -206,7 +417,7 @@ if (autoPlay == null) {
 }
 autoPlay = parseInt(autoPlay);
 var apinterval = -1;
-var appaused = 0;
+var appaused = 1;
 
 displayMode = localStorage.getItem("displayMode");
 if (displayMode == null) {
@@ -266,47 +477,33 @@ if (wordId != null && localStorage.getItem("token") != null && localStorage.getI
 
 // Word does not exist
 if (word == "") { // Then show a random word to start from
-    if (localStorage.getItem("token") != null && localStorage.getItem("token") != "") {
-        $.ajax({
-            url: '/api/getNext',
-            method: 'POST',
-            async: false,
-            dataType: "json",
-            data: {
-                status: showStatus,
-                moveType: 0,
-                splitLine: splitLine,
-                userId: localStorage.getItem("userId"),
-                token: localStorage.getItem("token")
-            },
-            success: function (r) {
-                wordId = r.wordId;
-                word = r.word;
-                translation = r.translation;
-                status = r.status;
-            },
-            error: function (r) {
-                if (r.status == 401) {
-                    alert("Login session expired! Please login again!");
-                    localStorage.removeItem("userId");
-                    localStorage.removeItem("token");
-                    window.location.href = "/user";
-                }
-            }
-        });
+    if (wordList != []) {
+        index = parseInt(Math.random() * wordList.length);
+        wordId = wordList[index].wordId;
+        word = wordList[index].word;
+        translation = wordList[index].translation;
+        status = wordList[index].status;
+
+        $("#startfrom").val(word);
+
+        // In backend database, wordId starts from 1
+        // But in frontend array, wordId starts from 0
+        wordId += 1;
     }
 }
 
 lastInputChange = 0;
 
 function displayRandomWord() {
-    if(wordList != []){
-        wordId = parseInt(Math.random()*1050);
-        word = wordList[wordId].word;
-        translation = wordList[wordId].translation;
-        status = wordList[wordId].status;
+    if (wordList != []) {
+        index = parseInt(Math.random() * wordList.length);
+        wordId = wordList[index].wordId;
+        word = wordList[index].word;
+        translation = wordList[index].translation;
+        status = wordList[index].status;
+
         $("#startfrom").val(word);
-        
+
         // In backend database, wordId starts from 1
         // But in frontend array, wordId starts from 0
         wordId += 1;
@@ -358,6 +555,8 @@ function renderHomePage() {
         ctx.fillText("Practice Mode", buttons[0].x + buttons[0].w / 2, buttons[0].y + buttons[0].h * 2.2);
     } else if (displayMode == 1) {
         ctx.fillText("Challenge Mode", buttons[0].x + buttons[0].w / 2, buttons[0].y + buttons[0].h * 2.2);
+    } else if (displayMode == 2) {
+        ctx.fillText("Offline Mode", buttons[0].x + buttons[0].w / 2, buttons[0].y + buttons[0].h * 2.2);
     }
     ////
     buttons[20].x = canvas.width - buttons[20].w * 1.2;
@@ -431,10 +630,10 @@ function renderSettings() {
     ctx.font = fontSize + "px Comic Sans MS";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Mode:", buttons[15].x - buttons[15].w * 0.7, buttons[15].y + buttons[15].h / 1.4);
-    l = ["Practice", "Challenge"];
+    l = ["Practice", "Challenge", "Offline"];
     ctx.fillText(l[displayMode], buttons[15].x + buttons[15].w / 2, buttons[15].y + buttons[15].h / 1.4);
     ////
-    if (displayMode == 0) {
+    if (displayMode == 0 || displayMode == 2) {
         buttons[4].x = canvas.width / 2 + buttons[4].w / 1.2;
         buttons[4].y = buttons[4].h * 3.5;
         ctx.fillStyle = getRndColor(160, 250);
@@ -775,21 +974,56 @@ function renderWord(showSwapped = 0, cancelSpeaker = 0) {
             } else
                 ctx.fillText("Delete", buttons[11].x + buttons[11].w / 2, buttons[11].y + buttons[11].h / 1.4);
         }
+    } else if (displayMode == 2) { // Offline mode
+        ctx.fillText("Offline Mode", canvas.width / 2, buttons[0].h * 0.2 + buttons[0].h / 1.4);
+
+        // Render buttons
+        buttons[1].x = canvas.width / 2 - buttons[1].w * (1 + btnMargin);
+        buttons[1].y = canvas.height - bottomOffset;
+        ctx.fillStyle = rectcolor;
+        ctx.roundRect(buttons[1].x, buttons[1].y, buttons[1].w, buttons[1].h);
+
+        ctx.font = fontSize + "px Comic Sans MS";
+        ctx.fillStyle = textcolor;
+        ctx.fillText("Previous", buttons[1].x + buttons[1].w / 2, buttons[1].y + buttons[1].h / 1.4);
+        ////
+        buttons[2].x = canvas.width / 2 + buttons[2].w * btnMargin;
+        buttons[2].y = canvas.height - bottomOffset;
+        ctx.fillStyle = rectcolor;
+        ctx.roundRect(buttons[2].x, buttons[2].y, buttons[2].w, buttons[2].h);
+
+        ctx.font = fontSize + "px Comic Sans MS";
+        ctx.fillStyle = textcolor;
+        ctx.fillText("Next", buttons[2].x + buttons[2].w / 2, buttons[2].y + buttons[2].h / 1.4);
     }
 
     // If autoplayer is on, then autoplay
     if (autoPlay != 0) {
-        buttons[13].x = canvas.width / 2 - buttons[13].w * (1 + btnMargin);
-        buttons[13].y = canvas.height - bottomOffset - buttons[13].h * 3;
-        ctx.fillStyle = rectcolor;
-        ctx.roundRect(buttons[13].x, buttons[13].y, buttons[13].w, buttons[13].h);
+        if (displayMode == 0) {
+            buttons[13].x = canvas.width / 2 - buttons[13].w * (1 + btnMargin);
+            buttons[13].y = canvas.height - bottomOffset - buttons[13].h * 3;
+            ctx.fillStyle = rectcolor;
+            ctx.roundRect(buttons[13].x, buttons[13].y, buttons[13].w, buttons[13].h);
 
-        ctx.font = fontSize + "px Comic Sans MS";
-        ctx.fillStyle = textcolor;
-        if (appaused)
-            ctx.fillText("Play", buttons[13].x + buttons[13].w / 2, buttons[13].y + buttons[13].h / 1.4);
-        else
-            ctx.fillText("Pause", buttons[13].x + buttons[13].w / 2, buttons[13].y + buttons[13].h / 1.4);
+            ctx.font = fontSize + "px Comic Sans MS";
+            ctx.fillStyle = textcolor;
+            if (appaused)
+                ctx.fillText("Play", buttons[13].x + buttons[13].w / 2, buttons[13].y + buttons[13].h / 1.4);
+            else
+                ctx.fillText("Pause", buttons[13].x + buttons[13].w / 2, buttons[13].y + buttons[13].h / 1.4);
+        } else if (displayMode == 2) {
+            buttons[13].x = canvas.width / 2 - buttons[13].w * (1 + btnMargin);
+            buttons[13].y = canvas.height - bottomOffset - buttons[13].h * 1.5;
+            ctx.fillStyle = rectcolor;
+            ctx.roundRect(buttons[13].x, buttons[13].y, buttons[13].w, buttons[13].h);
+
+            ctx.font = fontSize + "px Comic Sans MS";
+            ctx.fillStyle = textcolor;
+            if (appaused)
+                ctx.fillText("Play", buttons[13].x + buttons[13].w / 2, buttons[13].y + buttons[13].h / 1.4);
+            else
+                ctx.fillText("Pause", buttons[13].x + buttons[13].w / 2, buttons[13].y + buttons[13].h / 1.4);
+        }
     }
 
     if (autoPlay != 0 && !appaused && !cancelSpeaker) {
@@ -902,41 +1136,93 @@ function autoPlayer() { // = auto next button presser + sound maker
 
     moveType = 1 - random;
 
-    // Get next word
-    $.ajax({
-        url: "/api/getNext",
-        method: 'POST',
-        async: true,
-        dataType: "json",
-        data: {
-            wordId: wordId,
-            splitLine: splitLine,
-            status: showStatus,
-            moveType: moveType,
-            userId: localStorage.getItem("userId"),
-            token: localStorage.getItem("token")
-        },
-        success: function (r) {
-            word = r.word;
-            translation = r.translation;
-            status = r.status;
-            wordId = r.wordId;
-            displayingAnswer = 0;
-            renderWord();
-        },
-        error: function (r, textStatus, errorThrown) {
-            if (r.status == 401) {
-                alert("Login session expired! Please login again!");
-                localStorage.removeItem("userId");
-                localStorage.removeItem("token");
-                window.location.href = "/user";
-            } else {
-                word = r.status + " " + errorThrown;
-                translation = "Maybe change the settings?\nOr check your connection?";
-                renderWord(1, 1);
+    if (displayMode == 0) {
+        // Get next word
+        $.ajax({
+            url: "/api/getNext",
+            method: 'POST',
+            async: true,
+            dataType: "json",
+            data: {
+                wordId: wordId,
+                splitLine: splitLine,
+                status: showStatus,
+                moveType: moveType,
+                userId: localStorage.getItem("userId"),
+                token: localStorage.getItem("token")
+            },
+            success: function (r) {
+                word = r.word;
+                translation = r.translation;
+                status = r.status;
+                wordId = r.wordId;
+                displayingAnswer = 0;
+                renderWord();
+            },
+            error: function (r, textStatus, errorThrown) {
+                if (r.status == 401) {
+                    alert("Login session expired! Please login again!");
+                    localStorage.removeItem("userId");
+                    localStorage.removeItem("token");
+                    window.location.href = "/user";
+                } else {
+                    word = r.status + " " + errorThrown;
+                    translation = "Maybe change the settings?\nOr check your connection?";
+                    renderWord(1, 1);
+                }
+            }
+        });
+    } else if (displayMode == 2) {
+        displayingAnswer = 0;
+
+        requiredList = [];
+        for (var i = 0; i < wordList.length; i++) {
+            if (showStatus == 1 && (wordList[i].status == 1 || wordList[i].status == 2)) {
+                requiredList.push(wordList[i]);
+            } else if (showStatus == 2 && wordList[i].status == 2) {
+                requiredList.push(wordList[i]);
+            } else if (showStatus == 3 && wordList[i].status == 3) {
+                requiredList.push(wordList[i]);
             }
         }
-    });
+
+        if (moveType == 0) {
+            index = parseInt(Math.random() * requiredList.length);
+            wordId = requiredList[index].wordId;
+            word = requiredList[index].word;
+            translation = requiredList[index].translation;
+            status = requiredList[index].status;
+        } else if (moveType == 1 || moveType == -1) {
+            index = -1;
+            for (var i = 0; i < requiredList.length; i++) {
+                if (requiredList[i].wordId == wordId) {
+                    index = i;
+                    break;
+                }
+            }
+            if (index == -1) {
+                word = "";
+                translation = "Unknown error";
+                renderWord(1, 1);
+                return;
+            }
+
+            if (moveType == -1 && index > 0 || moveType == 1 && index < requiredList.length - 1) {
+                index += moveType;
+            } else if (moveType == -1 && index == 0) {
+                index = requiredList.length - 1;
+            } else if (moveType == 1 && index == requiredList.length - 1) {
+                index = 0;
+            }
+
+            wordId = requiredList[index].wordId;
+            word = requiredList[index].word;
+            translation = requiredList[index].translation;
+            status = requiredList[index].status;
+        }
+
+        renderWord();
+    }
 }
 
 function startfunc() {
@@ -983,24 +1269,27 @@ function startfunc() {
                             status = r.status;
                             wordId = r.wordId;
                             renderWord();
+                            if (apinterval == -1 && autoPlay != 0) {
+                                apinterval = setInterval(autoPlayer, apdelay[autoPlay] * 1000);
+                            }
                         },
-                        error: function (r) {
+                        error: function (r, textStatus, errorThrown) {
                             if (r.status == 401) {
                                 alert("Login session expired! Please login again!");
                                 localStorage.removeItem("userId");
                                 localStorage.removeItem("token");
                                 window.location.href = "/user";
+                            } else {
+                                word = r.status + " " + errorThrown;
+                                translation = "Maybe change the settings?\nOr check your connection?";
+                                renderWord(1, 1);
                             }
                         }
                     });
-
-                    if (apinterval == -1 && autoPlay != 0) {
-                        apinterval = setInterval(autoPlayer, apdelay[autoPlay] * 1000);
-                    }
                 },
 
                 // Word doesn't exist then start from default
-                error: function (r) {
+                error: function (r, textStatus, errorThrown) {
                     if (r.status == 404) {
                         $("#startfrom").val("Not found!");
                     } else if (r.status == 401) {
@@ -1008,6 +1297,10 @@ function startfunc() {
                         localStorage.removeItem("userId");
                         localStorage.removeItem("token");
                         window.location.href = "/user";
+                    } else {
+                        word = r.status + " " + errorThrown;
+                        translation = "Maybe change the settings?\nOr check your connection?";
+                        renderWord(1, 1);
                     }
                 }
             });
@@ -1038,13 +1331,21 @@ function startfunc() {
                     status = r.status;
 
                     renderWord();
+                    appaused = 0;
+                    if (apinterval == -1 && autoPlay != 0) {
+                        apinterval = setInterval(autoPlayer, apdelay[autoPlay] * 1000);
+                    }
                 },
-                error: function (r) {
+                error: function (r, textStatus, errorThrown) {
                     if (r.status == 401) {
                         alert("Login session expired! Please login again!");
                         localStorage.removeItem("userId");
                         localStorage.removeItem("token");
                         window.location.href = "/user";
+                    } else {
+                        word = r.status + " " + errorThrown;
+                        translation = "Maybe change the settings?\nOr check your connection?";
+                        renderWord(1, 1);
                     }
                 }
             });
@@ -1082,6 +1383,53 @@ function startfunc() {
                 }
             }
         });
+    } else if (displayMode == 2) { // Offline Mode
+        if (wordList == []) {
+            alert("Unable to start offline mode: No data in word list!");
+            return;
+        }
+
+        if ($("#startfrom").val() != "") {
+            startword = $("#startfrom").val();
+            found = false;
+            for (var i = 0; i < wordList.length; i++) {
+                if (wordList[i].word == startword) {
+                    lastpage = currentpage;
+                    currentpage = 1;
+                    started = 1;
+
+                    wordId = wordList[i].wordId;
+                    word = wordList[i].word;
+                    translation = wordList[i].translation;
+                    status = wordList[i].status;
+
+                    found = true;
+                }
+            }
+            if (!found) {
+                $("#startfrom").val("Not found!");
+            }
+        } else {
+            started = 1;
+            lastpage = currentpage;
+            currentpage = 1;
+
+            index = parseInt(Math.random() * wordList.length);
+            wordId = wordList[index].wordId;
+            word = wordList[index].word;
+            translation = wordList[index].translation;
+            status = wordList[index].status;
+        }
+
+        btninit();
+        $("#startfrom").hide();
+        $("#startfrom").val("");
+
+        appaused = 0;
+        renderWord();
+        if (apinterval == -1 && autoPlay != 0) {
+            apinterval = setInterval(autoPlayer, apdelay[autoPlay] * 1000);
+        }
     }
 }
 
@@ -1103,54 +1451,115 @@ function clickHandler(e) {
                     startfunc();
                 })
             } else if (started && (buttons[i].name == "previous" || buttons[i].name == "next")) {
-                // Go to previous / next word
-                t = wordId;
-                if (random) {
-                    t = Math.floor(wordcount * Math.random());
-                }
+                if (displayMode == 0) {
+                    // Go to previous / next word
+                    moveType = 0;
+                    if (buttons[i].name == "previous") {
+                        moveType = -1;
+                    } else if (buttons[i].name == "next") {
+                        moveType = 1;
+                    }
+                    if (random) {
+                        moveType = 0;
+                    }
 
-                moveType = 0;
-                if (buttons[i].name == "previous") {
-                    moveType = -1;
-                } else if (buttons[i].name == "next") {
-                    moveType = 1;
-                }
+                    displayingAnswer = 0;
 
-                displayingAnswer = 0;
+                    $.ajax({
+                        url: '/api/getNext',
+                        method: 'POST',
+                        async: true,
+                        dataType: "json",
+                        data: {
+                            wordId: wordId,
+                            status: showStatus,
+                            moveType: moveType,
+                            splitLine: splitLine,
+                            userId: localStorage.getItem("userId"),
+                            token: localStorage.getItem("token")
+                        },
+                        success: function (r) {
+                            word = r.word;
+                            translation = r.translation;
+                            status = r.status;
+                            wordId = r.wordId;
+                            renderWord();
+                        },
+                        error: function (r, textStatus, errorThrown) {
+                            if (r.status == 401) {
+                                alert("Login session expired! Please login again!");
+                                localStorage.removeItem("userId");
+                                localStorage.removeItem("token");
+                                window.location.href = "/user";
+                            } else {
+                                word = r.status + " " + errorThrown;
+                                translation = "Maybe change the settings?\nOr check your connection?";
+                                renderWord(1, 1);
+                            }
+                        }
+                    });
+                } else if (displayMode == 2) {
+                    // Get next word from local word list (may not contain real time updates)
+                    moveType = 0;
+                    if (buttons[i].name == "previous") {
+                        moveType = -1;
+                    } else if (buttons[i].name == "next") {
+                        moveType = 1;
+                    }
+                    if (random) {
+                        moveType = 0;
+                    }
 
-                $.ajax({
-                    url: '/api/getNext',
-                    method: 'POST',
-                    async: true,
-                    dataType: "json",
-                    data: {
-                        wordId: t,
-                        status: showStatus,
-                        moveType: moveType,
-                        splitLine: splitLine,
-                        userId: localStorage.getItem("userId"),
-                        token: localStorage.getItem("token")
-                    },
-                    success: function (r) {
-                        word = r.word;
-                        translation = r.translation;
-                        status = r.status;
-                        wordId = r.wordId;
-                        renderWord();
-                    },
-                    error: function (r, textStatus, errorThrown) {
-                        if (r.status == 401) {
-                            alert("Login session expired! Please login again!");
-                            localStorage.removeItem("userId");
-                            localStorage.removeItem("token");
-                            window.location.href = "/user";
-                        } else {
-                            word = r.status + " " + errorThrown;
-                            translation = "Maybe change the settings?\nOr check your connection?";
-                            renderWord(1, 1);
+                    displayingAnswer = 0;
+
+                    requiredList = [];
+                    for (var i = 0; i < wordList.length; i++) {
+                        if (showStatus == 1 && (wordList[i].status == 1 || wordList[i].status == 2)) {
+                            requiredList.push(wordList[i]);
+                        } else if (showStatus == 2 && wordList[i].status == 2) {
+                            requiredList.push(wordList[i]);
+                        } else if (showStatus == 3 && wordList[i].status == 3) {
+                            requiredList.push(wordList[i]);
                         }
                     }
-                });
+
+                    if (moveType == 0) {
+                        index = parseInt(Math.random() * requiredList.length);
+                        wordId = requiredList[index].wordId;
+                        word = requiredList[index].word;
+                        translation = requiredList[index].translation;
+                        status = requiredList[index].status;
+                    } else if (moveType == 1 || moveType == -1) {
+                        index = -1;
+                        for (var i = 0; i < requiredList.length; i++) {
+                            if (requiredList[i].wordId == wordId) {
+                                index = i;
+                                break;
+                            }
+                        }
+                        if (index == -1) {
+                            word = "";
+                            translation = "Unknown error";
+                            renderWord(1, 1);
+                            return;
+                        }
+
+                        if (moveType == -1 && index > 0 || moveType == 1 && index < requiredList.length - 1) {
+                            index += moveType;
+                        } else if (moveType == -1 && index == 0) {
+                            index = requiredList.length - 1;
+                        } else if (moveType == 1 && index == requiredList.length - 1) {
+                            index = 0;
+                        }
+
+                        wordId = requiredList[index].wordId;
+                        word = requiredList[index].word;
+                        translation = requiredList[index].translation;
+                        status = requiredList[index].status;
+                    }
+
+                    renderWord();
+                }
             } else if (started && (buttons[i].name == "tag" || buttons[i].name == "remove")) {
                 // Update word status
                 if (buttons[i].name == "tag") {
@@ -1463,7 +1872,10 @@ function clickHandler(e) {
                 localStorage.setItem("autoPlay", autoPlay);
                 renderCurrentPage();
             } else if (buttons[i].name == "mode0") {
-                displayMode = 1 - displayMode;
+                displayMode += 1;
+                if (displayMode == 3) {
+                    displayMode = 0;
+                }
                 localStorage.setItem("displayMode", displayMode);
                 renderCurrentPage();
             } else if (buttons[i].name == "pauseap") {
@@ -1486,7 +1898,7 @@ function clickHandler(e) {
         if (statson == 0) {
             displayingAnswer = 1 - displayingAnswer;
         } else statson = 0;
-        if (displayMode == 0)
+        if (displayMode == 0 || displayMode == 2)
             renderWord(displayingAnswer);
     }
 }

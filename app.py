@@ -137,6 +137,11 @@ def index():
 def userIndex():
     return render_template("user.html")
 
+@app.route("/ping", methods = ['POST'])
+def ping():
+    msg = request.form["msg"]
+    return json.dumps({"success": True, "msg": msg})
+
 
 
 

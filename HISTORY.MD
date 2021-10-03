@@ -1,5 +1,12 @@
 # Update History
 
+## v2.1.1
+
+*Date: 2021/10/3*  
+Added offline mode which use local word list  
+(No tagging / deleting allowed in offline mode)
+In offline mode, user can use the website without logging in
+
 ## v2.0.4
 
 *Date: 2021/10/2*  

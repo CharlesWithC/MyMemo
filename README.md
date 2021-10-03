@@ -6,13 +6,14 @@
 
 *It's only tested in python3.8 + Chrome / Firefox browser environment. But it should support python3.\* and most browsers.*
   
-Current version: v2.0.4  
+Current version: v2.1.1  
 
 ## About the project
 
-The project has experienced 2 stages, the first one can only be used by single user and has limited functions, and the current one can be used by multiple users with Practice & Challenge Mode.  
+The project has experienced 2 stages, the first one can only be used by single user and has limited functions, and the current one can be used by multiple users with Practice & Challenge & Offline Mode.  
 
 Practice Mode is for you to memorize new words, while Challenge Mode is for you to test whether you memorized them.  
+Offline Mode can be enabled when you or the server is offline, CloudFlare will show a snapshot of the website and the words are fetched from local word list.  
 There are multiple settings for you to decide how you will memorize new words.  
 
 You can import and export the wordlist in the format of .xlsx table files, it's so easy and simple!  
