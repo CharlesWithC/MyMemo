@@ -15,7 +15,7 @@
 <input id="addword_word" style="display:none" />
 <textarea id="addword_translation" style="display:none"></textarea>
 
-<table id="wordList" style="display:none">
+<table id="wordList" style="display:none;z-index:999">
     <thead>
         <tr>
             <th id="word">Word</th>
@@ -29,6 +29,8 @@
 
 <script src="/static/js/main.min.js"></script>
 
-<div class="footer">
-    <p>v2.1.1 &copy; Charles</p>
+<div class="footer" style="z-index:99">
+    <p>v2.1.2 &copy; Charles</p>
 </div>
+
+<span id="hiddenSpan" style="display:none"></span>

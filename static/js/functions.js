@@ -25,3 +25,66 @@ CanvasRenderingContext2D.prototype.roundRect = function (x, y, width, height, ra
     this.fill();
     return this;
 }
+
+
+// A function to make line breaks
+function lineBreak(str, width, maxLine = -1, font = "20px Comic Sans MS") { // width in px
+    ret = "";
+    tmp = str;
+    lineCnt = 1;
+
+    $("#hiddenSpan").attr("style", "display:none;font:" + font);
+    $("#hiddenSpan").html(str);
+    if ($("#hiddenSpan").width() <= width) {
+        return str;
+    }
+    
+    while (str.length > 0 && (maxLine == -1 || maxLine != -1 && lineCnt <= maxLine)) {
+        if (lineCnt == maxLine) { // Line count limit: remove extra characters, use ... instead
+            // Get line content (start from 1 character)
+            lineLen = 1;
+            $("#hiddenSpan").html(str.substr(0, lineLen));
+            while ($("#hiddenSpan").width() <= width) {
+                if(lineLen == str.length){
+                    ret += str.substr(0,lineLen);
+                    return ret;
+                }
+                lineLen += 1;
+                $("#hiddenSpan").html(str.substr(0, lineLen));
+            }
+
+            // Replace the last characters with ...
+            $("#hiddenSpan").html(str.substr(0, lineLen) + "...");
+            while ($("#hiddenSpan").width() > width && lineLen > 0) {
+                lineLen -= 1;
+                $("#hiddenSpan").html(str.substr(0, lineLen) + "...");
+            }
+            ret += str.substr(0, lineLen) + "...";
+            return ret;
+        } else { // Line count not limited
+            // Get line content (start from 1 character)
+            lineLen = 1;
+            $("#hiddenSpan").html(str.substr(0, lineLen));
+            while ($("#hiddenSpan").width() <= width) {
+                if(lineLen == str.length){
+                    ret += str.substr(0,lineLen);
+                    return ret;
+                }
+                lineLen += 1;
+                $("#hiddenSpan").html(str.substr(0, lineLen));
+            }
+
+            // Add content to return data
+            lineLen -= 1;
+            ret += str.substr(0, lineLen) + "\n";
+            if (str.length - lineLen <= 0) {
+                break;
+            }
+            str = str.substr(lineLen, str.length - lineLen);
+
+            lineCnt += 1;
+        }
+    }
+
+    return ret;
+}

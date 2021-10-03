@@ -6,7 +6,7 @@
 
 *It's only tested in python3.8 + Chrome / Firefox browser environment. But it should support python3.\* and most browsers.*
   
-Current version: v2.1.1  
+Current version: v2.1.2  
 
 ## About the project
 

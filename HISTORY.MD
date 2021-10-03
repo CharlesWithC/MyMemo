@@ -1,5 +1,11 @@
 # Update History
 
+## v2.2.2
+
+*Date: 2021/10/3*  
+Improved UI (removed backend split line, frontend will calculate where to split line automatically)  
+Added word book display function, to prepare for full-featured word book function
+
 ## v2.1.1
 
 *Date: 2021/10/3*  

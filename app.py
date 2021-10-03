@@ -90,16 +90,6 @@ if not db_exists:
     conn.commit()
 del cur
 
-def insert_newlines(string, every=16):
-    pos = 0
-    for i in range(0, len(string)):
-        if string[i] == '\n':
-            pos = i
-        if i > pos + every:
-            string = string[:i] + '\n' + string[i:]
-            pos = i
-    return string
-
 def encode(s):
     return base64.b64encode(s.encode()).decode()
 
@@ -394,7 +384,7 @@ def nginxProtectedRestart():
 ##########
 # Word API
 
-@app.route("/api/getWordBook", methods = ['POST'])
+@app.route("/api/getWordBookList", methods = ['POST'])
 def apiGetWordBook():
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
@@ -409,7 +399,12 @@ def apiGetWordBook():
     cur.execute(f"SELECT wordBookId, name FROM WordBook WHERE userId = {userId}")
     d = cur.fetchall()
     for dd in d:
-        ret.append({"wordBookId": dd[0], "name": decode(dd[1])})
+        words = []
+        cur.execute(f"SELECT wordId FROM WordBookData WHERE wordBookId = {dd[0]}")
+        t = cur.fetchall()
+        for tt in t:
+            words.append(tt[0])
+        ret.append({"wordBookId": dd[0], "name": decode(dd[1]), "words": words})
     
     return json.dumps(ret)
 
@@ -548,7 +543,6 @@ def apiGetWord():
         abort(401)
     
     wordId = int(request.form["wordId"])
-    splitLine = int(request.form["splitLine"])
     
     cur.execute(f"SELECT word, translation, status FROM WordList WHERE wordId = {wordId} AND userId = {userId}")
     d = cur.fetchall()
@@ -559,7 +553,6 @@ def apiGetWord():
     (word, translation, status) = d[0]
     word = decode(word)
     translation = decode(translation)
-    translation = insert_newlines(translation, splitLine)
 
     return json.dumps({"wordId": wordId, "word":word, "translation": translation, "status": status})
 
@@ -789,9 +782,6 @@ def apiGetNext():
     word = decode(word)
     translation = decode(translation)
 
-    splitLine = int(request.form["splitLine"])
-    translation = insert_newlines(translation, splitLine)
-
     return json.dumps({"wordId": wordId, "word": word, "translation": translation, "status": status})
 
 rnd=[1,1,1,1,1,1,1,2,2,2,2,2,2,3,3,3,3,3,3,4]
@@ -883,17 +873,14 @@ def apiGetNextChallenge():
 
     wordId = getChallengeWordId(userId)
 
-    splitLine = int(request.form["splitLine"])
     if wordId == -1:
-        return json.dumps({"wordId": wordId, "word": "Out of challenge", "translation": insert_newlines("You are super!\nNo more challenge can be done!",splitLine), "status": 1})
+        return json.dumps({"wordId": wordId, "word": "Out of challenge", "translation": "You are super!\nNo more challenge can be done!", "status": 1})
 
     cur.execute(f"SELECT word, translation, status FROM WordList WHERE wordId = {wordId} AND userId = {userId}")
     d = cur.fetchall()
     (word, translation, status) = d[0]
     word = decode(word)
     translation = decode(translation)
-
-    translation = insert_newlines(translation, splitLine)
 
     return json.dumps({"wordId": wordId, "word": word, "translation": translation, "status": status})
 
@@ -938,17 +925,14 @@ def apiUpdateChallengeRecord():
     if getNext == 1:
         wordId = getChallengeWordId(userId)
 
-        splitLine = int(request.form["splitLine"])
         if wordId == -1:
-            return json.dumps({"wordId": wordId, "word": "Out of challenge", "translation": insert_newlines("You are super! No more challenge can be done!",splitLine), "status": 1})
+            return json.dumps({"wordId": wordId, "word": "Out of challenge", "translation": "You are super! No more challenge can be done!", "status": 1})
 
         cur.execute(f"SELECT word, translation, status FROM WordList WHERE wordId = {wordId} AND userId = {userId}")
         d = cur.fetchall()
         (word, translation, status) = d[0]
         word = decode(word)
         translation = decode(translation)
-
-        translation = insert_newlines(translation, splitLine)
 
         return json.dumps({"wordId": wordId, "word": word, "translation": translation, "status": status})
 
@@ -1213,7 +1197,6 @@ def autoRestart():
             sys.exit(0)
         time.sleep(5)
 
-time.sleep(5)
 threading.Thread(target = sessions.PendingAccountDeletion).start()
 threading.Thread(target = autoRestart).start()
 
