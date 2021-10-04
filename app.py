@@ -425,7 +425,7 @@ def apiCreateWordBook():
     wordBookId = 1
     cur.execute(f"SELECT MAX(wordBookId) FROM WordBook WHERE userId = {userId}")
     d = cur.fetchall()
-    if len(d) != 0:
+    if len(d) != 0 and not d[0][0] is None:
         wordBookId = d[0][0] + 1
     
     cur.execute(f"INSERT INTO WordBook VALUES ({userId}, {wordBookId}, '{name}')")
@@ -962,16 +962,18 @@ def apiUpdateWordStatus():
     if not validateToken(userId, token):
         abort(401)
 
-    wordId = int(request.form["wordId"])
+    words = json.loads(request.form["words"])
     status = int(request.form["status"])
 
-    cur.execute(f"SELECT word FROM WordList WHERE wordId = {wordId} AND userId = {userId}")
-    if len(cur.fetchall()) == 0:
-        return json.dumps({"succeed": False, "msg": "Word not found!"})
+    for wordId in words:
+        print(wordId)
+        cur.execute(f"SELECT word FROM WordList WHERE wordId = {wordId} AND userId = {userId}")
+        if len(cur.fetchall()) == 0:
+            return json.dumps({"succeed": False, "msg": "Word not found!"})
 
-    cur.execute(f"UPDATE WordList SET status = {status} WHERE wordId = {wordId} AND userId = {userId}")
+        cur.execute(f"UPDATE WordList SET status = {status} WHERE wordId = {wordId} AND userId = {userId}")
 
-    updateWordStatus(userId, wordId, status)
+        updateWordStatus(userId, wordId, status)
 
     conn.commit()
 

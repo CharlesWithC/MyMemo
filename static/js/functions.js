@@ -28,7 +28,7 @@ CanvasRenderingContext2D.prototype.roundRect = function (x, y, width, height, ra
 
 
 // A function to make line breaks
-function lineBreak(str, width, maxLine = -1, font = "20px Comic Sans MS") { // width in px
+function lineBreak(str, width, maxLine = -1, font = "20px Corbel") { // width in px
     ret = "";
     tmp = str;
     lineCnt = 1;
@@ -87,4 +87,10 @@ function lineBreak(str, width, maxLine = -1, font = "20px Comic Sans MS") { // w
     }
 
     return ret;
+}
+
+function getWidth(str, font = "20px Corbel"){
+    $("#hiddenSpan").attr("style", "display:none;font:" + font);
+    $("#hiddenSpan").html(str);
+    return $("#hiddenSpan").width();
 }

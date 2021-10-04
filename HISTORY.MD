@@ -1,6 +1,11 @@
 # Update History
 
-## v2.2.2
+## v2.1.3
+
+*Date: 2021/10/4*  
+Added function to edit word status in batch in word list table
+
+## v2.1.2
 
 *Date: 2021/10/3*  
 Improved UI (removed backend split line, frontend will calculate where to split line automatically)  

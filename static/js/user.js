@@ -2,11 +2,6 @@
 // Author: @Charles-1414
 // License: GNU General Public License v3.0
 
-// Update text font (adding this directly to html does not work)
-$("head").prepend(
-    "<style> @font-face { font-family: 'Comic Sans MS'; src: url('/static/ComicSansMS3.ttf') format('truetype'); } </style>"
-);
-
 // Define canvas
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext('2d');
@@ -136,11 +131,11 @@ function renderHomePage() {
     // Render title & subtitle
     ctx.textAlign = "center";
 
-    ctx.font = largeFontSize + "px Comic Sans MS";
+    ctx.font = largeFontSize + "px Impact";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Word Memo", canvas.width / 2, canvas.height / 2 - 250);
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillText("User Information", canvas.width / 2, canvas.height / 2 - 180);
 
     // Render buttons
@@ -149,7 +144,7 @@ function renderHomePage() {
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[1].x, buttons[1].y, buttons[1].w, buttons[1].h);
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Home", buttons[1].x + buttons[1].w / 2, buttons[1].y + buttons[1].h / 1.4);
     ////
@@ -158,7 +153,7 @@ function renderHomePage() {
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[2].x, buttons[2].y, buttons[2].w, buttons[2].h);
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Logout", buttons[2].x + buttons[2].w / 2, buttons[2].y + buttons[2].h / 1.4);
     ////
@@ -167,12 +162,12 @@ function renderHomePage() {
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[6].x, buttons[6].y, buttons[6].w, buttons[6].h);
 
-    ctx.font = fontSize * 0.9 + "px Comic Sans MS";
+    ctx.font = fontSize * 0.9 + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Settings", buttons[6].x + buttons[6].w / 2, buttons[6].y + buttons[6].h / 1.4);
 
     // Render user information
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillText("User ID: " + localStorage.getItem("userId"), canvas.width / 2, canvas.height / 2 - 100);
 
     if (username == "") {
@@ -198,23 +193,23 @@ function renderHomePage() {
         });
     }
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillText("Username: " + username, canvas.width / 2, canvas.height / 2 - 50);
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillText("Email: " + email, canvas.width / 2, canvas.height / 2);
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillText("Invitation Code: " + invitationCode, canvas.width / 2, canvas.height / 2 + 50);
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillText("Invited By: " + inviter, canvas.width / 2, canvas.height / 2 + 100);
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillText(cnt + " words in list", canvas.width / 2, canvas.height / 2 + 170);
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillText(tagcnt + " tagged and " + delcnt + " deleted", canvas.width / 2, canvas.height / 2 + 220);
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillText(chcnt + " challenges done so far", canvas.width / 2, canvas.height / 2 + 270);
 }
 
@@ -230,21 +225,21 @@ function renderLoginPage() {
     // Render title & subtitle
     ctx.textAlign = "center";
 
-    ctx.font = largeFontSize + "px Comic Sans MS";
+    ctx.font = largeFontSize + "px Impact";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Word Memo", canvas.width / 2, canvas.height / 2 - 200);
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillText("Login", canvas.width / 2, canvas.height / 2 - 130);
 
     // Show input box
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Username: ", canvas.width / 2 - buttons[0].w / 2, canvas.height / 2 - 30);
-    $("#username").attr("style", "position:absolute;left:" + (canvas.width / 2 + buttons[0].w / 4) + ";top:" + (canvas.height / 2 - 48) + ";font-size:" + fontSize * 0.4 + ";font-family:Comic Sans MS");
+    $("#username").attr("style", "position:absolute;left:" + (canvas.width / 2 + buttons[0].w / 4) + ";top:" + (canvas.height / 2 - 48) + ";font-size:" + fontSize * 0.4 + ";font-family:Corbel");
 
     ctx.fillText("Password: ", canvas.width / 2 - buttons[0].w / 2, canvas.height / 2 + 20);
-    $("#password").attr("style", "position:absolute;left:" + (canvas.width / 2 + buttons[0].w / 4) + ";top:" + (canvas.height / 2 + 2) + ";font-size:" + fontSize * 0.4 + ";font-family:Comic Sans MS");
+    $("#password").attr("style", "position:absolute;left:" + (canvas.width / 2 + buttons[0].w / 4) + ";top:" + (canvas.height / 2 + 2) + ";font-size:" + fontSize * 0.4 + ";font-family:Corbel");
 
     $("#email").hide();
     $("#invitationCode").hide();
@@ -255,7 +250,7 @@ function renderLoginPage() {
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[1].x, buttons[1].y, buttons[1].w, buttons[1].h);
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Home", buttons[1].x + buttons[1].w / 2, buttons[1].y + buttons[1].h / 1.4);
     ////
@@ -264,18 +259,18 @@ function renderLoginPage() {
     ctx.fillStyle = getRndColor(160, 250);
 
     ctx.roundRect(buttons[0].x, buttons[0].y, buttons[0].w, buttons[0].h);
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Login", buttons[0].x + buttons[0].w / 2, buttons[0].y + buttons[0].h / 1.4);
     ////
     buttons[3].x = canvas.width / 2 + buttons[3].w / 2;
     buttons[3].y = canvas.height / 2 - 120;
-    ctx.font = smallFontSize + "px Comic Sans MS";
+    ctx.font = smallFontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.textAlign = "left";
     ctx.fillText("Register", buttons[3].x + buttons[3].w / 2, buttons[3].y + buttons[3].h / 1.4);
     ////
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.textAlign = "center";
 }
 
@@ -291,27 +286,27 @@ function renderRegisterPage() {
     // Render title & subtitle
     ctx.textAlign = "center";
 
-    ctx.font = largeFontSize + "px Comic Sans MS";
+    ctx.font = largeFontSize + "px Impact";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Word Memo", canvas.width / 2, canvas.height / 2 - 200);
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillText("Register", canvas.width / 2, canvas.height / 2 - 130);
 
     // Show input box
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Username: ", canvas.width / 2 - buttons[0].w / 2, canvas.height / 2 - 30);
-    $("#username").attr("style", "position:absolute;left:" + (canvas.width / 2 + buttons[0].w / 4) + ";top:" + (canvas.height / 2 - 48) + ";font-size:" + fontSize * 0.4 + ";font-family:Comic Sans MS");
+    $("#username").attr("style", "position:absolute;left:" + (canvas.width / 2 + buttons[0].w / 4) + ";top:" + (canvas.height / 2 - 48) + ";font-size:" + fontSize * 0.4 + ";font-family:Corbel");
 
     ctx.fillText("Email: ", canvas.width / 2 - buttons[0].w / 2, canvas.height / 2 + 20);
-    $("#email").attr("style", "position:absolute;left:" + (canvas.width / 2 + buttons[0].w / 4) + ";top:" + (canvas.height / 2 + 2) + ";font-size:" + fontSize * 0.4 + ";font-family:Comic Sans MS");
+    $("#email").attr("style", "position:absolute;left:" + (canvas.width / 2 + buttons[0].w / 4) + ";top:" + (canvas.height / 2 + 2) + ";font-size:" + fontSize * 0.4 + ";font-family:Corbel");
 
     ctx.fillText("Password: ", canvas.width / 2 - buttons[0].w / 2, canvas.height / 2 + 70);
-    $("#password").attr("style", "position:absolute;left:" + (canvas.width / 2 + buttons[0].w / 4) + ";top:" + (canvas.height / 2 + 52) + ";font-size:" + fontSize * 0.4 + ";font-family:Comic Sans MS");
+    $("#password").attr("style", "position:absolute;left:" + (canvas.width / 2 + buttons[0].w / 4) + ";top:" + (canvas.height / 2 + 52) + ";font-size:" + fontSize * 0.4 + ";font-family:Corbel");
 
     ctx.fillText("Invitation code: ", canvas.width / 2 - buttons[0].w / 2, canvas.height / 2 + 120);
-    $("#invitationCode").attr("style", "position:absolute;left:" + (canvas.width / 2 + buttons[0].w / 4) + ";top:" + (canvas.height / 2 + 102) + ";font-size:" + fontSize * 0.4 + ";font-family:Comic Sans MS");
+    $("#invitationCode").attr("style", "position:absolute;left:" + (canvas.width / 2 + buttons[0].w / 4) + ";top:" + (canvas.height / 2 + 102) + ";font-size:" + fontSize * 0.4 + ";font-family:Corbel");
 
     // Render buttons
     buttons[1].x = buttons[1].w * 0.2;
@@ -319,7 +314,7 @@ function renderRegisterPage() {
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[1].x, buttons[1].y, buttons[1].w, buttons[1].h);
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Home", buttons[1].x + buttons[1].w / 2, buttons[1].y + buttons[1].h / 1.4);
     ////
@@ -328,18 +323,18 @@ function renderRegisterPage() {
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[0].x, buttons[0].y, buttons[0].w, buttons[0].h);
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Register", buttons[0].x + buttons[0].w / 2, buttons[0].y + buttons[0].h / 1.4);
     ////
     buttons[4].x = canvas.width / 2 + buttons[4].w / 2;
     buttons[4].y = canvas.height / 2 - 120;
-    ctx.font = smallFontSize + "px Comic Sans MS";
+    ctx.font = smallFontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.textAlign = "left";
     ctx.fillText("Login", buttons[4].x + buttons[4].w / 2, buttons[4].y + buttons[4].h / 1.4);
     ////
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.textAlign = "center";
 }
 
@@ -359,7 +354,7 @@ function renderSettings() {
     isAdmin = (localStorage.getItem("admin") == "true");
 
     // Render title
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Impact";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.textAlign = "center";
     if (isAdmin) {
@@ -374,7 +369,7 @@ function renderSettings() {
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[1].x, buttons[1].y, buttons[1].w, buttons[1].h);
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Back", buttons[1].x + buttons[1].w / 2, buttons[1].y + buttons[1].h / 1.4);
     ////
@@ -383,7 +378,7 @@ function renderSettings() {
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[7].x, buttons[7].y, buttons[7].w, buttons[7].h);
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Change Password", buttons[7].x + buttons[7].w / 2, buttons[7].y + buttons[7].h / 1.4);
     ////
@@ -393,7 +388,7 @@ function renderSettings() {
         ctx.fillStyle = "red";
         ctx.roundRect(buttons[5].x, buttons[5].y, buttons[5].w, buttons[5].h);
 
-        ctx.font = fontSize + "px Comic Sans MS";
+        ctx.font = fontSize + "px Corbel";
         ctx.fillStyle = "black"
         ctx.fillText("Delete Account", buttons[5].x + buttons[5].w / 2, buttons[5].y + buttons[5].h / 1.4);
     } else {
@@ -402,7 +397,7 @@ function renderSettings() {
         ctx.fillStyle = getRndColor(160, 250);
         ctx.roundRect(buttons[8].x, buttons[8].y, buttons[8].w, buttons[8].h);
 
-        ctx.font = fontSize + "px Comic Sans MS";
+        ctx.font = fontSize + "px Corbel";
         ctx.fillStyle = getRndColor(10, 100);
         ctx.fillText("Restart Server", buttons[8].x + buttons[8].w / 2, buttons[8].y + buttons[8].h / 1.4);
         // This will only restart the Word Memo backend program
@@ -421,7 +416,7 @@ function renderChangepwd() {
     // Render title
     ctx.textAlign = "center";
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Impact";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Change Password", canvas.width / 2, buttons[1].h * 0.2 + buttons[1].h / 1.4);
 
@@ -431,7 +426,7 @@ function renderChangepwd() {
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[1].x, buttons[1].y, buttons[1].w, buttons[1].h);
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Back", buttons[1].x + buttons[1].w / 2, buttons[1].y + buttons[1].h / 1.4);
     ////
@@ -440,21 +435,21 @@ function renderChangepwd() {
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[0].x, buttons[0].y, buttons[0].w, buttons[0].h);
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Change", buttons[0].x + buttons[0].w / 2, buttons[0].y + buttons[0].h / 1.4);
 
     // Show input box
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Old password: ", canvas.width / 2 - buttons[0].w / 2, canvas.height / 2 - 30);
-    $("#oldpwd").attr("style", "position:absolute;left:" + (canvas.width / 2 + buttons[0].w / 4) + ";top:" + (canvas.height / 2 - 48) + ";font-size:" + fontSize * 0.4 + ";font-family:Comic Sans MS");
+    $("#oldpwd").attr("style", "position:absolute;left:" + (canvas.width / 2 + buttons[0].w / 4) + ";top:" + (canvas.height / 2 - 48) + ";font-size:" + fontSize * 0.4 + ";font-family:Corbel");
 
     ctx.fillText("New password: ", canvas.width / 2 - buttons[0].w / 2, canvas.height / 2 + 20);
-    $("#newpwd").attr("style", "position:absolute;left:" + (canvas.width / 2 + buttons[0].w / 4) + ";top:" + (canvas.height / 2 + 2) + ";font-size:" + fontSize * 0.4 + ";font-family:Comic Sans MS");
+    $("#newpwd").attr("style", "position:absolute;left:" + (canvas.width / 2 + buttons[0].w / 4) + ";top:" + (canvas.height / 2 + 2) + ";font-size:" + fontSize * 0.4 + ";font-family:Corbel");
 
     ctx.fillText("Confirm password: ", canvas.width / 2 - buttons[0].w / 2, canvas.height / 2 + 70);
-    $("#cfmpwd").attr("style", "position:absolute;left:" + (canvas.width / 2 + buttons[0].w / 4) + ";top:" + (canvas.height / 2 + 52) + ";font-size:" + fontSize * 0.4 + ";font-family:Comic Sans MS");
+    $("#cfmpwd").attr("style", "position:absolute;left:" + (canvas.width / 2 + buttons[0].w / 4) + ";top:" + (canvas.height / 2 + 52) + ";font-size:" + fontSize * 0.4 + ";font-family:Corbel");
 }
 
 function renderDeleteacc() {
@@ -469,7 +464,7 @@ function renderDeleteacc() {
     // Render title
     ctx.textAlign = "center";
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Impact";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Delete Account", canvas.width / 2, buttons[1].h * 0.2 + buttons[1].h / 1.4);
 
@@ -479,7 +474,7 @@ function renderDeleteacc() {
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[1].x, buttons[1].y, buttons[1].w, buttons[1].h);
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Back", buttons[1].x + buttons[1].w / 2, buttons[1].y + buttons[1].h / 1.4);
     ////
@@ -488,19 +483,19 @@ function renderDeleteacc() {
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[0].x, buttons[0].y, buttons[0].w, buttons[0].h);
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Delete", buttons[0].x + buttons[0].w / 2, buttons[0].y + buttons[0].h / 1.4);
 
     // Show input box
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.textAlign = "center";
     ctx.fillText("Password: ", canvas.width / 2 - buttons[0].w / 2, canvas.height / 2 - 30);
-    $("#password").attr("style", "position:absolute;left:" + (canvas.width / 2 + buttons[0].w / 4) + ";top:" + (canvas.height / 2 - 48) + ";font-size:" + fontSize * 0.4 + ";font-family:Comic Sans MS");
+    $("#password").attr("style", "position:absolute;left:" + (canvas.width / 2 + buttons[0].w / 4) + ";top:" + (canvas.height / 2 - 48) + ";font-size:" + fontSize * 0.4 + ";font-family:Corbel");
 
     // Hints
-    ctx.font = smallFontSize + "px Comic Sans MS";
+    ctx.font = smallFontSize + "px Corbel";
     ctx.fillText("* Your account will be deleted after 14 days.", canvas.width / 2, buttons[0].y + buttons[0].h * 1.75);
     ctx.fillText("You can recover it by logging in during that period.", canvas.width / 2, buttons[0].y + buttons[0].h * 2.25);
     ctx.fillText("After 14 days it will be deleted permanently and cannot be recovered.", canvas.width / 2, buttons[0].y + buttons[0].h * 2.75);
@@ -723,7 +718,7 @@ function changepwdfunc() {
 function deleteaccfunc() {
     password = $("#password").val();
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = "white";
     ctx.roundRect(0, buttons[0].y - buttons[0].h * 1.5 - 5, canvas.width, buttons[0].h + 20);
 

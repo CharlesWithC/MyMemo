@@ -2,11 +2,6 @@
 // Author: @Charles-1414
 // License: GNU General Public License v3.0
 
-// Update text font (adding this directly to html does not work)
-$("head").prepend(
-    "<style> @font-face { font-family: 'Comic Sans MS'; src: url('/static/ComicSansMS3.ttf') format('truetype'); } </style>"
-);
-
 // Define canvas
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext('2d');
@@ -34,7 +29,7 @@ var btnMargin = 0.5;
 var bottomOffset = 100;
 
 var buttons = [];
-var btncnt = 23;
+var btncnt = 24;
 
 if (isphone) {
     fontSize = 60;
@@ -50,218 +45,40 @@ if (isphone) {
 
 var windowOrgW = 1536;
 var windowOrgH = 864;
-buttons[0] = {
-        name: "start",
-        x: 0,
-        y: 0,
-        w: 300,
-        h: 50,
-        orgw: 300,
-        orgh: 50
-    },
-    buttons[6] = {
-        name: "tag",
-        x: 0,
-        y: 0,
-        w: 170,
-        h: 50,
-        orgw: 170,
-        orgh: 50
-    },
-    buttons[11] = {
-        name: "remove",
-        x: 0,
-        y: 0,
-        w: 170,
-        h: 50,
-        orgw: 170,
-        orgh: 50
-    },
-    buttons[1] = {
-        name: "previous",
-        x: 0,
-        y: 0,
-        w: 170,
-        h: 50,
-        orgw: 170,
-        orgh: 50
-    },
-    buttons[2] = {
-        name: "next",
-        x: 0,
-        y: 0,
-        w: 170,
-        h: 50,
-        orgw: 170,
-        orgh: 50
-    },
-    buttons[3] = {
-        name: "sound",
-        x: 0,
-        y: 0,
-        w: 50,
-        h: 50,
-        orgw: 50,
-        orgh: 50
-    },
-    buttons[13] = {
-        name: "pauseap",
-        x: 0,
-        y: 0,
-        w: 170,
-        h: 50,
-        orgw: 170,
-        orgh: 50
-    },
-    buttons[16] = {
-        name: "challengeyes",
-        x: 0,
-        y: 0,
-        w: 170,
-        h: 50,
-        orgw: 170,
-        orgh: 50
-    },
-    buttons[17] = {
-        name: "challengeno",
-        x: 0,
-        y: 0,
-        w: 170,
-        h: 50,
-        orgw: 170,
-        orgh: 50
-    },
-    buttons[15] = {
-        name: "mode0",
-        x: 0,
-        y: 0,
-        w: 250,
-        h: 50,
-        orgw: 250,
-        orgh: 50
-    },
-    buttons[4] = {
-        name: "mode1",
-        x: 0,
-        y: 0,
-        w: 170,
-        h: 50,
-        orgw: 170,
-        orgh: 50
-    },
-    buttons[5] = {
-        name: "mode2",
-        x: 0,
-        y: 0,
-        w: 170,
-        h: 50,
-        orgw: 170,
-        orgh: 50
-    },
-    buttons[7] = {
-        name: "mode3",
-        x: 0,
-        y: 0,
-        w: 170,
-        h: 50,
-        orgw: 170,
-        orgh: 50
-    },
-    buttons[10] = {
-        name: "mode4",
-        x: 0,
-        y: 0,
-        w: 170,
-        h: 50,
-        orgw: 170,
-        orgh: 50
-    },
-    buttons[8] = {
-        name: "homepage",
-        x: 0,
-        y: 0,
-        w: 200,
-        h: 50,
-        orgw: 200,
-        orgh: 50
-    },
-    buttons[14] = {
-        name: "settings",
-        x: 0,
-        y: 0,
-        w: 200,
-        h: 50,
-        orgw: 200,
-        orgh: 50
-    },
-    buttons[20] = {
-        name: "account",
-        x: 0,
-        y: 0,
-        w: 200,
-        h: 50,
-        orgw: 200,
-        orgh: 50
-    },
-    buttons[18] = {
-        name: "statistics",
-        x: 0,
-        y: 0,
-        w: 200,
-        h: 50,
-        orgw: 200,
-        orgh: 50
-    },
-    buttons[22] = {
-        name: "wordbook",
-        x: 0,
-        y: 0,
-        w: 300,
-        h: 50,
-        orgw: 200,
-        orgh: 50
-    },
-    buttons[9] = {
-        name: "import",
-        x: 0,
-        y: 0,
-        w: 200,
-        h: 50,
-        orgw: 200,
-        orgh: 50
-    },
-    buttons[12] = {
-        name: "export",
-        x: 0,
-        y: 0,
-        w: 200,
-        h: 50,
-        orgw: 200,
-        orgh: 50
-    },
-    buttons[19] = {
-        name: "addword",
-        x: 0,
-        y: 0,
-        w: 300,
-        h: 50,
-        orgw: 300,
-        orgh: 50
-    },
-    buttons[21] = {
-        name: "cleardeleted",
-        x: 0,
-        y: 0,
-        w: 500,
-        h: 50,
-        orgw: 500,
-        orgh: 50
-    };
+buttons[0]={name:"start",x:0,y:0,w:300,h:50,orgw:300,orgh:50},
+buttons[6]={name:"tag",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
+buttons[11]={name:"remove",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
+buttons[1]={name:"previous",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
+buttons[2]={name:"next",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
+buttons[3]={name:"sound",x:0,y:0,w:50,h:50,orgw:50,orgh:50},
+buttons[13]={name:"pauseap",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
+buttons[16]={name:"challengeyes",x:0,y:0,w:170,h:50,orgw:170,orgh:50},
+buttons[17]={name:"challengeno",x:0,y:0,w:170,h:50,orgw:170,orgh:50},
+buttons[15]={name:"mode0",x:0,y:0,w:250,h:50,orgw:250,orgh:50},
+buttons[4]={name:"mode1",x:0,y:0,w:170,h:50,orgw:170,orgh:50},
+buttons[5]={name:"mode2",x:0,y:0,w:170,h:50,orgw:170,orgh:50},
+buttons[7]={name:"mode3",x:0,y:0,w:170,h:50,orgw:170,orgh:50},
+buttons[10]={name:"mode4",x:0,y:0,w:170,h:50,orgw:170,orgh:50},
+buttons[8]={name:"homepage",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
+buttons[14]={name:"settings",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
+buttons[20]={name:"account",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
+buttons[18]={name:"statistics",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
+buttons[22]={name:"wordbook",x:0,y:0,w:300,h:50,orgw:200,orgh:50},
+buttons[9]={name:"import",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
+buttons[12]={name:"export",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
+buttons[19]={name:"addword",x:0,y:0,w:300,h:50,orgw:300,orgh:50},
+buttons[21]={name:"cleardeleted",x:0,y:0,w:500,h:50,orgw:500,orgh:50};
+buttons[23]={name:"createwordbook",x:0,y:0,w:500,h:50,orgw:500,orgh:50};
+
+var wordBookW = 300;
+var wordBookH = 150;
+var wordBookOrgW = 300;
+var wordBookOrgH = 150;
 
 if (isphone) {
     for (var i = 0; i < btncnt; i++) {
-        buttons[i].w = buttons[i].orgw * 1.5;
-        buttons[i].h = buttons[i].orgw * 1.5;
+        buttons[i].w = buttons[i].orgw * 2.5;
+        buttons[i].h = buttons[i].orgw * 2.5;
     }
 }
 
@@ -280,14 +97,20 @@ function btnresize() {
         buttons[i].w = Math.min(buttons[i].orgw, parseInt(buttons[i].orgw * window.innerWidth / windowOrgW * window.innerHeight / windowOrgH));
         buttons[i].h = Math.min(buttons[i].orgh, parseInt(buttons[i].orgh * window.innerHeight / windowOrgH * window.innerWidth / windowOrgW * 1.2));
     }
-    wordBookW = Math.min(wordBookOrgW, parseInt(wordBookOrgW * window.innerWidth / windowOrgW * window.innerHeight / windowOrgH))
-    wordBookH = Math.min(wordBookOrgH, parseInt(wordBookOrgH * window.innerWidth / windowOrgW * window.innerHeight / windowOrgH))
+    wordBookW = Math.min(wordBookOrgW, parseInt(wordBookOrgW * window.innerWidth / windowOrgW * window.innerHeight / windowOrgH));
+    wordBookH = Math.min(wordBookOrgH, parseInt(wordBookOrgH * window.innerWidth / windowOrgW * window.innerHeight / windowOrgH));
 }
 
 function fontresize() {
     fontSize = Math.min(orgFontSize, parseInt(orgFontSize * window.innerWidth / windowOrgW));
     largeFontSize = Math.min(orglargeFontSize, parseInt(orglargeFontSize * window.innerWidth / windowOrgW));
     smallFontSize = Math.min(orgsmallFontSize, parseInt(orgsmallFontSize * window.innerWidth / windowOrgW));
+
+    if(isphone){
+        fontSize *= 1.5;
+        largeFontSize *= 1.5;
+        smallFontSize *= 1.5;
+    }
 }
 btninit();
 btnresize();
@@ -325,7 +148,7 @@ $.ajax({
 // Fetch word list
 
 $('#wordList').DataTable({
-    "pagingType": "full_numbers"
+    pagingType: "full_numbers"
 });
 $(".dataTables_scrollBody").css('width', '102%');
 $(".dataTables_scrollHeader").css('width', '102%');
@@ -348,7 +171,7 @@ if (wordList == null) {
             [wordList[i].word],
             [wordList[i].translation],
             [l[wordList[i].status]]
-        ]);
+        ]).node().id=wordList[i].wordId;
     }
     table.draw();
 }
@@ -363,11 +186,11 @@ for (var i = 0; i < wordList.length; i++) {
 
 // Update word list each 10 minutes
 
-function updateWordList() {
+function updateWordList(doasync = true) {
     $.ajax({
         url: "/api/getWordList",
         method: 'POST',
-        async: true,
+        async: doasync,
         dataType: "json",
         data: {
             userId: localStorage.getItem("userId"),
@@ -394,7 +217,7 @@ function updateWordList() {
                     [wordList[i].word],
                     [wordList[i].translation],
                     [l[wordList[i].status]]
-                ]);
+                ]).node().id=wordList[i].wordId;
             }
             table.draw();
         }
@@ -409,16 +232,6 @@ setInterval(updateWordList, 600000);
 var wordBookId = -1;
 var wordBookIdx = -1;
 
-var wordBookW = 300;
-var wordBookH = 150;
-var wordBookOrgW = 300;
-var wordBookOrgH = 150;
-if (isphone) {
-    wordBookW *= 2;
-    wordBookH *= 2;
-    wordBookOrgW *= 2;
-    wordBookOrgH *= 2;
-}
 var wordBookRect = [];
 var wordBookCnt = 1;
 
@@ -437,11 +250,11 @@ if (wordBookList == null || wordBookList.length == 0) {
 }
 wordBookCnt = wordBookList.length;
 
-function updateWordBookList() {
+function updateWordBookList(doasync = true) {
     $.ajax({
         url: "/api/getWordBookList",
         method: 'POST',
-        async: true,
+        async: doasync,
         dataType: "json",
         data: {
             userId: localStorage.getItem("userId"),
@@ -458,9 +271,10 @@ function updateWordBookList() {
                 "words": words
             }];
             for (var i = 0; i < r.length; i++) {
-                wordBookList.push(r);
+                wordBookList.push(r[i]);
             }
             wordBookCnt = wordBookList.length;
+            localStorage.setItem("wordBookList", JSON.stringify(wordBookList));
         }
     });
 }
@@ -563,11 +377,9 @@ if (wordId != null) {
             }
         });
     } else {
-        console.log("finding");
         // Connection failed, check local word list
         for (var i = 0; i < wordList.length; i++) {
             if (wordList[i].wordId == wordId) {
-                console.log("found");
                 word = wordList[i].word;
                 translation = wordList[i].translation;
                 wordStatus = wordList[i].status;
@@ -586,10 +398,6 @@ if (word == "") { // Then show a random word to start from
         wordStatus = wordList[index].status;
 
         $("#startfrom").val(word);
-
-        // In backend database, wordId starts from 1
-        // But in frontend array, wordId starts from 0
-        wordId += 1;
     }
 }
 
@@ -604,10 +412,6 @@ function displayRandomWord() {
         wordStatus = wordList[index].status;
 
         $("#startfrom").val(word);
-
-        // In backend database, wordId starts from 1
-        // But in frontend array, wordId starts from 0
-        wordId += 1;
     }
 }
 
@@ -640,7 +444,7 @@ function renderHomePage() {
     // Title
     ctx.textAlign = "center";
 
-    ctx.font = largeFontSize + "px Comic Sans MS";
+    ctx.font = largeFontSize + "px Impact";
     ctx.fillStyle = getRndColor(10, 100)
     ctx.fillText("Word Memo", canvas.width / 2, canvas.height / 2 - 100);
 
@@ -649,7 +453,7 @@ function renderHomePage() {
     buttons[0].y = canvas.height / 2 + buttons[0].h;
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[0].x, buttons[0].y, buttons[0].w, buttons[0].h);
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
 
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Start", buttons[0].x + buttons[0].w / 2, buttons[0].y + buttons[0].h / 1.4);
@@ -666,7 +470,7 @@ function renderHomePage() {
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[20].x, buttons[20].y, buttons[20].w, buttons[20].h);
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Account", buttons[20].x + buttons[20].w / 2, buttons[20].y + buttons[20].h / 1.4);
     ////
@@ -675,7 +479,7 @@ function renderHomePage() {
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[14].x, buttons[14].y, buttons[14].w, buttons[14].h);
 
-    ctx.font = fontSize * 0.9 + "px Comic Sans MS";
+    ctx.font = fontSize * 0.9 + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Settings", buttons[14].x + buttons[14].w / 2, buttons[14].y + buttons[14].h / 1.4);
     ////
@@ -684,12 +488,12 @@ function renderHomePage() {
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[22].x, buttons[22].y, buttons[22].w, buttons[22].h);
 
-    ctx.font = fontSize * 0.6 + "px Comic Sans MS";
+    ctx.font = fontSize * 0.6 + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Word Books", buttons[22].x + buttons[22].w / 2, buttons[22].y + buttons[22].h / 1.4);
 
     // Render the input box "Start from"
-    $("#startfrom").attr("style", "position:absolute;left:" + (buttons[0].x + 15) + ";top:" + (buttons[0].y - buttons[0].h - 20) + ";height:" + (buttons[0].h) + ";width:" + (buttons[0].w - 14) + ";font-size:" + fontSize * 0.6 + ";font-family:Comic Sans MS");
+    $("#startfrom").attr("style", "position:absolute;left:" + (buttons[0].x + 15) + ";top:" + (buttons[0].y - buttons[0].h - 20) + ";height:" + (buttons[0].h) + ";width:" + (buttons[0].w - 14) + ";font-size:" + fontSize * 0.6 + ";font-family:Corbel");
     if (displayMode == 1) {
         $("#startfrom").attr("disabled", "disabled");
     } else {
@@ -727,7 +531,7 @@ function renderSettings() {
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[15].x, buttons[15].y, buttons[15].w, buttons[15].h);
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Mode:", buttons[15].x - buttons[15].w * 0.7, buttons[15].y + buttons[15].h / 1.4);
     l = ["Practice", "Challenge", "Offline"];
@@ -739,7 +543,7 @@ function renderSettings() {
         ctx.fillStyle = getRndColor(160, 250);
         ctx.roundRect(buttons[4].x, buttons[4].y, buttons[4].w, buttons[4].h);
 
-        ctx.font = fontSize + "px Comic Sans MS";
+        ctx.font = fontSize + "px Corbel";
         ctx.fillStyle = getRndColor(10, 100);
         ctx.fillText("Display order: ", buttons[4].x - buttons[4].w * 1.2, buttons[4].y + buttons[4].h / 1.4);
         l = ["Sequence", "Random"]
@@ -750,7 +554,7 @@ function renderSettings() {
         ctx.fillStyle = getRndColor(160, 250);
         ctx.roundRect(buttons[5].x, buttons[5].y, buttons[5].w, buttons[5].h);
 
-        ctx.font = fontSize + "px Comic Sans MS";
+        ctx.font = fontSize + "px Corbel";
         ctx.fillStyle = getRndColor(10, 100);
         ctx.fillText("Swap word & translation? ", buttons[5].x - buttons[5].w * 1.4, buttons[5].y + buttons[5].h / 1.4);
         l = ["No", "Yes"];
@@ -761,7 +565,7 @@ function renderSettings() {
         ctx.fillStyle = getRndColor(160, 250);
         ctx.roundRect(buttons[7].x, buttons[7].y, buttons[7].w, buttons[7].h);
 
-        ctx.font = fontSize + "px Comic Sans MS";
+        ctx.font = fontSize + "px Corbel";
         ctx.fillStyle = getRndColor(10, 100);
         ctx.fillText("What to show? ", buttons[7].x - buttons[7].w * 1.2, buttons[7].y + buttons[7].h / 1.4);
         l = ["", "All", "Tagged", "Deleted"];
@@ -772,7 +576,7 @@ function renderSettings() {
         ctx.fillStyle = getRndColor(160, 250);
         ctx.roundRect(buttons[10].x, buttons[10].y, buttons[10].w, buttons[10].h);
 
-        ctx.font = fontSize + "px Comic Sans MS";
+        ctx.font = fontSize + "px Corbel";
         ctx.fillStyle = getRndColor(10, 100);
         ctx.fillText("Auto play:", buttons[10].x - buttons[10].w * 1.2, buttons[10].y + buttons[10].h / 1.4);
         l = ["Disabled", "Slow", "Medium", "Fast"];
@@ -781,7 +585,7 @@ function renderSettings() {
     } else if (displayMode == 1) {
         x = canvas.width / 2 + buttons[4].w / 1.2;
         y = buttons[4].h * 3.5;
-        ctx.font = fontSize + "px Comic Sans MS";
+        ctx.font = fontSize + "px Corbel";
         ctx.fillStyle = getRndColor(10, 100);
         ctx.fillText("Display order: ", x - buttons[4].w * 1.2, y + buttons[4].h / 1.4);
         ctx.fillText("Random", x + buttons[4].w / 2, y + buttons[4].h / 1.4);
@@ -790,7 +594,7 @@ function renderSettings() {
         buttons[5].y = buttons[5].h * 5;
         ctx.fillStyle = getRndColor(160, 250);
         ctx.roundRect(buttons[5].x, buttons[5].y, buttons[5].w, buttons[5].h);
-        ctx.font = fontSize + "px Comic Sans MS";
+        ctx.font = fontSize + "px Corbel";
 
         ctx.fillStyle = getRndColor(10, 100);
         ctx.fillText("Swap word & translation? ", buttons[5].x - buttons[5].w * 1.4, buttons[5].y + buttons[5].h / 1.4);
@@ -799,14 +603,14 @@ function renderSettings() {
         ////
         x = canvas.width / 2 + buttons[7].w / 1.2;
         y = buttons[7].h * 6.5;
-        ctx.font = fontSize + "px Comic Sans MS";
+        ctx.font = fontSize + "px Corbel";
         ctx.fillStyle = getRndColor(10, 100);
         ctx.fillText("What to show? ", x - buttons[7].w * 1.2, y + buttons[7].h / 1.4);
         ctx.fillText("Everything", x + buttons[7].w / 2, y + buttons[7].h / 1.4);
         ////
         x = canvas.width / 2 + buttons[10].w / 1.2;
         y = buttons[10].h * 8;
-        ctx.font = fontSize + "px Comic Sans MS";
+        ctx.font = fontSize + "px Corbel";
         ctx.fillStyle = getRndColor(10, 100);
         ctx.fillText("Auto play:", x - buttons[10].w * 1.2, y + buttons[10].h / 1.4);
         ctx.fillText("Disabled", x + buttons[10].w / 2, y + buttons[10].h / 1.4);
@@ -817,7 +621,7 @@ function renderSettings() {
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[19].x, buttons[19].y, buttons[19].w, buttons[19].h);
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Add Word", buttons[19].x + buttons[19].w / 2, buttons[19].y + buttons[19].h / 1.4);
     ////
@@ -826,7 +630,7 @@ function renderSettings() {
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[21].x, buttons[21].y, buttons[21].w, buttons[21].h);
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Clear deleted words", buttons[21].x + buttons[21].w / 2, buttons[21].y + buttons[21].h / 1.4);
     ////
@@ -835,7 +639,7 @@ function renderSettings() {
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[9].x, buttons[9].y, buttons[9].w, buttons[9].h);
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Import", buttons[9].x + buttons[9].w / 2, buttons[9].y + buttons[9].h / 1.4);
     ////
@@ -844,7 +648,7 @@ function renderSettings() {
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[12].x, buttons[12].y, buttons[12].w, buttons[12].h);
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Export", buttons[12].x + buttons[12].w / 2, buttons[12].y + buttons[12].h / 1.4);
 
@@ -854,7 +658,7 @@ function renderSettings() {
         ctx.fillStyle = getRndColor(160, 250);
         ctx.roundRect(buttons[8].x, buttons[8].y, buttons[8].w, buttons[8].h);
 
-        ctx.font = fontSize + "px Comic Sans MS";
+        ctx.font = fontSize + "px Corbel";
         ctx.fillStyle = getRndColor(10, 100);
         ctx.fillText("Home", buttons[8].x + buttons[8].w / 2, buttons[8].y + buttons[8].h / 1.4);
     } else if (lastpage == 1) {
@@ -863,12 +667,13 @@ function renderSettings() {
         ctx.fillStyle = getRndColor(160, 250);
         ctx.roundRect(buttons[0].x, buttons[0].y, buttons[8].w, buttons[8].h);
 
-        ctx.font = fontSize + "px Comic Sans MS";
+        ctx.font = fontSize + "px Corbel";
         ctx.fillStyle = getRndColor(10, 100);
         ctx.fillText("Resume", buttons[0].x + buttons[8].w / 2, buttons[0].y + buttons[8].h / 1.4);
     }
 
     // Add title
+    ctx.font = fontSize + "px Impact";
     ctx.fillText("Settings", canvas.width / 2, buttons[8].h * 0.2 + buttons[8].h / 1.4);
 }
 
@@ -883,13 +688,13 @@ function renderAddWord() {
     // Create addword textarea box
     ctx.textAlign = "center";
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Word: ", canvas.width / 2 - buttons[0].w / 2, canvas.height / 2 - 100);
-    $("#addword_word").attr("style", "position:absolute;left:" + (canvas.width / 2) + ";top:" + (canvas.height / 2 - 118) + ";font-size:" + fontSize * 0.4 + ";font-family:Comic Sans MS");
+    $("#addword_word").attr("style", "position:absolute;left:" + (canvas.width / 2) + ";top:" + (canvas.height / 2 - 118) + ";font-size:" + fontSize * 0.4 + ";font-family:Corbel");
 
     ctx.fillText("Translation: ", canvas.width / 2 - buttons[0].w / 2, canvas.height / 2 - 50);
-    $("#addword_translation").attr("style", "position:absolute;left:" + (canvas.width / 2) + ";top:" + (canvas.height / 2 - 68) + ";font-size:" + fontSize * 0.4 + ";font-family:Comic Sans MS");
+    $("#addword_translation").attr("style", "position:absolute;left:" + (canvas.width / 2) + ";top:" + (canvas.height / 2 - 68) + ";font-size:" + fontSize * 0.4 + ";font-family:Corbel");
 
     // Add buttons
     buttons[14].x = canvas.width - buttons[14].w * 1.2;
@@ -897,7 +702,7 @@ function renderAddWord() {
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[14].x, buttons[14].y, buttons[14].w, buttons[14].h);
 
-    ctx.font = fontSize * 0.9 + "px Comic Sans MS";
+    ctx.font = fontSize * 0.9 + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Settings", buttons[14].x + buttons[14].w / 2, buttons[14].y + buttons[14].h / 1.4);
     ////
@@ -906,12 +711,12 @@ function renderAddWord() {
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[19].x, buttons[19].y, buttons[19].w, buttons[19].h);
     ////
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Add", buttons[19].x + buttons[19].w / 2, buttons[19].y + buttons[19].h / 1.4);
 
     // Add title
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Impact";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Add Word", canvas.width / 2, buttons[8].h * 0.2 + buttons[8].h / 1.4);
 }
@@ -934,15 +739,15 @@ function renderWord(showSwapped = 0, cancelSpeaker = 0) {
         showTranslation = true;
     }
 
-    $("#hiddenSpan").attr("style", "display:none;font:" + fontSize + "px Comic Sans MS");
+    $("#hiddenSpan").attr("style", "display:none;font:" + fontSize + "px Corbel");
     $("#hiddenSpan").html("test");
     lineHeight = $("#hiddenSpan").height() + 5;
     maxw = window.innerWidth * 0.8;
     curh = window.innerHeight / 2 - 250;
 
     if (displayId != wordId) {
-        displayWord = lineBreak(word, maxw, -1, (fontSize) + "px Comic Sans MS");
-        displayTranslation = lineBreak(translation, maxw, -1, (fontSize) + "px Comic Sans MS");
+        displayWord = lineBreak(word, maxw, -1, (fontSize) + "px Corbel");
+        displayTranslation = lineBreak(translation, maxw, -1, (fontSize) + "px Corbel");
         displayId = wordId;
     }
 
@@ -965,7 +770,7 @@ function renderWord(showSwapped = 0, cancelSpeaker = 0) {
     localStorage.setItem("wordId", wordId);
 
     // Display word or translation
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.textAlign = "center";
     ctx.fillStyle = "black";
     if (showWord) {
@@ -998,7 +803,7 @@ function renderWord(showSwapped = 0, cancelSpeaker = 0) {
         ctx.fillStyle = rectcolor;
         ctx.roundRect(buttons[3].x, buttons[3].y, buttons[3].w, buttons[3].h);
 
-        ctx.font = fontSize + "px Comic Sans MS";
+        ctx.font = fontSize + "px Corbel";
         ctx.fillStyle = textcolor;
         ctx.fillText("🔈", buttons[3].x + buttons[3].w / 2, buttons[3].y + buttons[3].h / 1.4);
     }
@@ -1012,7 +817,7 @@ function renderWord(showSwapped = 0, cancelSpeaker = 0) {
         ctx.fillStyle = rectcolor;
         ctx.roundRect(buttons[1].x, buttons[1].y, buttons[1].w, buttons[1].h);
 
-        ctx.font = fontSize + "px Comic Sans MS";
+        ctx.font = fontSize + "px Corbel";
         ctx.fillStyle = textcolor;
         ctx.fillText("Previous", buttons[1].x + buttons[1].w / 2, buttons[1].y + buttons[1].h / 1.4);
         ////
@@ -1021,7 +826,7 @@ function renderWord(showSwapped = 0, cancelSpeaker = 0) {
         ctx.fillStyle = rectcolor;
         ctx.roundRect(buttons[2].x, buttons[2].y, buttons[2].w, buttons[2].h);
 
-        ctx.font = fontSize + "px Comic Sans MS";
+        ctx.font = fontSize + "px Corbel";
         ctx.fillStyle = textcolor;
         ctx.fillText("Next", buttons[2].x + buttons[2].w / 2, buttons[2].y + buttons[2].h / 1.4);
         ////
@@ -1030,7 +835,7 @@ function renderWord(showSwapped = 0, cancelSpeaker = 0) {
         ctx.fillStyle = rectcolor;
         ctx.roundRect(buttons[6].x, buttons[6].y, buttons[6].w, buttons[6].h);
 
-        ctx.font = fontSize + "px Comic Sans MS";
+        ctx.font = fontSize + "px Corbel";
         ctx.fillStyle = textcolor;
         if (wordStatus == 2)
             ctx.fillText("Untag", buttons[6].x + buttons[6].w / 2, buttons[6].y + buttons[6].h / 1.4);
@@ -1042,10 +847,10 @@ function renderWord(showSwapped = 0, cancelSpeaker = 0) {
         ctx.fillStyle = rectcolor;
         ctx.roundRect(buttons[11].x, buttons[11].y, buttons[11].w, buttons[11].h);
 
-        ctx.font = fontSize + "px Comic Sans MS";
+        ctx.font = fontSize + "px Corbel";
         ctx.fillStyle = textcolor;
         if (wordStatus == 3) {
-            ctx.font = (fontSize * 0.9) + "px Comic Sans MS";
+            ctx.font = (fontSize * 0.9) + "px Corbel";
             ctx.fillText("Undelete", buttons[11].x + buttons[11].w / 2, buttons[11].y + buttons[11].h / 1.4);
         } else
             ctx.fillText("Delete", buttons[11].x + buttons[11].w / 2, buttons[11].y + buttons[11].h / 1.4);
@@ -1060,7 +865,7 @@ function renderWord(showSwapped = 0, cancelSpeaker = 0) {
                 ctx.fillStyle = rectcolor;
                 ctx.roundRect(buttons[16].x, buttons[16].y, buttons[16].w, buttons[16].h);
 
-                ctx.font = fontSize + "px Comic Sans MS";
+                ctx.font = fontSize + "px Corbel";
                 ctx.fillStyle = textcolor;
                 ctx.fillText("Yes", buttons[16].x + buttons[16].w / 2, buttons[16].y + buttons[16].h / 1.4);
             }
@@ -1081,7 +886,7 @@ function renderWord(showSwapped = 0, cancelSpeaker = 0) {
             ctx.fillStyle = rectcolor;
             ctx.roundRect(buttons[17].x, buttons[17].y, buttons[17].w, buttons[17].h);
 
-            ctx.font = fontSize + "px Comic Sans MS";
+            ctx.font = fontSize + "px Corbel";
             ctx.fillStyle = textcolor;
             if (challengeStatus != 3) {
                 ctx.fillText("No", buttons[17].x + buttons[17].w / 2, buttons[17].y + buttons[17].h / 1.4);
@@ -1094,7 +899,7 @@ function renderWord(showSwapped = 0, cancelSpeaker = 0) {
             ctx.fillStyle = rectcolor;
             ctx.roundRect(buttons[6].x, buttons[6].y, buttons[6].w, buttons[6].h);
 
-            ctx.font = fontSize + "px Comic Sans MS";
+            ctx.font = fontSize + "px Corbel";
             ctx.fillStyle = textcolor;
             if (wordStatus == 2)
                 ctx.fillText("Untag", buttons[6].x + buttons[6].w / 2, buttons[6].y + buttons[6].h / 1.4);
@@ -1106,10 +911,10 @@ function renderWord(showSwapped = 0, cancelSpeaker = 0) {
             ctx.fillStyle = rectcolor;
             ctx.roundRect(buttons[11].x, buttons[11].y, buttons[11].w, buttons[11].h);
 
-            ctx.font = fontSize + "px Comic Sans MS";
+            ctx.font = fontSize + "px Corbel";
             ctx.fillStyle = textcolor;
             if (wordStatus == 3) {
-                ctx.font = (fontSize * 0.9) + "px Comic Sans MS";
+                ctx.font = (fontSize * 0.9) + "px Corbel";
                 ctx.fillText("Undelete", buttons[11].x + buttons[11].w / 2, buttons[11].y + buttons[11].h / 1.4);
             } else
                 ctx.fillText("Delete", buttons[11].x + buttons[11].w / 2, buttons[11].y + buttons[11].h / 1.4);
@@ -1123,7 +928,7 @@ function renderWord(showSwapped = 0, cancelSpeaker = 0) {
         ctx.fillStyle = rectcolor;
         ctx.roundRect(buttons[1].x, buttons[1].y, buttons[1].w, buttons[1].h);
 
-        ctx.font = fontSize + "px Comic Sans MS";
+        ctx.font = fontSize + "px Corbel";
         ctx.fillStyle = textcolor;
         ctx.fillText("Previous", buttons[1].x + buttons[1].w / 2, buttons[1].y + buttons[1].h / 1.4);
         ////
@@ -1132,7 +937,7 @@ function renderWord(showSwapped = 0, cancelSpeaker = 0) {
         ctx.fillStyle = rectcolor;
         ctx.roundRect(buttons[2].x, buttons[2].y, buttons[2].w, buttons[2].h);
 
-        ctx.font = fontSize + "px Comic Sans MS";
+        ctx.font = fontSize + "px Corbel";
         ctx.fillStyle = textcolor;
         ctx.fillText("Next", buttons[2].x + buttons[2].w / 2, buttons[2].y + buttons[2].h / 1.4);
     }
@@ -1145,7 +950,7 @@ function renderWord(showSwapped = 0, cancelSpeaker = 0) {
             ctx.fillStyle = rectcolor;
             ctx.roundRect(buttons[13].x, buttons[13].y, buttons[13].w, buttons[13].h);
 
-            ctx.font = fontSize + "px Comic Sans MS";
+            ctx.font = fontSize + "px Corbel";
             ctx.fillStyle = textcolor;
             if (appaused)
                 ctx.fillText("Play", buttons[13].x + buttons[13].w / 2, buttons[13].y + buttons[13].h / 1.4);
@@ -1157,7 +962,7 @@ function renderWord(showSwapped = 0, cancelSpeaker = 0) {
             ctx.fillStyle = rectcolor;
             ctx.roundRect(buttons[13].x, buttons[13].y, buttons[13].w, buttons[13].h);
 
-            ctx.font = fontSize + "px Comic Sans MS";
+            ctx.font = fontSize + "px Corbel";
             ctx.fillStyle = textcolor;
             if (appaused)
                 ctx.fillText("Play", buttons[13].x + buttons[13].w / 2, buttons[13].y + buttons[13].h / 1.4);
@@ -1179,7 +984,7 @@ function renderWord(showSwapped = 0, cancelSpeaker = 0) {
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[18].x, buttons[18].y, buttons[18].w, buttons[18].h);
 
-    ctx.font = fontSize * 0.9 + "px Comic Sans MS";
+    ctx.font = fontSize * 0.9 + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Statistics", buttons[18].x + buttons[18].w / 2, buttons[18].y + buttons[18].h / 1.4);
     ////
@@ -1188,7 +993,7 @@ function renderWord(showSwapped = 0, cancelSpeaker = 0) {
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[8].x, buttons[8].y, buttons[8].w, buttons[8].h);
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Home", buttons[8].x + buttons[8].w / 2, buttons[8].y + buttons[8].h / 1.4);
     ////
@@ -1197,7 +1002,7 @@ function renderWord(showSwapped = 0, cancelSpeaker = 0) {
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[14].x, buttons[14].y, buttons[14].w, buttons[14].h);
 
-    ctx.font = fontSize * 0.9 + "px Comic Sans MS";
+    ctx.font = fontSize * 0.9 + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Settings", buttons[14].x + buttons[14].w / 2, buttons[14].y + buttons[14].h / 1.4);
 
@@ -1213,7 +1018,7 @@ function renderWordBook() {
 
     // Get page width & height
     canvas.width = window.innerWidth - 25;
-    canvas.height = Math.max(window.innerHeight - 25, buttons[0].h * 4 + wordBookH * wordBookCnt / 4 * 1.1);
+    canvas.height = Math.max(window.innerHeight - 25, buttons[0].h * 4 + wordBookH * Math.ceil(wordBookCnt / 4) * 1.1);
 
     // Render buttons
     ctx.textAlign = "center";
@@ -1223,12 +1028,14 @@ function renderWordBook() {
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[8].x, buttons[8].y, buttons[8].w, buttons[8].h);
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Home", buttons[8].x + buttons[8].w / 2, buttons[8].y + buttons[8].h / 1.4);
 
     // Add title
+    ctx.font = fontSize + "px Impact";
     ctx.fillText("Word Book", canvas.width / 2, buttons[8].h * 0.2 + buttons[8].h / 1.4);
+    ctx.font = fontSize + "px Corbel";
 
     // Render word books
     wordBookRect = [];
@@ -1237,17 +1044,27 @@ function renderWordBook() {
         x = canvas.width + 1;
         y = canvas.height + 1;
 
-        if (i % 4 == 0) {
-            x = canvas.width / 2 - wordBookW * 2.15;
-        } else if (i % 4 == 1) {
-            x = canvas.width / 2 - wordBookW * 1.05;
-        } else if (i % 4 == 2) {
-            x = canvas.width / 2 + wordBookW * 0.05;
-        } else if (i % 4 == 3) {
-            x = canvas.width / 2 + wordBookW * 1.15;
-        }
+        if(!isphone) {
+            if (i % 4 == 0) {
+                x = canvas.width / 2 - wordBookW * 2.15;
+            } else if (i % 4 == 1) {
+                x = canvas.width / 2 - wordBookW * 1.05;
+            } else if (i % 4 == 2) {
+                x = canvas.width / 2 + wordBookW * 0.05;
+            } else if (i % 4 == 3) {
+                x = canvas.width / 2 + wordBookW * 1.15;
+            }
 
-        y = buttons[8].y + buttons[8].h * 1.2 + parseInt(i / 4) * wordBookH * 1.1;
+            y = buttons[8].y + buttons[8].h * 1.2 + parseInt(i / 4) * wordBookH * 1.1;
+        } else {
+            if (i % 2 == 0){
+                x = canvas.width / 2 - wordBookW * 1.05;
+            } else if (i % 2 == 1) {
+                x = canvas.width / 2 + wordBookW * 0.05;
+            }
+
+            y = buttons[8].y + buttons[8].h * 1.2 + parseInt(i / 2) * wordBookH * 1.1;
+        }
 
         wordBookRect.push({
             "wordBookId": wordBookList[i].wordBookId,
@@ -1258,10 +1075,10 @@ function renderWordBook() {
         ctx.fillStyle = getRndColor(160, 250);
         ctx.roundRect(x, y, wordBookW, wordBookH);
 
-        displayName = lineBreak(wordBookList[i].name, wordBookW * 6 / 8, maxLine = 2, font = (fontSize * 0.75) + "px Comic Sans MS");
+        displayName = lineBreak(wordBookList[i].name, wordBookW * 6 / 8, maxLine = 2, font = (fontSize * 0.75) + "px Corbel");
 
         ctx.fillStyle = getRndColor(10, 150);
-        ctx.font = fontSize * 0.75 + "px Comic Sans MS";
+        ctx.font = fontSize * 0.75 + "px Corbel";
         var lines = displayName.split('\n');
         for (var j = 0; j < lines.length; j++) {
             ctx.fillText(lines[j], x + wordBookW / 8, y + wordBookH / (3.6 - 2 * j));
@@ -1272,16 +1089,32 @@ function renderWordBook() {
             t = 1.2;
         }
 
-        ctx.font = smallFontSize + "px Comic Sans MS";
-        if (wordBookList[i].words.length == 1) {
-            ctx.fillText("1 word", x + wordBookW / 8, y + wordBookH / t);
+        ctx.font = smallFontSize + "px Corbel";
+        if (wordBookList[i].words.length <= 1) {
+            ctx.fillText(wordBookList[i].words.length + " word", x + wordBookW / 8, y + wordBookH / t);
         } else {
             ctx.fillText(wordBookList[i].words.length + " words", x + wordBookW / 8, y + wordBookH / t);
         }
     }
 
     ctx.textAlign = "center";
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
+
+    // Render add word book button
+    $("#wordBookName").attr("style", "position:absolute;\
+    left:" + (canvas.width / 2 - buttons[23].w - 10) + ";top:" + (canvas.height - buttons[23].h * 1.75) + ";\
+    height:" + (buttons[23].h) + ";width:" + (buttons[23].w) + ";\
+    font-size:" + fontSize * 0.6 + ";font-family:Corbel");
+    $("#wordBookName").show();
+
+    buttons[23].x = canvas.width / 2 + 10;
+    buttons[23].y = canvas.height - buttons[23].h * 2;
+    ctx.fillStyle = getRndColor(160, 250);
+    ctx.roundRect(buttons[23].x, buttons[23].y, buttons[23].w, buttons[23].h);
+
+    ctx.font = fontSize + "px Corbel";
+    ctx.fillStyle = getRndColor(10, 100);
+    ctx.fillText("Create Word Book", buttons[23].x + buttons[23].w / 2, buttons[23].y + buttons[23].h / 1.4);    
 }
 
 // Render word list using dataTables
@@ -1303,17 +1136,49 @@ function renderWordList() {
     ctx.fillStyle = getRndColor(160, 250);
     ctx.roundRect(buttons[8].x, buttons[8].y, buttons[8].w, buttons[8].h);
 
-    ctx.font = fontSize + "px Comic Sans MS";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Back", buttons[8].x + buttons[8].w / 2, buttons[8].y + buttons[8].h / 1.4);
 
     // Add title
-    ctx.fillText("Word List", canvas.width / 2, buttons[8].h * 0.2 + buttons[8].h / 1.4);
+    ctx.font = fontSize + "px Impact";
+    ctx.fillText(wordBookList[wordBookIdx].name, canvas.width / 2, buttons[8].h * 0.2 + buttons[8].h / 1.4);
+    ctx.font = fontSize + "px Corbel";
+
+    // Status update
+    ctx.textAlign = "left";
+    ctx.font = smallFontSize + "px Corbel";
+    ctx.fillStyle = getRndColor(10, 100);
+    space = getWidth("-----");
+
+    if(isphone) smallFontSize *= 0.6
+    ctx.fillText("Word Status Update (Update the status of all selected words to):", buttons[0].w * 0.5, buttons[8].y + buttons[8].h * 1.8);
+    if(isphone) smallFontSize /= 0.6
+
+    ctx.fillText("Default", buttons[0].w * 0.5, buttons[8].y + buttons[8].h * 2.4);
+    w1 = getWidth("Default", smallFontSize + "px Corbel") + space;
+    ctx.fillText("Tag", buttons[0].w * 0.5 + w1, buttons[8].y + buttons[8].h * 2.4);
+    w2 = getWidth("Tag", smallFontSize + "px Corbel") + space;
+    ctx.fillText("Delete", buttons[0].w * 0.5 + w1 + w2, buttons[8].y + buttons[8].h * 2.4);
+    w3 = getWidth("Delete", smallFontSize + "px Corbel") + space;
+
+    // Word book update
+    ctx.fillStyle = getRndColor(10, 100);
+    ctx.fillText("Word Book Update:", buttons[0].w * 0.5, buttons[8].y + buttons[8].h * 3);
+    
+    if(isphone&&wordBookId != 0) smallFontSize *= 0.6
+    ctx.fillText("Remove selected words", buttons[0].w * 0.5, buttons[8].y + buttons[8].h * 3.6);
+    w4 = getWidth("Remove selected words", smallFontSize + "px Corbel") + space;
+    if(wordBookId != 0){
+        ctx.fillText("Add new words", buttons[0].w * 0.5 + w4, buttons[8].y + buttons[8].h * 3.6);
+        w5 = getWidth("Add new words", smallFontSize + "px Corbel") + space;
+        if(isphone) smallFontSize /= 0.6;
+    }
 
     // Render table
     $('#wordList').DataTable().destroy();
     $('#wordList').DataTable({
-        "pagingType": "full_numbers"
+        pagingType: "full_numbers"
     });
 
 
@@ -1330,16 +1195,16 @@ function renderWordList() {
             [wordData.word],
             [wordData.translation],
             [l[wordData.status]]
-        ]);
+        ]).node().id=wordList[i].wordId;
     }
     table.draw();
 
     $("#wordList_wrapper").show();
     $("#wordList_wrapper").attr("style", "test-align:center;position:absolute;\
-    left:" + (buttons[0].w * 0.5) + ";top:" + (buttons[8].x + buttons[8].h) + ";\
+    left:" + (buttons[0].w * 0.5) + ";top:" + (buttons[8].x + buttons[8].h * 3.8 ) + ";\
     height:" + (window.innerHeight - 25 * 0.6) + ";width:" + (window.innerWidth - 25 - buttons[0].w) + ";\
-    font-size:" + smallFontSize * 0.8 + ";font-family:Comic Sans MS;z-index:999");
-    $("#wordList").attr("style", "width:100%;font-size:" + smallFontSize * 0.8 + ";font-family:Comic Sans MS");
+    font-size:" + smallFontSize * 0.8 + ";font-family:Corbel;z-index:999");
+    $("#wordList").attr("style", "width:100%;font-size:" + smallFontSize * 0.8 + ";font-family:Corbel");
 }
 
 // Render current page
@@ -1348,10 +1213,10 @@ function renderCurrentPage() {
     btnresize();
     fontresize();
     sleep(50).then(() => {
-        if (currentpage != 0) {
-            $("#startfrom").hide();
-            $("#wordList_wrapper").hide();
-        }
+        $("#wordBookName").hide();
+        $("#wordList_wrapper").hide();
+        $("#startfrom").hide();
+        
         if (currentpage == 0) {
             renderHomePage();
         } else if (currentpage == 1) {
@@ -1411,6 +1276,7 @@ function autoPlayer() { // = auto next button presser + sound maker
                     localStorage.removeItem("token");
                     window.location.href = "/user";
                 } else {
+                    $("#startfrom").hide();
                     word = r.status + " " + errorThrown;
                     translation = "Maybe change the settings?\nOr check your connection?";
                     renderWord(1, 1);
@@ -1535,6 +1401,15 @@ function startfunc() {
                 error: function (r, textStatus, errorThrown) {
                     if (r.status == 404) {
                         $("#startfrom").val("Not found!");
+                        if (currentpage == 2) {
+                            lastpage = currentpage;
+                            currentpage = 1;
+                            localStorage.setItem("currentpage", currentpage);
+                            started = 1;
+                            displayRandomWord();
+                            renderCurrentPage();
+                        }
+
                     } else if (r.status == 401) {
                         alert("Login session expired! Please login again!");
                         localStorage.removeItem("userId");
@@ -1671,6 +1546,40 @@ function startfunc() {
             apinterval = setInterval(autoPlayer, apdelay[autoPlay] * 1000);
         }
     }
+}
+
+function createWordBook() {
+    wordBookName = $("#wordBookName").val();
+
+    if(wordBookName == ""){
+        alert("Enter a word book name!");
+        return;
+    }
+
+    $.ajax({
+        url: '/api/createWordBook',
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            name: wordBookName,
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            $("#wordBookName").val("");
+            updateWordBookList(doasync = false);
+            renderCurrentPage();
+        },
+        error: function (r) {
+            if (r.status == 401) {
+                alert("Login session expired! Please login again!");
+                localStorage.removeItem("userId");
+                localStorage.removeItem("token");
+                window.location.href = "/user";
+            }
+        }
+    });
 }
 
 // Handle user click
@@ -1814,7 +1723,7 @@ function clickHandler(e) {
                     async: true,
                     dataType: "json",
                     data: {
-                        wordId: wordId,
+                        words: JSON.stringify([wordId]),
                         status: wordStatus,
                         userId: localStorage.getItem("userId"),
                         token: localStorage.getItem("token")
@@ -1822,7 +1731,7 @@ function clickHandler(e) {
                     success: function (r) {
                         ctx.fillStyle = rectcolor;
                         ctx.roundRect(buttons[6].x, buttons[6].y, buttons[6].w, buttons[6].h);
-                        ctx.font = fontSize + "px Comic Sans MS";
+                        ctx.font = fontSize + "px Corbel";
                         ctx.fillStyle = textcolor;
                         if (wordStatus == 2)
                             ctx.fillText("Untag", buttons[6].x + buttons[6].w / 2, buttons[6].y +
@@ -1833,10 +1742,10 @@ function clickHandler(e) {
 
                         ctx.fillStyle = rectcolor;
                         ctx.roundRect(buttons[11].x, buttons[11].y, buttons[11].w, buttons[11].h);
-                        ctx.font = fontSize + "px Comic Sans MS";
+                        ctx.font = fontSize + "px Corbel";
                         ctx.fillStyle = textcolor;
                         if (wordStatus == 3) {
-                            ctx.font = (fontSize * 0.9) + "px Comic Sans MS";
+                            ctx.font = (fontSize * 0.9) + "px Corbel";
                             ctx.fillText("Undelete", buttons[11].x + buttons[11].w / 2, buttons[11].y +
                                 buttons[11].h / 1.4);
                         } else
@@ -1980,7 +1889,7 @@ function clickHandler(e) {
                 window.location.href = "/user";
             } else if (buttons[i].name == "addword") {
                 if (currentpage == 3) {
-                    ctx.font = fontSize + "px Comic Sans MS";
+                    ctx.font = fontSize + "px Corbel";
                     ctx.textAlign = "center";
 
                     word = $("#addword_word").val();
@@ -2082,11 +1991,11 @@ function clickHandler(e) {
                         ctx.roundRect(buttons[6].x - 5, canvas.height / 2 - 240 - 5, buttons[11].x - buttons[6].x + buttons[11].w + 10, canvas.height - bottomOffset - (canvas.height / 2 - 220) + 50);
                         ctx.fillStyle = getRndColor(160, 250);
                         ctx.roundRect(buttons[6].x, canvas.height / 2 - 240, buttons[11].x - buttons[6].x + buttons[11].w, canvas.height - bottomOffset - (canvas.height / 2 - 220) + 40);
-                        ctx.font = smallFontSize + "px Comic Sans MS";
+                        ctx.font = smallFontSize + "px Corbel";
                         ctx.fillStyle = getRndColor(10, 100);
                         ctx.textAlign = "center";
                         var lines = statistics.split('\n');
-                        $("#hiddenSpan").attr("style", "display:none;font:" + smallFontSize + "px Comic Sans MS");
+                        $("#hiddenSpan").attr("style", "display:none;font:" + smallFontSize + "px Corbel");
                         $("#hiddenSpan").html("test");
                         lineHeight = $("#hiddenSpan").height() + 5;
                         for (var i = 0; i < lines.length; i++)
@@ -2138,6 +2047,8 @@ function clickHandler(e) {
                 window.location.href = "/importData";
             } else if (buttons[i].name == "export") {
                 window.location.href = "/exportData";
+            } else if (buttons[i].name == "createwordbook") {
+                createWordBook();
             }
         }
     }
@@ -2161,12 +2072,86 @@ function clickHandler(e) {
         if (displayMode == 0 || displayMode == 2)
             renderWord(displayingAnswer);
     }
+
+    if(currentpage == 4){
+        space = getWidth("-----");
+        if(absoluteY >= buttons[8].y + buttons[8].h * 2 && absoluteY <= buttons[8].y + buttons[8].h * 2.6){
+            // Word Status Update
+            w1 = getWidth("Default", smallFontSize + "px Corbel") + space;
+            w2 = getWidth("Tag", smallFontSize + "px Corbel") + space;
+            w3 = getWidth("Delete", smallFontSize + "px Corbel") + space;
+
+            updateTo = 0;
+            if(absoluteX >= buttons[0].w * 0.5 && absoluteX <= buttons[0].w * 0.5 + w1 - space){
+                updateTo = 1;
+            } else if(absoluteX >= buttons[0].w * 0.5 + w1 && absoluteX <= buttons[0].w * 0.5 + w1 + w2 - space){
+                updateTo = 2;
+            } else if(absoluteX >= buttons[0].w * 0.5 + w1 + w2 && absoluteX <= buttons[0].w * 0.5 + w1 + w2 + w3 - space){
+                updateTo = 3;
+            }
+            
+            selected = [];
+            for(var i = 0 ; i < wordList.length ; i++){
+                if ($("#" + wordList[i].wordId).hasClass("selected")){
+                    selected.push(wordList[i].wordId);
+                }
+            }
+
+            table = $("#wordList").DataTable();
+            table.clear();
+            table.draw();
+            
+            $.ajax({
+                url: '/api/updateWordStatus',
+                method: 'POST',
+                async: false,
+                dataType: "json",
+                data: {
+                    words: JSON.stringify(selected),
+                    status: updateTo,
+                    userId: localStorage.getItem("userId"),
+                    token: localStorage.getItem("token")
+                },
+                success: function (r) {
+                    updateWordList(true);
+                },
+                error: function (r) {
+                    if (r.status == 401) {
+                        alert("Login session expired! Please login again!");
+                        localStorage.removeItem("userId");
+                        localStorage.removeItem("token");
+                        window.location.href = "/user";
+                    }
+                }
+            });
+        } else if (absoluteY >= buttons[8].y + buttons[8].h * 3.2 && absoluteY <= buttons[8].y + buttons[8].h * 3.8){
+            // Word book update
+            w4 = getWidth("Remove selected words", smallFontSize + "px Corbel") + space;
+            w5 = getWidth("Add new words", smallFontSize + "px Corbel") + space;
+
+            if(absoluteX >= buttons[0].w * 0.5 && absoluteX <= buttons[0].w * 0.5 + w4 - space){
+                console.log("remove");
+            } else if(wordBookId != 0 && absoluteX >= buttons[0].w * 0.5 + w4 && absoluteX <= buttons[0].w * 0.5 + w4 + w5 - space){
+                console.log("add");
+            }
+        }
+    }
 }
 
 $("#startfrom").on('keypress', function (e) {
     if (e.which == 13) {
         startfunc();
     }
+});
+
+$("#wordBookName").on('keypress', function (e) {
+    if (e.which == 13) {
+        createWordBook();
+    }
+});
+
+$('#wordList tbody').on('click', 'tr', function () {
+    $(this).toggleClass('selected');
 });
 
 document.addEventListener("click", clickHandler, false);
