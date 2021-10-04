@@ -1,5 +1,10 @@
 # Update History
 
+## v3.1.2
+
+*Date: 2021/10/5*  
+Allowed user to import to replace only conflicted words (overwrite mode)
+
 ## v3.1.1
 
 *Date: 2021/10/5*  

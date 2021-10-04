@@ -225,6 +225,23 @@ function updateWordList(doasync = true, drawtable = true) {
                 }
                 table.draw();
             }
+        },
+        error: function (r) {
+            if (drawtable) {
+                l = ["", "Default", "Tagged", "Deleted"];
+                localStorage.setItem("wordList", JSON.stringify(wordList));
+                table = $("#wordList").DataTable();
+                table.clear();
+                table.draw();
+                for (var i = 0; i < wordList.length; i++) {
+                    table.row.add([
+                        [wordList[i].word],
+                        [wordList[i].translation],
+                        [l[wordList[i].status]]
+                    ]).node().id = wordList[i].wordId;
+                }
+                table.draw();
+            }
         }
     });
 }
@@ -300,6 +317,22 @@ function updateWordBookList(doasync = true) {
                     }
                 }
             }
+        },
+        error: function (r) {
+            for (var i = 0; i < wordBookList.length; i++) {
+                if(wordBookList[i].wordBookId == wordBookId){
+                    wordBookName = wordBookList[i].name;
+                } 
+                if(wordBookList[i].wordBookId == selectedWordBook) {
+                    selectedWordBookName = wordBookList[i].name;
+                    selectedWordList = [];
+                    for(var j = 0 ; j < wordBookList[i].words.length ; j++) {
+                        wordId = wordBookList[i].words[j];
+                        wordData = wordListMap.get(wordId);
+                        selectedWordList.push({"wordId": wordId, "word": wordData.word, "translation": wordData.translation, "status": wordData.status});
+                    }
+                }
+            }
         }
     });
 }
@@ -347,6 +380,26 @@ function updateWordBookWordList() {
             l = ["", "Default", "Tagged", "Deleted"];
             localStorage.setItem("wordList", JSON.stringify(wordList));
 
+            wordBookIdx = 0;
+            for (var i = 0; i < wordBookList.length; i++) {
+                if(wordBookList[i].wordBookId == wordBookId){
+                    wordBookIdx = i;
+                    break;
+                }
+            }
+
+            for (var i = 0; i < wordBookList[wordBookIdx].words.length; i++) {
+                wordId = wordBookList[wordBookIdx].words[i];
+                wordData = wordListMap.get(wordId);
+                table.row.add([
+                    [wordData.word],
+                    [wordData.translation],
+                    [l[wordData.status]]
+                ]).node().id = wordId;
+            }
+            table.draw();
+        },
+        error: function(r) {
             wordBookIdx = 0;
             for (var i = 0; i < wordBookList.length; i++) {
                 if(wordBookList[i].wordBookId == wordBookId){

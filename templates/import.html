@@ -6,9 +6,10 @@
 <p>The columns must contain 'Word','Translation'. (It can also contain other columns but Word and Translation are required)</p>
 <p>'Status' is an optional column. If you set it, the script will decide the status of the word.</p>
 <br>
-<p>The "Check duplicate word" option is a function to check for duplicate words between the server-side database and the file you upload.</p>
-<p>If you select "Yes" and set "Type" to "Append", when duplicate words are found, the server will reject the upload and warn you.</p>
-<p>If you select "No", the server will not do the check and all words will be inserted to database.</p>
+<p>There are three types of upload you can choose: Append, Overwrite and Clear & Overwrite</p>
+<p>If you choose Append, the uploaded words will be appended to existing database. Duplicate words may exist and you will be warned.</p>
+<p>If you choose Overwrite, when duplicated words are found, they will be replaced by uploaded ones. Other words will be appended to existing database.</p>
+<p>If you choose Clear & Overwrite, all the existing words will be deleted and only the uploaded ones will be kept.</p>
 <p>Please note that if you search for a word which is duplicated, only the first-imported one will be shown.</p>
 <br>
 <p style="color:red">{{ MESSAGE }}</p>
@@ -19,6 +20,8 @@
         <label for="append">Append</label>
         <input type="radio" id="overwrite" name="updateType" value="overwrite">
         <label for="overwrite">Overwrite</label>
+        <input type="radio" id="clear_overwrite" name="updateType" value="clear_overwrite">
+        <label for="clear_overwrite">Clear & Overwrite</label>
     </p>
     <p>Check duplicate word? 
         <input type="radio" id="yes" name="checkDuplicate" value="yes" checked>
@@ -46,5 +49,5 @@
     }
 </style>
 <div class="footer">
-    <p>v3.1.1 &copy; Charles</p>
+    <p>v3.1.2 &copy; Charles</p>
 </div>

@@ -1198,13 +1198,13 @@ def importData():
 
         newlist = pd.read_excel(f"/tmp/data{ts}.xlsx")
         duplicate = []
-        if checkDuplicate and updateType != "overwrite":
-            cur.execute(f"SELECT word FROM WordList WHERE userId = {userId}")
-            wordList = cur.fetchall()
-            for i in range(0, len(newlist)):
-                if (encode(newlist["Word"][i]),) in wordList:
-                    duplicate.append(newlist["Word"][i])
+        cur.execute(f"SELECT word FROM WordList WHERE userId = {userId}")
+        wordList = cur.fetchall()
+        for i in range(0, len(newlist)):
+            if (encode(str(newlist["Word"][i])),) in wordList:
+                duplicate.append(str(newlist["Word"][i]))
 
+        if checkDuplicate and updateType == "append":
             if len(duplicate) != 0:
                 return render_template("import.html", MESSAGE = f"Upload rejected due to duplicated words: {' ; '.join(duplicate)}")
 
@@ -1215,17 +1215,30 @@ def importData():
             d = cur.fetchall()
             if len(d) != 0:
                 wordId = d[0][0]
-                
-        elif updateType  == "overwrite":
+
+        elif updateType  == "clear_overwrite":
             cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE userId = {userId}")
             d = cur.fetchall()
             ts = int(time.time())
             for dd in d:
                 cur.execute(f"INSERT INTO DeletedWordList VALUES ({userId},{dd[0]}, '{dd[1]}', '{dd[2]}', {dd[3]}, {ts})")
+            cur.execute(f"DELETE FROM WordBookData WHERE userId = {userId}")
             cur.execute(f"DELETE FROM WordList WHERE userId = {userId}")
             conn.commit()
 
         for i in range(0, len(newlist)):
+            word = str(newlist['Word'][i])
+            translation = str(newlist['Translation'][i])
+
+            if word in duplicate and updateType == "overwrite":
+                cur.execute(f"SELECT wordId FROM WordList WHERE userId = {userId} AND word = '{encode(word)}'")
+                wid = cur.fetchall()[0][0] # do not use wordId as variable name or it will cause conflict
+                cur.execute(f"UPDATE WordList SET translation = '{encode(translation)}' WHERE wordId = {wid} AND userId = {userId}")
+                if list(uploaded.keys()).count("Status") == 1 and newlist["Status"][i] in ["Default", "Tagged", "Removed"]:
+                    status = StatusTextToStatus[newlist["Status"][i]]
+                    cur.execute(f"UPDATE WordList SET status = {status} WHERE wordId = {wid} AND userId = {userId}")
+                continue
+
             status = 0
             wordId += 1
             updateWordStatus(userId, wordId, status)
@@ -1234,13 +1247,8 @@ def importData():
             if list(uploaded.keys()).count("Status") == 1 and newlist["Status"][i] in ["Default", "Tagged", "Removed"]:
                 status = StatusTextToStatus[newlist["Status"][i]]
             updateWordStatus(userId, wordId, status)
-            
-            if type(newlist['Word'][i]) != str:
-                newlist['Word'][i] = "[Unknown word]"
-            if type(newlist['Translation'][i]) != str:
-                newlist['Translation'][i] = "[Unknown translation]"
 
-            cur.execute(f"INSERT INTO WordList VALUES ({userId},{wordId}, '{encode(newlist['Word'][i])}', '{encode(newlist['Translation'][i])}', {status})")
+            cur.execute(f"INSERT INTO WordList VALUES ({userId},{wordId}, '{encode(word)}', '{encode(translation)}', {status})")
             cur.execute(f"INSERT INTO ChallengeData VALUES ({userId},{wordId}, 0, -1)")
 
         conn.commit()
