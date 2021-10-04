@@ -465,7 +465,7 @@ def apiAddToWordBook():
     if not validateToken(userId, token):
         abort(401)
     
-    wordIds = request.form["wordIds"].split(" ")
+    words = json.loads(request.form["words"])
     wordBookId = int(request.form["wordBookId"])
 
     cur.execute(f"SELECT name FROM WordBook WHERE userId = {userId} AND wordBookId = {wordBookId}")
@@ -475,8 +475,7 @@ def apiAddToWordBook():
     cur.execute(f"SELECT wordId FROM WordList WHERE userId = {userId}")
     d = cur.fetchall()
 
-    for wordId in wordIds:
-        wordId = int(wordId)
+    for wordId in words:
         if (wordId,) in d:
             cur.execute(f"INSERT INTO WordBookData VALUES ({userId}, {wordBookId}, {wordId})")
     conn.commit()
@@ -494,18 +493,17 @@ def apiDeleteFromWordBook():
     if not validateToken(userId, token):
         abort(401)
     
-    wordIds = request.form["wordIds"].split(" ")
+    words = json.loads(request.form["words"])
     wordBookId = int(request.form["wordBookId"])
 
     cur.execute(f"SELECT name FROM WordBook WHERE userId = {userId} AND wordBookId = {wordBookId}")
     if len(cur.fetchall()) == 0:
         return json.dumps({"success": False, "msg": "Word book does not exist!"})
     
-    cur.execute(f"SELECT wordId FROM WordBook WHERE userId = {userId} AND wordBookId = {wordBookId}")
+    cur.execute(f"SELECT wordId FROM WordBookData WHERE userId = {userId} AND wordBookId = {wordBookId}")
     d = cur.fetchall()
 
-    for wordId in wordIds:
-        wordId = int(wordId)
+    for wordId in words:
         if (wordId,) in d:
             cur.execute(f"DELETE FROM WordBookData WHERE userId = {userId} AND wordBookId = {wordBookId} AND wordId = {wordId}")
     conn.commit()
@@ -736,6 +734,18 @@ def apiGetWordStat():
     
     return json.dumps({"msg":res})
 
+def getWordsInWordBook(userId, wordBookId, statusRequirement):
+    cur = conn.cursor()
+    cur.execute(f"SELECT wordId FROM WordBookData WHERE wordBookId = {wordBookId} AND userId = {userId}")
+    wordbook = cur.fetchall()
+    cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE ({statusRequirement}) AND userId = {userId}")
+    words = cur.fetchall()
+    d = []
+    for word in words:
+        if (word[0],) in wordbook:
+            d.append(word)
+    return d
+
 @app.route("/api/getNext", methods = ['POST'])
 def apiGetNext():
     cur = conn.cursor()
@@ -764,16 +774,45 @@ def apiGetNext():
     status = int(request.form["status"])
     statusRequirement = statusRequirement[status]
 
-    if moveType in [-1,1]:
-        cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE wordId{op}{current} AND ({statusRequirement}) AND userId = {userId} ORDER BY wordId {order} LIMIT 1")
-        d = cur.fetchall()
-        if len(d) == 0: # no matching results, then find result from first / end
-            cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE ({statusRequirement}) AND userId = {userId} ORDER BY wordId {order} LIMIT 1")
+    wordBookId = int(request.form["wordBookId"])
+    
+    if wordBookId == 0:
+        if moveType in [-1,1]:
+            cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE wordId{op}{current} AND ({statusRequirement}) AND userId = {userId} ORDER BY wordId {order} LIMIT 1")
             d = cur.fetchall()
+            if len(d) == 0: # no matching results, then find result from first / end
+                cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE ({statusRequirement}) AND userId = {userId} ORDER BY wordId {order} LIMIT 1")
+                d = cur.fetchall()
 
-    elif moveType == 0:
-        cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE ({statusRequirement}) AND userId = {userId} ORDER BY RANDOM() LIMIT 1")
-        d = cur.fetchall()
+        elif moveType == 0:
+            cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE ({statusRequirement}) AND userId = {userId} ORDER BY RANDOM() LIMIT 1")
+            d = cur.fetchall()
+    
+    else:
+        d = getWordsInWordBook(userId, wordBookId, statusRequirement)
+        if len(d) != 0:
+            if moveType == -1:
+                lst = d[-1]
+                for dd in d:
+                    if dd[0] == current:
+                        break
+                    lst = dd
+                d = [lst]
+
+            elif moveType == 1:
+                nxt = d[0]
+                ok = False
+                for dd in d:
+                    if ok is True:
+                        nxt = dd
+                        break
+                    if dd[0] == current:
+                        ok = True
+                d = [nxt]
+            
+            elif moveType == 0:
+                rnd = random.randint(0,len(d)-1)
+                d = [d[rnd]]
 
     if len(d) == 0:
         return json.dumps({"wordId": -1, "word": "[No more word]", "translation": "Maybe change the settings?\nOr check your connection?", "status": 1})
@@ -785,7 +824,7 @@ def apiGetNext():
     return json.dumps({"wordId": wordId, "word": word, "translation": translation, "status": status})
 
 rnd=[1,1,1,1,1,1,1,2,2,2,2,2,2,3,3,3,3,3,3,4]
-def getChallengeWordId(userId, nofour = False):
+def getChallengeWordId(userId, wordBookId, nofour = False):
     cur = conn.cursor()
     wordId = -1
 
@@ -796,15 +835,28 @@ def getChallengeWordId(userId, nofour = False):
         random.shuffle(rnd)
         t = rnd[random.randint(0,len(rnd)-1)]
     
+    cache = getWordsInWordBook(userId, wordBookId, "status = 1")
+
     if t == 1:
         cur.execute(f"SELECT wordId FROM ChallengeData WHERE lastChallenge <= {int(time.time()) - 1200} AND userId = {userId} ORDER BY wordId ASC")
         d1 = cur.fetchall()
-        cur.execute(f"SELECT wordId FROM WordList WHERE status = 2 AND userId = {userId} ORDER BY RANDOM()")
-        d2 = cur.fetchall()
-        for dd in d2:
-            if (dd[0],) in d1:
-                wordId = dd[0]
-                break
+
+        if wordBookId == 0:
+            cur.execute(f"SELECT wordId FROM WordList WHERE status = 2 AND userId = {userId} ORDER BY RANDOM()")
+            d2 = cur.fetchall()
+            for dd in d2:
+                if (dd[0],) in d1:
+                    wordId = dd[0]
+                    break
+        else:
+            d = getWordsInWordBook(userId, wordBookId, "status = 2")
+            oklist = []
+            for dd in d:
+                if (dd[0],) in d1:
+                    oklist.append(dd[0])
+            
+            if len(oklist) != 0:
+                wordId = oklist[random.randint(0,len(oklist)-1)]
 
         if wordId == -1:
             t = 2
@@ -812,12 +864,19 @@ def getChallengeWordId(userId, nofour = False):
     if t == 2:
         cur.execute(f"SELECT wordId FROM ChallengeData WHERE nextChallenge <= {int(time.time())} AND nextChallenge != 0 AND userId = {userId} ORDER BY nextChallenge ASC")
         d1 = cur.fetchall()
-        cur.execute(f"SELECT wordId FROM WordList WHERE status = 1 AND userId = {userId} ORDER BY wordId ASC")
-        d2 = cur.fetchall()
-        for dd in d1:
-            if (dd[0],) in d2:
-                wordId = dd[0]
-                break
+        if wordBookId == 0:
+            cur.execute(f"SELECT wordId FROM WordList WHERE status = 1 AND userId = {userId} ORDER BY wordId ASC")
+            d2 = cur.fetchall()
+            for dd in d1:
+                if (dd[0],) in d2:
+                    wordId = dd[0]
+                    break
+        else:
+            d = cache
+            for dd in d:
+                if (dd[0],) in d1:
+                    wordId = dd[0]
+                    break
         
         if wordId == -1:
             t = 3
@@ -825,12 +884,19 @@ def getChallengeWordId(userId, nofour = False):
     if t == 3:
         cur.execute(f"SELECT wordId FROM ChallengeData WHERE nextChallenge = 0 AND userId = {userId} ORDER BY RANDOM() ASC")
         d1 = cur.fetchall()
-        cur.execute(f"SELECT wordId FROM WordList WHERE status = 1 AND userId = {userId} ORDER BY wordId ASC")
-        d2 = cur.fetchall()
-        for dd in d1:
-            if (dd[0],) in d2:
-                wordId = dd[0]
-                break
+        if wordBookId == 0:
+            cur.execute(f"SELECT wordId FROM WordList WHERE status = 1 AND userId = {userId} ORDER BY wordId ASC")
+            d2 = cur.fetchall()
+            for dd in d1:
+                if (dd[0],) in d2:
+                    wordId = dd[0]
+                    break
+        else:
+            d = cache
+            for dd in d:
+                if (dd[0],) in d1:
+                    wordId = dd[0]
+                    break
         
         if wordId == -1:
             t = 5
@@ -838,12 +904,19 @@ def getChallengeWordId(userId, nofour = False):
     if t == 5:
         cur.execute(f"SELECT wordId FROM ChallengeData WHERE lastChallenge <= {int(time.time()) - 1200} AND nextChallenge != 0 AND userId = {userId} ORDER BY nextChallenge ASC")
         d1 = cur.fetchall()
-        cur.execute(f"SELECT wordId FROM WordList WHERE status = 1 AND userId = {userId} ORDER BY wordId ASC")
-        d2 = cur.fetchall()
-        for dd in d1:
-            if (dd[0],) in d2:
-                wordId = dd[0]
-                break
+        if wordBookId == 0:
+            cur.execute(f"SELECT wordId FROM WordList WHERE status = 1 AND userId = {userId} ORDER BY wordId ASC")
+            d2 = cur.fetchall()
+            for dd in d1:
+                if (dd[0],) in d2:
+                    wordId = dd[0]
+                    break
+        else:
+            d = cache
+            for dd in d:
+                if (dd[0],) in d1:
+                    wordId = dd[0]
+                    break
         
         if wordId == -1:
             t = 4
@@ -851,12 +924,20 @@ def getChallengeWordId(userId, nofour = False):
     if t == 4 and not nofour:
         cur.execute(f"SELECT wordId FROM WordList WHERE status = 3 AND userId = {userId} ORDER BY RANDOM() LIMIT 1")
         d = cur.fetchall()
-
         if len(d) != 0:
-            wordId = d[0][0]
+            if wordBookId == 0:
+                wordId = d[0][0]
+            
+            else:
+                cur.execute(f"SELECT wordId FROM WordBookData WHERE userId = {userId} AND wordBookId = {wordBookId}")
+                d2 = cur.fetchall()
+                for dd in d2:
+                    if (dd[0],) in d:
+                        wordId = dd[0]
+                        break
         
         if wordId == -1:
-            wordId = getChallengeWordId(userId, nofour = True)
+            wordId = getChallengeWordId(userId, wordBookId, nofour = True)
     
     return wordId
 
@@ -871,7 +952,8 @@ def apiGetNextChallenge():
     if not validateToken(userId, token):
         abort(401)
 
-    wordId = getChallengeWordId(userId)
+    wordBookId = int(request.form["wordBookId"])
+    wordId = getChallengeWordId(userId, wordBookId)
 
     if wordId == -1:
         return json.dumps({"wordId": wordId, "word": "Out of challenge", "translation": "You are super!\nNo more challenge can be done!", "status": 1})
@@ -923,7 +1005,8 @@ def apiUpdateChallengeRecord():
     conn.commit()
 
     if getNext == 1:
-        wordId = getChallengeWordId(userId)
+        wordBookId = int(request.form["wordBookId"])
+        wordId = getChallengeWordId(userId, wordBookId)
 
         if wordId == -1:
             return json.dumps({"wordId": wordId, "word": "Out of challenge", "translation": "You are super! No more challenge can be done!", "status": 1})
@@ -966,7 +1049,6 @@ def apiUpdateWordStatus():
     status = int(request.form["status"])
 
     for wordId in words:
-        print(wordId)
         cur.execute(f"SELECT word FROM WordList WHERE wordId = {wordId} AND userId = {userId}")
         if len(cur.fetchall()) == 0:
             return json.dumps({"succeed": False, "msg": "Word not found!"})
@@ -1018,6 +1100,31 @@ def apiAddWord():
     conn.commit()
 
     return json.dumps({"success":True})
+
+@app.route("/api/deleteWord", methods = ['POST'])
+def apiDeleteWord():
+    cur = conn.cursor()
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+        abort(401)
+        
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    if not validateToken(userId, token):
+        abort(401)
+
+    words = json.loads(request.form["words"])
+
+    for wordId in words:
+        cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE userId = {userId} AND wordId = {wordId}")
+        d = cur.fetchall()
+        ts = int(time.time())
+        dd = d[0]
+        cur.execute(f"INSERT INTO DeletedWordList VALUES ({userId},{dd[0]}, '{dd[1]}', '{dd[2]}', {dd[3]}, {ts})")
+        cur.execute(f"DELETE FROM WordList WHERE userId = {userId} AND wordId = {wordId}")
+        conn.commit()
+
+    return json.dumps({"success": True})
+
 
 @app.route("/api/clearDeleted", methods = ['POST'])
 def apiClearDeleted():

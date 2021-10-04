@@ -29,7 +29,7 @@ var btnMargin = 0.5;
 var bottomOffset = 100;
 
 var buttons = [];
-var btncnt = 24;
+var btncnt = 26;
 
 if (isphone) {
     fontSize = 60;
@@ -52,8 +52,8 @@ buttons[1]={name:"previous",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
 buttons[2]={name:"next",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
 buttons[3]={name:"sound",x:0,y:0,w:50,h:50,orgw:50,orgh:50},
 buttons[13]={name:"pauseap",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
-buttons[16]={name:"challengeyes",x:0,y:0,w:170,h:50,orgw:170,orgh:50},
-buttons[17]={name:"challengeno",x:0,y:0,w:170,h:50,orgw:170,orgh:50},
+buttons[16]={name:"challengeyes",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
+buttons[17]={name:"challengeno",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
 buttons[15]={name:"mode0",x:0,y:0,w:250,h:50,orgw:250,orgh:50},
 buttons[4]={name:"mode1",x:0,y:0,w:170,h:50,orgw:170,orgh:50},
 buttons[5]={name:"mode2",x:0,y:0,w:170,h:50,orgw:170,orgh:50},
@@ -67,8 +67,10 @@ buttons[22]={name:"wordbook",x:0,y:0,w:300,h:50,orgw:200,orgh:50},
 buttons[9]={name:"import",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
 buttons[12]={name:"export",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
 buttons[19]={name:"addword",x:0,y:0,w:300,h:50,orgw:300,orgh:50},
-buttons[21]={name:"cleardeleted",x:0,y:0,w:500,h:50,orgw:500,orgh:50};
-buttons[23]={name:"createwordbook",x:0,y:0,w:500,h:50,orgw:500,orgh:50};
+buttons[21]={name:"cleardeleted",x:0,y:0,w:500,h:50,orgw:500,orgh:50},
+buttons[23]={name:"createwordbook",x:0,y:0,w:500,h:50,orgw:500,orgh:50},
+buttons[24]={name:"wordbookaddword",x:0,y:0,w:200,h:50,orgw:200,orgh:50};
+buttons[25]={name:"selectwordbook",x:0,y:0,w:200,h:50,orgw:200,orgh:50};
 
 var wordBookW = 300;
 var wordBookH = 150;
@@ -106,7 +108,7 @@ function fontresize() {
     largeFontSize = Math.min(orglargeFontSize, parseInt(orglargeFontSize * window.innerWidth / windowOrgW));
     smallFontSize = Math.min(orgsmallFontSize, parseInt(orgsmallFontSize * window.innerWidth / windowOrgW));
 
-    if(isphone){
+    if (isphone) {
         fontSize *= 1.5;
         largeFontSize *= 1.5;
         smallFontSize *= 1.5;
@@ -156,6 +158,7 @@ $("#wordList_wrapper").hide();
 $("#wordList").show();
 
 var wordList = JSON.parse(localStorage.getItem("wordList"));
+var selectedWordList = [];
 if (wordList == null) {
     wordList = [];
     localStorage.setItem("wordList", JSON.stringify([]));
@@ -171,7 +174,7 @@ if (wordList == null) {
             [wordList[i].word],
             [wordList[i].translation],
             [l[wordList[i].status]]
-        ]).node().id=wordList[i].wordId;
+        ]).node().id = wordList[i].wordId;
     }
     table.draw();
 }
@@ -186,7 +189,7 @@ for (var i = 0; i < wordList.length; i++) {
 
 // Update word list each 10 minutes
 
-function updateWordList(doasync = true) {
+function updateWordList(doasync = true, drawtable = true) {
     $.ajax({
         url: "/api/getWordList",
         method: 'POST',
@@ -207,30 +210,37 @@ function updateWordList(doasync = true) {
                 });
             }
 
-            l = ["", "Default", "Tagged", "Deleted"];
-            localStorage.setItem("wordList", JSON.stringify(wordList));
-            table = $("#wordList").DataTable();
-            table.clear();
-            table.draw();
-            for (var i = 0; i < wordList.length; i++) {
-                table.row.add([
-                    [wordList[i].word],
-                    [wordList[i].translation],
-                    [l[wordList[i].status]]
-                ]).node().id=wordList[i].wordId;
+            if (drawtable) {
+                l = ["", "Default", "Tagged", "Deleted"];
+                localStorage.setItem("wordList", JSON.stringify(wordList));
+                table = $("#wordList").DataTable();
+                table.clear();
+                table.draw();
+                for (var i = 0; i < wordList.length; i++) {
+                    table.row.add([
+                        [wordList[i].word],
+                        [wordList[i].translation],
+                        [l[wordList[i].status]]
+                    ]).node().id = wordList[i].wordId;
+                }
+                table.draw();
             }
-            table.draw();
         }
     });
 }
-updateWordList();
+updateWordList(true, false);
 setInterval(updateWordList, 600000);
 
 
 // Update word book list each 10 minutes
 
-var wordBookId = -1;
-var wordBookIdx = -1;
+var wordBookId = localStorage.getItem("wordBookId");
+if (wordBookId == null) {
+    wordBookId = 0;
+    localStorage.setItem("wordBookId", "0");
+}
+wordBookId = parseInt(wordBookId);
+var wordBookName = "";
 
 var wordBookRect = [];
 var wordBookCnt = 1;
@@ -275,12 +285,89 @@ function updateWordBookList(doasync = true) {
             }
             wordBookCnt = wordBookList.length;
             localStorage.setItem("wordBookList", JSON.stringify(wordBookList));
+            
+            for (var i = 0; i < wordBookList.length; i++) {
+                if(wordBookList[i].wordBookId == wordBookId){
+                    wordBookName = wordBookList[i].name;
+                } 
+                if(wordBookList[i].wordBookId == selectedWordBook) {
+                    selectedWordBookName = wordBookList[i].name;
+                    selectedWordList = [];
+                    for(var j = 0 ; j < wordBookList[i].words.length ; j++) {
+                        wordId = wordBookList[i].words[j];
+                        wordData = wordListMap.get(wordId);
+                        selectedWordList.push({"wordId": wordId, "word": wordData.word, "translation": wordData.translation, "status": wordData.status});
+                    }
+                }
+            }
         }
     });
 }
 updateWordBookList();
 setInterval(updateWordBookList, 600000);
 
+for (var i = 0; i < wordBookList.length; i++) {
+    if(wordBookList[i].wordBookId == wordBookId){
+        wordBookName = wordBookList[i].name;
+    } 
+    if(wordBookList[i].wordBookId == selectedWordBook) {
+        selectedWordBookName = wordBookList[i].name;
+        selectedWordList = [];
+        for(var j = 0 ; j < wordBookList[i].words.length ; j++) {
+            wordId = wordBookList[i].words[j];
+            wordData = wordListMap.get(wordId);
+            selectedWordList.push({"wordId": wordId, "word": wordData.word, "translation": wordData.translation, "status": wordData.status});
+        }
+    }
+}
+
+
+function updateWordBookWordList() {
+    updateWordBookList();
+    $.ajax({
+        url: "/api/getWordList",
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            wordList = r;
+            wordListMap = new Map();
+            for (var i = 0; i < wordList.length; i++) {
+                wordListMap.set(wordList[i].wordId, {
+                    "word": wordList[i].word,
+                    "translation": wordList[i].translation,
+                    "status": wordList[i].status
+                });
+            }
+
+            l = ["", "Default", "Tagged", "Deleted"];
+            localStorage.setItem("wordList", JSON.stringify(wordList));
+
+            wordBookIdx = 0;
+            for (var i = 0; i < wordBookList.length; i++) {
+                if(wordBookList[i].wordBookId == wordBookId){
+                    wordBookIdx = i;
+                    break;
+                }
+            }
+
+            for (var i = 0; i < wordBookList[wordBookIdx].words.length; i++) {
+                wordId = wordBookList[wordBookIdx].words[i];
+                wordData = wordListMap.get(wordId);
+                table.row.add([
+                    [wordData.word],
+                    [wordData.translation],
+                    [l[wordData.status]]
+                ]).node().id = wordId;
+            }
+            table.draw();
+        }
+    });
+}
 
 
 
@@ -319,6 +406,14 @@ displayMode = parseInt(displayMode);
 
 var wordId = localStorage.getItem("wordId");
 
+var selectedWordBook = localStorage.getItem("selectedWordBook");
+if(selectedWordBook == null) {
+    selectedWordBook = 0;
+    localStorage.setItem("selectedWordBook","0");
+}
+selectedWordBook = parseInt(selectedWordBook);
+var selectedWordBookName = "";
+
 var word = "";
 var displayId = -1;
 var displayWord = "";
@@ -327,7 +422,8 @@ var translation = "";
 var wordStatus = 0;
 
 var lastpage = 0;
-var currentpage = localStorage.getItem("currentpage"); // 0: homepage, 1: wordpage, 2: settings, 3: addword, 4: wordlist, 5: wordbook
+var currentpage = localStorage.getItem("currentpage");
+// 0: homepage, 1: wordpage, 2: settings, 3: addword, 4: wordlist, 5: wordbook, 6: wordbook-addword
 if (currentpage == null) {
     currentpage = 0;
     localStorage.setItem("currentpage", "0");
@@ -367,22 +463,22 @@ if (wordId != null) {
             },
             error: function (r) {
                 // Connection failed, check local word list
-                for (var i = 0; i < wordList.length; i++) {
-                    if (wordList[i].wordId == wordId) {
-                        word = wordList[i].word;
-                        translation = wordList[i].translation;
-                        wordStatus = wordList[i].status;
+                for (var i = 0; i < selectedWordList.length; i++) {
+                    if (selectedWordList[i].wordId == wordId) {
+                        word = selectedWordList[i].word;
+                        translation = selectedWordList[i].translation;
+                        wordStatus = selectedWordList[i].status;
                     }
                 }
             }
         });
     } else {
         // Connection failed, check local word list
-        for (var i = 0; i < wordList.length; i++) {
-            if (wordList[i].wordId == wordId) {
-                word = wordList[i].word;
-                translation = wordList[i].translation;
-                wordStatus = wordList[i].status;
+        for (var i = 0; i < selectedWordList.length; i++) {
+            if (selectedWordList[i].wordId == wordId) {
+                word = selectedWordList[i].word;
+                translation = selectedWordList[i].translation;
+                wordStatus = selectedWordList[i].status;
             }
         }
     }
@@ -390,12 +486,12 @@ if (wordId != null) {
 
 // Word does not exist
 if (word == "") { // Then show a random word to start from
-    if (wordList.length != 0) {
-        index = parseInt(Math.random() * wordList.length);
-        wordId = wordList[index].wordId;
-        word = wordList[index].word;
-        translation = wordList[index].translation;
-        wordStatus = wordList[index].status;
+    if (selectedWordList.length != 0) {
+        index = parseInt(Math.random() * selectedWordList.length);
+        wordId = selectedWordList[index].wordId;
+        word = selectedWordList[index].word;
+        translation = selectedWordList[index].translation;
+        wordStatus = selectedWordList[index].status;
 
         $("#startfrom").val(word);
     }
@@ -404,12 +500,12 @@ if (word == "") { // Then show a random word to start from
 lastInputChange = 0;
 
 function displayRandomWord() {
-    if (wordList.length != 0) {
-        index = parseInt(Math.random() * wordList.length);
-        wordId = wordList[index].wordId;
-        word = wordList[index].word;
-        translation = wordList[index].translation;
-        wordStatus = wordList[index].status;
+    if (selectedWordList.length != 0) {
+        index = parseInt(Math.random() * selectedWordList.length);
+        wordId = selectedWordList[index].wordId;
+        word = selectedWordList[index].word;
+        translation = selectedWordList[index].translation;
+        wordStatus = selectedWordList[index].status;
 
         $("#startfrom").val(word);
     }
@@ -419,9 +515,6 @@ $('#startfrom').on('input', function () {
     lastInputChange = Date.now();
 });
 var randomDisplayer = setInterval(displayRandomWord, 5000);
-
-// Get word count
-var wordcount = wordList.length;
 
 
 
@@ -464,6 +557,9 @@ function renderHomePage() {
     } else if (displayMode == 2) {
         ctx.fillText("Offline Mode", buttons[0].x + buttons[0].w / 2, buttons[0].y + buttons[0].h * 2.2);
     }
+    
+    ctx.fillText(selectedWordBookName, buttons[0].x + buttons[0].w / 2, buttons[0].y + buttons[0].h * 3.4);
+
     ////
     buttons[20].x = canvas.width - buttons[20].w * 1.2;
     buttons[20].y = buttons[20].h * 0.2;
@@ -697,14 +793,14 @@ function renderAddWord() {
     $("#addword_translation").attr("style", "position:absolute;left:" + (canvas.width / 2) + ";top:" + (canvas.height / 2 - 68) + ";font-size:" + fontSize * 0.4 + ";font-family:Corbel");
 
     // Add buttons
-    buttons[14].x = canvas.width - buttons[14].w * 1.2;
-    buttons[14].y = buttons[14].h * 0.2;
+    buttons[8].x = buttons[8].w * 0.2;
+    buttons[8].y = buttons[8].h * 0.2;
     ctx.fillStyle = getRndColor(160, 250);
-    ctx.roundRect(buttons[14].x, buttons[14].y, buttons[14].w, buttons[14].h);
+    ctx.roundRect(buttons[8].x, buttons[8].y, buttons[8].w, buttons[8].h);
 
-    ctx.font = fontSize * 0.9 + "px Corbel";
+    ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
-    ctx.fillText("Settings", buttons[14].x + buttons[14].w / 2, buttons[14].y + buttons[14].h / 1.4);
+    ctx.fillText("Back", buttons[8].x + buttons[8].w / 2, buttons[8].y + buttons[8].h / 1.4);
     ////
     buttons[19].x = canvas.width / 2 - buttons[19].w / 2;
     buttons[19].y = canvas.height - buttons[19].h * 3;
@@ -1044,7 +1140,7 @@ function renderWordBook() {
         x = canvas.width + 1;
         y = canvas.height + 1;
 
-        if(!isphone) {
+        if (!isphone) {
             if (i % 4 == 0) {
                 x = canvas.width / 2 - wordBookW * 2.15;
             } else if (i % 4 == 1) {
@@ -1057,7 +1153,7 @@ function renderWordBook() {
 
             y = buttons[8].y + buttons[8].h * 1.2 + parseInt(i / 4) * wordBookH * 1.1;
         } else {
-            if (i % 2 == 0){
+            if (i % 2 == 0) {
                 x = canvas.width / 2 - wordBookW * 1.05;
             } else if (i % 2 == 1) {
                 x = canvas.width / 2 + wordBookW * 0.05;
@@ -1114,7 +1210,7 @@ function renderWordBook() {
 
     ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
-    ctx.fillText("Create Word Book", buttons[23].x + buttons[23].w / 2, buttons[23].y + buttons[23].h / 1.4);    
+    ctx.fillText("Create Word Book", buttons[23].x + buttons[23].w / 2, buttons[23].y + buttons[23].h / 1.4);
 }
 
 // Render word list using dataTables
@@ -1139,10 +1235,25 @@ function renderWordList() {
     ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Back", buttons[8].x + buttons[8].w / 2, buttons[8].y + buttons[8].h / 1.4);
+    ////
+    color = getRndColor(160, 250);
+    if(selectedWordBook == wordBookId)
+        color = "#cccccc";
+    buttons[25].x = canvas.width - buttons[25].w * 1.2;
+    buttons[25].y = buttons[25].h * 0.2
+    ctx.fillStyle = color;
+    ctx.roundRect(buttons[25].x, buttons[25].y, buttons[25].w, buttons[25].h);
+
+    ctx.font = fontSize + "px Corbel";
+    ctx.fillStyle = getRndColor(10, 100);
+    if(selectedWordBook == wordBookId)
+        ctx.fillText("Selected", buttons[25].x + buttons[25].w / 2, buttons[25].y + buttons[25].h / 1.4);
+    else
+        ctx.fillText("Select", buttons[25].x + buttons[25].w / 2, buttons[25].y + buttons[25].h / 1.4);
 
     // Add title
     ctx.font = fontSize + "px Impact";
-    ctx.fillText(wordBookList[wordBookIdx].name, canvas.width / 2, buttons[8].h * 0.2 + buttons[8].h / 1.4);
+    ctx.fillText(wordBookName, canvas.width / 2, buttons[8].h * 0.2 + buttons[8].h / 1.4);
     ctx.font = fontSize + "px Corbel";
 
     // Status update
@@ -1151,9 +1262,9 @@ function renderWordList() {
     ctx.fillStyle = getRndColor(10, 100);
     space = getWidth("-----");
 
-    if(isphone) smallFontSize *= 0.6
+    if (isphone) smallFontSize *= 0.6
     ctx.fillText("Word Status Update (Update the status of all selected words to):", buttons[0].w * 0.5, buttons[8].y + buttons[8].h * 1.8);
-    if(isphone) smallFontSize /= 0.6
+    if (isphone) smallFontSize /= 0.6
 
     ctx.fillText("Default", buttons[0].w * 0.5, buttons[8].y + buttons[8].h * 2.4);
     w1 = getWidth("Default", smallFontSize + "px Corbel") + space;
@@ -1165,58 +1276,123 @@ function renderWordList() {
     // Word book update
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Word Book Update:", buttons[0].w * 0.5, buttons[8].y + buttons[8].h * 3);
-    
-    if(isphone&&wordBookId != 0) smallFontSize *= 0.6
-    ctx.fillText("Remove selected words", buttons[0].w * 0.5, buttons[8].y + buttons[8].h * 3.6);
-    w4 = getWidth("Remove selected words", smallFontSize + "px Corbel") + space;
-    if(wordBookId != 0){
-        ctx.fillText("Add new words", buttons[0].w * 0.5 + w4, buttons[8].y + buttons[8].h * 3.6);
-        w5 = getWidth("Add new words", smallFontSize + "px Corbel") + space;
-        if(isphone) smallFontSize /= 0.6;
-    }
+
+    // If word list is all words
+    // Then add new words refer to add new word to database
+    // Instead of selecting words from all words
+    // And remove selected words refer to remove all selected words permanently
+    // Instead of removing them from specific word list
+    if (isphone && wordBookId != 0) smallFontSize *= 0.6
+    ctx.fillText("Add", buttons[0].w * 0.5, buttons[8].y + buttons[8].h * 3.6);
+    w4 = getWidth("Add", smallFontSize + "px Corbel") + space;
+    ctx.fillText("Remove", buttons[0].w * 0.5 + w4, buttons[8].y + buttons[8].h * 3.6);
+    w5 = getWidth("Remove", smallFontSize + "px Corbel") + space;
+    ctx.fillStyle = "red";
+    ctx.fillText("Delete Word Book", buttons[0].w * 0.5 + w4 + w5, buttons[8].y + buttons[8].h * 3.6);
+    w6 = getWidth("Delete Word Book", smallFontSize + "px Corbel") + space;
+    ctx.fillStyle = getRndColor(10, 100);
+    if (isphone) smallFontSize /= 0.6;
 
     // Render table
-    $('#wordList').DataTable().destroy();
-    $('#wordList').DataTable({
-        pagingType: "full_numbers"
-    });
-
-
-    table = $("#wordList").DataTable();
-
-    table.clear();
-    table.draw();
-
-    l = ["", "Default", "Tagged", "Deleted"];
-    for (var i = 0; i < wordBookList[wordBookIdx].words.length; i++) {
-        wordId = wordBookList[wordBookIdx].words[i];
-        wordData = wordListMap.get(wordId);
-        table.row.add([
-            [wordData.word],
-            [wordData.translation],
-            [l[wordData.status]]
-        ]).node().id=wordList[i].wordId;
-    }
-    table.draw();
-
     $("#wordList_wrapper").show();
     $("#wordList_wrapper").attr("style", "test-align:center;position:absolute;\
-    left:" + (buttons[0].w * 0.5) + ";top:" + (buttons[8].x + buttons[8].h * 3.8 ) + ";\
-    height:" + (window.innerHeight - 25 * 0.6) + ";width:" + (window.innerWidth - 25 - buttons[0].w) + ";\
+    left:" + (buttons[0].w * 0.5) + ";top:" + (buttons[8].x + buttons[8].h * 3.8) + ";\
+    ;width:" + (window.innerWidth - 25 - buttons[0].w) + ";\
     font-size:" + smallFontSize * 0.8 + ";font-family:Corbel;z-index:999");
     $("#wordList").attr("style", "width:100%;font-size:" + smallFontSize * 0.8 + ";font-family:Corbel");
+
+    table = $("#wordList").DataTable();
+    table.clear();
+    table.row.add([
+        [""],
+        ["Loading..."],
+        [""]
+    ])
+    table.draw();
+    
+    table.clear();
+    updateWordBookWordList();
+}
+
+// Render word book add word page
+// A full word list
+function renderWordBookAddWord() {
+    btninit();
+
+    // Clear existing canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Get page width & height
+    canvas.width = window.innerWidth - 25;
+    canvas.height = window.innerHeight - 25;
+
+    // Render buttons
+    ctx.textAlign = "center";
+
+    buttons[8].x = buttons[8].w * 0.2;
+    buttons[8].y = buttons[8].h * 0.2;
+    ctx.fillStyle = getRndColor(160, 250);
+    ctx.roundRect(buttons[8].x, buttons[8].y, buttons[8].w, buttons[8].h);
+
+    ctx.font = fontSize + "px Corbel";
+    ctx.fillStyle = getRndColor(10, 100);
+    ctx.fillText("Back", buttons[8].x + buttons[8].w / 2, buttons[8].y + buttons[8].h / 1.4);
+    ////
+    buttons[24].x = canvas.width - buttons[24].w * 1.2;
+    buttons[24].y = buttons[24].h * 0.2;
+    ctx.fillStyle = getRndColor(160, 250);
+    ctx.roundRect(buttons[24].x, buttons[24].y, buttons[24].w, buttons[24].h);
+
+    ctx.font = fontSize + "px Corbel";
+    ctx.fillStyle = getRndColor(10, 100);
+    ctx.fillText("Add", buttons[24].x + buttons[24].w / 2, buttons[24].y + buttons[24].h / 1.4);
+
+    // Add title
+    ctx.font = fontSize + "px Impact";
+    ctx.fillText("Add word to " + wordBookName, canvas.width / 2, buttons[8].h * 0.2 + buttons[8].h / 1.4);
+    ctx.font = fontSize + "px Corbel";
+
+    // Status update
+    ctx.textAlign = "left";
+    ctx.font = smallFontSize + "px Corbel";
+    ctx.fillStyle = getRndColor(10, 100);
+    space = getWidth("-----");
+
+    // Render table
+    $("#wordList_wrapper").show();
+    $("#wordList_wrapper").attr("style", "test-align:center;position:absolute;\
+    left:" + (buttons[0].w * 0.5) + ";top:" + (buttons[8].x + buttons[8].h * 1.2) + ";\
+    ;width:" + (window.innerWidth - 25 - buttons[0].w) + ";\
+    font-size:" + smallFontSize * 0.8 + ";font-family:Corbel;z-index:999");
+    $("#wordList").attr("style", "width:100%;font-size:" + smallFontSize * 0.8 + ";font-family:Corbel");
+
+    table = $("#wordList").DataTable();
+    table.clear();
+    table.row.add([
+        [""],
+        ["Loading..."],
+        [""]
+    ])
+    table.draw();
+
+    table.clear();
+    updateWordList();
 }
 
 // Render current page
+var loaded = false;
+
 function renderCurrentPage() {
+    localStorage.setItem("currentpage", currentpage);
     wordBookRect = [];
-    btnresize();
-    fontresize();
+    loaded = false;
     sleep(50).then(() => {
         $("#wordBookName").hide();
         $("#wordList_wrapper").hide();
         $("#startfrom").hide();
-        
+        $("#addword_word").hide();
+        $("#addword_translation").hide();
+
         if (currentpage == 0) {
             renderHomePage();
         } else if (currentpage == 1) {
@@ -1229,13 +1405,26 @@ function renderCurrentPage() {
             renderWordList();
         } else if (currentpage == 5) {
             renderWordBook();
+        } else if (currentpage == 6) {
+            renderWordBookAddWord();
         }
+        loaded = true;
     })
+}
+
+function renderCurrentPageResize() {
+    $('#wordList').DataTable().destroy();
+    $('#wordList').DataTable({
+        pagingType: "full_numbers"
+    });
+    btnresize();
+    fontresize();
+    renderCurrentPage();
 }
 
 // Update canvas when page resizes to prevent content floating out of the page
 if (!isphone) {
-    window.onresize = renderCurrentPage;
+    window.onresize = renderCurrentPageResize;
 }
 
 
@@ -1258,6 +1447,7 @@ function autoPlayer() { // = auto next button presser + sound maker
                 wordId: wordId,
                 status: showStatus,
                 moveType: moveType,
+                wordBookId: selectedWordBook,
                 userId: localStorage.getItem("userId"),
                 token: localStorage.getItem("token")
             },
@@ -1287,13 +1477,13 @@ function autoPlayer() { // = auto next button presser + sound maker
         displayingAnswer = 0;
 
         requiredList = [];
-        for (var i = 0; i < wordList.length; i++) {
-            if (showStatus == 1 && (wordList[i].status == 1 || wordList[i].status == 2)) {
-                requiredList.push(wordList[i]);
-            } else if (showStatus == 2 && wordList[i].status == 2) {
-                requiredList.push(wordList[i]);
-            } else if (showStatus == 3 && wordList[i].status == 3) {
-                requiredList.push(wordList[i]);
+        for (var i = 0; i < selectedWordList.length; i++) {
+            if (showStatus == 1 && (selectedWordList[i].status == 1 || selectedWordList[i].status == 2)) {
+                requiredList.push(selectedWordList[i]);
+            } else if (showStatus == 2 && selectedWordList[i].status == 2) {
+                requiredList.push(selectedWordList[i]);
+            } else if (showStatus == 3 && selectedWordList[i].status == 3) {
+                requiredList.push(selectedWordList[i]);
             }
         }
 
@@ -1356,7 +1546,6 @@ function startfunc() {
                 success: function (r) {
                     lastpage = currentpage;
                     currentpage = 1;
-                    localStorage.setItem("currentpage", currentpage);
                     wordId = r.wordId;
                     started = 1;
                     btninit();
@@ -1404,7 +1593,6 @@ function startfunc() {
                         if (currentpage == 2) {
                             lastpage = currentpage;
                             currentpage = 1;
-                            localStorage.setItem("currentpage", currentpage);
                             started = 1;
                             displayRandomWord();
                             renderCurrentPage();
@@ -1431,13 +1619,13 @@ function startfunc() {
                 data: {
                     status: showStatus,
                     moveType: 0,
+                    wordBookId: selectedWordBook,
                     userId: localStorage.getItem("userId"),
                     token: localStorage.getItem("token")
                 },
                 success: function (r) {
                     lastpage = currentpage;
                     currentpage = 1;
-                    localStorage.setItem("currentpage", currentpage);
                     wordId = r.wordId;
                     started = 1;
                     btninit();
@@ -1470,13 +1658,13 @@ function startfunc() {
         started = 1;
         lastpage = currentpage;
         currentpage = 1;
-        localStorage.setItem("currentpage", currentpage);
         $.ajax({
             url: '/api/getNextChallenge',
             method: 'POST',
             async: false,
             dataType: "json",
             data: {
+                wordBookId: selectedWordBook,
                 userId: localStorage.getItem("userId"),
                 token: localStorage.getItem("token")
             },
@@ -1499,7 +1687,7 @@ function startfunc() {
             }
         });
     } else if (displayMode == 2) { // Offline Mode
-        if (wordList == []) {
+        if (selectedWordList == []) {
             alert("Unable to start offline mode: No data in word list!");
             return;
         }
@@ -1507,35 +1695,45 @@ function startfunc() {
         if ($("#startfrom").val() != "") {
             startword = $("#startfrom").val();
             found = false;
-            for (var i = 0; i < wordList.length; i++) {
-                if (wordList[i].word == startword) {
+            for (var i = 0; i < selectedWordList.length; i++) {
+                if (selectedWordList[i].word == startword) {
                     lastpage = currentpage;
                     currentpage = 1;
-                    localStorage.setItem("currentpage", currentpage);
                     started = 1;
 
-                    wordId = wordList[i].wordId;
-                    word = wordList[i].word;
-                    translation = wordList[i].translation;
-                    wordStatus = wordList[i].status;
+                    wordId = selectedWordList[i].wordId;
+                    word = selectedWordList[i].word;
+                    translation = selectedWordList[i].translation;
+                    wordStatus = selectedWordList[i].status;
 
                     found = true;
                 }
             }
             if (!found) {
-                $("#startfrom").val("Not found!");
+                if(currentpage == 0){
+                    $("#startfrom").val("Not found!");
+                } else {
+                    started = 1;
+                    lastpage = currentpage;
+                    currentpage = 1;
+
+                    index = parseInt(Math.random() * selectedWordList.length);
+                    wordId = selectedWordList[index].wordId;
+                    word = selectedWordList[index].word;
+                    translation = selectedWordList[index].translation;
+                    wordStatus = selectedWordList[index].status;
+                }
             }
         } else {
             started = 1;
             lastpage = currentpage;
             currentpage = 1;
-            localStorage.setItem("currentpage", currentpage);
 
-            index = parseInt(Math.random() * wordList.length);
-            wordId = wordList[index].wordId;
-            word = wordList[index].word;
-            translation = wordList[index].translation;
-            wordStatus = wordList[index].status;
+            index = parseInt(Math.random() * selectedWordList.length);
+            wordId = selectedWordList[index].wordId;
+            word = selectedWordList[index].word;
+            translation = selectedWordList[index].translation;
+            wordStatus = selectedWordList[index].status;
         }
 
         btninit();
@@ -1551,7 +1749,7 @@ function startfunc() {
 function createWordBook() {
     wordBookName = $("#wordBookName").val();
 
-    if(wordBookName == ""){
+    if (wordBookName == "") {
         alert("Enter a word book name!");
         return;
     }
@@ -1623,6 +1821,7 @@ function clickHandler(e) {
                             wordId: wordId,
                             status: showStatus,
                             moveType: moveType,
+                            wordBookId: selectedWordBook,
                             userId: localStorage.getItem("userId"),
                             token: localStorage.getItem("token")
                         },
@@ -1661,13 +1860,13 @@ function clickHandler(e) {
                     displayingAnswer = 0;
 
                     requiredList = [];
-                    for (var i = 0; i < wordList.length; i++) {
-                        if (showStatus == 1 && (wordList[i].status == 1 || wordList[i].status == 2)) {
-                            requiredList.push(wordList[i]);
-                        } else if (showStatus == 2 && wordList[i].status == 2) {
-                            requiredList.push(wordList[i]);
-                        } else if (showStatus == 3 && wordList[i].status == 3) {
-                            requiredList.push(wordList[i]);
+                    for (var i = 0; i < selectedWordList.length; i++) {
+                        if (showStatus == 1 && (selectedWordList[i].status == 1 || selectedWordList[i].status == 2)) {
+                            requiredList.push(selectedWordList[i]);
+                        } else if (showStatus == 2 && selectedWordList[i].status == 2) {
+                            requiredList.push(selectedWordList[i]);
+                        } else if (showStatus == 3 && selectedWordList[i].status == 3) {
+                            requiredList.push(selectedWordList[i]);
                         }
                     }
 
@@ -1778,6 +1977,7 @@ function clickHandler(e) {
                             wordId: wordId,
                             memorized: 1,
                             getNext: 1,
+                            wordBookId: selectedWordBook,
                             userId: localStorage.getItem("userId"),
                             token: localStorage.getItem("token")
                         },
@@ -1823,6 +2023,7 @@ function clickHandler(e) {
                         async: true,
                         dataType: "json",
                         data: {
+                            wordBookId: selectedWordBook,
                             userId: localStorage.getItem("userId"),
                             token: localStorage.getItem("token")
                         },
@@ -1848,11 +2049,16 @@ function clickHandler(e) {
                 if (currentpage == 4) {
                     lastpage = currentpage;
                     currentpage = 5;
+                } else if (currentpage == 3) {
+                    currentpage = lastpage;
+                    lastpage = 2;
+                } else if (currentpage == 6) {
+                    currentpage = lastpage;
+                    lastpage = 6;
                 } else {
                     lastpage = currentpage;
                     currentpage = 0;
                 }
-                localStorage.setItem("currentpage", currentpage);
                 started = 0;
                 appaused = 0;
                 clearInterval(apinterval);
@@ -1864,7 +2070,6 @@ function clickHandler(e) {
             } else if (buttons[i].name == "settings") {
                 lastpage = currentpage;
                 currentpage = 2;
-                localStorage.setItem("currentpage", currentpage);
                 started = 0;
                 appaused = 0;
                 clearInterval(apinterval);
@@ -1876,7 +2081,6 @@ function clickHandler(e) {
             } else if (buttons[i].name == "wordbook") {
                 lastpage = currentpage;
                 currentpage = 5;
-                localStorage.setItem("currentpage", currentpage);
                 started = 0;
                 appaused = 0;
                 clearInterval(apinterval);
@@ -1888,64 +2092,55 @@ function clickHandler(e) {
             } else if (buttons[i].name == "account") {
                 window.location.href = "/user";
             } else if (buttons[i].name == "addword") {
-                if (currentpage == 3) {
-                    ctx.font = fontSize + "px Corbel";
-                    ctx.textAlign = "center";
+                ctx.font = fontSize + "px Corbel";
+                ctx.textAlign = "center";
 
-                    word = $("#addword_word").val();
-                    translation = $("#addword_translation").val();
-                    if (word == "" || translation == "") {
-                        ctx.fillStyle = "white";
-                        ctx.roundRect(0, buttons[19].y - buttons[19].h * 2.5, canvas.width, buttons[19].h * 1.5 + 5);
-                        ctx.fillStyle = "red";
-                        ctx.fillText("Both fields must be filled!", canvas.width / 2, buttons[19].y - buttons[19].h * 1.5);
-                        return;
-                    }
-
+                word = $("#addword_word").val();
+                translation = $("#addword_translation").val();
+                if (word == "" || translation == "") {
                     ctx.fillStyle = "white";
                     ctx.roundRect(0, buttons[19].y - buttons[19].h * 2.5, canvas.width, buttons[19].h * 1.5 + 5);
-                    ctx.fillStyle = "blue";
-                    ctx.fillText("Submitting...", canvas.width / 2, buttons[19].y - buttons[19].h * 1.5);
-
-                    $.ajax({
-                        url: '/api/addWord',
-                        method: 'POST',
-                        async: true,
-                        dataType: "json",
-                        data: {
-                            word: word,
-                            translation: translation,
-                            userId: localStorage.getItem("userId"),
-                            token: localStorage.getItem("token")
-                        },
-                        success: function (r) {
-                            ctx.fillStyle = "white";
-                            ctx.roundRect(0, buttons[19].y - buttons[19].h * 2.5, canvas.width, buttons[19].h * 1.5 + 5);
-                            if (r.duplicate == true) {
-                                ctx.fillStyle = "red";
-                                ctx.fillText("Word duplicated! Add again to ignore.", canvas.width / 2, buttons[19].y - buttons[19].h * 1.5);
-                            } else {
-                                ctx.fillStyle = "green";
-                                ctx.fillText("Word added!", canvas.width / 2, buttons[19].y - buttons[19].h * 1.5);
-                            }
-                        },
-                        error: function (r) {
-                            if (r.status == 401) {
-                                alert("Login session expired! Please login again!");
-                                localStorage.removeItem("userId");
-                                localStorage.removeItem("token");
-                                window.location.href = "/user";
-                            }
-                        }
-                    });
-                } else if (currentpage == 2) {
-                    lastpage = currentpage;
-                    currentpage = 3;
-                    localStorage.setItem("currentpage", currentpage);
-                    $("#addword_word").val("");
-                    $("#addword_translation").val("");
-                    renderCurrentPage();
+                    ctx.fillStyle = "red";
+                    ctx.fillText("Both fields must be filled!", canvas.width / 2, buttons[19].y - buttons[19].h * 1.5);
+                    return;
                 }
+
+                ctx.fillStyle = "white";
+                ctx.roundRect(0, buttons[19].y - buttons[19].h * 2.5, canvas.width, buttons[19].h * 1.5 + 5);
+                ctx.fillStyle = "blue";
+                ctx.fillText("Submitting...", canvas.width / 2, buttons[19].y - buttons[19].h * 1.5);
+
+                $.ajax({
+                    url: '/api/addWord',
+                    method: 'POST',
+                    async: true,
+                    dataType: "json",
+                    data: {
+                        word: word,
+                        translation: translation,
+                        userId: localStorage.getItem("userId"),
+                        token: localStorage.getItem("token")
+                    },
+                    success: function (r) {
+                        ctx.fillStyle = "white";
+                        ctx.roundRect(0, buttons[19].y - buttons[19].h * 2.5, canvas.width, buttons[19].h * 1.5 + 5);
+                        if (r.duplicate == true) {
+                            ctx.fillStyle = "red";
+                            ctx.fillText("Word duplicated! Add again to ignore.", canvas.width / 2, buttons[19].y - buttons[19].h * 1.5);
+                        } else {
+                            ctx.fillStyle = "green";
+                            ctx.fillText("Word added!", canvas.width / 2, buttons[19].y - buttons[19].h * 1.5);
+                        }
+                    },
+                    error: function (r) {
+                        if (r.status == 401) {
+                            alert("Login session expired! Please login again!");
+                            localStorage.removeItem("userId");
+                            localStorage.removeItem("token");
+                            window.location.href = "/user";
+                        }
+                    }
+                });
             } else if (buttons[i].name == "cleardeleted") {
                 if (confirm('Are you sure to delete all the words that are marked as "Deleted" permanently? This operation cannot be undone!')) {
                     $.ajax({
@@ -2049,6 +2244,62 @@ function clickHandler(e) {
                 window.location.href = "/exportData";
             } else if (buttons[i].name == "createwordbook") {
                 createWordBook();
+            } else if (buttons[i].name == "wordbookaddword") {
+                selected = [];
+                for (var i = 0; i < wordList.length; i++) {
+                    if ($("#" + wordList[i].wordId).hasClass("selected")) {
+                        selected.push(wordList[i].wordId);
+                    }
+                }
+
+                if (selected.length == 0) {
+                    alert("Select at least one word!");
+                    return;
+                }
+
+                $.ajax({
+                    url: '/api/addToWordBook',
+                    method: 'POST',
+                    async: false,
+                    dataType: "json",
+                    data: {
+                        words: JSON.stringify(selected),
+                        wordBookId: wordBookId,
+                        userId: localStorage.getItem("userId"),
+                        token: localStorage.getItem("token")
+                    },
+                    success: function (r) {
+                        alert("Done");
+                        currentpage = 4;
+                        lastpage = 6;
+                        renderCurrentPage();
+                    },
+                    error: function (r) {
+                        if (r.status == 401) {
+                            alert("Login session expired! Please login again!");
+                            localStorage.removeItem("userId");
+                            localStorage.removeItem("token");
+                            window.location.href = "/user";
+                        }
+                    }
+                });
+            } else if (buttons[i].name == "selectwordbook") {
+                if(selectedWordBook != wordBookId){
+                    selectedWordBook = wordBookId;
+                    localStorage.setItem("selectedWordBook",selectedWordBook);
+                    for (var i = 0; i < wordBookList.length; i++) {
+                        if(wordBookList[i].wordBookId == selectedWordBook) {
+                            selectedWordBookName = wordBookList[i].name;
+                            selectedWordList = [];
+                            for(var j = 0 ; j < wordBookList[i].words.length ; j++) {
+                                wordId = wordBookList[i].words[j];
+                                wordData = wordListMap.get(wordId);
+                                selectedWordList.push({"wordId": wordId, "word": wordData.word, "translation": wordData.translation, "status": wordData.status});
+                            }
+                        }
+                    }
+                    renderCurrentPage();
+                }
             }
         }
     }
@@ -2058,7 +2309,8 @@ function clickHandler(e) {
             absoluteY <= wordBookRect[i].y + wordBookH) {
             // A word book has been pressed
             wordBookId = wordBookList[i].wordBookId;
-            wordBookIdx = i;
+            wordBookName = wordBookList[i].name;
+            localStorage.setItem("wordBookId", wordBookId);
 
             currentpage = 4;
             renderCurrentPage();
@@ -2073,34 +2325,38 @@ function clickHandler(e) {
             renderWord(displayingAnswer);
     }
 
-    if(currentpage == 4){
+    if (currentpage == 4 && loaded) {
+        selected = [];
+        for (var i = 0; i < wordList.length; i++) {
+            if ($("#" + wordList[i].wordId).hasClass("selected")) {
+                selected.push(wordList[i].wordId);
+            }
+        }
+
         space = getWidth("-----");
-        if(absoluteY >= buttons[8].y + buttons[8].h * 2 && absoluteY <= buttons[8].y + buttons[8].h * 2.6){
+        if (absoluteY >= buttons[8].y + buttons[8].h * 2 && absoluteY <= buttons[8].y + buttons[8].h * 2.6) {
             // Word Status Update
             w1 = getWidth("Default", smallFontSize + "px Corbel") + space;
             w2 = getWidth("Tag", smallFontSize + "px Corbel") + space;
             w3 = getWidth("Delete", smallFontSize + "px Corbel") + space;
 
             updateTo = 0;
-            if(absoluteX >= buttons[0].w * 0.5 && absoluteX <= buttons[0].w * 0.5 + w1 - space){
+            if (absoluteX >= buttons[0].w * 0.5 && absoluteX <= buttons[0].w * 0.5 + w1 - space) {
                 updateTo = 1;
-            } else if(absoluteX >= buttons[0].w * 0.5 + w1 && absoluteX <= buttons[0].w * 0.5 + w1 + w2 - space){
+            } else if (absoluteX >= buttons[0].w * 0.5 + w1 && absoluteX <= buttons[0].w * 0.5 + w1 + w2 - space) {
                 updateTo = 2;
-            } else if(absoluteX >= buttons[0].w * 0.5 + w1 + w2 && absoluteX <= buttons[0].w * 0.5 + w1 + w2 + w3 - space){
+            } else if (absoluteX >= buttons[0].w * 0.5 + w1 + w2 && absoluteX <= buttons[0].w * 0.5 + w1 + w2 + w3 - space) {
                 updateTo = 3;
             }
-            
-            selected = [];
-            for(var i = 0 ; i < wordList.length ; i++){
-                if ($("#" + wordList[i].wordId).hasClass("selected")){
-                    selected.push(wordList[i].wordId);
-                }
+
+            if (selected.length == 0) {
+                return;
             }
 
             table = $("#wordList").DataTable();
             table.clear();
             table.draw();
-            
+
             $.ajax({
                 url: '/api/updateWordStatus',
                 method: 'POST',
@@ -2113,7 +2369,7 @@ function clickHandler(e) {
                     token: localStorage.getItem("token")
                 },
                 success: function (r) {
-                    updateWordList(true);
+                    renderCurrentPage();
                 },
                 error: function (r) {
                     if (r.status == 401) {
@@ -2124,15 +2380,107 @@ function clickHandler(e) {
                     }
                 }
             });
-        } else if (absoluteY >= buttons[8].y + buttons[8].h * 3.2 && absoluteY <= buttons[8].y + buttons[8].h * 3.8){
+        } else if (absoluteY >= buttons[8].y + buttons[8].h * 3.2 && absoluteY <= buttons[8].y + buttons[8].h * 3.8) {
             // Word book update
-            w4 = getWidth("Remove selected words", smallFontSize + "px Corbel") + space;
-            w5 = getWidth("Add new words", smallFontSize + "px Corbel") + space;
+            w4 = getWidth("Add", smallFontSize + "px Corbel") + space;
+            w5 = getWidth("Remove", smallFontSize + "px Corbel") + space;
+            w6 = getWidth("Delete Word Book", smallFontSize + "px Corbel") + space;
 
-            if(absoluteX >= buttons[0].w * 0.5 && absoluteX <= buttons[0].w * 0.5 + w4 - space){
-                console.log("remove");
-            } else if(wordBookId != 0 && absoluteX >= buttons[0].w * 0.5 + w4 && absoluteX <= buttons[0].w * 0.5 + w4 + w5 - space){
-                console.log("add");
+            if (absoluteX >= buttons[0].w * 0.5 && absoluteX <= buttons[0].w * 0.5 + w4 - space) {
+                if (wordBookId == 0) {
+                    lastpage = currentpage;
+                    currentpage = 3;
+                    renderCurrentPage();
+                } else {
+                    lastpage = currentpage;
+                    currentpage = 6;
+                    renderCurrentPage();
+                }
+            } else if (absoluteX >= buttons[0].w * 0.5 + w4 && absoluteX <= buttons[0].w * 0.5 + w4 + w5 - space) {
+                if (wordBookId == 0) {
+                    if (confirm('Are you sure to delete selected words from your word database? This will remove them from all word books no matter its status is default, tagged or deleted. This operation cannot be undone!')) {
+                        table = $("#wordList").DataTable();
+                        table.clear();
+                        table.draw();
+                        $.ajax({
+                            url: '/api/deleteWord',
+                            method: 'POST',
+                            async: false,
+                            dataType: "json",
+                            data: {
+                                words: JSON.stringify(selected),
+                                userId: localStorage.getItem("userId"),
+                                token: localStorage.getItem("token")
+                            },
+                            success: function (r) {
+                                renderCurrentPage();
+                            },
+                            error: function (r) {
+                                if (r.status == 401) {
+                                    alert("Login session expired! Please login again!");
+                                    localStorage.removeItem("userId");
+                                    localStorage.removeItem("token");
+                                    window.location.href = "/user";
+                                }
+                            }
+                        });
+                    }
+                } else {
+                    $.ajax({
+                        url: '/api/deleteFromWordBook',
+                        method: 'POST',
+                        async: false,
+                        dataType: "json",
+                        data: {
+                            words: JSON.stringify(selected),
+                            wordBookId: wordBookId,
+                            userId: localStorage.getItem("userId"),
+                            token: localStorage.getItem("token")
+                        },
+                        success: function (r) {
+                            renderCurrentPage();
+                        },
+                        error: function (r) {
+                            if (r.status == 401) {
+                                alert("Login session expired! Please login again!");
+                                localStorage.removeItem("userId");
+                                localStorage.removeItem("token");
+                                window.location.href = "/user";
+                            }
+                        }
+                    });
+                }
+            } else if (absoluteX >= buttons[0].w * 0.5 + w4 + w5 && absoluteX <= buttons[0].w * 0.5 + w4 + w5 + w6 - space) {
+                if(confirm("Are you sure to delete this word book? The words will not be deleted but they will no longer belong to this word book. This operation cannot be undone!")){
+                    $.ajax({
+                        url: '/api/deleteWordBook',
+                        method: 'POST',
+                        async: false,
+                        dataType: "json",
+                        data: {
+                            wordBookId: wordBookId,
+                            userId: localStorage.getItem("userId"),
+                            token: localStorage.getItem("token")
+                        },
+                        success: function (r) {
+                            updateWordBookList();
+                            alert("Done");
+                            currentpage = 5;
+                            lastpage = 4;
+                            renderCurrentPage();
+                        },
+                        error: function (r) {
+                            if (r.status == 401) {
+                                alert("Login session expired! Please login again!");
+                                localStorage.removeItem("userId");
+                                localStorage.removeItem("token");
+                                window.location.href = "/user";
+                            }
+                        }
+                    });
+                } else {
+                    alert("Canceled");
+                }
             }
         }
     }

@@ -1,5 +1,11 @@
 # Update History
 
+## v3.1.1
+
+*Date: 2021/10/5*  
+Added full-featured word book function (include create / delete / edit / select)  
+**As word book function comes out, the version is upgraded to v3**
+
 ## v2.1.3
 
 *Date: 2021/10/4*  
