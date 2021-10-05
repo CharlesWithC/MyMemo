@@ -4,6 +4,7 @@
 
 *Date: 2021/10/5*  
 Allowed user to import to replace only conflicted words (overwrite mode)
+Added select-all & deselect-all options for word list
 
 ## v3.1.1
 

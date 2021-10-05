@@ -475,8 +475,11 @@ def apiAddToWordBook():
     cur.execute(f"SELECT wordId FROM WordList WHERE userId = {userId}")
     d = cur.fetchall()
 
+    cur.execute(f"SELECT wordId FROM WordBookData WHERE userId = {userId} AND wordBookId = {wordBookId}")
+    t = cur.fetchall()
+
     for wordId in words:
-        if (wordId,) in d:
+        if (wordId,) in d and not (wordId,) in t:
             cur.execute(f"INSERT INTO WordBookData VALUES ({userId}, {wordBookId}, {wordId})")
     conn.commit()
 

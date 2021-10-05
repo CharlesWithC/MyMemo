@@ -147,281 +147,6 @@ $.ajax({
     }
 });
 
-// Fetch word list
-
-$('#wordList').DataTable({
-    pagingType: "full_numbers"
-});
-$(".dataTables_scrollBody").css('width', '102%');
-$(".dataTables_scrollHeader").css('width', '102%');
-$("#wordList_wrapper").hide();
-$("#wordList").show();
-
-var wordList = JSON.parse(localStorage.getItem("wordList"));
-var selectedWordList = [];
-if (wordList == null) {
-    wordList = [];
-    localStorage.setItem("wordList", JSON.stringify([]));
-} else {
-    table = $("#wordList").DataTable();
-
-    table.clear();
-    table.draw();
-
-    l = ["", "Default", "Tagged", "Deleted"];
-    for (var i = 0; i < wordList.length; i++) {
-        table.row.add([
-            [wordList[i].word],
-            [wordList[i].translation],
-            [l[wordList[i].status]]
-        ]).node().id = wordList[i].wordId;
-    }
-    table.draw();
-}
-var wordListMap = new Map();
-for (var i = 0; i < wordList.length; i++) {
-    wordListMap.set(wordList[i].wordId, {
-        "word": wordList[i].word,
-        "translation": wordList[i].translation,
-        "status": wordList[i].status
-    });
-}
-
-// Update word list each 10 minutes
-
-function updateWordList(doasync = true, drawtable = true) {
-    $.ajax({
-        url: "/api/getWordList",
-        method: 'POST',
-        async: doasync,
-        dataType: "json",
-        data: {
-            userId: localStorage.getItem("userId"),
-            token: localStorage.getItem("token")
-        },
-        success: function (r) {
-            wordList = r;
-            wordListMap = new Map();
-            for (var i = 0; i < wordList.length; i++) {
-                wordListMap.set(wordList[i].wordId, {
-                    "word": wordList[i].word,
-                    "translation": wordList[i].translation,
-                    "status": wordList[i].status
-                });
-            }
-
-            if (drawtable) {
-                l = ["", "Default", "Tagged", "Deleted"];
-                localStorage.setItem("wordList", JSON.stringify(wordList));
-                table = $("#wordList").DataTable();
-                table.clear();
-                table.draw();
-                for (var i = 0; i < wordList.length; i++) {
-                    table.row.add([
-                        [wordList[i].word],
-                        [wordList[i].translation],
-                        [l[wordList[i].status]]
-                    ]).node().id = wordList[i].wordId;
-                }
-                table.draw();
-            }
-        },
-        error: function (r) {
-            if (drawtable) {
-                l = ["", "Default", "Tagged", "Deleted"];
-                localStorage.setItem("wordList", JSON.stringify(wordList));
-                table = $("#wordList").DataTable();
-                table.clear();
-                table.draw();
-                for (var i = 0; i < wordList.length; i++) {
-                    table.row.add([
-                        [wordList[i].word],
-                        [wordList[i].translation],
-                        [l[wordList[i].status]]
-                    ]).node().id = wordList[i].wordId;
-                }
-                table.draw();
-            }
-        }
-    });
-}
-updateWordList(true, false);
-setInterval(updateWordList, 600000);
-
-
-// Update word book list each 10 minutes
-
-var wordBookId = localStorage.getItem("wordBookId");
-if (wordBookId == null) {
-    wordBookId = 0;
-    localStorage.setItem("wordBookId", "0");
-}
-wordBookId = parseInt(wordBookId);
-var wordBookName = "";
-
-var wordBookRect = [];
-var wordBookCnt = 1;
-
-var wordBookList = JSON.parse(localStorage.getItem("wordBookList"));
-if (wordBookList == null || wordBookList.length == 0) {
-    words = [];
-    for (var i = 0; i < wordList.length; i++) {
-        words.push(wordList[i].wordId);
-    }
-    wordBookList = [{
-        "wordBookId": 0,
-        "name": "All words",
-        "words": words
-    }];
-    localStorage.setItem("wordBookList", JSON.stringify(wordBookList));
-}
-wordBookCnt = wordBookList.length;
-
-function updateWordBookList(doasync = true) {
-    $.ajax({
-        url: "/api/getWordBookList",
-        method: 'POST',
-        async: doasync,
-        dataType: "json",
-        data: {
-            userId: localStorage.getItem("userId"),
-            token: localStorage.getItem("token")
-        },
-        success: function (r) {
-            words = [];
-            for (var i = 0; i < wordList.length; i++) {
-                words.push(wordList[i].wordId);
-            }
-            wordBookList = [{
-                "wordBookId": 0,
-                "name": "All words",
-                "words": words
-            }];
-            for (var i = 0; i < r.length; i++) {
-                wordBookList.push(r[i]);
-            }
-            wordBookCnt = wordBookList.length;
-            localStorage.setItem("wordBookList", JSON.stringify(wordBookList));
-            
-            for (var i = 0; i < wordBookList.length; i++) {
-                if(wordBookList[i].wordBookId == wordBookId){
-                    wordBookName = wordBookList[i].name;
-                } 
-                if(wordBookList[i].wordBookId == selectedWordBook) {
-                    selectedWordBookName = wordBookList[i].name;
-                    selectedWordList = [];
-                    for(var j = 0 ; j < wordBookList[i].words.length ; j++) {
-                        wordId = wordBookList[i].words[j];
-                        wordData = wordListMap.get(wordId);
-                        selectedWordList.push({"wordId": wordId, "word": wordData.word, "translation": wordData.translation, "status": wordData.status});
-                    }
-                }
-            }
-        },
-        error: function (r) {
-            for (var i = 0; i < wordBookList.length; i++) {
-                if(wordBookList[i].wordBookId == wordBookId){
-                    wordBookName = wordBookList[i].name;
-                } 
-                if(wordBookList[i].wordBookId == selectedWordBook) {
-                    selectedWordBookName = wordBookList[i].name;
-                    selectedWordList = [];
-                    for(var j = 0 ; j < wordBookList[i].words.length ; j++) {
-                        wordId = wordBookList[i].words[j];
-                        wordData = wordListMap.get(wordId);
-                        selectedWordList.push({"wordId": wordId, "word": wordData.word, "translation": wordData.translation, "status": wordData.status});
-                    }
-                }
-            }
-        }
-    });
-}
-updateWordBookList();
-setInterval(updateWordBookList, 600000);
-
-for (var i = 0; i < wordBookList.length; i++) {
-    if(wordBookList[i].wordBookId == wordBookId){
-        wordBookName = wordBookList[i].name;
-    } 
-    if(wordBookList[i].wordBookId == selectedWordBook) {
-        selectedWordBookName = wordBookList[i].name;
-        selectedWordList = [];
-        for(var j = 0 ; j < wordBookList[i].words.length ; j++) {
-            wordId = wordBookList[i].words[j];
-            wordData = wordListMap.get(wordId);
-            selectedWordList.push({"wordId": wordId, "word": wordData.word, "translation": wordData.translation, "status": wordData.status});
-        }
-    }
-}
-
-
-function updateWordBookWordList() {
-    updateWordBookList();
-    $.ajax({
-        url: "/api/getWordList",
-        method: 'POST',
-        async: true,
-        dataType: "json",
-        data: {
-            userId: localStorage.getItem("userId"),
-            token: localStorage.getItem("token")
-        },
-        success: function (r) {
-            wordList = r;
-            wordListMap = new Map();
-            for (var i = 0; i < wordList.length; i++) {
-                wordListMap.set(wordList[i].wordId, {
-                    "word": wordList[i].word,
-                    "translation": wordList[i].translation,
-                    "status": wordList[i].status
-                });
-            }
-
-            l = ["", "Default", "Tagged", "Deleted"];
-            localStorage.setItem("wordList", JSON.stringify(wordList));
-
-            wordBookIdx = 0;
-            for (var i = 0; i < wordBookList.length; i++) {
-                if(wordBookList[i].wordBookId == wordBookId){
-                    wordBookIdx = i;
-                    break;
-                }
-            }
-
-            for (var i = 0; i < wordBookList[wordBookIdx].words.length; i++) {
-                wordId = wordBookList[wordBookIdx].words[i];
-                wordData = wordListMap.get(wordId);
-                table.row.add([
-                    [wordData.word],
-                    [wordData.translation],
-                    [l[wordData.status]]
-                ]).node().id = wordId;
-            }
-            table.draw();
-        },
-        error: function(r) {
-            wordBookIdx = 0;
-            for (var i = 0; i < wordBookList.length; i++) {
-                if(wordBookList[i].wordBookId == wordBookId){
-                    wordBookIdx = i;
-                    break;
-                }
-            }
-
-            for (var i = 0; i < wordBookList[wordBookIdx].words.length; i++) {
-                wordId = wordBookList[wordBookIdx].words[i];
-                wordData = wordListMap.get(wordId);
-                table.row.add([
-                    [wordData.word],
-                    [wordData.translation],
-                    [l[wordData.status]]
-                ]).node().id = wordId;
-            }
-            table.draw();
-        }
-    });
-}
-
 
 
 
@@ -490,6 +215,265 @@ var displayingAnswer = 0;
 
 var challengeStatus = 0;
 
+
+
+
+
+// Fetch word list
+
+$('#wordList').DataTable({
+    pagingType: "full_numbers"
+});
+$("#wordList_length").append('&nbsp;&nbsp;<a onClick="selectAll();">Select All</a>');
+$("#wordList_length").append('&nbsp;&nbsp;<a onClick="deselectAll();">Deselect All</a>');
+$("#wordList_wrapper").hide();
+$("#wordList").show();
+
+var selected = [];
+
+var wordList = JSON.parse(localStorage.getItem("wordList"));
+var selectedWordList = [];
+if (wordList == null) {
+    wordList = [];
+    localStorage.setItem("wordList", JSON.stringify([]));
+} else {
+    table = $("#wordList").DataTable();
+
+    table.clear();
+    table.draw();
+
+    l = ["", "Default", "Tagged", "Deleted"];
+    for (var i = 0; i < wordList.length; i++) {
+        table.row.add([
+            [wordList[i].word],
+            [wordList[i].translation],
+            [l[wordList[i].status]]
+        ]).node().id = wordList[i].wordId;
+    }
+    table.draw();
+}
+var wordListMap = new Map();
+for (var i = 0; i < wordList.length; i++) {
+    wordListMap.set(wordList[i].wordId, {
+        "word": wordList[i].word,
+        "translation": wordList[i].translation,
+        "status": wordList[i].status
+    });
+}
+
+
+function updateTable(){
+    table = $("#wordList").DataTable();
+    table.clear();
+    wordBookIdx = 0;
+    for (var i = 0; i < wordBookList.length; i++) {
+        if(wordBookList[i].wordBookId == wordBookId){
+            wordBookIdx = i;
+            break;
+        }
+    }
+
+    for (var i = 0; i < wordBookList[wordBookIdx].words.length; i++) {
+        wordId = wordBookList[wordBookIdx].words[i];
+        wordData = wordListMap.get(wordId);
+        if(wordData == undefined) continue;
+        table.row.add([
+            [wordData.word],
+            [wordData.translation],
+            [l[wordData.status]]
+        ]).node().id = wordId;
+    }
+    table.draw();
+}
+
+// Update word list each 10 minutes
+
+var lastWordListUpdate = Date.now();
+function updateWordList(doasync = true, forceUpdate = false) {
+    if(Date.now() - lastWordListUpdate < 10000 && !forceUpdate){ // only one update each 10 seconds
+        updateTable();
+        return;
+    }
+    lastWordListUpdate = Date.now();
+    $.ajax({
+        url: "/api/getWordList",
+        method: 'POST',
+        async: doasync,
+        dataType: "json",
+        data: {
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            wordList = r;
+            wordListMap = new Map();
+            for (var i = 0; i < wordList.length; i++) {
+                wordListMap.set(wordList[i].wordId, {
+                    "word": wordList[i].word,
+                    "translation": wordList[i].translation,
+                    "status": wordList[i].status
+                });
+            }
+
+            l = ["", "Default", "Tagged", "Deleted"];
+            localStorage.setItem("wordList", JSON.stringify(wordList));
+
+            words = [];
+            for (var i = 0; i < wordList.length; i++) {
+                words.push(wordList[i].wordId);
+            }
+            wordBookList[0] = {
+                "wordBookId": 0,
+                "name": "All words",
+                "words": words
+            };
+            updateTable();
+        },
+        error: function (r) {
+            updateTable();
+        }
+    });
+}
+updateWordList(true, true);
+setInterval(updateWordList, 600000);
+
+
+// Update word book list each 10 minutes
+
+var wordBookId = localStorage.getItem("wordBookId");
+if (wordBookId == null) {
+    wordBookId = 0;
+    localStorage.setItem("wordBookId", "0");
+}
+wordBookId = parseInt(wordBookId);
+var wordBookName = "";
+
+var wordBookRect = [];
+var wordBookCnt = 1;
+
+var wordBookList = JSON.parse(localStorage.getItem("wordBookList"));
+if (wordBookList == null || wordBookList.length == 0) {
+    words = [];
+    for (var i = 0; i < wordList.length; i++) {
+        words.push(wordList[i].wordId);
+    }
+    wordBookList = [{
+        "wordBookId": 0,
+        "name": "All words",
+        "words": words
+    }];
+    localStorage.setItem("wordBookList", JSON.stringify(wordBookList));
+}
+wordBookCnt = wordBookList.length;
+
+var lastWordBookListUpdate = Date.now();
+function updateWordBookList(doasync = true, forceUpdate = false) {
+    if(Date.now() - lastWordBookListUpdate < 30000 && !forceUpdate){ // only one update each 30 seconds
+        return;
+    }
+    lastWordBookListUpdate = Date.now();
+    $.ajax({
+        url: "/api/getWordBookList",
+        method: 'POST',
+        async: doasync,
+        dataType: "json",
+        data: {
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            words = [];
+            for (var i = 0; i < wordList.length; i++) {
+                words.push(wordList[i].wordId);
+            }
+            wordBookList = [{
+                "wordBookId": 0,
+                "name": "All words",
+                "words": words
+            }];
+            for (var i = 0; i < r.length; i++) {
+                wordBookList.push(r[i]);
+            }
+            wordBookCnt = wordBookList.length;
+            localStorage.setItem("wordBookList", JSON.stringify(wordBookList));
+            
+            for (var i = 0; i < wordBookList.length; i++) {
+                if(wordBookList[i].wordBookId == wordBookId){
+                    wordBookName = wordBookList[i].name;
+                } 
+                if(wordBookList[i].wordBookId == selectedWordBook) {
+                    selectedWordBookName = wordBookList[i].name;
+                    selectedWordList = [];
+                    for(var j = 0 ; j < wordBookList[i].words.length ; j++) {
+                        wordId = wordBookList[i].words[j];
+                        wordData = wordListMap.get(wordId);
+                        selectedWordList.push({"wordId": wordId, "word": wordData.word, "translation": wordData.translation, "status": wordData.status});
+                    }
+                }
+            }
+        }
+    });
+}
+updateWordBookList(true, true);
+setInterval(updateWordBookList, 600000);
+
+for (var i = 0; i < wordBookList.length; i++) {
+    if(wordBookList[i].wordBookId == wordBookId){
+        wordBookName = wordBookList[i].name;
+    } 
+    if(wordBookList[i].wordBookId == selectedWordBook) {
+        selectedWordBookName = wordBookList[i].name;
+        selectedWordList = [];
+        for(var j = 0 ; j < wordBookList[i].words.length ; j++) {
+            wordId = wordBookList[i].words[j];
+            wordData = wordListMap.get(wordId);
+            selectedWordList.push({"wordId": wordId, "word": wordData.word, "translation": wordData.translation, "status": wordData.status});
+        }
+    }
+}
+
+function updateWordBookWordList(forceUpdate = false) {
+    table = $("#wordList").DataTable();
+    table.clear();
+    table.row.add([
+        [""],
+        ["Loading..."],
+        [""]
+    ])
+    table.draw();
+
+    updateWordBookList(false, forceUpdate);
+    if(Date.now() - lastWordListUpdate < 10000 && !forceUpdate){ // only one update each 10 seconds
+        updateTable();
+        return;
+    }
+    updateWordList(true, forceUpdate);
+}
+updateWordBookWordList();
+
+function selectAll(){
+    $("#wordList tr").each(function() {
+        wid = parseInt($(this).attr("id"));
+        if(wid == wid && !$(this).hasClass("selected")){ // check for NaN
+            selected.push(wid);
+        }
+
+        $(this).addClass("selected");
+    });
+}
+function deselectAll(){
+    $("#wordList tr").each(function() {
+        wid = parseInt($(this).attr("id"));
+        if(wid == wid && $(this).hasClass("selected")){ // check for NaN
+            idx = selected.indexOf(wid);
+            if(idx>-1){
+                selected.splice(idx,1);
+            }
+        }
+
+        $(this).removeClass("selected");
+    });
+}
 
 
 
@@ -1353,18 +1337,7 @@ function renderWordList() {
     ;width:" + (window.innerWidth - 25 - buttons[0].w) + ";\
     font-size:" + smallFontSize * 0.8 + ";font-family:Corbel;z-index:999");
     $("#wordList").attr("style", "width:100%;font-size:" + smallFontSize * 0.8 + ";font-family:Corbel");
-
-    table = $("#wordList").DataTable();
-    table.clear();
-    table.row.add([
-        [""],
-        ["Loading..."],
-        [""]
-    ])
-    table.draw();
-    
-    table.clear();
-    updateWordBookWordList();
+    updateTable();
 }
 
 // Render word book add word page
@@ -1418,7 +1391,7 @@ function renderWordBookAddWord() {
     ;width:" + (window.innerWidth - 25 - buttons[0].w) + ";\
     font-size:" + smallFontSize * 0.8 + ";font-family:Corbel;z-index:999");
     $("#wordList").attr("style", "width:100%;font-size:" + smallFontSize * 0.8 + ";font-family:Corbel");
-
+    
     table = $("#wordList").DataTable();
     table.clear();
     table.row.add([
@@ -1429,7 +1402,11 @@ function renderWordBookAddWord() {
     table.draw();
 
     table.clear();
-    updateWordList();
+
+    curid = wordBookId;
+    wordBookId = 0;
+    updateWordList(false, true);
+    wordBookId = curid;
 }
 
 // Render current page
@@ -1470,6 +1447,8 @@ function renderCurrentPageResize() {
     $('#wordList').DataTable({
         pagingType: "full_numbers"
     });
+    $("#wordList_length").append('&nbsp;&nbsp;<a onClick="selectAll();">Select All</a>');
+    $("#wordList_length").append('&nbsp;&nbsp;<a onClick="deselectAll();">Deselect All</a>');
     btnresize();
     fontresize();
     renderCurrentPage();
@@ -1819,7 +1798,7 @@ function createWordBook() {
         },
         success: function (r) {
             $("#wordBookName").val("");
-            updateWordBookList(doasync = false);
+            updateWordBookList(false);
             renderCurrentPage();
         },
         error: function (r) {
@@ -1834,29 +1813,32 @@ function createWordBook() {
 }
 
 // Handle user click
+var lastpress = Date.now();
 function clickHandler(e) {
+    if(Date.now() - lastpress < 50) return;
+    lastpress = Date.now();
     // Get mouse position
     var absoluteX = e.pageX - canvas.offsetLeft;
     var absoluteY = e.pageY - canvas.offsetTop;
     var btntriggered = 0;
-    for (var i = 0; i < btncnt; i++) {
-        if (absoluteX >= buttons[i].x && absoluteX <= buttons[i].x + buttons[i].w && absoluteY >= buttons[i].y &&
-            absoluteY <= buttons[i].y + buttons[i].h) {
+    for (var k = 0; k < btncnt; k++) {
+        if (absoluteX >= buttons[k].x && absoluteX <= buttons[k].x + buttons[k].w && absoluteY >= buttons[k].y &&
+            absoluteY <= buttons[k].y + buttons[k].h) {
             btntriggered = 1;
             // A button has been triggered
-            console.log(buttons[i].name + " button triggered");
+            console.log(buttons[k].name + " button triggered");
             // Start memorizing mode
-            if (buttons[i].name == "start") {
+            if (buttons[k].name == "start") {
                 sleep(50).then(() => {
                     startfunc();
                 })
-            } else if (started && (buttons[i].name == "previous" || buttons[i].name == "next")) {
+            } else if (started && (buttons[k].name == "previous" || buttons[k].name == "next")) {
                 if (displayMode == 0) {
                     // Go to previous / next word
                     moveType = 0;
-                    if (buttons[i].name == "previous") {
+                    if (buttons[k].name == "previous") {
                         moveType = -1;
-                    } else if (buttons[i].name == "next") {
+                    } else if (buttons[k].name == "next") {
                         moveType = 1;
                     }
                     if (random) {
@@ -1901,9 +1883,9 @@ function clickHandler(e) {
                 } else if (displayMode == 2) {
                     // Get next word from local word list (may not contain real time updates)
                     moveType = 0;
-                    if (buttons[i].name == "previous") {
+                    if (buttons[k].name == "previous") {
                         moveType = -1;
-                    } else if (buttons[i].name == "next") {
+                    } else if (buttons[k].name == "next") {
                         moveType = 1;
                     }
                     if (random) {
@@ -1960,12 +1942,12 @@ function clickHandler(e) {
 
                     renderCurrentPage();
                 }
-            } else if (started && (buttons[i].name == "tag" || buttons[i].name == "remove")) {
+            } else if (started && (buttons[k].name == "tag" || buttons[k].name == "remove")) {
                 // Update word status
-                if (buttons[i].name == "tag") {
+                if (buttons[k].name == "tag") {
                     if (wordStatus == 2) wordStatus = 1;
                     else if (wordStatus == 1 || wordStatus == 3) wordStatus = 2;
-                } else if (buttons[i].name == "remove") {
+                } else if (buttons[k].name == "remove") {
                     if (wordStatus == 3) wordStatus = 1;
                     else if (wordStatus == 1 || wordStatus == 2) wordStatus = 3;
                 }
@@ -2013,10 +1995,10 @@ function clickHandler(e) {
                         }
                     }
                 });
-            } else if (started && buttons[i].name == "sound" && !speaker.speaking) {
+            } else if (started && buttons[k].name == "sound" && !speaker.speaking) {
                 msg = new SpeechSynthesisUtterance(word);
                 speaker.speak(msg);
-            } else if (buttons[i].name == "challengeyes") {
+            } else if (buttons[k].name == "challengeyes") {
                 if (challengeStatus == 0) {
                     challengeStatus = 1;
                     renderCurrentPage();
@@ -2052,7 +2034,7 @@ function clickHandler(e) {
                         }
                     });
                 }
-            } else if (buttons[i].name == "challengeno") {
+            } else if (buttons[k].name == "challengeno") {
                 if (challengeStatus == 0 || challengeStatus == 1) {
                     challengeStatus = 3;
                     $.ajax({
@@ -2098,7 +2080,7 @@ function clickHandler(e) {
                         }
                     });
                 }
-            } else if (buttons[i].name == "homepage") {
+            } else if (buttons[k].name == "homepage") {
                 if (currentpage == 4) {
                     lastpage = currentpage;
                     currentpage = 5;
@@ -2120,7 +2102,7 @@ function clickHandler(e) {
                 sleep(50).then(() => {
                     renderCurrentPage();
                 })
-            } else if (buttons[i].name == "settings") {
+            } else if (buttons[k].name == "settings") {
                 lastpage = currentpage;
                 currentpage = 2;
                 started = 0;
@@ -2131,7 +2113,7 @@ function clickHandler(e) {
                 sleep(50).then(() => {
                     renderCurrentPage();
                 })
-            } else if (buttons[i].name == "wordbook") {
+            } else if (buttons[k].name == "wordbook") {
                 lastpage = currentpage;
                 currentpage = 5;
                 started = 0;
@@ -2142,9 +2124,9 @@ function clickHandler(e) {
                 sleep(50).then(() => {
                     renderCurrentPage();
                 })
-            } else if (buttons[i].name == "account") {
+            } else if (buttons[k].name == "account") {
                 window.location.href = "/user";
-            } else if (buttons[i].name == "addword") {
+            } else if (buttons[k].name == "addword") {
                 ctx.font = fontSize + "px Corbel";
                 ctx.textAlign = "center";
 
@@ -2183,6 +2165,7 @@ function clickHandler(e) {
                         } else {
                             ctx.fillStyle = "green";
                             ctx.fillText("Word added!", canvas.width / 2, buttons[19].y - buttons[19].h * 1.5);
+                            updateWordBookWordList(true);
                         }
                     },
                     error: function (r) {
@@ -2194,7 +2177,7 @@ function clickHandler(e) {
                         }
                     }
                 });
-            } else if (buttons[i].name == "cleardeleted") {
+            } else if (buttons[k].name == "cleardeleted") {
                 if (confirm('Are you sure to delete all the words that are marked as "Deleted" permanently? This operation cannot be undone!')) {
                     $.ajax({
                         url: '/api/clearDeleted',
@@ -2220,7 +2203,7 @@ function clickHandler(e) {
                 } else {
                     alert("Canceled");
                 }
-            } else if (buttons[i].name == "statistics") {
+            } else if (buttons[k].name == "statistics") {
                 statson = 1;
                 statistics = "[Failed to fetch statistics]"
                 $.ajax({
@@ -2258,32 +2241,32 @@ function clickHandler(e) {
                         }
                     }
                 });
-            } else if (buttons[i].name == "mode1") {
+            } else if (buttons[k].name == "mode1") {
                 random = 1 - random;
                 localStorage.setItem("random", random);
                 renderCurrentPage();
-            } else if (buttons[i].name == "mode2") {
+            } else if (buttons[k].name == "mode2") {
                 swap = 1 - swap;
                 localStorage.setItem("swap", swap);
                 renderCurrentPage();
-            } else if (buttons[i].name == "mode3") {
+            } else if (buttons[k].name == "mode3") {
                 showStatus += 1;
                 if (showStatus == 4) showStatus = 1;
                 localStorage.setItem("showStatus", showStatus);
                 renderCurrentPage();
-            } else if (buttons[i].name == "mode4") {
+            } else if (buttons[k].name == "mode4") {
                 autoPlay += 1;
                 if (autoPlay == 4) autoPlay = 0;
                 localStorage.setItem("autoPlay", autoPlay);
                 renderCurrentPage();
-            } else if (buttons[i].name == "mode0") {
+            } else if (buttons[k].name == "mode0") {
                 displayMode += 1;
                 if (displayMode == 3) {
                     displayMode = 0;
                 }
                 localStorage.setItem("displayMode", displayMode);
                 renderCurrentPage();
-            } else if (buttons[i].name == "pauseap") {
+            } else if (buttons[k].name == "pauseap") {
                 if (appaused && apinterval == -1) apinterval = setInterval(autoPlayer, apdelay[autoPlay] * 1000);
                 else {
                     clearInterval(apinterval);
@@ -2291,20 +2274,13 @@ function clickHandler(e) {
                 }
                 appaused = 1 - appaused;
                 renderCurrentPage();
-            } else if (buttons[i].name == "import") {
+            } else if (buttons[k].name == "import") {
                 window.location.href = "/importData";
-            } else if (buttons[i].name == "export") {
+            } else if (buttons[k].name == "export") {
                 window.location.href = "/exportData";
-            } else if (buttons[i].name == "createwordbook") {
+            } else if (buttons[k].name == "createwordbook") {
                 createWordBook();
-            } else if (buttons[i].name == "wordbookaddword") {
-                selected = [];
-                for (var i = 0; i < wordList.length; i++) {
-                    if ($("#" + wordList[i].wordId).hasClass("selected")) {
-                        selected.push(wordList[i].wordId);
-                    }
-                }
-
+            } else if (buttons[k].name == "wordbookaddword") {
                 if (selected.length == 0) {
                     alert("Select at least one word!");
                     return;
@@ -2324,6 +2300,7 @@ function clickHandler(e) {
                     success: function (r) {
                         alert("Done");
                         currentpage = 4;
+                        updateWordBookWordList(true, true);
                         lastpage = 6;
                         renderCurrentPage();
                     },
@@ -2336,7 +2313,9 @@ function clickHandler(e) {
                         }
                     }
                 });
-            } else if (buttons[i].name == "selectwordbook") {
+
+                selected = [];
+            } else if (buttons[k].name == "selectwordbook") {
                 if(selectedWordBook != wordBookId){
                     selectedWordBook = wordBookId;
                     localStorage.setItem("selectedWordBook",selectedWordBook);
@@ -2366,6 +2345,7 @@ function clickHandler(e) {
             localStorage.setItem("wordBookId", wordBookId);
 
             currentpage = 4;
+            updateWordBookWordList();
             renderCurrentPage();
         }
     }
@@ -2379,13 +2359,6 @@ function clickHandler(e) {
     }
 
     if (currentpage == 4 && loaded) {
-        selected = [];
-        for (var i = 0; i < wordList.length; i++) {
-            if ($("#" + wordList[i].wordId).hasClass("selected")) {
-                selected.push(wordList[i].wordId);
-            }
-        }
-
         space = getWidth("-----");
         if (absoluteY >= buttons[8].y + buttons[8].h * 2 && absoluteY <= buttons[8].y + buttons[8].h * 2.6) {
             // Word Status Update
@@ -2422,6 +2395,7 @@ function clickHandler(e) {
                     token: localStorage.getItem("token")
                 },
                 success: function (r) {
+                    updateWordBookWordList(true);
                     renderCurrentPage();
                 },
                 error: function (r) {
@@ -2433,6 +2407,8 @@ function clickHandler(e) {
                     }
                 }
             });
+            
+            selected = [];
         } else if (absoluteY >= buttons[8].y + buttons[8].h * 3.2 && absoluteY <= buttons[8].y + buttons[8].h * 3.8) {
             // Word book update
             w4 = getWidth("Add", smallFontSize + "px Corbel") + space;
@@ -2466,6 +2442,7 @@ function clickHandler(e) {
                                 token: localStorage.getItem("token")
                             },
                             success: function (r) {
+                                updateWordBookWordList(true);
                                 renderCurrentPage();
                             },
                             error: function (r) {
@@ -2491,6 +2468,7 @@ function clickHandler(e) {
                             token: localStorage.getItem("token")
                         },
                         success: function (r) {
+                            updateWordBookWordList(true);
                             renderCurrentPage();
                         },
                         error: function (r) {
@@ -2552,6 +2530,15 @@ $("#wordBookName").on('keypress', function (e) {
 });
 
 $('#wordList tbody').on('click', 'tr', function () {
+    wid = parseInt($(this).attr("id"));
+    if($(this).hasClass("selected")){
+        idx = selected.indexOf(wid);
+        if(idx>-1){
+            selected.splice(idx,1);
+        }
+    } else {
+        selected.push(wid);
+    }
     $(this).toggleClass('selected');
 });
 
@@ -2560,5 +2547,8 @@ document.addEventListener("click", clickHandler, false);
 if (currentpage == 1) {
     startfunc();
 } else {
+    if(currentpage == 4){
+        updateWordBookWordList(true);
+    }
     renderCurrentPage();
 }
