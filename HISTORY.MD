@@ -1,5 +1,10 @@
 # Update History
 
+## v3.1.3
+
+*Date: 2021/10/5*  
+Allowed user to edit words by double-clicking the word (available at word list & memorizing page)
+
 ## v3.1.2
 
 *Date: 2021/10/5*  

@@ -69,7 +69,7 @@ buttons[12]={name:"export",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
 buttons[19]={name:"addword",x:0,y:0,w:300,h:50,orgw:300,orgh:50},
 buttons[21]={name:"cleardeleted",x:0,y:0,w:500,h:50,orgw:500,orgh:50},
 buttons[23]={name:"createwordbook",x:0,y:0,w:500,h:50,orgw:500,orgh:50},
-buttons[24]={name:"wordbookaddword",x:0,y:0,w:200,h:50,orgw:200,orgh:50};
+buttons[24]={name:"wordbookaddword",x:0,y:0,w:200,h:50,orgw:200,orgh:50},
 buttons[25]={name:"selectwordbook",x:0,y:0,w:200,h:50,orgw:200,orgh:50};
 
 var wordBookW = 300;
@@ -185,9 +185,9 @@ displayMode = parseInt(displayMode);
 var wordId = localStorage.getItem("wordId");
 
 var selectedWordBook = localStorage.getItem("selectedWordBook");
-if(selectedWordBook == null) {
+if (selectedWordBook == null) {
     selectedWordBook = 0;
-    localStorage.setItem("selectedWordBook","0");
+    localStorage.setItem("selectedWordBook", "0");
 }
 selectedWordBook = parseInt(selectedWordBook);
 var selectedWordBookName = "";
@@ -205,6 +205,9 @@ var currentpage = localStorage.getItem("currentpage");
 if (currentpage == null) {
     currentpage = 0;
     localStorage.setItem("currentpage", "0");
+}
+if(currentpage == 3){
+    currentpage = 0;
 }
 
 
@@ -224,8 +227,9 @@ var challengeStatus = 0;
 $('#wordList').DataTable({
     pagingType: "full_numbers"
 });
-$("#wordList_length").append('&nbsp;&nbsp;<a onClick="selectAll();">Select All</a>');
-$("#wordList_length").append('&nbsp;&nbsp;<a onClick="deselectAll();">Deselect All</a>');
+$("#wordList_length").append('&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="selectAll();">Select All</a>');
+$("#wordList_length").append('&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="deselectAll();">Deselect All</a>');
+$("#wordList_length").append('&nbsp;&nbsp;|&nbsp;&nbsp;Double click word to edit');
 $("#wordList_wrapper").hide();
 $("#wordList").show();
 
@@ -262,12 +266,12 @@ for (var i = 0; i < wordList.length; i++) {
 }
 
 
-function updateTable(){
+function updateTable() {
     table = $("#wordList").DataTable();
     table.clear();
     wordBookIdx = 0;
     for (var i = 0; i < wordBookList.length; i++) {
-        if(wordBookList[i].wordBookId == wordBookId){
+        if (wordBookList[i].wordBookId == wordBookId) {
             wordBookIdx = i;
             break;
         }
@@ -276,7 +280,7 @@ function updateTable(){
     for (var i = 0; i < wordBookList[wordBookIdx].words.length; i++) {
         wordId = wordBookList[wordBookIdx].words[i];
         wordData = wordListMap.get(wordId);
-        if(wordData == undefined) continue;
+        if (wordData == undefined) continue;
         table.row.add([
             [wordData.word],
             [wordData.translation],
@@ -289,8 +293,9 @@ function updateTable(){
 // Update word list each 10 minutes
 
 var lastWordListUpdate = Date.now();
+
 function updateWordList(doasync = true, forceUpdate = false) {
-    if(Date.now() - lastWordListUpdate < 10000 && !forceUpdate){ // only one update each 10 seconds
+    if (Date.now() - lastWordListUpdate < 10000 && !forceUpdate) { // only one update each 10 seconds
         updateTable();
         return;
     }
@@ -367,8 +372,9 @@ if (wordBookList == null || wordBookList.length == 0) {
 wordBookCnt = wordBookList.length;
 
 var lastWordBookListUpdate = Date.now();
+
 function updateWordBookList(doasync = true, forceUpdate = false) {
-    if(Date.now() - lastWordBookListUpdate < 30000 && !forceUpdate){ // only one update each 30 seconds
+    if (Date.now() - lastWordBookListUpdate < 30000 && !forceUpdate) { // only one update each 30 seconds
         return;
     }
     lastWordBookListUpdate = Date.now();
@@ -396,18 +402,23 @@ function updateWordBookList(doasync = true, forceUpdate = false) {
             }
             wordBookCnt = wordBookList.length;
             localStorage.setItem("wordBookList", JSON.stringify(wordBookList));
-            
+
             for (var i = 0; i < wordBookList.length; i++) {
-                if(wordBookList[i].wordBookId == wordBookId){
+                if (wordBookList[i].wordBookId == wordBookId) {
                     wordBookName = wordBookList[i].name;
-                } 
-                if(wordBookList[i].wordBookId == selectedWordBook) {
+                }
+                if (wordBookList[i].wordBookId == selectedWordBook) {
                     selectedWordBookName = wordBookList[i].name;
                     selectedWordList = [];
-                    for(var j = 0 ; j < wordBookList[i].words.length ; j++) {
+                    for (var j = 0; j < wordBookList[i].words.length; j++) {
                         wordId = wordBookList[i].words[j];
                         wordData = wordListMap.get(wordId);
-                        selectedWordList.push({"wordId": wordId, "word": wordData.word, "translation": wordData.translation, "status": wordData.status});
+                        selectedWordList.push({
+                            "wordId": wordId,
+                            "word": wordData.word,
+                            "translation": wordData.translation,
+                            "status": wordData.status
+                        });
                     }
                 }
             }
@@ -418,16 +429,21 @@ updateWordBookList(true, true);
 setInterval(updateWordBookList, 600000);
 
 for (var i = 0; i < wordBookList.length; i++) {
-    if(wordBookList[i].wordBookId == wordBookId){
+    if (wordBookList[i].wordBookId == wordBookId) {
         wordBookName = wordBookList[i].name;
-    } 
-    if(wordBookList[i].wordBookId == selectedWordBook) {
+    }
+    if (wordBookList[i].wordBookId == selectedWordBook) {
         selectedWordBookName = wordBookList[i].name;
         selectedWordList = [];
-        for(var j = 0 ; j < wordBookList[i].words.length ; j++) {
+        for (var j = 0; j < wordBookList[i].words.length; j++) {
             wordId = wordBookList[i].words[j];
             wordData = wordListMap.get(wordId);
-            selectedWordList.push({"wordId": wordId, "word": wordData.word, "translation": wordData.translation, "status": wordData.status});
+            selectedWordList.push({
+                "wordId": wordId,
+                "word": wordData.word,
+                "translation": wordData.translation,
+                "status": wordData.status
+            });
         }
     }
 }
@@ -443,7 +459,7 @@ function updateWordBookWordList(forceUpdate = false) {
     table.draw();
 
     updateWordBookList(false, forceUpdate);
-    if(Date.now() - lastWordListUpdate < 10000 && !forceUpdate){ // only one update each 10 seconds
+    if (Date.now() - lastWordListUpdate < 10000 && !forceUpdate) { // only one update each 10 seconds
         updateTable();
         return;
     }
@@ -451,23 +467,24 @@ function updateWordBookWordList(forceUpdate = false) {
 }
 updateWordBookWordList();
 
-function selectAll(){
-    $("#wordList tr").each(function() {
+function selectAll() {
+    $("#wordList tr").each(function () {
         wid = parseInt($(this).attr("id"));
-        if(wid == wid && !$(this).hasClass("selected")){ // check for NaN
+        if (wid == wid && !$(this).hasClass("selected")) { // check for NaN
             selected.push(wid);
         }
 
         $(this).addClass("selected");
     });
 }
-function deselectAll(){
-    $("#wordList tr").each(function() {
+
+function deselectAll() {
+    $("#wordList tr").each(function () {
         wid = parseInt($(this).attr("id"));
-        if(wid == wid && $(this).hasClass("selected")){ // check for NaN
+        if (wid == wid && $(this).hasClass("selected")) { // check for NaN
             idx = selected.indexOf(wid);
-            if(idx>-1){
-                selected.splice(idx,1);
+            if (idx > -1) {
+                selected.splice(idx, 1);
             }
         }
 
@@ -594,7 +611,7 @@ function renderHomePage() {
     } else if (displayMode == 2) {
         ctx.fillText("Offline Mode", buttons[0].x + buttons[0].w / 2, buttons[0].y + buttons[0].h * 2.2);
     }
-    
+
     ctx.fillText(selectedWordBookName, buttons[0].x + buttons[0].w / 2, buttons[0].y + buttons[0].h * 3.4);
 
     ////
@@ -810,6 +827,9 @@ function renderSettings() {
     ctx.fillText("Settings", canvas.width / 2, buttons[8].h * 0.2 + buttons[8].h / 1.4);
 }
 
+var editWord = false;
+var editWordId = -1;
+
 function renderAddWord() {
     // Clear existing canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -829,6 +849,11 @@ function renderAddWord() {
     ctx.fillText("Translation: ", canvas.width / 2 - buttons[0].w / 2, canvas.height / 2 - 50);
     $("#addword_translation").attr("style", "position:absolute;left:" + (canvas.width / 2) + ";top:" + (canvas.height / 2 - 68) + ";font-size:" + fontSize * 0.4 + ";font-family:Corbel");
 
+    if (editWord) {
+        $("#addword_word").val(wordListMap.get(editWordId).word);
+        $("#addword_translation").val(wordListMap.get(editWordId).translation);
+    }
+
     // Add buttons
     buttons[8].x = buttons[8].w * 0.2;
     buttons[8].y = buttons[8].h * 0.2;
@@ -846,12 +871,18 @@ function renderAddWord() {
     ////
     ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
-    ctx.fillText("Add", buttons[19].x + buttons[19].w / 2, buttons[19].y + buttons[19].h / 1.4);
+    if (!editWord)
+        ctx.fillText("Add", buttons[19].x + buttons[19].w / 2, buttons[19].y + buttons[19].h / 1.4);
+    else
+        ctx.fillText("Edit", buttons[19].x + buttons[19].w / 2, buttons[19].y + buttons[19].h / 1.4);
 
     // Add title
     ctx.font = fontSize + "px Impact";
     ctx.fillStyle = getRndColor(10, 100);
-    ctx.fillText("Add Word", canvas.width / 2, buttons[8].h * 0.2 + buttons[8].h / 1.4);
+    if (!editWord)
+        ctx.fillText("Add Word", canvas.width / 2, buttons[8].h * 0.2 + buttons[8].h / 1.4);
+    else
+        ctx.fillText("Edit Word", canvas.width / 2, buttons[8].h * 0.2 + buttons[8].h / 1.4);
 }
 
 // Render word information on canvas
@@ -1112,14 +1143,16 @@ function renderWord(showSwapped = 0, cancelSpeaker = 0) {
         }
     }
 
-    buttons[18].x = canvas.width - buttons[18].w * 1.2;
-    buttons[18].y = buttons[18].h * 1.5;
-    ctx.fillStyle = getRndColor(160, 250);
-    ctx.roundRect(buttons[18].x, buttons[18].y, buttons[18].w, buttons[18].h);
+    if (displayMode != 2) {
+        buttons[18].x = canvas.width - buttons[18].w * 1.2;
+        buttons[18].y = buttons[18].h * 1.5;
+        ctx.fillStyle = getRndColor(160, 250);
+        ctx.roundRect(buttons[18].x, buttons[18].y, buttons[18].w, buttons[18].h);
 
-    ctx.font = fontSize * 0.9 + "px Corbel";
-    ctx.fillStyle = getRndColor(10, 100);
-    ctx.fillText("Statistics", buttons[18].x + buttons[18].w / 2, buttons[18].y + buttons[18].h / 1.4);
+        ctx.font = fontSize * 0.9 + "px Corbel";
+        ctx.fillStyle = getRndColor(10, 100);
+        ctx.fillText("Statistics", buttons[18].x + buttons[18].w / 2, buttons[18].y + buttons[18].h / 1.4);
+    }
     ////
     buttons[8].x = buttons[8].w * 0.2;
     buttons[8].y = buttons[8].h * 0.2;
@@ -1274,7 +1307,7 @@ function renderWordList() {
     ctx.fillText("Back", buttons[8].x + buttons[8].w / 2, buttons[8].y + buttons[8].h / 1.4);
     ////
     color = getRndColor(160, 250);
-    if(selectedWordBook == wordBookId)
+    if (selectedWordBook == wordBookId)
         color = "#cccccc";
     buttons[25].x = canvas.width - buttons[25].w * 1.2;
     buttons[25].y = buttons[25].h * 0.2
@@ -1283,7 +1316,7 @@ function renderWordList() {
 
     ctx.font = fontSize + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
-    if(selectedWordBook == wordBookId)
+    if (selectedWordBook == wordBookId)
         ctx.fillText("Selected", buttons[25].x + buttons[25].w / 2, buttons[25].y + buttons[25].h / 1.4);
     else
         ctx.fillText("Select", buttons[25].x + buttons[25].w / 2, buttons[25].y + buttons[25].h / 1.4);
@@ -1391,7 +1424,7 @@ function renderWordBookAddWord() {
     ;width:" + (window.innerWidth - 25 - buttons[0].w) + ";\
     font-size:" + smallFontSize * 0.8 + ";font-family:Corbel;z-index:999");
     $("#wordList").attr("style", "width:100%;font-size:" + smallFontSize * 0.8 + ";font-family:Corbel");
-    
+
     table = $("#wordList").DataTable();
     table.clear();
     table.row.add([
@@ -1447,8 +1480,9 @@ function renderCurrentPageResize() {
     $('#wordList').DataTable({
         pagingType: "full_numbers"
     });
-    $("#wordList_length").append('&nbsp;&nbsp;<a onClick="selectAll();">Select All</a>');
-    $("#wordList_length").append('&nbsp;&nbsp;<a onClick="deselectAll();">Deselect All</a>');
+    $("#wordList_length").append('&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="selectAll();">Select All</a>');
+    $("#wordList_length").append('&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="deselectAll();">Deselect All</a>');
+    $("#wordList_length").append('&nbsp;&nbsp;|&nbsp;&nbsp;Double click word to edit');
     btnresize();
     fontresize();
     renderCurrentPage();
@@ -1742,7 +1776,7 @@ function startfunc() {
                 }
             }
             if (!found) {
-                if(currentpage == 0){
+                if (currentpage == 0) {
                     $("#startfrom").val("Not found!");
                 } else {
                     started = 1;
@@ -1814,8 +1848,9 @@ function createWordBook() {
 
 // Handle user click
 var lastpress = Date.now();
+
 function clickHandler(e) {
-    if(Date.now() - lastpress < 50) return;
+    if (Date.now() - lastpress < 50) return;
     lastpress = Date.now();
     // Get mouse position
     var absoluteX = e.pageX - canvas.offsetLeft;
@@ -2145,38 +2180,85 @@ function clickHandler(e) {
                 ctx.fillStyle = "blue";
                 ctx.fillText("Submitting...", canvas.width / 2, buttons[19].y - buttons[19].h * 1.5);
 
-                $.ajax({
-                    url: '/api/addWord',
-                    method: 'POST',
-                    async: true,
-                    dataType: "json",
-                    data: {
-                        word: word,
-                        translation: translation,
-                        userId: localStorage.getItem("userId"),
-                        token: localStorage.getItem("token")
-                    },
-                    success: function (r) {
-                        ctx.fillStyle = "white";
-                        ctx.roundRect(0, buttons[19].y - buttons[19].h * 2.5, canvas.width, buttons[19].h * 1.5 + 5);
-                        if (r.duplicate == true) {
-                            ctx.fillStyle = "red";
-                            ctx.fillText("Word duplicated! Add again to ignore.", canvas.width / 2, buttons[19].y - buttons[19].h * 1.5);
-                        } else {
-                            ctx.fillStyle = "green";
-                            ctx.fillText("Word added!", canvas.width / 2, buttons[19].y - buttons[19].h * 1.5);
-                            updateWordBookWordList(true);
+                if (!editWord) {
+                    $.ajax({
+                        url: '/api/addWord',
+                        method: 'POST',
+                        async: true,
+                        dataType: "json",
+                        data: {
+                            word: word,
+                            translation: translation,
+                            userId: localStorage.getItem("userId"),
+                            token: localStorage.getItem("token")
+                        },
+                        success: function (r) {
+                            ctx.fillStyle = "white";
+                            ctx.roundRect(0, buttons[19].y - buttons[19].h * 2.5, canvas.width, buttons[19].h * 1.5 + 5);
+                            if (r.duplicate == true) {
+                                ctx.fillStyle = "red";
+                                ctx.fillText("Word duplicated! Add again to ignore.", canvas.width / 2, buttons[19].y - buttons[19].h * 1.5);
+                            } else {
+                                ctx.fillStyle = "green";
+                                ctx.fillText("Word added!", canvas.width / 2, buttons[19].y - buttons[19].h * 1.5);
+                                updateWordBookWordList(true);
+                            }
+                        },
+                        error: function (r) {
+                            if (r.status == 401) {
+                                alert("Login session expired! Please login again!");
+                                localStorage.removeItem("userId");
+                                localStorage.removeItem("token");
+                                window.location.href = "/user";
+                            }
                         }
-                    },
-                    error: function (r) {
-                        if (r.status == 401) {
-                            alert("Login session expired! Please login again!");
-                            localStorage.removeItem("userId");
-                            localStorage.removeItem("token");
-                            window.location.href = "/user";
+                    });
+                } else {
+                    $.ajax({
+                        url: '/api/editWord',
+                        method: 'POST',
+                        async: true,
+                        dataType: "json",
+                        data: {
+                            wordId: editWordId,
+                            word: word,
+                            translation: translation,
+                            userId: localStorage.getItem("userId"),
+                            token: localStorage.getItem("token")
+                        },
+                        success: function (r) {
+                            ctx.fillStyle = "white";
+                            ctx.roundRect(0, buttons[19].y - buttons[19].h * 2.5, canvas.width, buttons[19].h * 1.5 + 5);
+                            if (r.success != true) {
+                                ctx.fillStyle = "red";
+                                ctx.fillText(r.msg, canvas.width / 2, buttons[19].y - buttons[19].h * 1.5);
+                            } else {
+                                ctx.fillStyle = "green";
+                                ctx.fillText("Word edited!", canvas.width / 2, buttons[19].y - buttons[19].h * 1.5);
+                                updateWordBookWordList(true);
+                                currentpage = lastpage;
+                                lastpage = 3;
+                                if(currentpage == 1){
+                                    started = 1;
+                                    renderCurrentPage();
+                                    appaused = 0;
+                                    if (apinterval == -1 && autoPlay != 0) {
+                                        apinterval = setInterval(autoPlayer, apdelay[autoPlay] * 1000);
+                                    }
+                                }
+                                renderCurrentPage();
+                            }
+                        },
+                        error: function (r) {
+                            if (r.status == 401) {
+                                alert("Login session expired! Please login again!");
+                                localStorage.removeItem("userId");
+                                localStorage.removeItem("token");
+                                window.location.href = "/user";
+                            }
                         }
-                    }
-                });
+                    });
+                }
             } else if (buttons[k].name == "cleardeleted") {
                 if (confirm('Are you sure to delete all the words that are marked as "Deleted" permanently? This operation cannot be undone!')) {
                     $.ajax({
@@ -2316,17 +2398,22 @@ function clickHandler(e) {
 
                 selected = [];
             } else if (buttons[k].name == "selectwordbook") {
-                if(selectedWordBook != wordBookId){
+                if (selectedWordBook != wordBookId) {
                     selectedWordBook = wordBookId;
-                    localStorage.setItem("selectedWordBook",selectedWordBook);
+                    localStorage.setItem("selectedWordBook", selectedWordBook);
                     for (var i = 0; i < wordBookList.length; i++) {
-                        if(wordBookList[i].wordBookId == selectedWordBook) {
+                        if (wordBookList[i].wordBookId == selectedWordBook) {
                             selectedWordBookName = wordBookList[i].name;
                             selectedWordList = [];
-                            for(var j = 0 ; j < wordBookList[i].words.length ; j++) {
+                            for (var j = 0; j < wordBookList[i].words.length; j++) {
                                 wordId = wordBookList[i].words[j];
                                 wordData = wordListMap.get(wordId);
-                                selectedWordList.push({"wordId": wordId, "word": wordData.word, "translation": wordData.translation, "status": wordData.status});
+                                selectedWordList.push({
+                                    "wordId": wordId,
+                                    "word": wordData.word,
+                                    "translation": wordData.translation,
+                                    "status": wordData.status
+                                });
                             }
                         }
                     }
@@ -2407,7 +2494,7 @@ function clickHandler(e) {
                     }
                 }
             });
-            
+
             selected = [];
         } else if (absoluteY >= buttons[8].y + buttons[8].h * 3.2 && absoluteY <= buttons[8].y + buttons[8].h * 3.8) {
             // Word book update
@@ -2482,7 +2569,7 @@ function clickHandler(e) {
                     });
                 }
             } else if (absoluteX >= buttons[0].w * 0.5 + w4 + w5 && absoluteX <= buttons[0].w * 0.5 + w4 + w5 + w6 - space) {
-                if(confirm("Are you sure to delete this word book? The words will not be deleted but they will no longer belong to this word book. This operation cannot be undone!")){
+                if (confirm("Are you sure to delete this word book? The words will not be deleted but they will no longer belong to this word book. This operation cannot be undone!")) {
                     $.ajax({
                         url: '/api/deleteWordBook',
                         method: 'POST',
@@ -2531,10 +2618,10 @@ $("#wordBookName").on('keypress', function (e) {
 
 $('#wordList tbody').on('click', 'tr', function () {
     wid = parseInt($(this).attr("id"));
-    if($(this).hasClass("selected")){
+    if ($(this).hasClass("selected")) {
         idx = selected.indexOf(wid);
-        if(idx>-1){
-            selected.splice(idx,1);
+        if (idx > -1) {
+            selected.splice(idx, 1);
         }
     } else {
         selected.push(wid);
@@ -2542,12 +2629,40 @@ $('#wordList tbody').on('click', 'tr', function () {
     $(this).toggleClass('selected');
 });
 
+$('#wordList tbody').on('dblclick', 'tr', function () {
+    wid = parseInt($(this).attr("id"));
+    editWordId = wid;
+    editWord = true;
+
+    lastpage = currentpage;
+    currentpage = 3;
+    renderCurrentPage();
+});
+
+$("#canvas").dblclick(function () {
+    if(currentpage == 1 && displayMode != 2){
+        editWordId = wordId;
+        editWord = true;
+
+        lastpage = currentpage;
+        currentpage = 3;
+        started = 0;
+        appaused = 0;
+        clearInterval(apinterval);
+        apinterval = -1;
+        speaker.cancel();
+        sleep(50).then(() => {
+            renderCurrentPage();
+        })
+    }
+});
+
 document.addEventListener("click", clickHandler, false);
 
 if (currentpage == 1) {
     startfunc();
 } else {
-    if(currentpage == 4){
+    if (currentpage == 4) {
         updateWordBookWordList(true);
     }
     renderCurrentPage();

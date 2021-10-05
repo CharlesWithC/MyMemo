@@ -1104,6 +1104,31 @@ def apiAddWord():
 
     return json.dumps({"success":True})
 
+@app.route("/api/editWord", methods = ['POST'])
+def apiEditWord():
+    cur = conn.cursor()
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+        abort(401)
+        
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    if not validateToken(userId, token):
+        abort(401)
+
+    wordId = int(request.form["wordId"])
+    word = encode(request.form["word"])
+    translation = encode(request.form["translation"])
+
+    cur.execute(f"SELECT * FROM WordList WHERE wordId = {wordId} AND userId = {userId}")
+    if len(cur.fetchall()) == 0:
+        return json.dumps({"success": False, "msg": "Word does not exist!"})
+    
+    cur.execute(f"UPDATE WordList SET word = '{word}' WHERE wordId = {wordId} AND userId = {userId}")
+    cur.execute(f"UPDATE WordList SET translation = '{translation}' WHERE wordId = {wordId} AND userId = {userId}")
+    conn.commit()
+
+    return json.dumps({"success":True})
+
 @app.route("/api/deleteWord", methods = ['POST'])
 def apiDeleteWord():
     cur = conn.cursor()
