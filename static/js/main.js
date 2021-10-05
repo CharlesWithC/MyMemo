@@ -2122,6 +2122,17 @@ function clickHandler(e) {
                 } else if (currentpage == 3) {
                     currentpage = lastpage;
                     lastpage = 2;
+                    if(editWord) {
+                        currentpage = 1;
+                        lastpage = 3;
+                        started = 1;
+                        renderCurrentPage();
+                        appaused = 0;
+                        if (apinterval == -1 && autoPlay != 0) {
+                            apinterval = setInterval(autoPlayer, apdelay[autoPlay] * 1000);
+                        }
+                        return;
+                    }
                 } else if (currentpage == 6) {
                     currentpage = lastpage;
                     lastpage = 6;
@@ -2349,6 +2360,7 @@ function clickHandler(e) {
                 localStorage.setItem("displayMode", displayMode);
                 renderCurrentPage();
             } else if (buttons[k].name == "pauseap") {
+                if(autoPlay == 0) return;
                 if (appaused && apinterval == -1) apinterval = setInterval(autoPlayer, apdelay[autoPlay] * 1000);
                 else {
                     clearInterval(apinterval);
@@ -2613,6 +2625,31 @@ $("#startfrom").on('keypress', function (e) {
 $("#wordBookName").on('keypress', function (e) {
     if (e.which == 13) {
         createWordBook();
+    }
+});
+
+$(document).on('keydown', function (e) {
+    console.log(e.which);
+    if(currentpage == 1) {
+        btnid = -1;
+        if(e.which == 32 || e.which == 13) {
+            clickHandler({pageX: -1, pageY: -1});
+            return;
+        } else if(e.which == 37) {
+            btnid = 1;
+        } else if(e.which == 39) {
+            btnid = 2;
+        } else if(e.which == 46 || e.which == 68) {
+            btnid = 11;
+        } else if(e.which == 84) {
+            btnid = 6;
+        } else if(e.which == 83) {
+            btnid = 3;
+        } else if(e.which == 80) {
+            btnid = 13;
+        }
+        if(btnid != -1)
+            clickHandler({pageX: buttons[btnid].x + canvas.offsetLeft, pageY: buttons[btnid].y + canvas.offsetTop});
     }
 });
 
