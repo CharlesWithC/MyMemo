@@ -461,7 +461,7 @@ def apiCreateWordBook():
     if not validateToken(userId, token):
         abort(401)
     
-    name = request.form["name"]
+    name = str(request.form["name"])
 
     wordBookId = 1
     cur.execute(f"SELECT MAX(wordBookId) FROM WordBook WHERE userId = {userId}")
@@ -469,7 +469,7 @@ def apiCreateWordBook():
     if len(d) != 0 and not d[0][0] is None:
         wordBookId = d[0][0] + 1
 
-    if name.startswith("!"):
+    if name.startswith("!") and name[1:].isalnum(0):
         name = name[1:]
         cur.execute(f"SELECT userId, wordBookId FROM WordBookShare WHERE shareCode = '{name}'")
         d = cur.fetchall()
@@ -685,6 +685,31 @@ def apiShareWordBook():
             cur.execute(f"DELETE FROM WordBookShare WHERE userId = {userId} AND wordBookId = {wordBookId}")
             conn.commit()
             return json.dumps({"success": True, "msg": "Word book unshared!"})
+
+@app.route("/api/renameWordBook", methods = ['POST'])
+def apiRenameWordBook():
+    cur = conn.cursor()
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+        abort(401)
+
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    if not validateToken(userId, token):
+        abort(401)
+    
+    wordBookId = int(request.form["wordBookId"])
+    newName = str(request.form["name"])
+
+    cur.execute(f"SELECT * FROM WordBook WHERE userId = {userId} AND wordBookId = {wordBookId}")
+    if len(cur.fetchall()) == 0:
+        return json.dumps({"success": False, "msg": "Word book does not exist!"})
+
+    cur.execute(f"UPDATE WordBook SET name = '{encode(newName)}' WHERE userId = {userId} AND wordBookId = {wordBookId}")
+    conn.commit()
+    return json.dumps({"success": True})
+
+
+
 
 
 ##########

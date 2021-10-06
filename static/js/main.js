@@ -1344,25 +1344,27 @@ function renderWordList() {
     // Instead of selecting words from all words
     // And remove selected words refer to remove all selected words permanently
     // Instead of removing them from specific word list
-    ctx.fillText("Add", buttons[0].w * 0.5, buttons[8].y + buttons[8].h * 3.6);
-    w4 = getWidth("Add", fs + "px Corbel") + space;
-    ctx.fillText("Remove", buttons[0].w * 0.5 + w4, buttons[8].y + buttons[8].h * 3.6);
-    w5 = getWidth("Remove", fs + "px Corbel") + space;
+    ctx.fillText("Rename", buttons[0].w * 0.5, buttons[8].y + buttons[8].h * 3.6);
+    w4 = getWidth("Rename", fs + "px Corbel") + space;
+    ctx.fillText("Add", buttons[0].w * 0.5 + w4, buttons[8].y + buttons[8].h * 3.6);
+    w5 = getWidth("Add", fs + "px Corbel") + space;
+    ctx.fillText("Remove", buttons[0].w * 0.5 + w4 + w5, buttons[8].y + buttons[8].h * 3.6);
+    w6 = getWidth("Remove", fs + "px Corbel") + space;
     if(wordBookId != 0){
         ctx.fillStyle = "red";
-        ctx.fillText("Delete Word Book", buttons[0].w * 0.5 + w4 + w5, buttons[8].y + buttons[8].h * 3.6);
-        w6 = getWidth("Delete Word Book", fs + "px Corbel") + space;
+        ctx.fillText("Delete Word Book", buttons[0].w * 0.5 + w4 + w5 + w6, buttons[8].y + buttons[8].h * 3.6);
+        w7 = getWidth("Delete Word Book", fs + "px Corbel") + space;
         ctx.fillStyle = getRndColor(10, 100);
     }
     
     // Word book update
     ctx.fillStyle = getRndColor(10, 100);
     ctx.fillText("Share:", buttons[0].w * 0.5, buttons[8].y + buttons[8].h * 4.2);
-    w7 = getWidth("Share:", fs + "px Corbel") + space;
+    w8 = getWidth("Share:", fs + "px Corbel") + space;
     if(wordBookShareCode == ""){
-        ctx.fillText("Private", buttons[0].w * 0.5 + w7, buttons[8].y + buttons[8].h * 4.2);
+        ctx.fillText("Private", buttons[0].w * 0.5 + w8, buttons[8].y + buttons[8].h * 4.2);
     } else {
-        ctx.fillText(wordBookShareCode, buttons[0].w * 0.5 + w7, buttons[8].y + buttons[8].h * 4.2);
+        ctx.fillText(wordBookShareCode, buttons[0].w * 0.5 + w8, buttons[8].y + buttons[8].h * 4.2);
     }
 
     // Render table
@@ -2520,11 +2522,40 @@ function clickHandler(e) {
             // Word book update
             fs = smallFontSize;
             if(isphone) fs *= 0.6;
-            w4 = getWidth("Add", fs + "px Corbel") + space;
-            w5 = getWidth("Remove", fs + "px Corbel") + space;
-            w6 = getWidth("Delete Word Book", fs + "px Corbel") + space;
+            w4 = getWidth("Rename", fs + "px Corbel") + space;
+            w5 = getWidth("Add", fs + "px Corbel") + space;
+            w6 = getWidth("Remove", fs + "px Corbel") + space;
+            w7 = getWidth("Delete Word Book", fs + "px Corbel") + space;
 
             if (absoluteX >= buttons[0].w * 0.5 && absoluteX <= buttons[0].w * 0.5 + w4 - space) {
+                newName = prompt("Enter new word book name:", wordBookName);
+                if(newName != null) {
+                    $.ajax({
+                        url: '/api/renameWordBook',
+                        method: 'POST',
+                        async: false,
+                        dataType: "json",
+                        data: {
+                            wordBookId: wordBookId,
+                            name: newName,
+                            userId: localStorage.getItem("userId"),
+                            token: localStorage.getItem("token")
+                        },
+                        success: function (r) {
+                            updateWordBookWordList(true);
+                            renderCurrentPage();
+                        },
+                        error: function (r) {
+                            if (r.status == 401) {
+                                alert("Login session expired! Please login again!");
+                                localStorage.removeItem("userId");
+                                localStorage.removeItem("token");
+                                window.location.href = "/user";
+                            }
+                        }
+                    });
+                }
+            } else if (absoluteX >= buttons[0].w * 0.5 + w4 && absoluteX <= buttons[0].w * 0.5 + w4 + w5 - space) {
                 if (wordBookId == 0) {
                     lastpage = currentpage;
                     currentpage = 3;
@@ -2534,7 +2565,7 @@ function clickHandler(e) {
                     currentpage = 6;
                     renderCurrentPage();
                 }
-            } else if (absoluteX >= buttons[0].w * 0.5 + w4 && absoluteX <= buttons[0].w * 0.5 + w4 + w5 - space) {
+            } else if (absoluteX >= buttons[0].w * 0.5 + w4 + w5 && absoluteX <= buttons[0].w * 0.5 + w4 + w5 + w6 - space) {
                 if (wordBookId == 0) {
                     if (confirm('Are you sure to delete selected words from your word database? This will remove them from all word books no matter its status is default, tagged or deleted. This operation cannot be undone!')) {
                         table = $("#wordList").DataTable();
@@ -2590,7 +2621,7 @@ function clickHandler(e) {
                         }
                     });
                 }
-            } else if (wordBookId != 0 && absoluteX >= buttons[0].w * 0.5 + w4 + w5 && absoluteX <= buttons[0].w * 0.5 + w4 + w5 + w6 - space) {
+            } else if (wordBookId != 0 && absoluteX >= buttons[0].w * 0.5 + w4 + w5 + w6 && absoluteX <= buttons[0].w * 0.5 + w4 + w5 + w6 + w7 - space) {
                 if (confirm("Are you sure to delete this word book? The words will not be deleted but they will no longer belong to this word book. This operation cannot be undone!")) {
                     $.ajax({
                         url: '/api/deleteWordBook',
@@ -2604,7 +2635,6 @@ function clickHandler(e) {
                         },
                         success: function (r) {
                             updateWordBookList(true, true);
-                            alert("Done");
                             currentpage = 5;
                             lastpage = 4;
                             renderCurrentPage();
@@ -2624,12 +2654,12 @@ function clickHandler(e) {
             // Word book update
             fs = smallFontSize;
             if(isphone) fs *= 0.6;
-            w7 = getWidth("Share:", fs + "px Corbel") + space;
-            w8 = getWidth(wordBookShareCode, fs + "px Corbel") + space;
+            w8 = getWidth("Share:", fs + "px Corbel") + space;
+            w9 = getWidth(wordBookShareCode, fs + "px Corbel") + space;
             if(wordBookShareCode == ""){
-                w8 = getWidth("Private", fs + "px Corbel") + space;
+                w9 = getWidth("Private", fs + "px Corbel") + space;
             }
-            if (absoluteX >= buttons[0].w * 0.5 + w7 && absoluteX <= buttons[0].w * 0.5 + w7 + w8 - space) {
+            if (absoluteX >= buttons[0].w * 0.5 + w8 && absoluteX <= buttons[0].w * 0.5 + w8 + w9 - space) {
                 if(wordBookShareCode == ""){
                     $.ajax({
                         url: '/api/shareWordBook',
@@ -2709,7 +2739,6 @@ $("#wordBookName").on('keypress', function (e) {
 });
 
 $(document).on('keydown', function (e) {
-    console.log(e.which);
     if(currentpage == 1) {
         btnid = -1;
         if(e.which == 32 || e.which == 13) {

@@ -605,6 +605,7 @@ function loginfunc() {
                         delcnt = r.delcnt;
                         chcnt = r.chcnt;
                         inviter = r.inviter;
+                        life = r.life;
                         if (r.isAdmin) {
                             localStorage.setItem("admin", "true");
                         }

@@ -3,18 +3,19 @@
 ## v3.2.1
 
 *Date: 2021/10/6*  
-Added sharable word book
+Added sharable word book  
+Added function to rename word book
 
 ## v3.1.3
 
 *Date: 2021/10/5*  
-Allowed user to edit words by double-clicking the word (available at word list & memorizing page)  
+Added function to edit words by double-clicking the word (available at word list & memorizing page)  
 Added keyboard control
 
 ## v3.1.2
 
 *Date: 2021/10/5*  
-Allowed user to import to replace only conflicted words (overwrite mode)
+Added function to import to replace only conflicted words (overwrite mode)
 Added select-all & deselect-all options for word list
 
 ## v3.1.1
