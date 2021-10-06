@@ -1,5 +1,10 @@
 # Update History
 
+## v3.2.1
+
+*Date: 2021/10/6*  
+Added sharable word book
+
 ## v3.1.3
 
 *Date: 2021/10/5*  

@@ -3,7 +3,7 @@
 # License: GNU General Public License v3.0
 
 from flask import Flask, render_template, request, abort, send_file
-import os, sys, datetime, time, threading
+import os, sys, datetime, time, threading, math
 import random, uuid
 import base64, bcrypt
 import json
@@ -30,12 +30,21 @@ def gencode(length = 6):
         ret += st[random.randint(0,len(st)-1)]
     return ret
 
+st2="abcdefghjkmnpqrstuvwxy3456789ABCDEFGHJKMNPQRSTUVWXY"
+def gencode2(length = 8):
+    ret = ""
+    for _ in range(length):
+        ret += st2[random.randint(0,len(st2)-1)]
+    return ret
+
 db_exists = os.path.exists("database.db")
 conn = sqlite3.connect("database.db", check_same_thread=False)
 cur = conn.cursor()
 if not db_exists:
     cur.execute(f"CREATE TABLE UserInfo (userId INT, username VARCHAR(64), email VARCHAR(128), password VARCHAR(256), inviter INT, inviteCode CHAR(5))")
     # Allow only inviting registration mode to prevent abuse
+    cur.execute(f"CREATE TABLE UserEvent (userId INT, event VARCHAR(32), timestamp INT)")
+    # Available event: register, login, change_password, delete_account
 
     # User should be allowed to delete their accounts
     # When a user request to delete his account, his account will be marked as "Pending for deletion",
@@ -61,6 +70,7 @@ if not db_exists:
     cur.execute(f"CREATE TABLE WordBookData (userId INT, wordBookId INT, wordId INT)")
     # When a new word is added, it belongs to no word book
     # A word can belong to many word books
+    cur.execute(f"CREATE TABLE WordBookShare (userId INT, wordBookId INT, shareCode VARCHAR(8))")
 
     cur.execute(f"CREATE TABLE ChallengeData (userId INT, wordId INT, nextChallenge INT, lastChallenge INT)")
     # Challenge Data is a table that tells when to display the word next time
@@ -185,6 +195,8 @@ def apiRegister():
     except:
         sessions.errcnt += 1
 
+    cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'register', {int(time.time())})")
+
     return json.dumps({"success": True, "msg": "You are registered! Now you can login!"})
 
 recoverAccount = []
@@ -225,6 +237,8 @@ def apiLogin():
     if len(cur.fetchall()) != 0:
         isAdmin = True
 
+    cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'login', {int(time.time())})")
+
     return json.dumps({"success": True, "userId": userId, "token": token, "isAdmin": isAdmin})
 
 @app.route("/api/logout", methods = ['POST'])
@@ -258,6 +272,7 @@ def apiDeleteAccount():
     
     sessions.markDeletion(userId)
 
+    cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'delete_account', {int(time.time())})")
     sessions.logout(userId, token)
 
     return json.dumps({"success": True})
@@ -299,7 +314,11 @@ def apiGetUserInfo():
     cur.execute(f"SELECT COUNT(*) FROM ChallengeRecord WHERE userId = {userId}")
     chcnt = cur.fetchall()[0][0]
 
-    return json.dumps({"username": d[0], "email": d[1], "invitationCode": d[2], "inviter": inviter, "cnt": cnt, "tagcnt": tagcnt, "delcnt": delcnt, "chcnt": chcnt})
+    cur.execute(f"SELECT timestamp FROM UserEvent WHERE userId = {userId} AND event = 'register'")
+    regts = cur.fetchall()[0][0]
+    life = math.ceil((time.time() - regts) / 86400)
+
+    return json.dumps({"username": d[0], "email": d[1], "invitationCode": d[2], "inviter": inviter, "cnt": cnt, "tagcnt": tagcnt, "delcnt": delcnt, "chcnt": chcnt, "life": life})
 
 @app.route("/api/changePassword", methods=['POST'])
 def apiChangePassword():
@@ -327,6 +346,7 @@ def apiChangePassword():
     newhashed = hashpwd(newpwd)
     cur.execute(f"UPDATE UserInfo SET password = '{encode(newhashed)}' WHERE userId = {userId}")
     
+    cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'change_password', {int(time.time())})")
     sessions.logoutAll(userId)
 
     return json.dumps({"success": True})
@@ -382,7 +402,7 @@ def nginxProtectedRestart():
 
 
 ##########
-# Word API
+# Word Book API
 
 @app.route("/api/getWordBookList", methods = ['POST'])
 def apiGetWordBook():
@@ -396,15 +416,37 @@ def apiGetWordBook():
         abort(401)
     
     ret = []
+
+    words = []
+    cur.execute(f"SELECT wordId FROM WordList WHERE userId = {userId}")
+    t = cur.fetchall()
+    for tt in t:
+        words.append(tt[0])
+    
+    cur.execute(f"SELECT shareCode FROM WordBookShare WHERE wordBookId = 0 AND userId = {userId}")
+    t = cur.fetchall()
+    shareCode = ""
+    if len(t) != 0:
+        shareCode = "!"+t[0][0]
+    
+    ret.append({"wordBookId": 0, "name": "All words", "words": words, "shareCode": shareCode})
+
     cur.execute(f"SELECT wordBookId, name FROM WordBook WHERE userId = {userId}")
     d = cur.fetchall()
     for dd in d:
         words = []
-        cur.execute(f"SELECT wordId FROM WordBookData WHERE wordBookId = {dd[0]}")
+        cur.execute(f"SELECT wordId FROM WordBookData WHERE wordBookId = {dd[0]} AND userId = {userId}")
         t = cur.fetchall()
         for tt in t:
             words.append(tt[0])
-        ret.append({"wordBookId": dd[0], "name": decode(dd[1]), "words": words})
+
+        cur.execute(f"SELECT shareCode FROM WordBookShare WHERE wordBookId = {dd[0]} AND userId = {userId}")
+        t = cur.fetchall()
+        shareCode = ""
+        if len(t) != 0:
+            shareCode = "!"+t[0][0]
+
+        ret.append({"wordBookId": dd[0], "name": decode(dd[1]), "words": words, "shareCode": shareCode})
     
     return json.dumps(ret)
 
@@ -420,16 +462,84 @@ def apiCreateWordBook():
         abort(401)
     
     name = request.form["name"]
-    name = encode(name)
 
     wordBookId = 1
     cur.execute(f"SELECT MAX(wordBookId) FROM WordBook WHERE userId = {userId}")
     d = cur.fetchall()
     if len(d) != 0 and not d[0][0] is None:
         wordBookId = d[0][0] + 1
+
+    if name.startswith("!"):
+        name = name[1:]
+        cur.execute(f"SELECT userId, wordBookId FROM WordBookShare WHERE shareCode = '{name}'")
+        d = cur.fetchall()
+        if len(d) != 0:
+            sharerUserId = d[0][0]
+            sharerWordBookId = d[0][1]
+            
+            cur.execute(f"SELECT username FROM UserInfo WHERE userId = {sharerUserId}")
+            sharerUsername = cur.fetchall()[0][0]
+            name = encode(sharerUsername + "'s word book")
+            if sharerWordBookId != 0:
+                # create word book
+                cur.execute(f"SELECT name FROM WordBook WHERE userId = {sharerUserId} AND wordBookId = {sharerWordBookId}")
+                name = cur.fetchall()[0][0]
+            cur.execute(f"INSERT INTO WordBook VALUES ({userId}, {wordBookId}, '{name}')")
+
+            t = []
+            if sharerWordBookId != 0:
+                cur.execute(f"SELECT wordId FROM WordBookData WHERE userId = {sharerUserId} AND wordBookId = {sharerWordBookId}")
+                t = cur.fetchall()
+            else:
+                cur.execute(f"SELECT wordId FROM WordList WHERE userId = {sharerUserId}")
+                t = cur.fetchall()
+            cur.execute(f"SELECT wordId, word, translation FROM WordList WHERE userId = {sharerUserId}")
+            b = cur.fetchall()
+            di = {}
+            for bb in b:
+                di[bb[0]] = (bb[1], bb[2])
+            
+            # do import
+            wordId = 0
+
+            cur.execute(f"SELECT wordId FROM WordList WHERE userId = {userId} ORDER BY wordId DESC LIMIT 1")
+            d = cur.fetchall()
+            if len(d) != 0:
+                wordId = d[0][0]
+            
+            wordId += 1
+            for tt in t:
+                cur.execute(f"SELECT wordId, translation FROM WordList WHERE userId = {userId} AND word = '{di[tt[0]][0]}'")
+                p = cur.fetchall()
+                ctn = False
+                for pp in p:
+                    if pp[1] == di[tt[0]][1]: # word completely the same
+                        cur.execute(f"INSERT INTO WordBookData VALUES ({userId}, {wordBookId}, {pp[0]})")
+                        ctn = True
+                        break
+                if ctn:
+                    continue
+
+                cur.execute(f"INSERT INTO WordBookData VALUES ({userId}, {wordBookId}, {wordId})")
+                cur.execute(f"INSERT INTO WordList VALUES ({userId}, {wordId}, '{di[tt[0]][0]}', '{di[tt[0]][1]}', 1)")
+                cur.execute(f"INSERT INTO ChallengeData VALUES ({userId},{wordId}, 0, -1)")
+
+                updateWordStatus(userId, wordId, -1) # -1 is imported word
+                updateWordStatus(userId, wordId, 1) # 1 is default status
+
+                wordId += 1
+            
+            conn.commit()
+            return json.dumps({"success": True})
+        
+        else:
+            return json.dumps({"success": False, "msg": "Invalid share code!"})
+
+    name = encode(name)
     
     cur.execute(f"INSERT INTO WordBook VALUES ({userId}, {wordBookId}, '{name}')")
     conn.commit()
+    
     return json.dumps({"success": True})
 
 @app.route("/api/deleteWordBook", methods = ['POST'])
@@ -531,6 +641,54 @@ def apiGetWordList():
         ret.append({"wordId": dd[0], "word": decode(dd[1]), "translation": decode(dd[2]), "status": dd[3]})
     
     return json.dumps(ret)
+
+@app.route("/api/shareWordBook", methods = ['POST'])
+def apiShareWordBook():
+    cur = conn.cursor()
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+        abort(401)
+
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    if not validateToken(userId, token):
+        abort(401)
+    
+    wordBookId = int(request.form["wordBookId"])
+    op = request.form["operation"]
+
+    if op == "share":
+        cur.execute(f"SELECT * FROM WordBookShare WHERE userId = {userId} AND wordBookId = {wordBookId}")
+        if len(cur.fetchall()) != 0:
+            return json.dumps({"success": False, "msg": "Word book already shared!"})
+        else:
+            shareCode = gencode2(8)
+            cur.execute(f"SELECT * FROM WordBookShare WHERE shareCode = '{shareCode}'")
+            if len(cur.fetchall()) != 0: # conflict
+                for _ in range(10):
+                    shareCode = gencode2(8)
+                    cur.execute(f"SELECT * FROM WordBookShare WHERE shareCode = '{shareCode}'")
+                    if len(cur.fetchall()) == 0:
+                        break
+                cur.execute(f"SELECT * FROM WordBookShare WHERE shareCode = '{shareCode}'")
+                if len(cur.fetchall()) != 0:
+                    return json.dumps({"success": False, "msg": "Unable to generate an unique share code..."})
+                    
+            cur.execute(f"INSERT INTO WordBookShare VALUES ({userId}, {wordBookId}, '{shareCode}')")
+            conn.commit()
+            return json.dumps({"success": True, "msg": f"Done! Share code: !{shareCode}. Tell your friend to enter it in the textbox of 'Create Word Book' and he / she will be able to import it!"})
+    
+    elif op == "unshare":
+        cur.execute(f"SELECT * FROM WordBookShare WHERE userId = {userId} AND wordBookId = {wordBookId}")
+        if len(cur.fetchall()) == 0:
+            return json.dumps({"success": False, "msg": "Word book not shared!"})
+        else:
+            cur.execute(f"DELETE FROM WordBookShare WHERE userId = {userId} AND wordBookId = {wordBookId}")
+            conn.commit()
+            return json.dumps({"success": True, "msg": "Word book unshared!"})
+
+
+##########
+# Word API
 
 @app.route("/api/getWord", methods = ['POST'])
 def apiGetWord():
@@ -1238,13 +1396,12 @@ def importData():
 
         wordId = 0
 
-        if updateType == "append":
-            cur.execute(f"SELECT wordId FROM WordList WHERE userId = {userId} ORDER BY wordId DESC LIMIT 1")
-            d = cur.fetchall()
-            if len(d) != 0:
-                wordId = d[0][0]
+        cur.execute(f"SELECT wordId FROM WordList WHERE userId = {userId} ORDER BY wordId DESC LIMIT 1")
+        d = cur.fetchall()
+        if len(d) != 0:
+            wordId = d[0][0]
 
-        elif updateType  == "clear_overwrite":
+        if updateType  == "clear_overwrite":
             cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE userId = {userId}")
             d = cur.fetchall()
             ts = int(time.time())

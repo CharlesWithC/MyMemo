@@ -327,11 +327,6 @@ function updateWordList(doasync = true, forceUpdate = false) {
             for (var i = 0; i < wordList.length; i++) {
                 words.push(wordList[i].wordId);
             }
-            wordBookList[0] = {
-                "wordBookId": 0,
-                "name": "All words",
-                "words": words
-            };
             updateTable();
         },
         error: function (r) {
@@ -356,17 +351,14 @@ var wordBookName = "";
 var wordBookRect = [];
 var wordBookCnt = 1;
 
+var wordBookShareCode = "";
+
 var wordBookList = JSON.parse(localStorage.getItem("wordBookList"));
 if (wordBookList == null || wordBookList.length == 0) {
     words = [];
     for (var i = 0; i < wordList.length; i++) {
         words.push(wordList[i].wordId);
     }
-    wordBookList = [{
-        "wordBookId": 0,
-        "name": "All words",
-        "words": words
-    }];
     localStorage.setItem("wordBookList", JSON.stringify(wordBookList));
 }
 wordBookCnt = wordBookList.length;
@@ -392,11 +384,8 @@ function updateWordBookList(doasync = true, forceUpdate = false) {
             for (var i = 0; i < wordList.length; i++) {
                 words.push(wordList[i].wordId);
             }
-            wordBookList = [{
-                "wordBookId": 0,
-                "name": "All words",
-                "words": words
-            }];
+
+            wordBookList = [];
             for (var i = 0; i < r.length; i++) {
                 wordBookList.push(r[i]);
             }
@@ -406,6 +395,7 @@ function updateWordBookList(doasync = true, forceUpdate = false) {
             for (var i = 0; i < wordBookList.length; i++) {
                 if (wordBookList[i].wordBookId == wordBookId) {
                     wordBookName = wordBookList[i].name;
+                    wordBookShareCode = wordBookList[i].shareCode;
                 }
                 if (wordBookList[i].wordBookId == selectedWordBook) {
                     selectedWordBookName = wordBookList[i].name;
@@ -431,6 +421,7 @@ setInterval(updateWordBookList, 600000);
 for (var i = 0; i < wordBookList.length; i++) {
     if (wordBookList[i].wordBookId == wordBookId) {
         wordBookName = wordBookList[i].name;
+        wordBookShareCode = wordBookList[i].shareCode;
     }
     if (wordBookList[i].wordBookId == selectedWordBook) {
         selectedWordBookName = wordBookList[i].name;
@@ -1328,20 +1319,21 @@ function renderWordList() {
 
     // Status update
     ctx.textAlign = "left";
-    ctx.font = smallFontSize + "px Corbel";
+
+    fs = smallFontSize;
+    if(isphone) fs *= 0.6;
+    ctx.font = fs + "px Corbel";
     ctx.fillStyle = getRndColor(10, 100);
     space = getWidth("-----");
 
-    if (isphone) smallFontSize *= 0.6
     ctx.fillText("Word Status Update (Update the status of all selected words to):", buttons[0].w * 0.5, buttons[8].y + buttons[8].h * 1.8);
-    if (isphone) smallFontSize /= 0.6
-
+    
     ctx.fillText("Default", buttons[0].w * 0.5, buttons[8].y + buttons[8].h * 2.4);
-    w1 = getWidth("Default", smallFontSize + "px Corbel") + space;
+    w1 = getWidth("Default", fs + "px Corbel") + space;
     ctx.fillText("Tag", buttons[0].w * 0.5 + w1, buttons[8].y + buttons[8].h * 2.4);
-    w2 = getWidth("Tag", smallFontSize + "px Corbel") + space;
+    w2 = getWidth("Tag", fs + "px Corbel") + space;
     ctx.fillText("Delete", buttons[0].w * 0.5 + w1 + w2, buttons[8].y + buttons[8].h * 2.4);
-    w3 = getWidth("Delete", smallFontSize + "px Corbel") + space;
+    w3 = getWidth("Delete", fs + "px Corbel") + space;
 
     // Word book update
     ctx.fillStyle = getRndColor(10, 100);
@@ -1352,25 +1344,37 @@ function renderWordList() {
     // Instead of selecting words from all words
     // And remove selected words refer to remove all selected words permanently
     // Instead of removing them from specific word list
-    if (isphone && wordBookId != 0) smallFontSize *= 0.6
     ctx.fillText("Add", buttons[0].w * 0.5, buttons[8].y + buttons[8].h * 3.6);
-    w4 = getWidth("Add", smallFontSize + "px Corbel") + space;
+    w4 = getWidth("Add", fs + "px Corbel") + space;
     ctx.fillText("Remove", buttons[0].w * 0.5 + w4, buttons[8].y + buttons[8].h * 3.6);
-    w5 = getWidth("Remove", smallFontSize + "px Corbel") + space;
-    ctx.fillStyle = "red";
-    ctx.fillText("Delete Word Book", buttons[0].w * 0.5 + w4 + w5, buttons[8].y + buttons[8].h * 3.6);
-    w6 = getWidth("Delete Word Book", smallFontSize + "px Corbel") + space;
+    w5 = getWidth("Remove", fs + "px Corbel") + space;
+    if(wordBookId != 0){
+        ctx.fillStyle = "red";
+        ctx.fillText("Delete Word Book", buttons[0].w * 0.5 + w4 + w5, buttons[8].y + buttons[8].h * 3.6);
+        w6 = getWidth("Delete Word Book", fs + "px Corbel") + space;
+        ctx.fillStyle = getRndColor(10, 100);
+    }
+    
+    // Word book update
     ctx.fillStyle = getRndColor(10, 100);
-    if (isphone) smallFontSize /= 0.6;
+    ctx.fillText("Share:", buttons[0].w * 0.5, buttons[8].y + buttons[8].h * 4.2);
+    w7 = getWidth("Share:", fs + "px Corbel") + space;
+    if(wordBookShareCode == ""){
+        ctx.fillText("Private", buttons[0].w * 0.5 + w7, buttons[8].y + buttons[8].h * 4.2);
+    } else {
+        ctx.fillText(wordBookShareCode, buttons[0].w * 0.5 + w7, buttons[8].y + buttons[8].h * 4.2);
+    }
 
     // Render table
     $("#wordList_wrapper").show();
     $("#wordList_wrapper").attr("style", "test-align:center;position:absolute;\
-    left:" + (buttons[0].w * 0.5) + ";top:" + (buttons[8].x + buttons[8].h * 3.8) + ";\
+    left:" + (buttons[0].w * 0.5) + ";top:" + (buttons[8].x + buttons[8].h * 4.4) + ";\
     ;width:" + (window.innerWidth - 25 - buttons[0].w) + ";\
-    font-size:" + smallFontSize * 0.8 + ";font-family:Corbel;z-index:999");
+    font-size:" + fs + ";font-family:Corbel;z-index:999");
     $("#wordList").attr("style", "width:100%;font-size:" + smallFontSize * 0.8 + ";font-family:Corbel");
     updateTable();
+
+    ctx.font = fontSize + "px Corbel";
 }
 
 // Render word book add word page
@@ -1831,9 +1835,13 @@ function createWordBook() {
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            $("#wordBookName").val("");
-            updateWordBookList(false);
-            renderCurrentPage();
+            if(r.success == true){
+                $("#wordBookName").val("");
+                updateWordBookList(false, true);
+                renderCurrentPage();
+            } else { 
+                alert(r.msg);
+            }
         },
         error: function (r) {
             if (r.status == 401) {
@@ -2293,8 +2301,6 @@ function clickHandler(e) {
                             }
                         }
                     });
-                } else {
-                    alert("Canceled");
                 }
             } else if (buttons[k].name == "statistics") {
                 statson = 1;
@@ -2392,7 +2398,6 @@ function clickHandler(e) {
                         token: localStorage.getItem("token")
                     },
                     success: function (r) {
-                        alert("Done");
                         currentpage = 4;
                         updateWordBookWordList(true, true);
                         lastpage = 6;
@@ -2441,6 +2446,7 @@ function clickHandler(e) {
             // A word book has been pressed
             wordBookId = wordBookList[i].wordBookId;
             wordBookName = wordBookList[i].name;
+            wordBookShareCode = wordBookList[i].shareCode;
             localStorage.setItem("wordBookId", wordBookId);
 
             currentpage = 4;
@@ -2461,9 +2467,11 @@ function clickHandler(e) {
         space = getWidth("-----");
         if (absoluteY >= buttons[8].y + buttons[8].h * 2 && absoluteY <= buttons[8].y + buttons[8].h * 2.6) {
             // Word Status Update
-            w1 = getWidth("Default", smallFontSize + "px Corbel") + space;
-            w2 = getWidth("Tag", smallFontSize + "px Corbel") + space;
-            w3 = getWidth("Delete", smallFontSize + "px Corbel") + space;
+            fs = smallFontSize;
+            if(isphone) fs *= 0.6;
+            w1 = getWidth("Default", fs + "px Corbel") + space;
+            w2 = getWidth("Tag", fs + "px Corbel") + space;
+            w3 = getWidth("Delete", fs + "px Corbel") + space;
 
             updateTo = 0;
             if (absoluteX >= buttons[0].w * 0.5 && absoluteX <= buttons[0].w * 0.5 + w1 - space) {
@@ -2510,9 +2518,11 @@ function clickHandler(e) {
             selected = [];
         } else if (absoluteY >= buttons[8].y + buttons[8].h * 3.2 && absoluteY <= buttons[8].y + buttons[8].h * 3.8) {
             // Word book update
-            w4 = getWidth("Add", smallFontSize + "px Corbel") + space;
-            w5 = getWidth("Remove", smallFontSize + "px Corbel") + space;
-            w6 = getWidth("Delete Word Book", smallFontSize + "px Corbel") + space;
+            fs = smallFontSize;
+            if(isphone) fs *= 0.6;
+            w4 = getWidth("Add", fs + "px Corbel") + space;
+            w5 = getWidth("Remove", fs + "px Corbel") + space;
+            w6 = getWidth("Delete Word Book", fs + "px Corbel") + space;
 
             if (absoluteX >= buttons[0].w * 0.5 && absoluteX <= buttons[0].w * 0.5 + w4 - space) {
                 if (wordBookId == 0) {
@@ -2580,7 +2590,7 @@ function clickHandler(e) {
                         }
                     });
                 }
-            } else if (absoluteX >= buttons[0].w * 0.5 + w4 + w5 && absoluteX <= buttons[0].w * 0.5 + w4 + w5 + w6 - space) {
+            } else if (wordBookId != 0 && absoluteX >= buttons[0].w * 0.5 + w4 + w5 && absoluteX <= buttons[0].w * 0.5 + w4 + w5 + w6 - space) {
                 if (confirm("Are you sure to delete this word book? The words will not be deleted but they will no longer belong to this word book. This operation cannot be undone!")) {
                     $.ajax({
                         url: '/api/deleteWordBook',
@@ -2593,7 +2603,7 @@ function clickHandler(e) {
                             token: localStorage.getItem("token")
                         },
                         success: function (r) {
-                            updateWordBookList();
+                            updateWordBookList(true, true);
                             alert("Done");
                             currentpage = 5;
                             lastpage = 4;
@@ -2608,8 +2618,78 @@ function clickHandler(e) {
                             }
                         }
                     });
+                }
+            }
+        } else if (absoluteY >= buttons[8].y + buttons[8].h * 3.8 && absoluteY <= buttons[8].y + buttons[8].h * 4.4) {
+            // Word book update
+            fs = smallFontSize;
+            if(isphone) fs *= 0.6;
+            w7 = getWidth("Share:", fs + "px Corbel") + space;
+            w8 = getWidth(wordBookShareCode, fs + "px Corbel") + space;
+            if(wordBookShareCode == ""){
+                w8 = getWidth("Private", fs + "px Corbel") + space;
+            }
+            if (absoluteX >= buttons[0].w * 0.5 + w7 && absoluteX <= buttons[0].w * 0.5 + w7 + w8 - space) {
+                if(wordBookShareCode == ""){
+                    $.ajax({
+                        url: '/api/shareWordBook',
+                        method: 'POST',
+                        async: false,
+                        dataType: "json",
+                        data: {
+                            wordBookId: wordBookId,
+                            operation: "share",
+                            userId: localStorage.getItem("userId"),
+                            token: localStorage.getItem("token")
+                        },
+                        success: function (r) {
+                            if(r.success == true){
+                                updateWordBookList(true, true);
+                            }
+                            alert(r.msg);
+                            if(r.success == true){
+                                renderCurrentPage();
+                            }
+                        },
+                        error: function (r) {
+                            if (r.status == 401) {
+                                alert("Login session expired! Please login again!");
+                                localStorage.removeItem("userId");
+                                localStorage.removeItem("token");
+                                window.location.href = "/user";
+                            }
+                        }
+                    });
                 } else {
-                    alert("Canceled");
+                    $.ajax({
+                        url: '/api/shareWordBook',
+                        method: 'POST',
+                        async: false,
+                        dataType: "json",
+                        data: {
+                            wordBookId: wordBookId,
+                            operation: "unshare",
+                            userId: localStorage.getItem("userId"),
+                            token: localStorage.getItem("token")
+                        },
+                        success: function (r) {
+                            if(r.success == true){
+                                updateWordBookList(true, true);
+                            }
+                            alert(r.msg);
+                            if(r.success == true){
+                                renderCurrentPage();
+                            }
+                        },
+                        error: function (r) {
+                            if (r.status == 401) {
+                                alert("Login session expired! Please login again!");
+                                localStorage.removeItem("userId");
+                                localStorage.removeItem("token");
+                                window.location.href = "/user";
+                            }
+                        }
+                    });
                 }
             }
         }
@@ -2668,6 +2748,7 @@ $('#wordList tbody').on('click', 'tr', function () {
 
 $('#wordList tbody').on('dblclick', 'tr', function () {
     wid = parseInt($(this).attr("id"));
+    console.log(wid);
     editWordId = wid;
     editWord = true;
 

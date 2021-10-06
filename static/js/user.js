@@ -26,15 +26,20 @@ var orgsmallFontSize = 20;
 var orglargeFontSize = 60;
 
 var btnMargin = 0.5;
-var lineheight = 50;
 var bottomOffset = 100;
 
 var buttons = [];
 var btncnt = 9;
 
 if (isphone) {
+    fontSize = 60;
+    smallFontSize = 40;
+    largeFontSize = 80;
+    orgFontSize = 60;
+    orgsmallFontSize = 40;
+    orglargeFontSize = 80;
+
     btnMargin = 0.2;
-    lineheight = 100;
     bottomOffset = 250;
 }
 
@@ -52,8 +57,8 @@ buttons[8]={name:"restart",x:0,y:0,w:400,h:50,orgw:400,orgh:50};
 
 if (isphone) {
     for (var i = 0; i < btncnt; i++) {
-        buttons[i].w = buttons[i].orgw * 2;
-        buttons[i].h = buttons[i].orgw * 2;
+        buttons[i].w = buttons[i].orgw * 2.5;
+        buttons[i].h = buttons[i].orgw * 2.5;
     }
 }
 
@@ -68,15 +73,15 @@ function btninit() {
 
 function btnresize() {
     for (var i = 0; i < btncnt; i++) {
-        buttons[i].w = Math.min(buttons[i].orgw, parseInt(buttons[i].orgw * window.innerWidth - 25 - 25 / windowOrgW * window.innerHeight - 25 - 25 / windowOrgH));
-        buttons[i].h = Math.min(buttons[i].orgh, parseInt(buttons[i].orgh * window.innerHeight - 25 - 25 / windowOrgH * window.innerWidth - 25 - 25 / windowOrgW * 1.2));
+        buttons[i].w = Math.min(buttons[i].orgw, parseInt(buttons[i].orgw * window.innerWidth / windowOrgW * window.innerHeight / windowOrgH));
+        buttons[i].h = Math.min(buttons[i].orgh, parseInt(buttons[i].orgh * window.innerHeight / windowOrgH * window.innerWidth / windowOrgW * 1.2));
     }
 }
 
 function fontresize() {
-    fontSize = Math.min(orgFontSize, parseInt(orgFontSize * window.innerWidth - 25 - 25 / windowOrgW));
-    largeFontSize = Math.min(orglargeFontSize, parseInt(orglargeFontSize * window.innerWidth - 25 - 25 / windowOrgW));
-    smallFontSize = Math.min(orgsmallFontSize, parseInt(orgsmallFontSize * window.innerWidth - 25 - 25 / windowOrgW));
+    fontSize = Math.min(orgFontSize, parseInt(orgFontSize * window.innerWidth / windowOrgW));
+    largeFontSize = Math.min(orglargeFontSize, parseInt(orglargeFontSize * window.innerWidth / windowOrgW));
+    smallFontSize = Math.min(orgsmallFontSize, parseInt(orgsmallFontSize * window.innerWidth / windowOrgW));
 }
 btninit();
 btnresize();
@@ -97,6 +102,7 @@ var cnt = 0;
 var tagcnt = 0;
 var delcnt = 0;
 var chcnt = 0;
+var life = 0;
 
 $.ajax({
     url: "/api/getUserInfo",
@@ -116,6 +122,7 @@ $.ajax({
         delcnt = r.delcnt;
         chcnt = r.chcnt;
         inviter = r.inviter;
+        life = r.life;
     }
 });
 
@@ -167,9 +174,6 @@ function renderHomePage() {
     ctx.fillText("Settings", buttons[6].x + buttons[6].w / 2, buttons[6].y + buttons[6].h / 1.4);
 
     // Render user information
-    ctx.font = fontSize + "px Corbel";
-    ctx.fillText("User ID: " + localStorage.getItem("userId"), canvas.width / 2, canvas.height / 2 - 100);
-
     if (username == "") {
         $.ajax({
             url: "/api/getUserInfo",
@@ -189,28 +193,32 @@ function renderHomePage() {
                 delcnt = r.delcnt;
                 chcnt = r.chcnt;
                 inviter = r.inviter;
+                life = r.life;
             }
         });
     }
 
     ctx.font = fontSize + "px Corbel";
-    ctx.fillText("Username: " + username, canvas.width / 2, canvas.height / 2 - 50);
+    ctx.fillText(username + "  [UID: " + userId +"]", canvas.width / 2, canvas.height / 2 - 100);
+
+    ctx.font = fontSize * 0.7 + "px Corbel";
+    ctx.fillText("You have already been here for " + life + " days!", canvas.width / 2, canvas.height / 2 - 70);
 
     ctx.font = fontSize + "px Corbel";
-    ctx.fillText("Email: " + email, canvas.width / 2, canvas.height / 2);
+    ctx.fillText("Email: " + email, canvas.width / 2, canvas.height / 2 - 20);
 
     ctx.font = fontSize + "px Corbel";
-    ctx.fillText("Invitation Code: " + invitationCode, canvas.width / 2, canvas.height / 2 + 50);
+    ctx.fillText("Invitation Code: " + invitationCode, canvas.width / 2, canvas.height / 2 + 30);
 
     ctx.font = fontSize + "px Corbel";
-    ctx.fillText("Invited By: " + inviter, canvas.width / 2, canvas.height / 2 + 100);
+    ctx.fillText("Invited By: " + inviter, canvas.width / 2, canvas.height / 2 + 80);
 
     ctx.font = fontSize + "px Corbel";
-    ctx.fillText(cnt + " words in list", canvas.width / 2, canvas.height / 2 + 170);
+    ctx.fillText(cnt + " words in list", canvas.width / 2, canvas.height / 2 + 150);
     ctx.font = fontSize + "px Corbel";
-    ctx.fillText(tagcnt + " tagged and " + delcnt + " deleted", canvas.width / 2, canvas.height / 2 + 220);
+    ctx.fillText(tagcnt + " tagged and " + delcnt + " deleted", canvas.width / 2, canvas.height / 2 + 200);
     ctx.font = fontSize + "px Corbel";
-    ctx.fillText(chcnt + " challenges done so far", canvas.width / 2, canvas.height / 2 + 270);
+    ctx.fillText(chcnt + " challenges done so far", canvas.width / 2, canvas.height / 2 + 250);
 }
 
 function renderLoginPage() {
