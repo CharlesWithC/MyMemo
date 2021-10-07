@@ -218,6 +218,28 @@ var displayingAnswer = 0;
 
 var challengeStatus = 0;
 
+var wordBookId = localStorage.getItem("wordBookId");
+if (wordBookId == null) {
+    wordBookId = 0;
+    localStorage.setItem("wordBookId", "0");
+}
+wordBookId = parseInt(wordBookId);
+var wordBookName = "";
+
+var wordBookRect = [];
+var wordBookCnt = 1;
+
+var wordBookShareCode = "";
+
+var wordBookList = JSON.parse(localStorage.getItem("wordBookList"));
+if (wordBookList == null || wordBookList.length == 0) {
+    wordBookList = [];
+    localStorage.setItem("wordBookList", JSON.stringify(wordBookList));
+}
+wordBookCnt = wordBookList.length;
+
+var lastWordBookListUpdate = Date.now();
+
 
 
 
@@ -267,6 +289,9 @@ for (var i = 0; i < wordList.length; i++) {
 
 
 function updateTable() {
+    if(wordBookList.length == 0){
+        return;
+    }
     table = $("#wordList").DataTable();
     table.clear();
     wordBookIdx = 0;
@@ -339,31 +364,6 @@ setInterval(updateWordList, 600000);
 
 
 // Update word book list each 10 minutes
-
-var wordBookId = localStorage.getItem("wordBookId");
-if (wordBookId == null) {
-    wordBookId = 0;
-    localStorage.setItem("wordBookId", "0");
-}
-wordBookId = parseInt(wordBookId);
-var wordBookName = "";
-
-var wordBookRect = [];
-var wordBookCnt = 1;
-
-var wordBookShareCode = "";
-
-var wordBookList = JSON.parse(localStorage.getItem("wordBookList"));
-if (wordBookList == null || wordBookList.length == 0) {
-    words = [];
-    for (var i = 0; i < wordList.length; i++) {
-        words.push(wordList[i].wordId);
-    }
-    localStorage.setItem("wordBookList", JSON.stringify(wordBookList));
-}
-wordBookCnt = wordBookList.length;
-
-var lastWordBookListUpdate = Date.now();
 
 function updateWordBookList(doasync = true, forceUpdate = false) {
     if (Date.now() - lastWordBookListUpdate < 30000 && !forceUpdate) { // only one update each 30 seconds
