@@ -143,10 +143,10 @@ function renderHomePage() {
 
     ctx.font = largeFontSize + "px Impact";
     ctx.fillStyle = getRndColor(10, 100);
-    ctx.fillText("Word Memo", canvas.width / 2, canvas.height / 2 - 250);
+    ctx.fillText("Word Memo", canvas.width / 2, canvas.height / 2 - 6.25 * fontSize);
 
     ctx.font = fontSize + "px Corbel";
-    ctx.fillText("User Information", canvas.width / 2, canvas.height / 2 - 180);
+    ctx.fillText("User Information", canvas.width / 2, canvas.height / 2 - 4.5 * fontSize);
 
     // Render buttons
     buttons[1].x = buttons[1].w * 0.2;
@@ -202,26 +202,26 @@ function renderHomePage() {
     }
 
     ctx.font = fontSize + "px Corbel";
-    ctx.fillText(username + "  [UID: " + userId +"]", canvas.width / 2, canvas.height / 2 - 100);
+    ctx.fillText(username + "  [UID: " + userId +"]", canvas.width / 2, canvas.height / 2 - 2.5 * fontSize);
 
     ctx.font = fontSize * 0.7 + "px Corbel";
-    ctx.fillText("You have already been here for " + age + " days!", canvas.width / 2, canvas.height / 2 - 70);
+    ctx.fillText("You have already been here for " + age + " days!", canvas.width / 2, canvas.height / 2 - 1.75 * fontSize);
 
     ctx.font = fontSize + "px Corbel";
-    ctx.fillText("Email: " + email, canvas.width / 2, canvas.height / 2 - 20);
+    ctx.fillText("Email: " + email, canvas.width / 2, canvas.height / 2 - 0.5 * fontSize);
 
     ctx.font = fontSize + "px Corbel";
-    ctx.fillText("Invitation Code: " + invitationCode, canvas.width / 2, canvas.height / 2 + 30);
+    ctx.fillText("Invitation Code: " + invitationCode, canvas.width / 2, canvas.height / 2 + 0.75 * fontSize);
 
     ctx.font = fontSize + "px Corbel";
-    ctx.fillText("Invited By: " + inviter, canvas.width / 2, canvas.height / 2 + 80);
+    ctx.fillText("Invited By: " + inviter, canvas.width / 2, canvas.height / 2 + 2 * fontSize);
 
     ctx.font = fontSize + "px Corbel";
-    ctx.fillText(cnt + " words in list", canvas.width / 2, canvas.height / 2 + 150);
+    ctx.fillText(cnt + " words in list", canvas.width / 2, canvas.height / 2 + 3.75 * fontSize);
     ctx.font = fontSize + "px Corbel";
-    ctx.fillText(tagcnt + " tagged and " + delcnt + " deleted", canvas.width / 2, canvas.height / 2 + 200);
+    ctx.fillText(tagcnt + " tagged and " + delcnt + " deleted", canvas.width / 2, canvas.height / 2 + 5 * fontSize);
     ctx.font = fontSize + "px Corbel";
-    ctx.fillText(chcnt + " challenges done so far", canvas.width / 2, canvas.height / 2 + 250);
+    ctx.fillText(chcnt + " challenges done so far", canvas.width / 2, canvas.height / 2 + 6.25 * fontSize);
 }
 
 function renderLoginPage() {

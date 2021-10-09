@@ -84,6 +84,8 @@ if not db_exists:
     defaultpwd = hashpwd(config.default_user_password)
     cur.execute(f"INSERT INTO UserInfo VALUES (0,'default','None','{defaultpwd}',-1,'{gencode()}')")
     # Default user system's password is 123456
+    # Clear default account's password after setup (so it cannot be logged in)
+    # NOTE DO NOT DELETE THE DEFAULT ACCOUNT, keep it in the database record
     cur.execute(f"CREATE TABLE Previlege (userId INT, item VARCHAR(32), value INT)")
     # User previlege, such as word_limit
 
@@ -189,7 +191,7 @@ def apiRegister():
         
     cur = conn.cursor()
 
-    cur.execute(f"SELECT COUNT(*) FROM UserInfo")
+    cur.execute(f"SELECT COUNT(*) FROM UserInfo WHERE userId > 0") # banned users are not counted
     userCnt = cur.fetchall()[0][0]
     if config.max_user_allowed != -1 and userCnt >= config.max_user_allowed:
         return json.dumps({"success": False, "msg": "System has reached its limit of maximum registered users. Contact administrator for more information."})
@@ -291,7 +293,7 @@ def apiLogin():
 
 @app.route("/api/logout", methods = ['POST'])
 def apiLogout():
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         return json.dumps({"success": True})
 
     userId = int(request.form["userId"])
@@ -303,7 +305,7 @@ def apiLogout():
 @app.route("/api/deleteAccount", methods = ['POST'])
 def apiDeleteAccount():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
 
     userId = int(request.form["userId"])
@@ -327,7 +329,7 @@ def apiDeleteAccount():
 
 @app.route("/api/validateToken", methods = ['POST'])
 def apiValidateToken():
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         return json.dumps({"validation": False})
     userId = int(request.form["userId"])
     token = request.form["token"]
@@ -336,7 +338,7 @@ def apiValidateToken():
 @app.route("/api/getUserInfo", methods = ['POST'])
 def apiGetUserInfo():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
 
     userId = int(request.form["userId"])
@@ -371,7 +373,7 @@ def apiGetUserInfo():
 @app.route("/api/changePassword", methods=['POST'])
 def apiChangePassword():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
         
     userId = int(request.form["userId"])
@@ -409,7 +411,7 @@ def apiChangePassword():
 @app.route("/api/admin/restart", methods = ['POST'])
 def apiAdminRestart():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
 
     userId = int(request.form["userId"])
@@ -455,7 +457,7 @@ def nginxProtectedRestart():
 @app.route("/api/getWordBookList", methods = ['POST'])
 def apiGetWordBook():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
 
     userId = int(request.form["userId"])
@@ -501,7 +503,7 @@ def apiGetWordBook():
 @app.route("/api/createWordBook", methods = ['POST'])
 def apiCreateWordBook():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
 
     userId = int(request.form["userId"])
@@ -604,7 +606,7 @@ def apiCreateWordBook():
 @app.route("/api/deleteWordBook", methods = ['POST'])
 def apiDeleteWordBook():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
 
     userId = int(request.form["userId"])
@@ -626,7 +628,7 @@ def apiDeleteWordBook():
 @app.route("/api/addToWordBook", methods = ['POST'])
 def apiAddToWordBook():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
 
     userId = int(request.form["userId"])
@@ -657,7 +659,7 @@ def apiAddToWordBook():
 @app.route("/api/deleteFromWordBook", methods = ['POST'])
 def apiDeleteFromWordBook():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
 
     userId = int(request.form["userId"])
@@ -685,7 +687,7 @@ def apiDeleteFromWordBook():
 @app.route("/api/getWordList", methods = ['POST'])
 def apiGetWordList():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
 
     userId = int(request.form["userId"])
@@ -704,7 +706,7 @@ def apiGetWordList():
 @app.route("/api/shareWordBook", methods = ['POST'])
 def apiShareWordBook():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
 
     userId = int(request.form["userId"])
@@ -748,7 +750,7 @@ def apiShareWordBook():
 @app.route("/api/renameWordBook", methods = ['POST'])
 def apiRenameWordBook():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
 
     userId = int(request.form["userId"])
@@ -777,7 +779,7 @@ def apiRenameWordBook():
 @app.route("/api/getWord", methods = ['POST'])
 def apiGetWord():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
 
     userId = int(request.form["userId"])
@@ -802,7 +804,7 @@ def apiGetWord():
 @app.route("/api/getWordId", methods = ['POST'])
 def apiGetWordID():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
         
     userId = int(request.form["userId"])
@@ -824,7 +826,7 @@ def apiGetWordID():
 @app.route("/api/getWordStat", methods = ['POST'])
 def apiGetWordStat():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
         
     userId = int(request.form["userId"])
@@ -994,7 +996,7 @@ def getWordsInWordBook(userId, wordBookId, statusRequirement):
 @app.route("/api/getNext", methods = ['POST'])
 def apiGetNext():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
         
     userId = int(request.form["userId"])
@@ -1189,7 +1191,7 @@ def getChallengeWordId(userId, wordBookId, nofour = False):
 @app.route("/api/getNextChallenge", methods = ['POST'])
 def apiGetNextChallenge():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
         
     userId = int(request.form["userId"])
@@ -1216,7 +1218,7 @@ addtime = [300, 1200, 3600, 10800, 28800, 86401, 172800, 432000, 864010]
 @app.route("/api/updateChallengeRecord", methods = ['POST'])
 def apiUpdateChallengeRecord():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
         
     userId = int(request.form["userId"])
@@ -1269,7 +1271,7 @@ def apiUpdateChallengeRecord():
 
 @app.route("/api/getWordCount", methods = ['POST'])
 def apiGetWordCount():
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
         
     userId = int(request.form["userId"])
@@ -1282,7 +1284,7 @@ def apiGetWordCount():
 @app.route("/api/updateWordStatus", methods = ['POST'])
 def apiUpdateWordStatus():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
         
     userId = int(request.form["userId"])
@@ -1313,7 +1315,7 @@ duplicate = []
 @app.route("/api/addWord", methods = ['POST'])
 def apiAddWord():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
         
     userId = int(request.form["userId"])
@@ -1362,7 +1364,7 @@ def apiAddWord():
 @app.route("/api/editWord", methods = ['POST'])
 def apiEditWord():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
         
     userId = int(request.form["userId"])
@@ -1387,7 +1389,7 @@ def apiEditWord():
 @app.route("/api/deleteWord", methods = ['POST'])
 def apiDeleteWord():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
         
     userId = int(request.form["userId"])
@@ -1412,7 +1414,7 @@ def apiDeleteWord():
 @app.route("/api/clearDeleted", methods = ['POST'])
 def apiClearDeleted():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
         
     userId = int(request.form["userId"])
@@ -1441,7 +1443,7 @@ def apiClearDeleted():
 def importData():
     cur = conn.cursor()
     if request.method == 'POST':
-        if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+        if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
             return render_template("import.html", MESSAGE = "Login first!")
 
         userId = int(request.form["userId"])
@@ -1558,7 +1560,7 @@ def importData():
 def exportData():
     cur = conn.cursor()
     if request.method == "POST":
-        if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+        if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
             return render_template("export.html", MESSAGE = "Login first!")
 
         userId = int(request.form["userId"])
@@ -1622,7 +1624,7 @@ def adminCli():
 @app.route("/api/admin/command", methods = ['POST'])
 def apiAdminCommand():
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
         
     userId = int(request.form["userId"])
@@ -1750,7 +1752,7 @@ def apiAdminCommand():
         
         uid = int(command[1])
 
-        if uid <= 0:
+        if uid < 0:
             return json.dumps({"success": False, "msg": "Invalid user id!"})
         
         if uid == userId:
@@ -1790,6 +1792,27 @@ def apiAdminCommand():
                 cur.execute(f"UPDATE UserInfo SET userId = {uid} WHERE userId = {-uid}")
                 conn.commit()
                 return json.dumps({"success": False, "msg": f"Unbanned user {uid}"})
+
+    elif command[0] == "get_user_count":
+        cur.execute(f"SELECT COUNT(*) FROM UserInfo")
+        tot = 0
+        d = cur.fetchall()
+        if len(d) != 0:
+            tot = d[0][0]
+            
+        cur.execute(f"SELECT COUNT(*) FROM UserInfo WHERE userId > 0")
+        cnt = 0
+        d = cur.fetchall()
+        if len(d) != 0:
+            cnt = d[0][0]
+
+        cur.execute(f"SELECT COUNT(*) FROM UserInfo WHERE userId < 0")
+        banned = 0
+        d = cur.fetchall()
+        if len(d) != 0:
+            banned = d[0][0]
+        
+        return json.dumps({"success": True, "msg": f"Total user: {tot}\nActive user: {cnt}\nBanned user: {banned}"})
 
     else:
         return json.dumps({"success": False, "msg": "Unknown command"})
