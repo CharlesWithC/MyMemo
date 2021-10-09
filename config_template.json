@@ -1,0 +1,12 @@
+{
+    "server_ip": "127.0.0.1",
+    "server_port": 8888,
+
+    "default_user_password": "123456",
+
+    "max_user_allowed": -1,
+    "max_word_per_user_allowed": -1,
+
+    "allow_register": true,
+    "use_invite_system": false
+}

@@ -17,6 +17,32 @@ StatusTextToStatus = {"Default": 1, "Tagged": 2, "Removed": 3}
 StatusToStatusText = {1: "Default", 2: "Tagged", 3: "Removed"}
 wordCnt = 0
 
+# Import config
+class Dict2Obj(object):
+    def __init__(self, d):
+        for key in d:
+            if type(d[key]) is dict:
+                data = Dict2Obj(d[key])
+                setattr(self, key, data)
+            else:
+                setattr(self, key, d[key])
+
+config = Dict2Obj({
+    "server_ip": "127.0.0.1",
+    "server_port": 8888,
+    
+    "default_user_password": "123456",
+
+    "max_user_allowed": -1,
+    "max_word_per_user_allowed": -1,
+
+    "allow_register": True,
+    "use_invite_system": False
+})
+if os.path.exists("./config.json"):
+    config_txt = open("./config.json","r").read()
+    config = Dict2Obj(json.loads(config_txt))
+
 def hashpwd(password):
     return bcrypt.hashpw(password.encode(),bcrypt.gensalt(12)).decode()
 
@@ -53,7 +79,7 @@ if not db_exists:
     # After the 14 days, all of the user's data will be wiped, including UserInfo, WordList, ChallengeData etc
     # But his/her userId will persist forever, while it represents an empty account named "Deleted Account"
 
-    defaultpwd = hashpwd("123456")
+    defaultpwd = hashpwd(config.default_user_password)
     cur.execute(f"INSERT INTO UserInfo VALUES (0,'default','None','{defaultpwd}',-1,'{gencode()}')")
     # Default user system's password is 123456
 
@@ -154,7 +180,16 @@ def ping():
 
 @app.route("/api/register", methods = ['POST'])
 def apiRegister():
+    if not config.allow_register:
+        return json.dumps({"success": False, "msg": "Public register not enabled!"})
+        
     cur = conn.cursor()
+
+    cur.execute(f"SELECT COUNT(*) FROM UserInfo")
+    userCnt = cur.fetchall()[0][0]
+    if config.max_user_allowed != -1 and userCnt >= config.max_user_allowed:
+        return json.dumps({"success": False, "msg": "System has reached its limit of maximum registered users. Contact administrator for more information."})
+
     username = request.form["username"]
     email = request.form["email"]
     password = request.form["password"]
@@ -176,14 +211,15 @@ def apiRegister():
 
     password = hashpwd(password)
     
-    cur.execute(f"SELECT userId FROM UserInfo WHERE inviteCode = '{invitationCode}'")
-    d = cur.fetchall()
-    if len(d) == 0:
-        return json.dumps({"success": False, "msg": "Invalid invitation code!"})
-    inviter = d[0][0]
-    cur.execute(f"SELECT username FROM UserInfo WHERE userId = {inviter}")
-    if cur.fetchall()[0][0] == "@deleted":
-        return json.dumps({"success": False, "msg": "Invalid invitation code!"})
+    if config.use_invite_system:
+        cur.execute(f"SELECT userId FROM UserInfo WHERE inviteCode = '{invitationCode}'")
+        d = cur.fetchall()
+        if len(d) == 0:
+            return json.dumps({"success": False, "msg": "Invalid invitation code!"})
+        inviter = d[0][0]
+        cur.execute(f"SELECT username FROM UserInfo WHERE userId = {inviter}")
+        if cur.fetchall()[0][0] == "@deleted":
+            return json.dumps({"success": False, "msg": "Invalid invitation code!"})
 
     inviteCode = gencode()
 
@@ -484,7 +520,6 @@ def apiCreateWordBook():
                 # create word book
                 cur.execute(f"SELECT name FROM WordBook WHERE userId = {sharerUserId} AND wordBookId = {sharerWordBookId}")
                 name = cur.fetchall()[0][0]
-            cur.execute(f"INSERT INTO WordBook VALUES ({userId}, {wordBookId}, '{name}')")
 
             t = []
             if sharerWordBookId != 0:
@@ -499,7 +534,15 @@ def apiCreateWordBook():
             for bb in b:
                 di[bb[0]] = (bb[1], bb[2])
             
+            
+            cur.execute(f"SELECT COUNT(*) FROM WordList WHERE userId = {userId}")
+            d = cur.fetchall()
+            if len(d) != 0 and config.max_word_per_user_allowed != -1 and d[0][0] + len(t) >= config.max_word_per_user_allowed:
+                return json.dumps({"success": False, "msg": f"You have reached your limit of maximum added words {config.max_word_per_user_allowed}. Remove some old words or contact administrator for help."})
+
             # do import
+            cur.execute(f"INSERT INTO WordBook VALUES ({userId}, {wordBookId}, '{name}')")
+
             wordId = 0
 
             cur.execute(f"SELECT wordId FROM WordList WHERE userId = {userId} ORDER BY wordId DESC LIMIT 1")
@@ -1234,6 +1277,9 @@ def apiUpdateWordStatus():
     words = json.loads(request.form["words"])
     status = int(request.form["status"])
 
+    if status < 1 or status > 3:
+        return json.dumps({"success": False, "msg": "Invalid status code!"})
+
     for wordId in words:
         cur.execute(f"SELECT word FROM WordList WHERE wordId = {wordId} AND userId = {userId}")
         if len(cur.fetchall()) == 0:
@@ -1258,6 +1304,11 @@ def apiAddWord():
     token = request.form["token"]
     if not validateToken(userId, token):
         abort(401)
+
+    cur.execute(f"SELECT COUNT(*) FROM WordList WHERE userId = {userId}")
+    d = cur.fetchall()
+    if len(d) != 0 and config.max_word_per_user_allowed != -1 and d[0][0] >= max_word_per_user_allowed:
+        return json.dumps({"success": False, "msg": f"You have reached your limit of maximum added words {max_word_per_user_allowed}. Remove some old words or contact administrator for help."})
 
     word = request.form["word"]
     word = encode(word)
@@ -1419,6 +1470,13 @@ def importData():
             if len(duplicate) != 0:
                 return render_template("import.html", MESSAGE = f"Upload rejected due to duplicated words: {' ; '.join(duplicate)}")
 
+        
+        cur.execute(f"SELECT COUNT(*) FROM WordList WHERE userId = {userId}")
+        d = cur.fetchall()
+        if len(d) != 0 and config.max_word_per_user_allowed != -1 and d[0][0] + len(newlist) >= config.max_word_per_user_allowed:
+            return render_template("import.html", MESSAGE = f"You have reached your limit of maximum added words {config.max_word_per_user_allowed}. Remove some old words or contact administrator for help.")
+
+
         wordId = 0
 
         cur.execute(f"SELECT wordId FROM WordList WHERE userId = {userId} ORDER BY wordId DESC LIMIT 1")
@@ -1529,4 +1587,4 @@ threading.Thread(target = autoRestart).start()
 
 app.jinja_env.auto_reload = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True
-app.run("127.0.0.1",8888)
+app.run(config.server_ip, config.server_port)

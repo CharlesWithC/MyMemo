@@ -6,6 +6,10 @@
 Added sharable word book  
 Added function to rename word book
 
+*Date: 2021/10/9*  
+Added config file  
+Added user & word limit  
+
 ## v3.1.3
 
 *Date: 2021/10/5*  

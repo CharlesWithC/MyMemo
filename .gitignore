@@ -1,3 +1,4 @@
 *.db
 *.xlsx
 plans.txt
+config.json

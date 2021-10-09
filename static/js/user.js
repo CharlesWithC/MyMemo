@@ -104,6 +104,9 @@ var delcnt = 0;
 var chcnt = 0;
 var life = 0;
 
+if(localStorage.getItem("userId") == null || localStorage.getItem("userId") == 0)
+    localStorage.removeItem("admin");
+
 $.ajax({
     url: "/api/getUserInfo",
     method: 'POST',
@@ -585,6 +588,7 @@ function loginfunc() {
             if (r.success == true) {
                 localStorage.setItem("userId", r.userId);
                 localStorage.setItem("token", r.token);
+                userId = r.userId;
                 ctx.fillStyle = "green";
                 ctx.fillText("Logged in successfully!", canvas.width / 2, buttons[0].y - buttons[0].h * 0.5);
                 $.ajax({
@@ -608,6 +612,8 @@ function loginfunc() {
                         life = r.life;
                         if (r.isAdmin) {
                             localStorage.setItem("admin", "true");
+                        } else {
+                            localStorage.removeItem("admin");
                         }
                     }
                 });
