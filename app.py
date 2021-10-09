@@ -79,9 +79,13 @@ if not db_exists:
     # After the 14 days, all of the user's data will be wiped, including UserInfo, WordList, ChallengeData etc
     # But his/her userId will persist forever, while it represents an empty account named "Deleted Account"
 
+    # If user id becomes a negative number, it means this user has been banned
+
     defaultpwd = hashpwd(config.default_user_password)
     cur.execute(f"INSERT INTO UserInfo VALUES (0,'default','None','{defaultpwd}',-1,'{gencode()}')")
     # Default user system's password is 123456
+    cur.execute(f"CREATE TABLE Previlege (userId INT, item VARCHAR(32), value INT)")
+    # User previlege, such as word_limit
 
     cur.execute(f"CREATE TABLE AdminList (userId INT)")
     # Currently this admin list can only be edited from backend using database operations
@@ -211,6 +215,7 @@ def apiRegister():
 
     password = hashpwd(password)
     
+    inviter = 0
     if config.use_invite_system:
         cur.execute(f"SELECT userId FROM UserInfo WHERE inviteCode = '{invitationCode}'")
         d = cur.fetchall()
@@ -218,11 +223,12 @@ def apiRegister():
             return json.dumps({"success": False, "msg": "Invalid invitation code!"})
         inviter = d[0][0]
         cur.execute(f"SELECT username FROM UserInfo WHERE userId = {inviter}")
-        if cur.fetchall()[0][0] == "@deleted":
+        if cur.fetchall()[0][0] == "@deleted" or inviter < 0: # inviter < 0 => account banned
             return json.dumps({"success": False, "msg": "Invalid invitation code!"})
 
     inviteCode = gencode()
 
+    userId = -1
     try:
         cur.execute(f"SELECT MAX(userId) FROM UserInfo")
         userId = cur.fetchall()[0][0] + 1
@@ -230,6 +236,7 @@ def apiRegister():
         conn.commit()
     except:
         sessions.errcnt += 1
+        return json.dumps({"success": False, "msg": "Unknown error occured. Try again later..."})
 
     cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'register', {int(time.time())})")
 
@@ -244,6 +251,7 @@ def apiLogin():
     if not username.replace("_","").isalnum():
         return json.dumps({"success": False, "msg": "Username can only contain alphabets, digits and underscore!"})
     
+    d = [-1]
     try:
         cur.execute(f"SELECT userId, password FROM UserInfo WHERE username = '{username}'")
         d = cur.fetchall()
@@ -252,6 +260,7 @@ def apiLogin():
         d = d[0]
     except:
         sessions.errcnt += 1
+        return json.dumps({"success": False, "msg": "Unknown error occured. Try again later..."})
         
     if not checkpwd(password,decode(d[1])):
         return json.dumps({"success": False, "msg": "Invalid password!"})
@@ -265,6 +274,9 @@ def apiLogin():
     else:
         recoverAccount.remove(userId)
         sessions.removeDeletionMark(userId)
+    
+    if userId < 0:
+        return json.dumps({"success": False, "msg": "Account banned. Contact administrator for more information."})
 
     token = sessions.login(userId)
 
@@ -352,9 +364,9 @@ def apiGetUserInfo():
 
     cur.execute(f"SELECT timestamp FROM UserEvent WHERE userId = {userId} AND event = 'register'")
     regts = cur.fetchall()[0][0]
-    life = math.ceil((time.time() - regts) / 86400)
+    age = math.ceil((time.time() - regts) / 86400)
 
-    return json.dumps({"username": d[0], "email": d[1], "invitationCode": d[2], "inviter": inviter, "cnt": cnt, "tagcnt": tagcnt, "delcnt": delcnt, "chcnt": chcnt, "life": life})
+    return json.dumps({"username": d[0], "email": d[1], "invitationCode": d[2], "inviter": inviter, "cnt": cnt, "tagcnt": tagcnt, "delcnt": delcnt, "chcnt": chcnt, "age": age})
 
 @app.route("/api/changePassword", methods=['POST'])
 def apiChangePassword():
@@ -534,11 +546,15 @@ def apiCreateWordBook():
             for bb in b:
                 di[bb[0]] = (bb[1], bb[2])
             
-            
+            max_allow = config.max_word_per_user_allowed
+            cur.execute(f"SELECT value FROM Previlege WHERE userId = {userId} AND item = 'word_limit'")
+            pr = cur.fetchall()
+            if len(pr) != 0:
+                max_allow = pr[0][0]
             cur.execute(f"SELECT COUNT(*) FROM WordList WHERE userId = {userId}")
             d = cur.fetchall()
-            if len(d) != 0 and config.max_word_per_user_allowed != -1 and d[0][0] + len(t) >= config.max_word_per_user_allowed:
-                return json.dumps({"success": False, "msg": f"You have reached your limit of maximum added words {config.max_word_per_user_allowed}. Remove some old words or contact administrator for help."})
+            if len(d) != 0 and max_allow != -1 and d[0][0] + len(t) >= max_allow:
+                return json.dumps({"success": False, "msg": f"You have reached your limit of maximum added words {max_allow}. Remove some old words or contact administrator for help."})
 
             # do import
             cur.execute(f"INSERT INTO WordBook VALUES ({userId}, {wordBookId}, '{name}')")
@@ -1305,10 +1321,15 @@ def apiAddWord():
     if not validateToken(userId, token):
         abort(401)
 
+    max_allow = config.max_word_per_user_allowed
+    cur.execute(f"SELECT value FROM Previlege WHERE userId = {userId} AND item = 'word_limit'")
+    pr = cur.fetchall()
+    if len(pr) != 0:
+        max_allow = pr[0][0]
     cur.execute(f"SELECT COUNT(*) FROM WordList WHERE userId = {userId}")
     d = cur.fetchall()
-    if len(d) != 0 and config.max_word_per_user_allowed != -1 and d[0][0] >= max_word_per_user_allowed:
-        return json.dumps({"success": False, "msg": f"You have reached your limit of maximum added words {max_word_per_user_allowed}. Remove some old words or contact administrator for help."})
+    if len(d) != 0 and max_allow != -1 and d[0][0] + 1>= max_allow:
+        return json.dumps({"success": False, "msg": f"You have reached your limit of maximum added words {max_allow}. Remove some old words or contact administrator for help."})
 
     word = request.form["word"]
     word = encode(word)
@@ -1317,7 +1338,7 @@ def apiAddWord():
         cur.execute(f"SELECT * FROM WordList WHERE word = '{word}' AND userId = {userId}")
         if len(cur.fetchall()) != 0:
             duplicate.append(word)
-            return json.dumps({"duplicate":True})
+            return json.dumps({"success": False, "msg": "Word duplicated! Add again to ignore."})
     else:
         duplicate.remove(word)
 
@@ -1336,7 +1357,7 @@ def apiAddWord():
     updateWordStatus(userId, wordId+1,1)
     conn.commit()
 
-    return json.dumps({"success":True})
+    return json.dumps({"success": True, "msg": "Word added!"})
 
 @app.route("/api/editWord", methods = ['POST'])
 def apiEditWord():
@@ -1471,10 +1492,15 @@ def importData():
                 return render_template("import.html", MESSAGE = f"Upload rejected due to duplicated words: {' ; '.join(duplicate)}")
 
         
+        max_allow = config.max_word_per_user_allowed
+        cur.execute(f"SELECT value FROM Previlege WHERE userId = {userId} AND item = 'word_limit'")
+        pr = cur.fetchall()
+        if len(pr) != 0:
+            max_allow = pr[0][0]
         cur.execute(f"SELECT COUNT(*) FROM WordList WHERE userId = {userId}")
         d = cur.fetchall()
-        if len(d) != 0 and config.max_word_per_user_allowed != -1 and d[0][0] + len(newlist) >= config.max_word_per_user_allowed:
-            return render_template("import.html", MESSAGE = f"You have reached your limit of maximum added words {config.max_word_per_user_allowed}. Remove some old words or contact administrator for help.")
+        if len(d) != 0 and max_allow != -1 and d[0][0] + len(newlist) >= max_allow:
+            return render_template("import.html", MESSAGE = f"You have reached your limit of maximum added words {max_allow}. Remove some old words or contact administrator for help.")
 
 
         wordId = 0
@@ -1581,6 +1607,192 @@ def autoRestart():
             os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
             sys.exit(0)
         time.sleep(5)
+
+
+
+
+##########
+# Admin Commands
+
+# Although there is api protection, a reverse proxy authentication is suggested
+@app.route("/admin/cli", methods = ['GET'])
+def adminCli():    
+    return render_template("admincli.html")
+
+@app.route("/api/admin/command", methods = ['POST'])
+def apiAdminCommand():
+    cur = conn.cursor()
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and not request.form["userId"].isdigit():
+        abort(401)
+        
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    if not validateToken(userId, token):
+        abort(401)
+
+    cur.execute(f"SELECT userId FROM AdminList WHERE userId = {userId}")
+    if len(cur.fetchall()) == 0:
+        abort(401)
+    
+    command = request.form["command"].split(" ")
+    if command[0] == "get_user_info":
+        if len(command) != 2:
+            return json.dumps({"success": False, "msg": f"Usage: get_user_info [userId]\nGet detailed user info of [userId]"})
+        
+        uid = int(command[1])
+        
+        cur.execute(f"SELECT username, email, inviteCode, inviter FROM UserInfo WHERE userId = {uid}")
+        d = cur.fetchall()[0]
+
+        cur.execute(f"SELECT username FROM UserInfo WHERE userId = {d[3]}")
+        inviter = cur.fetchall()[0][0]
+
+        cur.execute(f"SELECT COUNT(*) FROM WordList WHERE userId = {uid}")
+        cnt = cur.fetchall()[0][0]
+
+        cur.execute(f"SELECT timestamp FROM UserEvent WHERE userId = {uid} AND event = 'register'")
+        regts = cur.fetchall()[0][0]
+        age = math.ceil((time.time() - regts) / 86400)
+
+        return json.dumps({"success": True, "msg": f"{d[0]} (UID: {uid})\nEmail: {d[1]}\nInvitation Code: {d[2]}\nInviter: {inviter} (UID: {d[3]})\nWord Count: {cnt}\nAccount age: {age} day(s)"})
+    
+    elif command[0] == "create_user":
+        if len(command) != 4:
+            return json.dumps({"success": False, "msg": f"Usage: create_user [username] [email] [password]\nCreate a user by admin, user will be shown as invited by this admin"})
+        
+        username = command[1]
+        email = command[2]
+        password = command[3]
+        inviter = userId # inviter is admin
+        
+        if not username.replace("_","").isalnum():
+            return json.dumps({"success": False, "msg": "Username can only contain alphabets, digits and underscore!"})
+        if validators.email(email) != True:
+            return json.dumps({"success": False, "msg": "Invalid email!"})
+
+        cur.execute(f"SELECT username FROM UserInfo WHERE username = '{username}'")
+        if len(cur.fetchall()) != 0:
+            return json.dumps({"success": False, "msg": "Username already registered!"})
+
+        password = hashpwd(password)
+
+        inviteCode = gencode()
+
+        uid = -1
+        try:
+            cur.execute(f"SELECT MAX(userId) FROM UserInfo")
+            uid = cur.fetchall()[0][0] + 1
+            cur.execute(f"INSERT INTO UserInfo VALUES ({uid}, '{username}', '{email}', '{encode(password)}', {inviter}, '{inviteCode}')")
+            conn.commit()
+        except:
+            sessions.errcnt += 1
+            return json.dumps({"success": False, "msg": "Unknown error occured. Try again later..."})
+
+        cur.execute(f"INSERT INTO UserEvent VALUES ({uid}, 'register', {int(time.time())})")
+        conn.commit()
+
+        return json.dumps({"success": True, "msg": f"User registered (UID: {uid})"})
+    
+    elif command[0] == "delete_user":
+        if len(command) != 2:
+            return json.dumps({"success": False, "msg": "Usage: delete_user [userId]\nThe account must be marked as deletion first, and admin will be able to bring the deletion schedule forward"})
+
+        uid = int(command[1])
+        ok = DeleteAccountNow(uid)
+
+        if ok == -1:
+            return json.dumps({"success": False, "msg": "Account not marked for deletion!"})
+        
+        elif ok == 0:
+            return json.dumps({"success": False, "msg": "Account deleted"})
+    
+    elif command[0] == "set_previlege":
+        if len(command) != 4:
+            return json.dumps({"success": False, "msg": "Usage: set_previlege [userId] [item] [value]\nAdd [item] previlege for user [userId] ([item] can be word_limit)\nIf previlege exists, then update it"})
+
+        uid = int(command[1])
+        item = command[2]
+        value = int(command[3])
+
+        if not item in ['word_limit']:
+            return json.dumps({"success": False, "msg": f"Unknown previlege item: {item}. Acceptable item list: word_limit"})
+
+        cur.execute(f"SELECT * FROM Previlege WHERE userId = {uid} AND item = '{item}'")
+        if len(cur.fetchall()) == 0:
+            cur.execute(f"INSERT INTO Previlege VALUES ({uid}, '{item}', {value})")
+        else:
+            cur.execute(f"UPDATE Previlege SET value = {value} WHERE userId = {uid} AND item = '{item}'")
+        conn.commit()
+
+        return json.dumps({"success": True, "msg": "Previlege set"})
+    
+    elif command[0] == "remove_previlege":
+        if len(command) != 3:
+            return json.dumps({"success": False, "msg": "Usage: remove_previlege [userId] [item]\nDelete [item] previlege from user [userId]"})
+
+        uid = int(command[1])
+        item = command[2]
+
+        if not item in ['word_limit']:
+            return json.dumps({"success": False, "msg": f"Unknown previlege item: {item}. Acceptable item list: word_limit"})
+
+        cur.execute(f"SELECT * FROM Previlege WHERE userId = {uid} AND item = '{item}'")
+        if len(cur.fetchall()) != 0:
+            cur.execute(f"DELETE FROM Previlege WHERE userId = {uid} AND item = '{item}'")
+            conn.commit()
+            return json.dumps({"success": True, "msg": "Previlege removed for this user"})
+        else:
+            return json.dumps({"success": False, "msg": "This user doesn't have this previlege!"})
+
+    elif command[0] == "ban_account":
+        if len(command) != 2:
+            return json.dumps({"success": False, "msg": "Usage: ban_account [userId]\nBan account"})
+        
+        uid = int(command[1])
+
+        if uid <= 0:
+            return json.dumps({"success": False, "msg": "Invalid user id!"})
+        
+        if uid == userId:
+            return json.dumps({"success": False, "msg": "You cannot ban yourself!"})
+
+        cur.execute(f"SELECT userId FROM UserInfo WHERE userId = {uid}")
+        if len(cur.fetchall()) == 0:
+            cur.execute(f"SELECT userId FROM UserInfo WHERE userId = {-uid}")
+            if len(cur.fetchall()) == 0:
+                return json.dumps({"success": False, "msg": "Account doesn't exist!"})
+            else:
+                return json.dumps({"success": False, "msg": "Account already banned!"})
+        
+        cur.execute(f"UPDATE UserInfo SET userId = {-uid} WHERE userId = {uid}")
+        conn.commit()
+
+        return json.dumps({"success": False, "msg": f"Banned user {uid}"})
+
+    elif command[0] == "unban_account":
+        if len(command) != 2:
+            return json.dumps({"success": False, "msg": "Usage: unban_account [userId]\nUnban account"})
+        
+        uid = int(command[1])
+
+        if uid <= 0:
+            return json.dumps({"success": False, "msg": "Invalid user id!"})
+
+        cur.execute(f"SELECT userId FROM UserInfo WHERE userId = {-uid}")
+        if len(cur.fetchall()) == 0:
+            return json.dumps({"success": False, "msg": "Account isn't banned!"})
+            
+        else:
+            cur.execute(f"SELECT userId FROM UserInfo WHERE userId = {-uid}")
+            if len(cur.fetchall()) == 0:
+                return json.dumps({"success": False, "msg": "Account doesn't exist!"})
+            else:
+                cur.execute(f"UPDATE UserInfo SET userId = {uid} WHERE userId = {-uid}")
+                conn.commit()
+                return json.dumps({"success": False, "msg": f"Unbanned user {uid}"})
+
+    else:
+        return json.dumps({"success": False, "msg": "Unknown command"})
 
 threading.Thread(target = sessions.PendingAccountDeletion).start()
 threading.Thread(target = autoRestart).start()

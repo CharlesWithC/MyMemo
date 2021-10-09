@@ -1452,6 +1452,7 @@ function renderWordBookAddWord() {
 var loaded = false;
 
 function renderCurrentPage() {
+    btninit();
     localStorage.setItem("currentpage", currentpage);
     wordBookRect = [];
     loaded = false;
@@ -2183,6 +2184,12 @@ function clickHandler(e) {
             } else if (buttons[k].name == "account") {
                 window.location.href = "/user";
             } else if (buttons[k].name == "addword") {
+                if(currentpage != 3) {
+                    lastpage = currentpage;
+                    currentpage = 3;
+                    renderCurrentPage();
+                    return;
+                }
                 ctx.font = fontSize + "px Corbel";
                 ctx.textAlign = "center";
 
@@ -2216,12 +2223,11 @@ function clickHandler(e) {
                         success: function (r) {
                             ctx.fillStyle = "white";
                             ctx.roundRect(0, buttons[19].y - buttons[19].h * 2.5, canvas.width, buttons[19].h * 1.5 + 5);
-                            if (r.duplicate == true) {
-                                ctx.fillStyle = "red";
-                                ctx.fillText("Word duplicated! Add again to ignore.", canvas.width / 2, buttons[19].y - buttons[19].h * 1.5);
+                            if (r.success == false) {
+                                alert(r.msg);
                             } else {
                                 ctx.fillStyle = "green";
-                                ctx.fillText("Word added!", canvas.width / 2, buttons[19].y - buttons[19].h * 1.5);
+                                ctx.fillText(r.msg, canvas.width / 2, buttons[19].y - buttons[19].h * 1.5);
                                 updateWordBookWordList(true);
                             }
                         },
@@ -2281,6 +2287,9 @@ function clickHandler(e) {
                     });
                 }
             } else if (buttons[k].name == "cleardeleted") {
+                if(currentpage != 2){
+                    return;
+                }
                 if (confirm('Are you sure to delete all the words that are marked as "Deleted" permanently? This operation cannot be undone!')) {
                     $.ajax({
                         url: '/api/clearDeleted',

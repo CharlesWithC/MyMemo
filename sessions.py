@@ -165,3 +165,32 @@ def PendingAccountDeletion():
     except:
         global errcnt
         errcnt += 1
+
+def DeleteAccountNow(userId):
+    try:
+        cur = conn.cursor()
+
+        cur.execute(f"SELECT userId FROM PendingAccountDeletion WHERE userId = {userId}")
+        if len(cur.fetchall()) == 0:
+            return -1
+        
+        cur.execute(f"DELETE FROM PendingAccountDeletion WHERE userId = {userId}")
+
+        cur.execute(f"UPDATE UserInfo SET username = '@deleted' WHERE userId = {userId}")
+        cur.execute(f"UPDATE UserInfo SET email = '' WHERE userId = {userId}")
+        cur.execute(f"UPDATE UserInfo SET password = '' WHERE userId = {userId}")
+        
+        deleteData(userId)
+
+        cur.execute(f"DELETE FROM WordList WHERE userId = {userId}")
+        cur.execute(f"DELETE FROM ChallengeData WHERE userId = {userId}")
+        cur.execute(f"DELETE FROM ChallengeRecord WHERE userId = {userId}")
+        cur.execute(f"DELETE FROM DeletedWordList WHERE userId = {userId}")
+        cur.execute(f"DELETE FROM StatusUpdate WHERE userId = {userId}")
+        conn.commit()
+        
+        return 0
+
+    except:
+        global errcnt
+        errcnt += 1

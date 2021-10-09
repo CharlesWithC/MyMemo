@@ -102,7 +102,7 @@ var cnt = 0;
 var tagcnt = 0;
 var delcnt = 0;
 var chcnt = 0;
-var life = 0;
+var age = 0;
 
 if(localStorage.getItem("userId") == null || localStorage.getItem("userId") == 0)
     localStorage.removeItem("admin");
@@ -125,7 +125,7 @@ $.ajax({
         delcnt = r.delcnt;
         chcnt = r.chcnt;
         inviter = r.inviter;
-        life = r.life;
+        age = r.age;
     }
 });
 
@@ -196,7 +196,7 @@ function renderHomePage() {
                 delcnt = r.delcnt;
                 chcnt = r.chcnt;
                 inviter = r.inviter;
-                life = r.life;
+                age = r.age;
             }
         });
     }
@@ -205,7 +205,7 @@ function renderHomePage() {
     ctx.fillText(username + "  [UID: " + userId +"]", canvas.width / 2, canvas.height / 2 - 100);
 
     ctx.font = fontSize * 0.7 + "px Corbel";
-    ctx.fillText("You have already been here for " + life + " days!", canvas.width / 2, canvas.height / 2 - 70);
+    ctx.fillText("You have already been here for " + age + " days!", canvas.width / 2, canvas.height / 2 - 70);
 
     ctx.font = fontSize + "px Corbel";
     ctx.fillText("Email: " + email, canvas.width / 2, canvas.height / 2 - 20);
@@ -609,7 +609,7 @@ function loginfunc() {
                         delcnt = r.delcnt;
                         chcnt = r.chcnt;
                         inviter = r.inviter;
-                        life = r.life;
+                        age = r.age;
                         if (r.isAdmin) {
                             localStorage.setItem("admin", "true");
                         } else {

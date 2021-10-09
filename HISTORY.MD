@@ -1,5 +1,11 @@
 # Update History
 
+## v3.3.1
+
+*Date: 2021/10/9*  
+Added admin cli control panel  
+Added previlege system to expand word limit for specific users  
+
 ## v3.2.1
 
 *Date: 2021/10/6*  
