@@ -1,3 +1,7 @@
+# Copyright (C) 2021 Charles All rights reserved.
+# Author: @Charles-1414
+# License: GNU General Public License v3.0
+
 import os, time, uuid
 import sqlite3
 
@@ -137,34 +141,6 @@ def removeDeletionMark(userId):
     except:
         global errcnt
         errcnt += 1
-    
-def PendingAccountDeletion():
-    try:
-        cur = conn.cursor()
-        while 1:
-            cur.execute(f"SELECT userId FROM PendingAccountDeletion WHERE deletionTime <= {int(time.time())}")
-            d = cur.fetchall()
-            for dd in d:
-                userId = dd[0]
-                cur.execute(f"UPDATE UserInfo SET username = '@deleted' WHERE userId = {userId}")
-                cur.execute(f"UPDATE UserInfo SET email = '' WHERE userId = {userId}")
-                cur.execute(f"UPDATE UserInfo SET password = '' WHERE userId = {userId}")
-                
-                deleteData(userId)
-
-                cur.execute(f"DELETE FROM WordList WHERE userId = {userId}")
-                cur.execute(f"DELETE FROM ChallengeData WHERE userId = {userId}")
-                cur.execute(f"DELETE FROM ChallengeRecord WHERE userId = {userId}")
-                cur.execute(f"DELETE FROM DeletedWordList WHERE userId = {userId}")
-                cur.execute(f"DELETE FROM StatusUpdate WHERE userId = {userId}")
-
-                conn.commit()
-
-            time.sleep(3600)
-        
-    except:
-        global errcnt
-        errcnt += 1
 
 def DeleteAccountNow(userId):
     try:
@@ -173,20 +149,8 @@ def DeleteAccountNow(userId):
         cur.execute(f"SELECT userId FROM PendingAccountDeletion WHERE userId = {userId}")
         if len(cur.fetchall()) == 0:
             return -1
-        
-        cur.execute(f"DELETE FROM PendingAccountDeletion WHERE userId = {userId}")
-
-        cur.execute(f"UPDATE UserInfo SET username = '@deleted' WHERE userId = {userId}")
-        cur.execute(f"UPDATE UserInfo SET email = '' WHERE userId = {userId}")
-        cur.execute(f"UPDATE UserInfo SET password = '' WHERE userId = {userId}")
-        
+            
         deleteData(userId)
-
-        cur.execute(f"DELETE FROM WordList WHERE userId = {userId}")
-        cur.execute(f"DELETE FROM ChallengeData WHERE userId = {userId}")
-        cur.execute(f"DELETE FROM ChallengeRecord WHERE userId = {userId}")
-        cur.execute(f"DELETE FROM DeletedWordList WHERE userId = {userId}")
-        cur.execute(f"DELETE FROM StatusUpdate WHERE userId = {userId}")
         conn.commit()
         
         return 0

@@ -27,6 +27,12 @@ CanvasRenderingContext2D.prototype.roundRect = function (x, y, width, height, ra
 }
 
 
+
+
+// Copyright (C) 2021 Charles All rights reserved.
+// Author: @Charles-1414
+// License: GNU General Public License v3.0
+
 // A function to make line breaks
 function lineBreak(str, width, maxLine = -1, font = "20px Corbel") { // width in px
     ret = "";
@@ -38,15 +44,15 @@ function lineBreak(str, width, maxLine = -1, font = "20px Corbel") { // width in
     if ($("#hiddenSpan").width() <= width) {
         return str;
     }
-    
+
     while (str.length > 0 && (maxLine == -1 || maxLine != -1 && lineCnt <= maxLine)) {
         if (lineCnt == maxLine) { // Line count limit: remove extra characters, use ... instead
             // Get line content (start from 1 character)
             lineLen = 1;
             $("#hiddenSpan").html(str.substr(0, lineLen));
             while ($("#hiddenSpan").width() <= width) {
-                if(lineLen == str.length){
-                    ret += str.substr(0,lineLen);
+                if (lineLen == str.length) {
+                    ret += str.substr(0, lineLen);
                     return ret;
                 }
                 lineLen += 1;
@@ -66,8 +72,8 @@ function lineBreak(str, width, maxLine = -1, font = "20px Corbel") { // width in
             lineLen = 1;
             $("#hiddenSpan").html(str.substr(0, lineLen));
             while ($("#hiddenSpan").width() <= width) {
-                if(lineLen == str.length){
-                    ret += str.substr(0,lineLen);
+                if (lineLen == str.length) {
+                    ret += str.substr(0, lineLen);
                     return ret;
                 }
                 lineLen += 1;
@@ -89,7 +95,7 @@ function lineBreak(str, width, maxLine = -1, font = "20px Corbel") { // width in
     return ret;
 }
 
-function getWidth(str, font = "20px Corbel"){
+function getWidth(str, font = "20px Corbel") {
     $("#hiddenSpan").attr("style", "display:none;font:" + font);
     $("#hiddenSpan").html(str);
     return $("#hiddenSpan").width();

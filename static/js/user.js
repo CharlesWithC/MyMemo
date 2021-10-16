@@ -543,6 +543,8 @@ function renderCurrentPage() {
     btnresize();
     fontresize();
     sleep(50).then(() => {
+        $("#username").hide();
+        $("#password").hide();
         if (currentpage == 0) {
             renderHomePage();
         } else if (currentpage == 1) {

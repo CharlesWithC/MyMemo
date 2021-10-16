@@ -1,5 +1,11 @@
 # Update History
 
+## v3.3.2
+
+*Date: 2021/10/16*  
+Better word list display & operation  
+Allowed user to add / import word(s) directly to word book  
+
 ## v3.3.1
 
 *Date: 2021/10/9*  

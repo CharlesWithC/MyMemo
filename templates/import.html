@@ -12,10 +12,12 @@
 <p>If you choose Clear & Overwrite, all the existing words will be deleted and only the uploaded ones will be kept.</p>
 <p>Please note that if you search for a word which is duplicated, only the first-imported one will be shown.</p>
 <br>
+<p>And, by the way, Excel doesn't support multiple lines in one cell, so if you want to write word / translation with multiple lines, use \n as line break.</p>
+<br>
 <p style="color:red">{{ MESSAGE }}</p>
 <form action="/importData" method="POST" enctype="multipart/form-data">
     <p>File: <input type="file" name="file" /></p>
-    <p>Type: 
+    <p>Upload Type:
         <input type="radio" id="append" name="updateType" value="append" checked>
         <label for="append">Append</label>
         <input type="radio" id="overwrite" name="updateType" value="overwrite">
@@ -23,23 +25,54 @@
         <input type="radio" id="clear_overwrite" name="updateType" value="clear_overwrite">
         <label for="clear_overwrite">Clear & Overwrite</label>
     </p>
-    <p>Check duplicate word? 
+    <p>Check duplicate word?
         <input type="radio" id="yes" name="checkDuplicate" value="yes" checked>
         <label for="yes">Yes</label>
         <input type="radio" id="no" name="checkDuplicate" value="no">
         <label for="no">No</label>
+    </p>
+    <p>Add to word list:
+        <select name="wordBookId" id="wordBook">
+        </select>
     </p>
     <input type="userId" id="userId" name="userId" style="display:none;" />
     <input type="token" id="token" name="token" style="display:none;" />
     <input type="submit" value="Import" />
 </form>
 <script>
-    $("#userId").val(localStorage.getItem("userId"));
-    $("#token").val(localStorage.getItem("token"));
+    $(document).ready(function(){
+        $("#userId").val(localStorage.getItem("userId"));
+        $("#token").val(localStorage.getItem("token"));
+        wordBookList = [];
+        $.ajax({
+            url: "/api/getWordBookList",
+            method: 'POST',
+            async: true,
+            dataType: "json",
+            data: {
+                userId: localStorage.getItem("userId"),
+                token: localStorage.getItem("token")
+            },
+            success: function (r) {
+                for (var i = 0; i < r.length; i++)
+                    $("#wordBook").append("<option value=" + r[i].wordBookId + ">" + r[i].name + "</option>");
+            }
+        });
+    });
 </script>
 
-<style>.footer{ position: fixed; right: 10; bottom: 0; width: 100%; text-align: right; font-family: Corbel;}</style>
+<style>
+    .footer {
+        z-index: -1; 
+        position: fixed;
+        right: 10;
+        bottom: 0;
+        width: 100%;
+        text-align: right;
+        font-family: Corbel;
+    }
+</style>
 <div class="footer">
-    <p>v3.3.1 &copy; Charles</p>
+    <p>v3.3.2 &copy; Charles</p>
     <p>Contact: <a href="mailto:word@charles14.xyz">word@charles14.xyz</a></p>
 </div>

@@ -82,10 +82,12 @@ if not db_exists:
     # If user id becomes a negative number, it means this user has been banned
 
     defaultpwd = hashpwd(config.default_user_password)
-    cur.execute(f"INSERT INTO UserInfo VALUES (0,'default','None','{defaultpwd}',-1,'{gencode()}')")
+    cur.execute(f"INSERT INTO UserInfo VALUES (0,'default','None','{defaultpwd}',0,'{gencode()}')")
+    cur.execute(f"INSERT INTO UserEvent VALUES (0, 'register', 0)")
     # Default user system's password is 123456
     # Clear default account's password after setup (so it cannot be logged in)
     # NOTE DO NOT DELETE THE DEFAULT ACCOUNT, keep it in the database record
+
     cur.execute(f"CREATE TABLE Previlege (userId INT, item VARCHAR(32), value INT)")
     # User previlege, such as word_limit
 
@@ -121,7 +123,7 @@ if not db_exists:
     cur.execute(f"CREATE TABLE ChallengeRecord (userId INT, wordId INT, memorized INT, timestamp INT)")
     # This is the record of historical challenges
 
-    cur.execute(f"CREATE TABLE DeletedWordList (userId INT, wordId INT, word VARCHAR(1024), translation VARCHAR(1024), status INT, deleteTimestamp INT)")
+    # cur.execute(f"CREATE TABLE DeletedWordList (userId INT, wordId INT, word VARCHAR(1024), translation VARCHAR(1024), status INT, deleteTimestamp INT)")
     # This is the list of all permanently deleted words (which will never be shown on user side)
 
     cur.execute(f"CREATE TABLE StatusUpdate (userId INT, wordId INT, wordUpdateId INT, updateTo INT, timestamp INT)")
@@ -652,6 +654,8 @@ def apiAddToWordBook():
     for wordId in words:
         if (wordId,) in d and not (wordId,) in t:
             cur.execute(f"INSERT INTO WordBookData VALUES ({userId}, {wordBookId}, {wordId})")
+            d.append((wordId,))
+            t.append((wordId,))
     conn.commit()
 
     return json.dumps({"success": True})
@@ -812,11 +816,17 @@ def apiGetWordID():
     if not validateToken(userId, token):
         abort(401)
     
-    word = request.form["word"]
+    word = request.form["word"].replace("\n","\\n")
+    wordBookId = int(request.form["wordBookId"])
     cur.execute(f"SELECT wordId FROM WordList WHERE word = '{encode(word)}' AND userId = {userId}")
     d = cur.fetchall()
     if len(d) != 0:
         wordId = d[0][0]
+        if wordBookId > 0:
+            cur.execute(f"SELECT wordBookId FROM WordBookData WHERE wordId = {wordId} AND wordBookId = {wordBookId}")
+            if len(cur.fetchall()) == 0:
+                abort(404)
+
         # If there are multiple records, then return the first one
         # NOTE: The user should be warned when they try to insert multiple records with the same word
         return json.dumps({"wordId" : wordId})
@@ -1333,18 +1343,18 @@ def apiAddWord():
     if len(d) != 0 and max_allow != -1 and d[0][0] + 1>= max_allow:
         return json.dumps({"success": False, "msg": f"You have reached your limit of maximum added words {max_allow}. Remove some old words or contact administrator for help."})
 
-    word = request.form["word"]
+    word = request.form["word"].replace("\\n","\n")
     word = encode(word)
 
-    if not word in duplicate:
+    if not (userId, word) in duplicate:
         cur.execute(f"SELECT * FROM WordList WHERE word = '{word}' AND userId = {userId}")
         if len(cur.fetchall()) != 0:
-            duplicate.append(word)
+            duplicate.append((userId, word))
             return json.dumps({"success": False, "msg": "Word duplicated! Add again to ignore."})
     else:
-        duplicate.remove(word)
+        duplicate.remove((userId, word))
 
-    translation = request.form["translation"]
+    translation = request.form["translation"].replace("\\n","\n")
     translation = encode(translation)
 
     wordId = -1
@@ -1352,11 +1362,19 @@ def apiAddWord():
     d = cur.fetchall()
     if len(d) != 0:
         wordId = d[0][0]
+    wordId += 1
 
-    cur.execute(f"INSERT INTO WordList VALUES ({userId},{wordId+1},'{word}','{translation}',1)")
-    cur.execute(f"INSERT INTO ChallengeData VALUES ({userId},{wordId+1},0,-1)")
-    updateWordStatus(userId, wordId+1,-1)
-    updateWordStatus(userId, wordId+1,1)
+    cur.execute(f"INSERT INTO WordList VALUES ({userId},{wordId},'{word}','{translation}',1)")
+    cur.execute(f"INSERT INTO ChallengeData VALUES ({userId},{wordId},0,-1)")
+    updateWordStatus(userId, wordId,-1)
+    updateWordStatus(userId, wordId,1)
+
+    wordBookId = int(request.form["addToWordBook"])
+    if wordBookId != -1:
+        cur.execute(f"SELECT wordBookId FROM WordBook WHERE userId = {userId} AND wordBookId = {wordBookId}")
+        if len(cur.fetchall()) != 0:
+            cur.execute(f"INSERT INTO WordBookData VALUES ({userId}, {wordBookId}, {wordId})")
+
     conn.commit()
 
     return json.dumps({"success": True, "msg": "Word added!"})
@@ -1373,8 +1391,8 @@ def apiEditWord():
         abort(401)
 
     wordId = int(request.form["wordId"])
-    word = encode(request.form["word"])
-    translation = encode(request.form["translation"])
+    word = encode(request.form["word"].replace("\\n","\n"))
+    translation = encode(request.form["translation"].replace("\\n","\n"))
 
     cur.execute(f"SELECT * FROM WordList WHERE wordId = {wordId} AND userId = {userId}")
     if len(cur.fetchall()) == 0:
@@ -1402,11 +1420,13 @@ def apiDeleteWord():
     for wordId in words:
         cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE userId = {userId} AND wordId = {wordId}")
         d = cur.fetchall()
-        ts = int(time.time())
-        dd = d[0]
-        cur.execute(f"INSERT INTO DeletedWordList VALUES ({userId},{dd[0]}, '{dd[1]}', '{dd[2]}', {dd[3]}, {ts})")
-        cur.execute(f"DELETE FROM WordList WHERE userId = {userId} AND wordId = {wordId}")
-        conn.commit()
+        if len(d) > 0: # make sure word not deleted
+            ts = int(time.time())
+            dd = d[0]
+            # cur.execute(f"INSERT INTO DeletedWordList VALUES ({userId},{dd[0]}, '{dd[1]}', '{dd[2]}', {dd[3]}, {ts})")
+            cur.execute(f"DELETE FROM WordList WHERE userId = {userId} AND wordId = {wordId}")
+            cur.execute(f"DELETE FROM WordBookData WHERE userId = {userId} AND wordId = {wordId}")
+    conn.commit()
 
     return json.dumps({"success": True})
 
@@ -1425,9 +1445,11 @@ def apiClearDeleted():
     cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE userId = {userId} AND status = 3")
     d = cur.fetchall()
     ts = int(time.time())
-    for dd in d:
-        cur.execute(f"INSERT INTO DeletedWordList VALUES ({userId},{dd[0]}, '{dd[1]}', '{dd[2]}', {dd[3]}, {ts})")
     cur.execute(f"DELETE FROM WordList WHERE userId = {userId} AND status = 3")
+    # for dd in d:
+    #     cur.execute(f"INSERT INTO DeletedWordList VALUES ({userId},{dd[0]}, '{dd[1]}', '{dd[2]}', {dd[3]}, {ts})")
+    for dd in d:
+        cur.execute(f"DELETE FROM WordBookData WHERE userId = {userId} AND wordId = {dd[0]}")
     conn.commit()
 
     return json.dumps({"success": True})
@@ -1463,15 +1485,15 @@ def importData():
             return render_template("import.html", MESSAGE = "Only .xlsx files are supported!")
         
         ts=int(time.time())
-        f.save(f"/tmp/data{ts}.xlsx")
+        f.save(f"/tmp/WordMemoCache/data{ts}.xlsx")
 
         try:
-            uploaded = pd.read_excel(f"/tmp/data{ts}.xlsx")
+            uploaded = pd.read_excel(f"/tmp/WordMemoCache/data{ts}.xlsx")
             if list(uploaded.keys()).count("Word") != 1 or list(uploaded.keys()).count("Translation")!=1:
-                os.system(f"rm -f /tmp/data{ts}.xlsx")
+                os.system(f"rm -f /tmp/WordMemoCache/data{ts}.xlsx")
                 return render_template("import.html", MESSAGE = "Invalid format! The columns must contain 'Word','Translation'!")
         except:
-            os.system(f"rm -f /tmp/data{ts}.xlsx")
+            os.system(f"rm -f /tmp/WordMemoCache/data{ts}.xlsx")
             return render_template("import.html", MESSAGE = "Invalid format! The columns must contain 'Word','Translation'!")
         
         #####
@@ -1481,17 +1503,17 @@ def importData():
         checkDuplicate = request.form["checkDuplicate"]
         checkDuplicate = yesno[checkDuplicate]
 
-        newlist = pd.read_excel(f"/tmp/data{ts}.xlsx")
-        duplicate = []
+        newlist = pd.read_excel(f"/tmp/WordMemoCache/data{ts}.xlsx")
+        importDuplicate = []
         cur.execute(f"SELECT word FROM WordList WHERE userId = {userId}")
         wordList = cur.fetchall()
         for i in range(0, len(newlist)):
             if (encode(str(newlist["Word"][i])),) in wordList:
-                duplicate.append(str(newlist["Word"][i]))
+                importDuplicate.append(str(newlist["Word"][i]))
 
         if checkDuplicate and updateType == "append":
-            if len(duplicate) != 0:
-                return render_template("import.html", MESSAGE = f"Upload rejected due to duplicated words: {' ; '.join(duplicate)}")
+            if len(importDuplicate) != 0:
+                return render_template("import.html", MESSAGE = f"Upload rejected due to duplicated words: {' ; '.join(importDuplicate)}")
 
         
         max_allow = config.max_word_per_user_allowed
@@ -1515,24 +1537,41 @@ def importData():
         if updateType  == "clear_overwrite":
             cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE userId = {userId}")
             d = cur.fetchall()
-            ts = int(time.time())
-            for dd in d:
-                cur.execute(f"INSERT INTO DeletedWordList VALUES ({userId},{dd[0]}, '{dd[1]}', '{dd[2]}', {dd[3]}, {ts})")
-            cur.execute(f"DELETE FROM WordBookData WHERE userId = {userId}")
-            cur.execute(f"DELETE FROM WordList WHERE userId = {userId}")
-            conn.commit()
+            if len(d) > 0:
+                ts = int(time.time())
+                # for dd in d:
+                #     cur.execute(f"INSERT INTO DeletedWordList VALUES ({userId},{dd[0]}, '{dd[1]}', '{dd[2]}', {dd[3]}, {ts})")
+                cur.execute(f"DELETE FROM WordBookData WHERE userId = {userId}")
+                cur.execute(f"DELETE FROM WordList WHERE userId = {userId}")
+        conn.commit()
+
+        wordBookId = int(request.form["wordBookId"])
+        wordBookList = []
+        if wordBookId != 0:
+            cur.execute(f"SELECT wordBookId FROM WordBook WHERE userId = {userId} AND wordBookId = {wordBookId}")
+            if len(cur.fetchall()) == 0:
+                wordBookId = 0
+            else:
+                cur.execute(f"SELECT wordId FROM WordBookData WHERE userId = {userId} AND wordBookId = {wordBookId}")
+                wordBookList = cur.fetchall()
 
         for i in range(0, len(newlist)):
-            word = str(newlist['Word'][i])
-            translation = str(newlist['Translation'][i])
+            word = str(newlist['Word'][i]).replace("\\n","\n")
+            translation = str(newlist['Translation'][i]).replace("\\n","\n")
 
-            if word in duplicate and updateType == "overwrite":
+            if word in importDuplicate and updateType == "overwrite":
                 cur.execute(f"SELECT wordId FROM WordList WHERE userId = {userId} AND word = '{encode(word)}'")
                 wid = cur.fetchall()[0][0] # do not use wordId as variable name or it will cause conflict
                 cur.execute(f"UPDATE WordList SET translation = '{encode(translation)}' WHERE wordId = {wid} AND userId = {userId}")
                 if list(uploaded.keys()).count("Status") == 1 and newlist["Status"][i] in ["Default", "Tagged", "Removed"]:
                     status = StatusTextToStatus[newlist["Status"][i]]
                     cur.execute(f"UPDATE WordList SET status = {status} WHERE wordId = {wid} AND userId = {userId}")
+                if wordBookId != 0:
+                    if not (wordId,) in wordBookList:
+                        cur.execute(f"INSERT INTO WordBookData VALUES ({userId}, {wordBookId}, {wordId})")
+                        wordBookList.append((wordId,))
+                    else:
+                        cur.execute(f"UPDATE WordBookData SET wordBookId = {wordBookId} WHERE userId = {userId} AND wordId = {wordId}")
                 continue
 
             status = 0
@@ -1546,10 +1585,13 @@ def importData():
 
             cur.execute(f"INSERT INTO WordList VALUES ({userId},{wordId}, '{encode(word)}', '{encode(translation)}', {status})")
             cur.execute(f"INSERT INTO ChallengeData VALUES ({userId},{wordId}, 0, -1)")
+            
+            if wordBookId != 0:
+                cur.execute(f"INSERT INTO WordBookData VALUES ({userId}, {wordBookId}, {wordId})")
 
         conn.commit()
 
-        os.system(f"rm -f /tmp/data{ts}.xlsx")
+        os.system(f"rm -f /tmp/WordMemoCache/data{ts}.xlsx")
 
         return render_template("import.html", MESSAGE = "Data imported successfully!")
 
@@ -1581,23 +1623,29 @@ def exportData():
                 word = pd.DataFrame([[decode(dd[0]), decode(dd[1]), StatusToStatusText[dd[2]]]],columns=["Word","Translation","Status"],index=[len(d)])
                 xlsx = xlsx.append(word)
 
-            xlsx.to_excel(f'/tmp/export{userId}.xlsx', sheet_name='Data', index=False)
+            xlsx.to_excel(f'/tmp/WordMemoCache/export{userId}.xlsx', sheet_name='Data', index=False)
 
-            return send_file(f"/tmp/export{userId}.xlsx", as_attachment=True)
+            return send_file(f"/tmp/WordMemoCache/export{userId}.xlsx", as_attachment=True)
         
         else:
-            os.system(f"cp ./database.db /tmp/export{userId}.db")
-            export_conn = sqlite3.connect(f"/tmp/export{userId}.db")
+            os.system(f"cp ./database.db /tmp/WordMemoCache/export{userId}.db")
+            export_conn = sqlite3.connect(f"/tmp/WordMemoCache/export{userId}.db")
             export_cur = export_conn.cursor()
-            export_cur.execute(f"DELETE FROM UserInfo WHERE userId != {userId}")
+            export_cur.execute(f"DROP TABLE AdminList")
+            export_cur.execute(f"DROP TABLE Previlege")
+            export_cur.execute(f"DROP TABLE UserInfo")
+            export_cur.execute(f"DROP TABLE UserEvent")
+            export_cur.execute(f"DELETE FROM WordBook WHERE userId != {userId}")
+            export_cur.execute(f"DELETE FROM WordBookData WHERE userId != {userId}")
+            export_cur.execute(f"DELETE FROM WordBookShare WHERE userId != {userId}")
             export_cur.execute(f"DELETE FROM WordList WHERE userId != {userId}")
             export_cur.execute(f"DELETE FROM ChallengeData WHERE userId != {userId}")
             export_cur.execute(f"DELETE FROM ChallengeRecord WHERE userId != {userId}")
-            export_cur.execute(f"DELETE FROM DeletedWordList WHERE userId != {userId}")
+            # export_cur.execute(f"DELETE FROM DeletedWordList WHERE userId != {userId}")
             export_cur.execute(f"DELETE FROM StatusUpdate WHERE userId != {userId}")
             export_conn.commit()
 
-            return send_file(f"/tmp/export{userId}.db", as_attachment=True)
+            return send_file(f"/tmp/WordMemoCache/export{userId}.db", as_attachment=True)
 
 
     else:
@@ -1641,10 +1689,21 @@ def apiAdminCommand():
         if len(command) != 2:
             return json.dumps({"success": False, "msg": f"Usage: get_user_info [userId]\nGet detailed user info of [userId]"})
         
-        uid = int(command[1])
+        uid = abs(int(command[1]))
         
         cur.execute(f"SELECT username, email, inviteCode, inviter FROM UserInfo WHERE userId = {uid}")
-        d = cur.fetchall()[0]
+        d = cur.fetchall()
+        banned = False
+        if len(d) == 0:
+            cur.execute(f"SELECT username, email, inviteCode, inviter FROM UserInfo WHERE userId = {-uid}") # check banned
+            d = cur.fetchall()
+
+            if len(d) == 0:
+                return json.dumps({"success": False, "msg": f"User not found!"})
+            
+            banned = True
+        
+        d = d[0]
 
         cur.execute(f"SELECT username FROM UserInfo WHERE userId = {d[3]}")
         inviter = cur.fetchall()[0][0]
@@ -1656,7 +1715,11 @@ def apiAdminCommand():
         regts = cur.fetchall()[0][0]
         age = math.ceil((time.time() - regts) / 86400)
 
-        return json.dumps({"success": True, "msg": f"{d[0]} (UID: {uid})\nEmail: {d[1]}\nInvitation Code: {d[2]}\nInviter: {inviter} (UID: {d[3]})\nWord Count: {cnt}\nAccount age: {age} day(s)"})
+        msg = ""
+        if banned:
+            msg += "Account has been banned\n"
+
+        return json.dumps({"success": True, "msg": f"{d[0]} (UID: {uid})\nEmail: {d[1]}\nInvitation Code: {d[2]}\nInviter: {inviter} (UID: {d[3]})\nWord Count: {cnt}\nAccount age: {age} day(s)\n{msg}"})
     
     elif command[0] == "create_user":
         if len(command) != 4:
@@ -1700,12 +1763,22 @@ def apiAdminCommand():
             return json.dumps({"success": False, "msg": "Usage: delete_user [userId]\nThe account must be marked as deletion first, and admin will be able to bring the deletion schedule forward"})
 
         uid = int(command[1])
-        ok = DeleteAccountNow(uid)
+        ok = sessions.DeleteAccountNow(uid)
 
         if ok == -1:
             return json.dumps({"success": False, "msg": "Account not marked for deletion!"})
         
         elif ok == 0:
+            cur.execute(f"UPDATE UserInfo SET username = '@deleted' WHERE userId = {uid}")
+            cur.execute(f"UPDATE UserInfo SET email = '' WHERE userId = {uid}")
+            cur.execute(f"UPDATE UserInfo SET password = '' WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM WordList WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM WordBook WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM WordBookData WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM WordBookShare WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM ChallengeData WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM ChallengeRecord WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM StatusUpdate WHERE userId = {uid}")
             return json.dumps({"success": False, "msg": "Account deleted"})
     
     elif command[0] == "set_previlege":
@@ -1805,6 +1878,12 @@ def apiAdminCommand():
         d = cur.fetchall()
         if len(d) != 0:
             cnt = d[0][0]
+        
+        cur.execute(f"SELECT COUNT(*) FROM UserInfo WHERE username = '@deleted' AND userId > 0")
+        deled = 0
+        d = cur.fetchall()
+        if len(d) != 0:
+            deled = d[0][0]
 
         cur.execute(f"SELECT COUNT(*) FROM UserInfo WHERE userId < 0")
         banned = 0
@@ -1812,13 +1891,50 @@ def apiAdminCommand():
         if len(d) != 0:
             banned = d[0][0]
         
-        return json.dumps({"success": True, "msg": f"Total user: {tot}\nActive user: {cnt}\nBanned user: {banned}"})
+        return json.dumps({"success": True, "msg": f"Total user: {tot}\nActive user: {cnt - deled}\nBanned / Banned & Deleted user: {banned}\nDeleted user: {deled}"})
 
     else:
         return json.dumps({"success": False, "msg": "Unknown command"})
 
-threading.Thread(target = sessions.PendingAccountDeletion).start()
+def PendingAccountDeletion():
+    cur = conn.cursor()
+    sscur = sessions.conn.cursor()
+    while 1:
+        sscur.execute(f"SELECT userId FROM PendingAccountDeletion WHERE deletionTime <= {int(time.time())}")
+        d = sscur.fetchall()
+        for dd in d:
+            userId = dd[0]
+
+            sessions.deleteData(userId)
+
+            cur.execute(f"UPDATE UserInfo SET username = '@deleted' WHERE userId = {uid}")
+            cur.execute(f"UPDATE UserInfo SET email = '' WHERE userId = {uid}")
+            cur.execute(f"UPDATE UserInfo SET password = '' WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM WordList WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM WordBook WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM WordBookData WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM WordBookShare WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM ChallengeData WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM ChallengeRecord WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM StatusUpdate WHERE userId = {uid}")
+
+            conn.commit()
+
+        time.sleep(3600)
+
+def ClearCache():
+    while 1:
+        recoverAccount = []
+        duplicate = []
+        os.system("rm -f /tmp/WordMemoCache/*")
+        time.sleep(3600) # clear each hour
+
+if not os.path.exists("/tmp/WordMemoCache"):
+    os.system("mkdir /tmp/WordMemoCache")
+
+threading.Thread(target = PendingAccountDeletion).start()
 threading.Thread(target = autoRestart).start()
+threading.Thread(target = ClearCache).start()
 
 app.jinja_env.auto_reload = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True
