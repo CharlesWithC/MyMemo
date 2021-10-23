@@ -45,7 +45,7 @@
         $("#token").val(localStorage.getItem("token"));
         wordBookList = [];
         $.ajax({
-            url: "/api/getWordBookList",
+            url: "/api/wordBook",
             method: 'POST',
             async: true,
             dataType: "json",
@@ -73,6 +73,6 @@
     }
 </style>
 <div class="footer">
-    <p>v3.3.2 &copy; Charles</p>
+    <p>v4.1.1 &copy; Charles</p>
     <p>Contact: <a href="mailto:word@charles14.xyz">word@charles14.xyz</a></p>
 </div>

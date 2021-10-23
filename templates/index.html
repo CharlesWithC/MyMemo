@@ -53,7 +53,25 @@
         <p><a onClick="wordBookDelete();" href="#">Delete Word Book</a></p>
         <br>
     </div>
-    <p>Share: <a onClick="wordBookShare();" href="#"><span id="wordBookShareCode">Private</span></a></p>
+    <p>Share: 
+        <span id="wordBookShareCode">(Private)</span>
+        <a onClick="wordBookShare();" href="#"><span id="shareop">Share</span></a>
+    </p>
+    <div id="group">
+        <p>Group: 
+            <span id="groupCode">(Word book not bound to a group)</span>
+            <a onClick="groupDetail();" href="#"><span id="groupdetail" style="display:none">Detail</span></a>
+            <a onClick="quitGroup();" href="#"><span id="quitgroup" style="display:none">Quit</span></a>
+            <a onClick="wordBookGroup();" href="#"><span id="groupop">Create group</span></a>
+        </p>
+        <div id="groupmng">
+            <p>
+                <a onClick="groupManage();" href="#">Manage members</a>
+                <a onClick="groupCodeUpdate('disable');" href="#">Make private</a>
+                <a onClick="groupCodeUpdate('revoke');" href="#">Revoke code</a>
+            </p>
+        </div>
+    </div>
 </div>
 
 <p id="wordBookNewWord" style="display:none">Word not in the database? <a onClick="wordBookNewWord();" href="#">Click me to add a new word!</a></p>
@@ -61,7 +79,7 @@
 <script src="/static/js/main.min.js"></script>
 
 <div class="footer">
-    <p>v3.3.2 &copy; Charles</p>
+    <p>v4.1.1 &copy; Charles</p>
     <p>Contact: <a href="mailto:word@charles14.xyz">word@charles14.xyz</a></p>
 </div>
 

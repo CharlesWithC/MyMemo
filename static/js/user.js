@@ -108,7 +108,7 @@ if(localStorage.getItem("userId") == null || localStorage.getItem("userId") == 0
     localStorage.removeItem("admin");
 
 $.ajax({
-    url: "/api/getUserInfo",
+    url: "/api/user/info",
     method: 'POST',
     async: true,
     dataType: "json",
@@ -179,7 +179,7 @@ function renderHomePage() {
     // Render user information
     if (username == "") {
         $.ajax({
-            url: "/api/getUserInfo",
+            url: "/api/user/info",
             method: 'POST',
             async: false,
             dataType: "json",
@@ -518,7 +518,7 @@ token = localStorage.getItem("token");
 // Validate login
 var validation = false;
 $.ajax({
-    url: "/api/validateToken",
+    url: "/api/user/validate",
     method: 'POST',
     async: false,
     dataType: "json",
@@ -578,7 +578,7 @@ function loginfunc() {
     }
 
     $.ajax({
-        url: "/api/login",
+        url: "/api/user/login",
         method: 'POST',
         async: false,
         dataType: "json",
@@ -594,7 +594,7 @@ function loginfunc() {
                 ctx.fillStyle = "green";
                 ctx.fillText("Logged in successfully!", canvas.width / 2, buttons[0].y - buttons[0].h * 0.5);
                 $.ajax({
-                    url: "/api/getUserInfo",
+                    url: "/api/user/info",
                     method: 'POST',
                     async: true,
                     dataType: "json",
@@ -651,7 +651,7 @@ function registerfunc() {
     }
 
     $.ajax({
-        url: "/api/register",
+        url: "/api/user/register",
         method: 'POST',
         async: false,
         dataType: "json",
@@ -696,7 +696,7 @@ function changepwdfunc() {
     }
 
     $.ajax({
-        url: "/api/changePassword",
+        url: "/api/user/changePassword",
         method: 'POST',
         async: false,
         dataType: "json",
@@ -746,7 +746,7 @@ function deleteaccfunc() {
     }
 
     $.ajax({
-        url: "/api/deleteAccount",
+        url: "/api/user/delete",
         method: 'POST',
         async: false,
         dataType: "json",
@@ -825,7 +825,7 @@ function clickHandler(e) {
                 renderCurrentPage();
             } else if (buttons[i].name == "logout") {
                 $.ajax({
-                    url: "/api/logout",
+                    url: "/api/user/logout",
                     method: 'POST',
                     async: true,
                     dataType: "json",

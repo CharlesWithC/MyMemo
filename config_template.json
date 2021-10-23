@@ -6,6 +6,10 @@
 
     "max_user_allowed": -1,
     "max_word_per_user_allowed": -1,
+    "max_word_book_per_user_allowed": -1,
+
+    "allow_group_creation_for_all_user": false,
+    "max_group_member": 50,
 
     "allow_register": true,
     "use_invite_system": false

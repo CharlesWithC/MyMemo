@@ -1,5 +1,12 @@
 # Update History
 
+## v4.1.1
+
+*Date: 2021/10/23*  
+Added "Group" to enable word book sync & member progress sharing  
+Currently only basic functions & word book sync are done  
+Owner is allowed to revoke group code / make group private  
+
 ## v3.3.2
 
 *Date: 2021/10/16*  

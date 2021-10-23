@@ -6,7 +6,7 @@
 
 *It's only tested in python3.8 + Chrome / Firefox browser environment. But it should support python3.\* and most browsers.*
   
-Current version: v3.3.2  
+Current version: v4.1.1  
 
 ## About the project
 
@@ -17,6 +17,8 @@ Offline Mode can be enabled when you or the server is offline, CloudFlare will s
 There are multiple settings for you to decide how you will memorize new words.  
 
 Word Books are supported! You can create unlimited word books and add any words to it! Select a word book before starting memorizing or the default (All words) will be selected.
+
+Word Groups are also added! You can learn with your friends using word group. The words will be synced automatically when any update is made. Also, you will be able to see your friends' progress!
 
 You can import and export the wordlist in the format of .xlsx table files, it's so easy and simple!  
 
