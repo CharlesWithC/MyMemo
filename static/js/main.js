@@ -407,7 +407,7 @@ var wordStatus = 0;
 
 var lastpage = 0;
 var currentpage = localStorage.getItem("currentpage");
-// 0: homepage, 1: wordpage, 2: settings, 3: addword, 4: wordbookdetail, 5: wordbooklist, 6: wordbook-addword
+// 0: homepage, 1: wordpage, 2: settings, 3: addword, 4: wordbookdetail, 5: wordbooklist, 6: wordbook-addword, 7: group member
 if (currentpage == null) {
     currentpage = 0;
     localStorage.setItem("currentpage", "0");
@@ -476,7 +476,15 @@ $("#wordList_length").append('&nbsp;&nbsp;|&nbsp;&nbsp;Double click word to edit
 $("#wordList_wrapper").hide();
 $("#wordList").show();
 
+$('#groupMember').DataTable({
+    pagingType: "full_numbers"
+});
+$("#groupMember_length").append('&nbsp;&nbsp;|&nbsp;&nbsp;A word is regarded as memorized once the user passed 2 challenges in a row');
+$("#groupMember_wrapper").hide();
+$("#groupMember").show();
+
 var selected = [];
+var groupMemberSelected = [];
 
 var wordList = JSON.parse(localStorage.getItem("wordList"));
 var selectedWordList = [];
@@ -508,8 +516,9 @@ for (var i = 0; i < wordList.length; i++) {
     });
 }
 
+// Update Word List Table
 
-function updateTable() {
+function updateWordListTable() {
     if (wordBookList.length == 0) {
         return;
     }
@@ -536,13 +545,63 @@ function updateTable() {
     table.draw();
 }
 
+// Update group member
+
+var lstGMupdate = 0;
+var lstUpdateGroupId = -1;
+
+function updateGroupMember(forceUpdate = false) {
+    if (groupId == lstUpdateGroupId && Date.now() - lstGMupdate < 60000 && !forceUpdate) { // only one update each minute
+        return;
+    }
+    table = $("#groupMember").DataTable();
+    table.clear();
+    table.row.add([
+        ["Loading..."],
+        [""],
+    ]);
+    table.draw();
+    table.clear();
+
+    $.ajax({
+        url: "/api/group/member",
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token"),
+            groupId: groupId
+        },
+        success: function (r) {
+            wordBookName = r.name;
+            $("#groupDescriptionP").show();
+            $("#groupDescription").html(r.description);
+            for (var i = 0; i < r.member.length; i++) {
+                table.row.add([
+                    [r.member[i].username],
+                    [r.member[i].progress]
+                ]).node().id = r.member[i].userId;
+            }
+            table.draw();
+        },
+        error: function (r) {
+            table.row.add([
+                ["Failed to fetch group member list"],
+                [""],
+            ]);
+            table.draw();
+        }
+    });
+}
+
 // Update word list each 10 minutes
 
 var lastWordListUpdate = Date.now();
 
 function updateWordList(doasync = true, forceUpdate = false) {
     if (Date.now() - lastWordListUpdate < 10000 && !forceUpdate) { // only one update each 10 seconds
-        updateTable();
+        updateWordListTable();
         return;
     }
     lastWordListUpdate = Date.now();
@@ -573,15 +632,14 @@ function updateWordList(doasync = true, forceUpdate = false) {
             for (var i = 0; i < wordList.length; i++) {
                 words.push(wordList[i].wordId);
             }
-            updateTable();
+            updateWordListTable();
         },
         error: function (r) {
-            updateTable();
+            updateWordListTable();
         }
     });
 }
 setInterval(updateWordList, 600000);
-
 
 // Update word book list each 10 minutes
 
@@ -719,7 +777,7 @@ function updateWordBookWordList(forceUpdate = false) {
 
     updateWordBookList(false, forceUpdate);
     if (Date.now() - lastWordListUpdate < 10000 && !forceUpdate) { // only one update each 10 seconds
-        updateTable();
+        updateWordListTable();
         return;
     }
     updateWordList(true, forceUpdate);
@@ -1515,8 +1573,8 @@ function renderWordBookList() {
         }
 
         ctx.font = smallFontSize + "px Corbel";
-        if (wordBookList[i].words.length <= 1) {
-            ctx.fillText(wordBookList[i].words.length + " word", x + wordBookW / 8, y + wordBookH / t);
+        if (wordBookList[i].wordBookId != 0) {
+            ctx.fillText(wordBookList[i].progress + " memorized / " + wordBookList[i].words.length + " words", x + wordBookW / 8, y + wordBookH / t);
         } else {
             ctx.fillText(wordBookList[i].words.length + " words", x + wordBookW / 8, y + wordBookH / t);
         }
@@ -1644,7 +1702,7 @@ function renderWordBookDetail() {
     width:" + (window.innerWidth - 25 - buttons[0].w) + ";\
     font-size:" + smallFontSize * 0.8 + ";font-family:Corbel;");
     $("#wordList").attr("style", "width:100%;font-size:" + smallFontSize * 0.8 + ";font-family:Corbel");
-    updateTable();
+    updateWordListTable();
 
     ctx.font = fontSize + "px Corbel";
 }
@@ -1722,6 +1780,67 @@ function renderWordBookAddWord() {
     wordBookId = curid;
 }
 
+
+function renderGroupMember() {
+    btninit();
+
+    // Clear existing canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Get page width & height
+    canvas.width = window.innerWidth - 25;
+    canvas.height = window.innerHeight - 25;
+
+    // Render buttons
+    ctx.textAlign = "center";
+
+    buttons[8].gohome = 0;
+    buttons[8].x = buttons[8].w * 0.2;
+    buttons[8].y = buttons[8].h * 0.2;
+    ctx.fillStyle = getRndColor(160, 250);
+    ctx.roundRect(buttons[8].x, buttons[8].y, buttons[8].w, buttons[8].h);
+
+    ctx.font = fontSize + "px Corbel";
+    ctx.fillStyle = getRndColor(10, 100);
+    ctx.fillText("Back", buttons[8].x + buttons[8].w / 2, buttons[8].y + buttons[8].h / 1.4);
+
+    // Add title
+    ctx.font = fontSize + "px Impact";
+    ctx.fillText(wordBookName, canvas.width / 2, buttons[8].h * 0.2 + buttons[8].h / 1.4);
+    ctx.font = fontSize + "px Corbel";
+
+    // Show collapsible
+    $("#wbplaceholder").attr("style", "height:" + (buttons[0].h * 1.75));
+    $("#groupDescriptionP").attr("style", "text-align:left;z-index:999;\
+    margin-left:" + (buttons[0].w * 0.5) + ";padding-bottom: 10px;\
+    height: " + (buttons[0].h) + ";width:" + (window.innerWidth - 25 - buttons[0].w) + ";\
+    font-size:" + smallFontSize * 0.8 + ";font-family:Corbel;");
+    if (isGroupOwner) {
+        $("#mngGMbtn").show();
+        $("#mngGMbtn").attr("style", "text-align:left;z-index:999;\
+        margin-left:" + (buttons[0].w * 0.5) + ";padding-bottom: 20px;\
+        height: " + (buttons[0].h) + ";width:" + (window.innerWidth - 25 - buttons[0].w) + ";\
+        background-color:" + getRndColor(160, 250) + ";\
+        font-size:" + smallFontSize * 0.8 + ";font-family:Corbel;");
+        $("#mngGMclp").attr("style", "display:" + colldisplay + ";text-align:left;z-index:999;\
+        margin-left:" + (buttons[0].w * 0.5) + ";padding-bottom: 50px;\
+        width:" + (window.innerWidth - 25 - buttons[0].w) + ";\
+        font-size:" + smallFontSize * 0.8 + ";font-family:Corbel;");
+    }
+
+    // Render table
+    $("#groupMember_wrapper").show();
+    $("#groupMember_wrapper").attr("style", "text-align:center;z-index:999;\
+    margin-left:" + (buttons[0].w * 0.5) + ";padding-bottom:50px;\
+    width:" + (window.innerWidth - 25 - buttons[0].w) + ";\
+    font-size:" + smallFontSize * 0.8 + ";font-family:Corbel;");
+    $("#groupMember").attr("style", "width:100%;font-size:" + smallFontSize * 0.8 + ";font-family:Corbel");
+
+    updateGroupMember();
+
+    ctx.font = fontSize + "px Corbel";
+}
+
 // Render current page
 var loaded = false;
 
@@ -1746,12 +1865,16 @@ function renderCurrentPage(curpage = -1) {
     sleep(50).then(() => {
         $("#wordBookName").hide();
         $("#wordList_wrapper").hide();
+        $("#groupMember_wrapper").hide();
         $("#startfrom").hide();
         $("#addword_word").hide();
         $("#addword_translation").hide();
         $("#mngWBbtn").hide();
         $("#mngWBclp").hide();
+        $("#mngGMbtn").hide();
+        $("#mngGMclp").hide();
         $("#wordBookNewWord").hide();
+        $("#groupDescriptionP").hide();
 
         if (currentpage == 0) {
             renderHomePage();
@@ -1767,6 +1890,8 @@ function renderCurrentPage(curpage = -1) {
             renderWordBookList();
         } else if (currentpage == 6) {
             renderWordBookAddWord();
+        } else if (currentpage == 7) {
+            renderGroupMember();
         }
         loaded = true;
     });
@@ -1780,6 +1905,13 @@ function renderCurrentPageResize() {
     $("#wordList_length").append('&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="selectAll();" href="#">Select All</a>');
     $("#wordList_length").append('&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="deselectAll();" href="#">Deselect All</a>');
     $("#wordList_length").append('&nbsp;&nbsp;|&nbsp;&nbsp;Double click word to edit');
+
+    $('#groupMember').DataTable().destroy();
+    $('#groupMember').DataTable({
+        pagingType: "full_numbers"
+    });
+    $("#groupMember_length").append('&nbsp;&nbsp;|&nbsp;&nbsp;A word is regarded as memorized once the user passed 2 challenges in a row');
+
     btnresize();
     fontresize();
     renderCurrentPage();
@@ -2363,6 +2495,7 @@ function clickHandler(e) {
                             wordId: wordId,
                             memorized: 0,
                             getNext: 0,
+                            wordBookId: selectedWordBook,
                             userId: localStorage.getItem("userId"),
                             token: localStorage.getItem("token")
                         },
@@ -2398,6 +2531,10 @@ function clickHandler(e) {
                     });
                 }
             } else if (buttons[k].name == "back") {
+                if (buttons[k].gohome == 1 || currentpage == 1 || currentpage == 5) {
+                    renderCurrentPage(0);
+                    return;
+                }
                 if (lastpage == 1) {
                     renderCurrentPage(1);
                     appaused = 0;
@@ -2406,16 +2543,16 @@ function clickHandler(e) {
                     }
                     return;
                 }
-                if (buttons[k].gohome == 1 || currentpage == 1 || currentpage == 5) {
-                    renderCurrentPage(0);
-                    return;
-                }
                 if (currentpage == 4) {
                     renderCurrentPage(5);
                     return;
                 }
                 if (currentpage == 6 || currentpage == 3) {
                     renderCurrentPage(4);
+                    return;
+                }
+                if (currentpage == lastpage) {
+                    renderCurrentPage(0);
                     return;
                 }
                 renderCurrentPage(lastpage);
@@ -2771,6 +2908,33 @@ function wordBookAddWord() {
     }
 }
 
+function wordBookClone() {
+    $.ajax({
+        url: '/api/wordBook/clone',
+        method: 'POST',
+        async: false,
+        dataType: "json",
+        data: {
+            fromWordBook: wordBookId,
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            updateWordBookList(true, true);
+            alert(r.msg);
+            renderCurrentPage();
+        },
+        error: function (r) {
+            if (r.status == 401) {
+                alert("Login session expired! Please login again!");
+                localStorage.removeItem("userId");
+                localStorage.removeItem("token");
+                window.location.href = "/user";
+            }
+        }
+    });
+}
+
 function wordBookRename() {
     newName = prompt("Enter new word book name:", wordBookName);
     if (newName != null) {
@@ -2786,8 +2950,11 @@ function wordBookRename() {
                 token: localStorage.getItem("token")
             },
             success: function (r) {
-                updateWordBookWordList(true);
+                updateWordBookList(true, true);
                 renderCurrentPage();
+                if(!r.success){
+                    alert(r.msg);
+                }
             },
             error: function (r) {
                 if (r.status == 401) {
@@ -2975,10 +3142,23 @@ function wordBookShare() {
     }
 }
 
+function wordBookNewWord() {
+    addToWordBook = wordBookId;
+    $("#addword_word").val("");
+    $("#addword_translation").val("");
+    renderCurrentPage(3);
+}
+
 function wordBookGroup() {
     if (groupCode == "") {
         gname = prompt("Enter group name: ");
+        if (gname == "" || gname == null) {
+            return;
+        }
         gdescription = prompt("Enter group description: ");
+        if (gdescription == "" || gdescription == null) {
+            return;
+        }
         $.ajax({
             url: '/api/group',
             method: 'POST',
@@ -3151,11 +3331,92 @@ function groupCodeUpdate(operation) {
     });
 }
 
-function wordBookNewWord() {
-    addToWordBook = wordBookId;
-    $("#addword_word").val("");
-    $("#addword_translation").val("");
-    renderCurrentPage(3);
+function groupOperation(operation) {
+    if (operation == "makeEditor" || operation == "kick" || operation == "transferOwnership") {
+        if (groupMemberSelected.length == 0) {
+            return;
+        }
+        if (operation == "transferOwnership" && groupMemberSelected.length > 1) {
+            alert("Make sure you only selected one user!");
+            return;
+        }
+        if (operation == "transferOwnership") {
+            if (!confirm("Are you sure to transfer group ownership? Make sure you trust this user! You will lose administration authority after the transfer!")) {
+                return;
+            }
+        }
+        $.ajax({
+            url: '/api/group/manage',
+            method: 'POST',
+            async: false,
+            dataType: "json",
+            data: {
+                groupId: groupId,
+                operation: operation,
+                users: JSON.stringify(groupMemberSelected),
+                userId: localStorage.getItem("userId"),
+                token: localStorage.getItem("token")
+            },
+            success: function (r) {
+                if (r.success == true) {
+                    renderCurrentPage();
+                    groupMemberSelected = [];
+                }
+                alert(r.msg);
+            },
+            error: function (r) {
+                if (r.status == 401) {
+                    alert("Login session expired! Please login again!");
+                    localStorage.removeItem("userId");
+                    localStorage.removeItem("token");
+                    window.location.href = "/user";
+                }
+            }
+        });
+    }
+}
+
+function groupInfoUpdate() {
+    gname = prompt("Enter group name: ");
+    if (gname == "" || gname == null) {
+        return;
+    }
+    gdescription = prompt("Enter group description: ");
+    if (gdescription == "" || gdescription == null) {
+        return;
+    }
+    $.ajax({
+        url: '/api/group/manage',
+        method: 'POST',
+        async: false,
+        dataType: "json",
+        data: {
+            groupId: groupId,
+            name: gname,
+            description: gdescription,
+            operation: "updateInfo",
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            if (r.success == true) {
+                updateGroupMember(true);
+                updateWordBookList(true,true);
+            }
+            alert(r.msg);
+            if (r.success == true) {
+                renderCurrentPage();
+            }
+        },
+        error: function (r) {
+            if (r.status == 401) {
+                alert("Login session expired! Please login again!");
+                localStorage.removeItem("userId");
+                localStorage.removeItem("token");
+                window.location.href = "/user";
+            }
+        }
+    });
 }
 
 
@@ -3219,6 +3480,19 @@ $('#wordList tbody').on('click', 'tr', function () {
     $(this).toggleClass('selected');
 });
 
+$('#groupMember tbody').on('click', 'tr', function () {
+    uid = parseInt($(this).attr("id"));
+    if ($(this).hasClass("selected")) {
+        idx = groupMemberSelected.indexOf(uid);
+        if (idx > -1) {
+            groupMemberSelected.splice(idx, 1);
+        }
+    } else {
+        groupMemberSelected.push(uid);
+    }
+    $(this).toggleClass('selected');
+});
+
 $('#wordList tbody').on('dblclick', 'tr', function () {
     wid = parseInt($(this).attr("id"));
     console.log(wid);
@@ -3229,7 +3503,7 @@ $('#wordList tbody').on('dblclick', 'tr', function () {
 });
 
 $("#canvas").dblclick(function () {
-    if (currentpage == 1 && displayMode != 2) {
+    if (currentpage == 1 && displayMode == 0) {
         editWordId = wordId;
         editWord = true;
         addToWordBook = -1;
@@ -3258,11 +3532,13 @@ $("#mngWBbtn").click(function () {
 
 
 
+updateWordBookWordList(true);
+
 // Render starting page
 if (currentpage == 1) {
-    startfunc();
+    renderCurrentPage(0);
+} else if (currentpage == 7) {
+    renderCurrentPage(4);
 } else {
     renderCurrentPage();
 }
-
-updateWordBookWordList(true);

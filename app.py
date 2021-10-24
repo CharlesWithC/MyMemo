@@ -92,12 +92,14 @@ if not db_exists:
     # EXAMPLE: WordBook 1 has wordId 1,2 and WordBook 2 has wordId 3
     # word and translation are encoded with base64 to prevent datalose
     # status is a status code while 1 refers to Default, 2 refers to Tagged and 3 refers to removed
+    cur.execute(f"CREATE TABLE WordMemorized (userId INT, wordId INT)")
 
     cur.execute(f"CREATE TABLE WordBook (userId INT, wordBookId INT, name VARCHAR(1024))")
     cur.execute(f"CREATE TABLE WordBookData (userId INT, wordBookId INT, wordId INT)")
     # When a new word is added, it belongs to no word book
     # A word can belong to many word books
     cur.execute(f"CREATE TABLE WordBookShare (userId INT, wordBookId INT, shareCode VARCHAR(8))")
+    cur.execute(f"CREATE TABLE WordBookProgress (userId INT, wordBookId INT, progress INT)")
 
     cur.execute(f"CREATE TABLE GroupInfo (groupId INT, owner INT, name VARCHAR(256), description VARCHAR(1024), memberLimit INT, groupCode VARCHAR(8))")
     cur.execute(f"CREATE TABLE GroupMember (groupId INT, userId INT, isEditor INT)")
@@ -140,6 +142,11 @@ if not db_exists:
     # wordUpdateId is the Id for the specific word
     # updateTo is the status the word is updated to
     # NOTE: When a new word is added, there should be a StatusUpdate record, with wordUpdateId = 0 and updateTo = 0
+
+    cur.execute(f"CREATE TABLE IDInfo (type INT, userId INT, nextId INT)")
+    cur.execute(f"INSERT INTO IDInfo VALUES (1, -1, 1)")
+    cur.execute(f"INSERT INTO IDInfo VALUES (4, -1, 1)")
+    # To store next id of userId 1 / wordId 2 / wordBookId 3 / groupId 4 / groupWordId 5
 
     conn.commit()
 del cur
@@ -244,14 +251,10 @@ def apiRegister():
 
     userId = 1
     try:
-        cur.execute(f"SELECT MAX(userId) FROM UserInfo")
-        d = cur.fetchall()
-        if len(d) != 0 and not d[0][0] is None:
-            userId = d[0][0] + 1
-        cur.execute(f"SELECT MIN(userId) FROM UserInfo") # invalid user id due to ban
-        d = cur.fetchall()
-        if len(d) != 0 and not d[0][0] is None:
-            userId = max(userId, -d[0][0] + 1)
+        cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 1")
+        userId = cur.fetchall()[0][0]
+        cur.execute(f"UPDATE IDInfo SET nextId = {userId + 1} WHERE type = 1")
+
         cur.execute(f"INSERT INTO UserInfo VALUES ({userId}, '{username}', '{email}', '{encode(password)}', {inviter}, '{inviteCode}')")
         conn.commit()
     except:
@@ -259,6 +262,7 @@ def apiRegister():
         return json.dumps({"success": False, "msg": "Unknown error occured. Try again later..."})
 
     cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'register', {int(time.time())})")
+    conn.commit()
 
     return json.dumps({"success": True, "msg": "You are registered! Now you can login!"})
 
@@ -306,6 +310,7 @@ def apiLogin():
         isAdmin = True
 
     cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'login', {int(time.time())})")
+    conn.commit()
 
     return json.dumps({"success": True, "userId": userId, "token": token, "isAdmin": isAdmin})
 
@@ -342,6 +347,7 @@ def apiDeleteAccount():
 
     cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'delete_account', {int(time.time())})")
     sessions.logout(userId, token)
+    conn.commit()
 
     return json.dumps({"success": True})
 
@@ -416,6 +422,7 @@ def apiChangePassword():
     
     cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'change_password', {int(time.time())})")
     sessions.logoutAll(userId)
+    conn.commit()
 
     return json.dumps({"success": True})
 
@@ -529,8 +536,17 @@ def apiGetWordBook():
             owner = cur.fetchall()[0][0]
             if owner == userId:
                 isGroupOwner = True
+        
+        cur.execute(f"SELECT progress FROM WordBookProgress WHERE userId = {userId} AND wordBookId = {dd[0]}")
+        t = cur.fetchall()
+        progress = 0
+        if len(t) == 0:
+            cur.execute(f"INSERT INTO WordBookProgress VALUES ({userId}, {dd[0]}, 0)")
+            conn.commit()
+        else:
+            progress = t[0][0]
 
-        ret.append({"wordBookId": dd[0], "name": decode(dd[1]), "words": words, "shareCode": shareCode, "groupId": groupId, "groupCode": gcode, "isGroupOwner": isGroupOwner})
+        ret.append({"wordBookId": dd[0], "name": decode(dd[1]), "words": words, "progress": progress, "shareCode": shareCode, "groupId": groupId, "groupCode": gcode, "isGroupOwner": isGroupOwner})
     
     return json.dumps(ret)
 
@@ -548,14 +564,13 @@ def apiCreateWordBook():
     name = str(request.form["name"])
 
     wordBookId = 1
-    cur.execute(f"SELECT MAX(wordBookId) FROM WordBook WHERE userId = {userId}")
+    cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 3 AND userId = {userId}")
     d = cur.fetchall()
-    if len(d) != 0 and not d[0][0] is None:
-        wordBookId = d[0][0] + 1
-    cur.execute(f"SELECT MIN(wordBookId) FROM WordBook WHERE userId = {userId}") # invalid word books with negative ids
-    d = cur.fetchall()
-    if len(d) != 0 and not d[0][0] is None:
-        wordBookId = max(wordBookId, -d[0][0] + 1)
+    if len(d) == 0:
+        cur.execute(f"INSERT INTO IDInfo VALUES (3, {userId}, 2)")
+    else:
+        wordBookId = d[0][0]
+        cur.execute(f"UPDATE IDInfo SET nextId = {wordBookId + 1} WHERE type = 3 AND userId = {userId}")
 
     if name.startswith("!") and name[1:].isalnum():
         name = name[1:]
@@ -603,20 +618,22 @@ def apiCreateWordBook():
                 max_book_allow = pr[0][0]
             cur.execute(f"SELECT COUNT(*) FROM WordBook WHERE userId = {userId}")
             d = cur.fetchall()
-            if len(d) != 0 and max_book_allow != -1 and d[0][0] + len(t) >= max_book_allow:
+            if len(d) != 0 and max_book_allow != -1 and d[0][0] + 1 >= max_book_allow:
                 return json.dumps({"success": False, "msg": f"You have reached your limit of maximum created word book {max_allow}. Remove some word books (this will not remove the words) or contact administrator for help."})
 
             # do import
             cur.execute(f"INSERT INTO WordBook VALUES ({userId}, {wordBookId}, '{name}')")
+            cur.execute(f"INSERT INTO WordBookProgress VALUES ({userId}, {wordBookId}, 0)")
 
-            wordId = 0
-
-            cur.execute(f"SELECT wordId FROM WordList WHERE userId = {userId} ORDER BY wordId DESC LIMIT 1")
+            wordId = 1
+            cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 2 AND userId = {userId}")
             d = cur.fetchall()
-            if len(d) != 0:
+            if len(d) == 0:
+                cur.execute(f"INSERT INTO IDInfo VALUES (2, {userId}, 2)")
+            else:
                 wordId = d[0][0]
-            
-            wordId += 1
+                cur.execute(f"UPDATE IDInfo SET nextId = {wordId + 1} WHERE type = 2 AND userId = {userId}")
+
             for tt in t:
                 cur.execute(f"SELECT wordId, translation FROM WordList WHERE userId = {userId} AND word = '{di[tt[0]][0]}'")
                 p = cur.fetchall()
@@ -624,6 +641,9 @@ def apiCreateWordBook():
                 for pp in p:
                     if pp[1] == di[tt[0]][1]: # word completely the same
                         cur.execute(f"INSERT INTO WordBookData VALUES ({userId}, {wordBookId}, {pp[0]})")
+                        cur.execute(f"SELECT * FROM WordMemorized WHERE userId = {userId} AND wordId = {pp[0]}")
+                        if len(cur.fetchall()) != 0:
+                            cur.execute(f"UPDATE WordBookProgress SET progress = progress + 1 WHERE userId = {userId} AND wordBookId = {wordBookId}")
                         ctn = True
                         break
                 if ctn:
@@ -681,24 +701,25 @@ def apiCreateWordBook():
                 max_book_allow = pr[0][0]
             cur.execute(f"SELECT COUNT(*) FROM WordBook WHERE userId = {userId}")
             d = cur.fetchall()
-            if len(d) != 0 and max_book_allow != -1 and d[0][0] + len(t) >= max_book_allow:
+            if len(d) != 0 and max_book_allow != -1 and d[0][0] + 1 >= max_book_allow:
                 return json.dumps({"success": False, "msg": f"You have reached your limit of maximum created word book {max_allow}. Remove some word books (this will not remove the words) or contact administrator for help."})
 
 
             # do import
             cur.execute(f"INSERT INTO WordBook VALUES ({userId}, {wordBookId}, '{name}')")
+            cur.execute(f"INSERT INTO WordBookProgress VALUES ({userId}, {wordBookId}, 0)")
             cur.execute(f"INSERT INTO GroupMember VALUES ({groupId}, {userId}, 0)")
-
-            wordId = 0
-
-            cur.execute(f"SELECT wordId FROM WordList WHERE userId = {userId} ORDER BY wordId DESC LIMIT 1")
-            d = cur.fetchall()
-            if len(d) != 0:
-                wordId = d[0][0]
-
             cur.execute(f"INSERT INTO GroupBind VALUES ({groupId}, {userId}, {wordBookId})")
+
+            wordId = 1
+            cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 2 AND userId = {userId}")
+            d = cur.fetchall()
+            if len(d) == 0:
+                cur.execute(f"INSERT INTO IDInfo VALUES (2, {userId}, 2)")
+            else:
+                wordId = d[0][0]
+                cur.execute(f"UPDATE IDInfo SET nextId = {wordId + 1} WHERE type = 2 AND userId = {userId}")
             
-            wordId += 1
             for tt in t:
                 # no duplicate check as user are not allowed to edit words in group
                 cur.execute(f"INSERT INTO WordBookData VALUES ({userId}, {wordBookId}, {wordId})")
@@ -727,13 +748,71 @@ def apiCreateWordBook():
         max_book_allow = pr[0][0]
     cur.execute(f"SELECT COUNT(*) FROM WordBook WHERE userId = {userId}")
     d = cur.fetchall()
-    if len(d) != 0 and max_book_allow != -1 and d[0][0] + len(t) >= max_book_allow:
+    if len(d) != 0 and max_book_allow != -1 and d[0][0] + 1 >= max_book_allow:
         return json.dumps({"success": False, "msg": f"You have reached your limit of maximum created word book {max_allow}. Remove some word books (this will not remove the words) or contact administrator for help."})
 
     cur.execute(f"INSERT INTO WordBook VALUES ({userId}, {wordBookId}, '{name}')")
+    cur.execute(f"INSERT INTO WordBookProgress VALUES ({userId}, {wordBookId}, 0)")
     conn.commit()
     
     return json.dumps({"success": True})
+
+@app.route("/api/wordBook/clone", methods = ['POST'])
+def apiCloneWordBook():
+    cur = conn.cursor()
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
+        abort(401)
+
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    if not validateToken(userId, token):
+        abort(401)
+    
+    cloneFrom = int(request.form["fromWordBook"])
+
+    cur.execute(f"SELECT name FROM WordBook WHERE wordBookId = {cloneFrom} AND userId = {userId}")
+    d = cur.fetchall()
+    if len(d) == 0:
+        return json.dumps({"success": False, "msg": "Word book to clone from not found!"})
+    name = encode("(Clone) " + decode(d[0][0]))
+    
+    max_book_allow = config.max_word_book_per_user_allowed
+    cur.execute(f"SELECT value FROM Previlege WHERE userId = {userId} AND item = 'word_book_limit'")
+    pr = cur.fetchall()
+    if len(pr) != 0:
+        max_book_allow = pr[0][0]
+    cur.execute(f"SELECT COUNT(*) FROM WordBook WHERE userId = {userId}")
+    d = cur.fetchall()
+    if len(d) != 0 and max_book_allow != -1 and d[0][0] + 1 >= max_book_allow:
+        return json.dumps({"success": False, "msg": f"You have reached your limit of maximum created word book {max_allow}. Remove some word books (this will not remove the words) or contact administrator for help."})
+
+    wordBookId = 1
+    cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 3 AND userId = {userId}")
+    d = cur.fetchall()
+    if len(d) == 0:
+        cur.execute(f"INSERT INTO IDInfo VALUES (3, {userId}, 2)")
+    else:
+        wordBookId = d[0][0]
+        cur.execute(f"UPDATE IDInfo SET nextId = {wordBookId + 1} WHERE type = 3 AND userId = {userId}")
+    
+    cur.execute(f"INSERT INTO WordBook VALUES ({userId}, {wordBookId}, '{name}')")
+    cur.execute(f"SELECT wordId FROM WordBookData WHERE userId = {userId} AND wordBookId = {cloneFrom}")
+    d = cur.fetchall()
+    for dd in d:
+        cur.execute(f"INSERT INTO WordBookData VALUES ({userId}, {wordBookId}, {dd[0]})")
+    cur.execute(f"SELECT progress FROM WordBookProgress WHERE userId = {userId} AND wordBookId = {cloneFrom}")
+    t = cur.fetchall()
+    progress = 0
+    if len(t) == 0:
+        cur.execute(f"INSERT INTO WordBookProgress VALUES ({userId}, {cloneFrom}, 0)")
+        conn.commit()
+    else:
+        progress = t[0][0]
+    cur.execute(f"INSERT INTO WordBookProgress VALUES ({userId}, {wordBookId}, {progress})")
+    
+    conn.commit()
+    return json.dumps({"success": True, "msg": "Word book cloned!"})
+    
 
 @app.route("/api/wordBook/delete", methods = ['POST'])
 def apiDeleteWordBook():
@@ -773,6 +852,7 @@ def apiDeleteWordBook():
 
     cur.execute(f"DELETE FROM WordBook WHERE userId = {userId} AND wordBookId = {wordBookId}")
     cur.execute(f"DELETE FROM WordBookData WHERE userId = {userId} AND wordBookId = {wordBookId}")
+    cur.execute(f"DELETE FROM WordBookProgress WHERE userId = {userId} AND wordBookId = {wordBookId}")
     conn.commit()
 
     return json.dumps({"success": True})
@@ -823,11 +903,15 @@ def apiAddToWordBook():
                 word = p[0]
                 translation = p[1]
 
-                cur.execute(f"SELECT MAX(groupWordId) FROM GroupWord WHERE groupId = {groupId}")
-                p = cur.fetchall()
                 gwordId = 1
-                if len(p) != 0:
-                    gwordId = p[0][0] + 1
+                cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 5 AND userId = {groupId}")
+                d = cur.fetchall()
+                if len(d) == 0:
+                    cur.execute(f"INSERT INTO IDInfo VALUES (5, {groupId}, 2)")
+                else:
+                    gwordId = d[0][0]
+                    cur.execute(f"UPDATE IDInfo SET nextId = {gwordId + 1} WHERE type = 5 AND userId = {groupId}")
+                
                 cur.execute(f"INSERT INTO GroupWord VALUES ({groupId}, {gwordId}, '{word}', '{translation}')")
                 cur.execute(f"INSERT INTO GroupSync VALUES ({groupId}, {userId}, {wordId}, {gwordId})")
                 
@@ -838,11 +922,16 @@ def apiAddToWordBook():
                     if uid == userId:
                         continue
                     wbid = tt[1]
+
                     wid = 1
-                    cur.execute(F"SELECT MAX(wordId) FROM WordList WHERE userId = {uid}")
-                    p = cur.fetchall()
-                    if len(p) != 0:
-                        wid = p[0][0] + 1
+                    cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 2 AND userId = {uid}")
+                    d = cur.fetchall()
+                    if len(d) == 0:
+                        cur.execute(f"INSERT INTO IDInfo VALUES (2, {uid}, 2)")
+                    else:
+                        wid = d[0][0]
+                        cur.execute(f"UPDATE IDInfo SET nextId = {wid + 1} WHERE type = 2 AND userId = {uid}")
+                   
                     cur.execute(f"INSERT INTO WordList VALUES ({uid}, {wid}, '{word}', '{translation}', 1)")
                     cur.execute(f"INSERT INTO WordBookData VALUES ({uid}, {wbid}, {wid})")
                     cur.execute(f"INSERT INTO ChallengeData VALUES ({uid},{wid},0,-1)")
@@ -989,6 +1078,17 @@ def apiRenameWordBook():
     wordBookId = int(request.form["wordBookId"])
     newName = str(request.form["name"])
 
+    groupId = -1
+    cur.execute(f"SELECT groupId FROM GroupBind WHERE wordBookId = {wordBookId} AND userId = {userId}")
+    t = cur.fetchall()
+    if len(t) != 0:
+        groupId = t[0][0]
+        cur.execute(f"SELECT name FROM GroupInfo WHERE groupId = {groupId}")
+        gname = cur.fetchall()[0][0]
+        cur.execute(f"UPDATE WordBook SET name = '{gname}' WHERE userId = {userId} AND wordBookId = {wordBookId}")
+        conn.commit()
+        return json.dumps({"success": False, "msg": "You are not allowed to rename a word book that is bound to a group!"})
+
     cur.execute(f"SELECT * FROM WordBook WHERE userId = {userId} AND wordBookId = {wordBookId}")
     if len(cur.fetchall()) == 0:
         return json.dumps({"success": False, "msg": "Word book does not exist!"})
@@ -1031,15 +1131,9 @@ def apiGroup():
         name = encode(request.form["name"])
         description = encode(request.form["description"])
 
-        groupId = 1
-        cur.execute(f"SELECT MAX(groupId) FROM GroupInfo")
-        d = cur.fetchall()
-        if len(d) != 0 and not d[0][0] is None:
-            groupId = d[0][0] + 1
-        cur.execute(f"SELECT MIN(groupId) FROM GroupInfo") # invalid group id due to deletion
-        d = cur.fetchall()
-        if len(d) != 0 and not d[0][0] is None:
-            groupId = max(groupId, -d[0][0] + 1)
+        cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 4")
+        groupId = cur.fetchall()[0][0]
+        cur.execute(f"UPDATE IDInfo SET nextId = {groupId + 1} WHERE type = 4")
 
         lmt = config.max_group_member
         cur.execute(f"SELECT value FROM Previlege WHERE userId = {userId} AND item = 'group_member_limit'")
@@ -1061,6 +1155,7 @@ def apiGroup():
             cur.execute(f"INSERT INTO GroupWord VALUES ({groupId}, {gwordId}, '{d[0]}', '{d[1]}')")
             cur.execute(f"INSERT INTO GroupSync VALUES ({groupId}, {userId}, {wordId}, {gwordId})")
             gwordId += 1
+        
         conn.commit()
 
         return json.dumps({"success": True, "msg": f"Group created! Group code: @{gcode}. Tell your friends to create a word book with this code and they will join your group automatically.", \
@@ -1077,8 +1172,8 @@ def apiGroup():
         if owner != userId:
             return json.dumps({"success": False, "msg": f"You are not the owner of the group!"})
         
-        cur.execute(f"UPDATE GroupInfo SET groupId = {-groupId} WHERE groupId = {groupId}")
-        cur.execute(f"UPDATE GroupMember SET groupId = {-groupId} WHERE groupId = {groupId}")
+        cur.execute(f"DELETE FROM GroupInfo WHERE groupId = {groupId}")
+        cur.execute(f"DELETE FROM GroupMember WHERE groupId = {groupId}")
         cur.execute(f"DELETE FROM GroupWord WHERE groupId = {groupId}")
         cur.execute(f"DELETE FROM GroupSync WHERE groupId = {groupId}")
         cur.execute(f"DELETE FROM GroupBind WHERE groupId = {groupId}")
@@ -1153,9 +1248,144 @@ def apiGroupCodeUpdate():
         conn.commit()
         return json.dumps({"success": True, "msg": f"New group code: @{gcode}", "groupCode": f"@{gcode}"})
 
+@app.route("/api/group/member", methods = ['POST'])
+def apiGroupMember():
+    cur = conn.cursor()
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
+        abort(401)
 
-# Get Group User Progress Info
-# Owner manage member (kick / editor) (In the user list page)
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    if not validateToken(userId, token):
+        abort(401)
+    
+    groupId = int(request.form["groupId"])
+    cur.execute(f"SELECT userId, isEditor FROM GroupMember WHERE groupId = {groupId}")
+    d = cur.fetchall()
+    if not (userId,0,) in d and not (userId,1,) in d:
+        return json.dumps({"success": False, "msg": f"You must be a member of the group before viewing its members."})
+    
+    cur.execute(f"SELECT * FROM GroupWord")
+    wordcnt = len(cur.fetchall())
+    cur.execute(f"SELECT groupWordId FROM GroupWord WHERE groupId = {groupId}")
+    words = cur.fetchall()
+
+    cur.execute(f"SELECT name, description FROM GroupInfo WHERE groupId = {groupId}")
+    info = cur.fetchall()[0]
+
+    cur.execute(f"SELECT owner FROM GroupInfo WHERE groupId = {groupId}")
+    owner = cur.fetchall()[0][0]
+
+    ret = []
+    for dd in d:
+        uid = dd[0]
+        isEditor = dd[1]
+        
+        cur.execute(f"SELECT username FROM UserInfo WHERE userId = {uid}")
+        t = cur.fetchall()
+        if len(t) == 0:
+            continue
+        
+        username = t[0][0]
+
+        if owner == uid:
+            username = username + " (Owner)"
+        elif isEditor:
+            username = username + " (Editor)"
+        
+        cur.execute(f"SELECT wordBookId FROM GroupBind WHERE groupId = {groupId} AND userId = {uid}")
+        wordBookId = cur.fetchall()[0][0]
+        cur.execute(f"SELECT progress FROM WordBookProgress WHERE userId = {uid} AND wordBookId = {wordBookId}")
+        p = cur.fetchall()
+        pgs = 0
+        if len(p) != 0:
+            pgs = p[0][0]
+        
+        pgs = f"{pgs} / {wordcnt}"
+
+        ret.append({"userId": uid, "username": username, "progress": pgs})
+    
+    return json.dumps({"name": decode(info[0]), "description": decode(info[1]), "member": ret})
+
+@app.route("/api/group/manage", methods = ['POST'])
+def apiManageGroup():
+    cur = conn.cursor()
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
+        abort(401)
+
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    if not validateToken(userId, token):
+        abort(401)
+    
+    groupId = int(request.form["groupId"])
+    
+    cur.execute(f"SELECT owner FROM GroupInfo WHERE groupId = {groupId}")
+    d = cur.fetchall()
+    if len(d) == 0:
+        return json.dumps({"success": False, "msg": "Group does not exist!"})
+    owner = d[0][0]
+    if userId != owner:
+        return json.dumps({"success": False, "msg": "You are not the owner of the group!"})
+    
+    op = request.form["operation"]
+    if op == "makeEditor":
+        users = json.loads(request.form["users"])
+        for uid in users:
+            if uid == userId:
+                continue
+            cur.execute(f"SELECT isEditor FROM GroupMember WHERE groupId = {groupId} AND userId = {uid}")
+            t = cur.fetchall()
+            if len(t) == 0:
+                continue
+            if t[0][0] == 1:
+                cur.execute(f"UPDATE GroupMember SET isEditor = 0 WHERE groupId = {groupId} AND userId = {uid}")            
+            elif t[0][0] == 0:
+                cur.execute(f"UPDATE GroupMember SET isEditor = 1 WHERE groupId = {groupId} AND userId = {uid}")
+        conn.commit()
+        return json.dumps({"success": True, "msg": "Success!"})
+
+    elif op == "kick":
+        users = json.loads(request.form["users"])
+        for uid in users:
+            cur.execute(f"DELETE FROM GroupSync WHERE groupId = {groupId} AND userId = {uid}")
+            cur.execute(f"DELETE FROM GroupMember WHERE groupId = {groupId} AND userId = {uid}")
+            cur.execute(f"DELETE FROM GroupBind WHERE groupId = {groupId} AND userId = {uid}")
+        conn.commit()
+        return json.dumps({"success": True, "msg": "Success!"})
+    
+    elif op =="transferOwnership":
+        users = json.loads(request.form["users"])
+        if len(users) != 1:
+            return json.dumps({"success": True, "msg": "Make sure you only selected one user!"})
+        uid = users[0]
+        if uid == userId:
+            return json.dumps({"success": True, "msg": "You are already the owner!"})
+        cur.execute(f"SELECT isEditor FROM GroupMember WHERE groupId = {groupId} AND userId = {uid}")
+        t = cur.fetchall()
+        if len(t) == 0 or t[0][0] == 0:
+            return json.dumps({"success": False, "msg": "Member not in group or member not an editor. Make sure the new owner is already in group and you have made him / her an editor."})
+
+        cur.execute(f"UPDATE GroupInfo SET owner = {uid} WHERE groupId = {groupId}")
+        cur.execute(f"UPDATE GroupMember SET isEditor = 1 WHERE groupId = {groupId} and userId = {uid}")
+        conn.commit()
+        return json.dumps({"success": True, "msg": f"Success! Ownership transferred to UID {uid}"})
+
+    elif op == "updateInfo":
+        name = encode(request.form["name"])
+        description = encode(request.form["description"])
+        cur.execute(f"UPDATE GroupInfo SET name = '{name}' WHERE groupId = {groupId}")
+        cur.execute(f"UPDATE GroupInfo SET description = '{description}' WHERE groupId = {groupId}")
+        cur.execute(f"SELECT userId, wordBookId FROM GroupBind WHERE groupId = {groupId}")
+        binds = cur.fetchall()
+        for bind in binds:
+            uid = bind[0]
+            wbid = bind[1]
+            cur.execute(f"UPDATE WordBook SET name = '{name}' WHERE wordBookId = {wbid} AND userId = {uid}")
+        conn.commit()
+
+        return json.dumps({"success": True, "msg": f"Success! Group information updated!"})
+
 
 
 
@@ -1235,7 +1465,10 @@ def apiGetWordStat():
     word = decode(d[0][0])
     
     cur.execute(f"SELECT updateTo, timestamp FROM StatusUpdate WHERE wordId = {wordId} AND updateTo <= 0 AND userId = {userId}")
-    d = cur.fetchall()[0]
+    d = cur.fetchall()
+    if len(d) == 0:
+        abort(404)
+    d = d[0]
     astatus = d[0] # how it is added
     ats = d[1] # addition timestamp
 
@@ -1270,7 +1503,10 @@ def apiGetWordStat():
         status = d[i][0]
     
     cur.execute(f"SELECT nextChallenge, lastChallenge FROM ChallengeData WHERE wordId = {wordId} AND userId = {userId}")
-    d = cur.fetchall()[0]
+    d = cur.fetchall()
+    if len(d) == 0:
+        abort(404)
+    d = d[0]
     nxt = d[0]
     lst = d[1]
 
@@ -1627,9 +1863,10 @@ def apiUpdateChallengeRecord():
     cur.execute(f"SELECT memorized, timestamp FROM ChallengeRecord WHERE wordId = {wordId} AND userId = {userId} ORDER BY timestamp DESC")
     d = cur.fetchall()
 
-    cur.execute(f"INSERT INTO ChallengeRecord VALUES ({userId}, {wordId},{memorized},{ts})")
+    cur.execute(f"INSERT INTO ChallengeRecord VALUES ({userId}, {wordId}, {memorized}, {ts})")
     cur.execute(f"UPDATE ChallengeData SET lastChallenge = {ts} WHERE wordId = {wordId}  AND userId = {userId}")
 
+    tot = 0
     if memorized == 1:
         tot = 1
         for dd in d:
@@ -1642,10 +1879,41 @@ def apiUpdateChallengeRecord():
     elif memorized == 0:
         cur.execute(f"UPDATE ChallengeData SET nextChallenge = {ts + addtime[0]} WHERE wordId = {wordId} AND userId = {userId}")
     
+    cur.execute(f"SELECT memorized, timestamp FROM ChallengeRecord WHERE wordId = {wordId} AND userId = {userId} ORDER BY timestamp DESC")
+    d = cur.fetchall()
+
+    s = []
+    s.append(0)
+    i = 1
+    for dd in d:
+        if dd[0] == 1:
+            s.append(s[i-1] + 1)
+        else:
+            s.append(0)
+        i += 1
+    for i in range(0,len(s)):
+        if s[i] >= 2:
+            cur.execute(f"SELECT * FROM WordMemorized WHERE userId = {userId} AND wordId = {wordId}")
+            if len(cur.fetchall()) == 0:
+                cur.execute(f"INSERT INTO WordMemorized VALUES ({userId}, {wordId})")
+
+                cur.execute(f"SELECT wordBookId FROM WordBookData WHERE userId = {userId} AND wordId = {wordId}")
+                wordBooks = cur.fetchall()
+                for wordBook in wordBooks:
+                    wordBookId = wordBook[0]
+                    cur.execute(f"SELECT progress FROM WordBookProgress WHERE wordBookId = {wordBookId} AND userId = {userId}")
+                    p = cur.fetchall()
+                    if len(p) == 0:
+                        cur.execute(f"INSERT INTO WordBookProgress VALUES ({userId}, {wordBookId}, 1)")
+                    else:
+                        p = p[0][0]
+                        cur.execute(f"UPDATE WordBookProgress SET progress = {p + 1} WHERE wordBookId = {wordBookId} AND userId = {userId}")
+
     conn.commit()
 
     if getNext == 1:
         wordBookId = int(request.form["wordBookId"])
+
         wordId = getChallengeWordId(userId, wordBookId)
 
         if wordId == -1:
@@ -1735,7 +2003,7 @@ def apiAddWord():
         max_allow = pr[0][0]
     cur.execute(f"SELECT COUNT(*) FROM WordList WHERE userId = {userId}")
     d = cur.fetchall()
-    if len(d) != 0 and max_allow != -1 and d[0][0] + 1>= max_allow:
+    if len(d) != 0 and max_allow != -1 and d[0][0] + 1 >= max_allow:
         return json.dumps({"success": False, "msg": f"You have reached your limit of maximum added words {max_allow}. Remove some old words or contact administrator for help."})
 
     word = request.form["word"].replace("\\n","\n")
@@ -1752,12 +2020,14 @@ def apiAddWord():
     translation = request.form["translation"].replace("\\n","\n")
     translation = encode(translation)
 
-    wordId = -1
-    cur.execute(f"SELECT wordId FROM WordList WHERE userId = {userId} ORDER BY wordId DESC LIMIT 1")
+    wordId = 1
+    cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 2 AND userId = {userId}")
     d = cur.fetchall()
-    if len(d) != 0:
+    if len(d) == 0:
+        cur.execute(f"INSERT INTO IDInfo VALUES (2, {userId}, 2)")
+    else:
         wordId = d[0][0]
-    wordId += 1
+        cur.execute(f"UPDATE IDInfo SET nextId = {wordId + 1} WHERE type = 2 AND userId = {userId}")
 
     cur.execute(f"INSERT INTO WordList VALUES ({userId},{wordId},'{word}','{translation}',1)")
     cur.execute(f"INSERT INTO ChallengeData VALUES ({userId},{wordId},0,-1)")
@@ -1770,8 +2040,15 @@ def apiAddWord():
             cur.execute(f"INSERT INTO WordBookData VALUES ({userId}, {wordBookId}, {wordId})")
     
     if groupId != -1:
-        cur.execute(f"SELECT MAX(groupWordId) FROM GroupWord WHERE groupId = {groupId}")
-        gwordId = cur.fetchall()[0][0] + 1
+        gwordId = 1
+        cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 5 AND userId = {groupId}")
+        d = cur.fetchall()
+        if len(d) == 0:
+            cur.execute(f"INSERT INTO IDInfo VALUES (5, {groupId}, 2)")
+        else:
+            gwordId = d[0][0]
+            cur.execute(f"UPDATE IDInfo SET nextId = {gwordId + 1} WHERE type = 5 AND userId = {groupId}")
+        
         cur.execute(f"INSERT INTO GroupWord VALUES ({groupId}, {gwordId}, '{word}', '{translation}')")
         cur.execute(f"INSERT INTO GroupSync VALUES ({groupId}, {userId}, {wordId}, {gwordId})")
         
@@ -1782,11 +2059,16 @@ def apiAddWord():
             if uid == userId:
                 continue
             wbid = tt[1]
+
             wid = 1
-            cur.execute(F"SELECT MAX(wordId) FROM WordList WHERE userId = {uid}")
-            p = cur.fetchall()
-            if len(p) != 0:
-                wid = p[0][0] + 1
+            cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 2 AND userId = {uid}")
+            d = cur.fetchall()
+            if len(d) == 0:
+                cur.execute(f"INSERT INTO IDInfo VALUES (2, {uid}, 2)")
+            else:
+                wid = d[0][0]
+                cur.execute(f"UPDATE IDInfo SET nextId = {wid + 1} WHERE type = 2 AND userId = {uid}")
+
             cur.execute(f"INSERT INTO WordList VALUES ({uid}, {wid}, '{word}', '{translation}', 1)")
             cur.execute(f"INSERT INTO WordBookData VALUES ({uid}, {wbid}, {wid})")
             cur.execute(f"INSERT INTO ChallengeData VALUES ({uid},{wid},0,-1)")
@@ -1833,18 +2115,20 @@ def apiEditWord():
 
     if groupId != -1:
         cur.execute(f"SELECT wordIdOfGroup FROM GroupSync WHERE userId = {userId} AND wordIdOfUser = {wordId}")
-        gwordId = cur.fetchall()[0][0]
-        cur.execute(f"UPDATE GroupWord SET word = '{word}' WHERE groupId = {groupId} AND groupWordId = {gwordId}")
-        cur.execute(f"UPDATE GroupWord SET translation = '{translation}' WHERE groupId = {groupId} AND groupWordId = {gwordId}")
-        cur.execute(f"SELECT userId, wordIdOfUser FROM GroupSync WHERE groupId = {groupId} AND wordIdOfGroup = {gwordId}")
-        t = cur.fetchall()
-        for tt in t:
-            uid = tt[0]
-            if uid == userId:
-                continue
-            wid = tt[1]
-            cur.execute(f"UPDATE WordList SET word = '{word}' WHERE userId = {uid} AND wordId = {wid}")
-            cur.execute(f"UPDATE WordList SET translation = '{translation}' WHERE userId = {uid} AND wordId = {wid}")
+        tt = cur.fetchall()
+        if len(tt) != 0:
+            gwordId = tt[0][0]
+            cur.execute(f"UPDATE GroupWord SET word = '{word}' WHERE groupId = {groupId} AND groupWordId = {gwordId}")
+            cur.execute(f"UPDATE GroupWord SET translation = '{translation}' WHERE groupId = {groupId} AND groupWordId = {gwordId}")
+            cur.execute(f"SELECT userId, wordIdOfUser FROM GroupSync WHERE groupId = {groupId} AND wordIdOfGroup = {gwordId}")
+            t = cur.fetchall()
+            for tt in t:
+                uid = tt[0]
+                if uid == userId:
+                    continue
+                wid = tt[1]
+                cur.execute(f"UPDATE WordList SET word = '{word}' WHERE userId = {uid} AND wordId = {wid}")
+                cur.execute(f"UPDATE WordList SET translation = '{translation}' WHERE userId = {uid} AND wordId = {wid}")
 
     conn.commit()
 
@@ -1885,7 +2169,10 @@ def apiDeleteWord():
             
         if groupId != -1:
             cur.execute(f"SELECT wordIdOfGroup FROM GroupSync WHERE userId = {userId} AND wordIdOfUser = {wordId}")
-            gwordId = cur.fetchall()[0][0]
+            tt = cur.fetchall()
+            if len(tt) == 0:
+                continue # sync data lost, skip sync
+            gwordId = tt[0][0] 
             cur.execute(f"DELETE FROM GroupWord WHERE groupId = {groupId} AND groupWordId = {gwordId}")
             cur.execute(f"SELECT userId, wordIdOfUser FROM GroupSync WHERE groupId = {groupId} AND wordIdOfGroup = {gwordId}")
             t = cur.fetchall()
@@ -1999,13 +2286,14 @@ def importData():
         if len(d) != 0 and max_allow != -1 and d[0][0] + len(newlist) >= max_allow:
             return render_template("import.html", MESSAGE = f"You have reached your limit of maximum added words {max_allow}. Remove some old words or contact administrator for help.")
 
-
-        wordId = 0
-
-        cur.execute(f"SELECT wordId FROM WordList WHERE userId = {userId} ORDER BY wordId DESC LIMIT 1")
+        wordId = 1
+        cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 2 AND userId = {userId}")
         d = cur.fetchall()
-        if len(d) != 0:
+        if len(d) == 0:
+            cur.execute(f"INSERT INTO IDInfo VALUES (2, {userId}, 2)")
+        else:
             wordId = d[0][0]
+            cur.execute(f"UPDATE IDInfo SET nextId = {wordId + 1} WHERE type = 2 AND userId = {userId}")
 
         if updateType  == "clear_overwrite":
             cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE userId = {userId}")
@@ -2111,6 +2399,12 @@ def exportData():
             export_cur.execute(f"DROP TABLE Previlege")
             export_cur.execute(f"DROP TABLE UserInfo")
             export_cur.execute(f"DROP TABLE UserEvent")
+            export_cur.execute(f"DROP TABLE GroupInfo")
+            export_cur.execute(f"DROP TABLE GroupSync")
+            export_cur.execute(f"DROP TABLE GroupWord")
+            export_cur.execute(f"DROP TABLE GroupBind")
+            export_cur.execute(f"DROP TABLE GroupMember")
+            export_cur.execute(f"DROP TABLE IDInfo")
             export_cur.execute(f"DELETE FROM WordBook WHERE userId != {userId}")
             export_cur.execute(f"DELETE FROM WordBookData WHERE userId != {userId}")
             export_cur.execute(f"DELETE FROM WordBookShare WHERE userId != {userId}")
@@ -2221,19 +2515,13 @@ def apiAdminCommand():
 
         uid = 1
         try:
-            cur.execute(f"SELECT MAX(userId) FROM UserInfo")
-            d = cur.fetchall()
-            if len(d) != 0 and not d[0][0] is None:
-                uid = d[0][0] + 1
-            cur.execute(f"SELECT MIN(userId) FROM UserInfo") # invalid user id due to ban
-            d = cur.fetchall()
-            if len(d) != 0 and not d[0][0] is None:
-                uid = max(uid, -d[0][0] + 1)
+            cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 1")
+            uid = cur.fetchall()[0][0]
+            cur.execute(f"UPDATE IDInfo SET nextId = {uid + 1} WHERE type = 1")
+
             cur.execute(f"INSERT INTO UserInfo VALUES ({uid}, '{username}', '{email}', '{encode(password)}', {inviter}, '{inviteCode}')")
             conn.commit()
         except:
-            import traceback
-            traceback.print_exc()
             sessions.errcnt += 1
             return json.dumps({"success": False, "msg": "Unknown error occured. Try again later..."})
 
@@ -2398,9 +2686,14 @@ def PendingAccountDeletion():
             cur.execute(f"DELETE FROM WordBook WHERE userId = {uid}")
             cur.execute(f"DELETE FROM WordBookData WHERE userId = {uid}")
             cur.execute(f"DELETE FROM WordBookShare WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM WordMemorized WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM WordBookProgress WHERE userId = {uid}")
             cur.execute(f"DELETE FROM ChallengeData WHERE userId = {uid}")
             cur.execute(f"DELETE FROM ChallengeRecord WHERE userId = {uid}")
             cur.execute(f"DELETE FROM StatusUpdate WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM GroupMember WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM GroupSync WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM GroupBind WHERE userId = {uid}")
 
             conn.commit()
 

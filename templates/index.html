@@ -49,6 +49,7 @@
     <br>
     <div id="wbupdate">
         <p>Word Book Update:</p>
+        <p><a onClick="wordBookClone();" href="#">Clone Word Book</a></p>
         <p><a onClick="wordBookRename();" href="#">Rename Word Book</a></p>
         <p><a onClick="wordBookDelete();" href="#">Delete Word Book</a></p>
         <br>
@@ -60,13 +61,14 @@
     <div id="group">
         <p>Group: 
             <span id="groupCode">(Word book not bound to a group)</span>
-            <a onClick="groupDetail();" href="#"><span id="groupdetail" style="display:none">Detail</span></a>
+            <a onClick="renderCurrentPage(7);" href="#"><span id="groupdetail" style="display:none">Detail</span></a>
             <a onClick="quitGroup();" href="#"><span id="quitgroup" style="display:none">Quit</span></a>
             <a onClick="wordBookGroup();" href="#"><span id="groupop">Create group</span></a>
         </p>
         <div id="groupmng">
             <p>
-                <a onClick="groupManage();" href="#">Manage members</a>
+                <a onClick="groupInfoUpdate();" href="#">Update information</a>
+                <br><br>
                 <a onClick="groupCodeUpdate('disable');" href="#">Make private</a>
                 <a onClick="groupCodeUpdate('revoke');" href="#">Revoke code</a>
             </p>
@@ -76,10 +78,30 @@
 
 <p id="wordBookNewWord" style="display:none">Word not in the database? <a onClick="wordBookNewWord();" href="#">Click me to add a new word!</a></p>
 
+<p id="groupDescriptionP" style="display:none">Description: &nbsp;&nbsp;<span id="groupDescription"></span></p>
+
+<table id="groupMember" style="display:none;z-index:999">
+    <thead>
+        <tr>
+            <th id="username">Username</th>
+            <th id="progress">Progress</th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+
+<button id="mngGMbtn" type="button" class="collapsible" style="display:none">Manage Group Member (↓)</button>
+<div id="mngGMclp" class="content" style="display:none">
+    <p><a onClick="groupOperation('kick');" href="#">Kick</a></p>
+    <p><a onClick="groupOperation('makeEditor');" href="#">Make / Undo Make Editor</a></p>
+    <p><a onClick="groupOperation('transferOwnership');" href="#" style="color:red">Transfer ownership</a></p>
+</div>
+
 <script src="/static/js/main.min.js"></script>
 
 <div class="footer">
-    <p>v4.1.1 &copy; Charles</p>
+    <p>v4.1.2 &copy; Charles</p>
     <p>Contact: <a href="mailto:word@charles14.xyz">word@charles14.xyz</a></p>
 </div>
 

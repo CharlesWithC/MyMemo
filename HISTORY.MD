@@ -1,5 +1,11 @@
 # Update History
 
+## v4.1.2
+
+*Date: 2021/10/24*  
+Added Group member list & management  
+Added word book progress monitor  
+
 ## v4.1.1
 
 *Date: 2021/10/23*  
