@@ -335,7 +335,7 @@ fontresize();
 
 validateMsg = (Math.random()).toString();
 $.ajax({
-    url: "/ping",
+    url: "/api/ping",
     method: 'POST',
     async: true,
     dataType: "json",
@@ -2764,9 +2764,9 @@ function clickHandler(e) {
                 appaused = 1 - appaused;
                 renderCurrentPage();
             } else if (buttons[k].name == "import") {
-                window.location.href = "/importData";
+                window.location.href = "/data/import";
             } else if (buttons[k].name == "export") {
-                window.location.href = "/exportData";
+                window.location.href = "/data/export";
             } else if (buttons[k].name == "createwordbook") {
                 createWordBook();
             } else if (buttons[k].name == "wordbookaddword") {

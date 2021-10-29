@@ -1,5 +1,16 @@
 # Update History
 
+## v4.1.3
+
+*Date: 2021/10/29*  
+1.Modulize server side file structure  
+Move all templates & static files to frontend folder which will be handled by nginx directly  
+Backend server will only handle api requests  
+2.Updated import & export function:  
+Raw database will be converted to Excel .xlsx file  
+Import & export cache will be kept in memory  
+3.Fixed a bug of challenge mode causing bad randomness  
+
 ## v4.1.2
 
 *Date: 2021/10/24*  

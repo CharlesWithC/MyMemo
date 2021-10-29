@@ -1,0 +1,34 @@
+<script src="/js/jquery-3.6.0.min.js"></script>
+<meta charset="utf-8" />
+<title>Word Memo - Import Data</title>
+<h1>Import Data - <a href='/'>Go back to homepage</a></h1>
+<br>
+<p>You can upload a new word list here, the file must be a .xlsx table.</p>
+<p>The columns must contain 'Word','Translation'. (It can also contain other columns but Word and Translation are required)</p>
+<p>'Status' is an optional column. If you set it, the script will decide the status of the word.</p>
+<br>
+<p>There are three types of upload you can choose: Append, Overwrite and Clear & Overwrite</p>
+<p>If you choose Append, the uploaded words will be appended to existing database. Duplicate words may exist and you will be warned.</p>
+<p>If you choose Overwrite, when duplicated words are found, they will be replaced by uploaded ones. Other words will be appended to existing database.</p>
+<p>If you choose Clear & Overwrite, all the existing words will be deleted and only the uploaded ones will be kept.</p>
+<p>Please note that if you search for a word which is duplicated, only the first-imported one will be shown.</p>
+<br>
+<p>And, by the way, Excel doesn't support multiple lines in one cell, so if you want to write word / translation with multiple lines, use \n as line break.</p>
+<br>
+<p id="msg" style="color:red"></p>
+<iframe id="importFrame" src="/data/importFrame" width=100% height=100% frameBorder="0"></iframe>
+<style>
+    .footer {
+        z-index: -1; 
+        position: fixed;
+        right: 10;
+        bottom: 0;
+        width: 100%;
+        text-align: right;
+        font-family: Corbel;
+    }
+</style>
+<div class="footer">
+    <p>v4.1.3 &copy; Charles</p>
+    <p>Contact: <a href="mailto:word@charles14.xyz">word@charles14.xyz</a></p>
+</div>
