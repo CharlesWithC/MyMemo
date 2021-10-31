@@ -34,6 +34,7 @@ $.ajax({
         token: localStorage.getItem("token")
     },
     success: function (r) {
+        user.userId = localStorage.getItem("userId");
         user.username = r.username;
         user.email = r.email;
         user.invitationCode = r.invitationCode;
@@ -121,6 +122,7 @@ function Login() {
                         token: localStorage.getItem("token")
                     },
                     success: function (r) {
+                        user.userId = localStorage.getItem("userId");
                         user.username = r.username;
                         user.email = r.email;
                         user.invitationCode = r.invitationCode;

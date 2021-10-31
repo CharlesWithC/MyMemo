@@ -2,14 +2,23 @@
 // Author: @Charles-1414
 // License: GNU General Public License v3.0
 
+function lsGetItem(lsItemName, defaultValue = 0) {
+    if (localStorage.getItem(lsItemName) == null) {
+        localStorage.setItem(lsItemName, defaultValue);
+        return defaultValue;
+    } else {
+        return localStorage.getItem(lsItemName);
+    }
+}
+
 var wordBookId = -1;
 var wordBookName = "";
 var wordBookShareCode = "";
 var groupId = -1;
 var groupCode = "";
 var isGroupOwner = false;
-var wordList = JSON.parse(localStorage.getItem("wordList"));
-var wordBookList = JSON.parse(localStorage.getItem("wordBookList"));
+var wordList = JSON.parse(lsGetItem("word-list", JSON.stringify([])));
+var wordBookList = JSON.parse(lsGetItem("word-book-list", JSON.stringify([])));
 var selectedWordList = [];
 var wordListMap = new Map();
 var selected = [];
@@ -195,9 +204,11 @@ function PageInit() {
     $(".group").hide();
 
     // Use existing words
-    MapWordList();
-    SelectWords();
-    UpdateTable();
+    if (wordList.length != 0) {
+        MapWordList();
+        SelectWords();
+        UpdateTable();
+    }
 
     // Update list
     $.ajax({
@@ -211,7 +222,7 @@ function PageInit() {
         },
         success: function (r) {
             wordList = r;
-            localStorage.setItem("wordList", JSON.stringify(wordList));
+            localStorage.setItem("word-list", JSON.stringify(wordList));
             MapWordList();
             $.ajax({
                 url: "/api/wordBook",
@@ -225,6 +236,7 @@ function PageInit() {
                 success: function (r) {
                     wordBookList = r;
                     localStorage.setItem("word-book-list", JSON.stringify(wordBookList));
+                    MapWordList();
                     SelectWords();
                     UpdateTable();
                 }
@@ -400,6 +412,7 @@ function AddExistingWord() {
                 }).show();
 
                 UpdateWordBookList(false);
+                MapWordList();
                 SelectWords();
                 UpdateTable();
             } else {
@@ -458,6 +471,7 @@ function AddWord() {
 
                 UpdateWordList(false);
                 UpdateWordBookList(false);
+                MapWordList();
                 SelectWords();
                 UpdateTable();
             } else {
@@ -501,6 +515,7 @@ function RemoveFromWordBook() {
                 }).show();
 
                 UpdateWordBookList(false);
+                MapWordList();
                 SelectWords();
                 UpdateTable();
             } else {
@@ -550,6 +565,7 @@ function RemoveWord() {
 
                 UpdateWordList(false);
                 UpdateWordBookList(false);
+                MapWordList();
                 SelectWords();
                 UpdateTable();
             } else {

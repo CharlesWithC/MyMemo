@@ -126,7 +126,7 @@ function UpdateWordList(doasync = true) {
         },
         success: function (r) {
             memo.wordList = r;
-            localStorage.setItem("wordList", JSON.stringify(memo.wordList));
+            localStorage.setItem("word-list", JSON.stringify(memo.wordList));
             MapWordList();
         }
     });
@@ -201,6 +201,7 @@ function ShowWord() {
             timeout: 10000
         }).show();
         localStorage.setItem("first-use", 0);
+        settings.firstuse = false;
     }
     if (settings.swap == 0 || settings.swap == 2 && settings.mode == 1) {
         $("#word").val(memo.word);
