@@ -1,5 +1,5 @@
 # WordMemo
-*A light-weight word / phrase memorizer made with python flask + html5 canvas which supports multiple users.*  
+*A light-weight word / phrase memorizing website made with python flask + html5 bootstrap.*  
 [Website](https://word.charles14.xyz/)
 
 **Important Notice: The License is GNU General Public License. You must open source your project and let me know about it if your code is based on my code. Otherwise you will be held legally responsible!**
