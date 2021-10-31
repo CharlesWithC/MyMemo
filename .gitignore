@@ -2,3 +2,4 @@
 *.xlsx
 plans.txt
 config.json
+nginx-config

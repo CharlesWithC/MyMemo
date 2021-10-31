@@ -13,17 +13,7 @@ from functions import *
 import sessions
 
 
-conn = sqlite3.connect("database.db", check_same_thread = False)
 
-
-def validateToken(userId, token):
-    cur = conn.cursor()
-    cur.execute(f"SELECT username FROM UserInfo WHERE userId = {userId}")
-    d = cur.fetchall()
-    if len(d) == 0 or d[0][0] == "@deleted":
-        return False
-    
-    return sessions.validateToken(userId, token)
 
 
 ##########
@@ -162,6 +152,10 @@ def apiDeleteAccount():
     if not validateToken(userId, token):
         abort(401)
     
+    cur.execute(f"SELECT * FROM AdminList WHERE userId = {userId}")
+    if len(cur.fetchall()) != 0:
+        return json.dumps({"success": False, "msg": "Admins cannot delete their account on website! Contact super administrator for help!"})
+    
     password = request.form["password"]
     cur.execute(f"SELECT password FROM UserInfo WHERE userId = {userId}")
     d = cur.fetchall()
@@ -218,7 +212,44 @@ def apiGetUserInfo():
     regts = cur.fetchall()[0][0]
     age = math.ceil((time.time() - regts) / 86400)
 
-    return json.dumps({"username": d[0], "email": d[1], "invitationCode": d[2], "inviter": inviter, "cnt": cnt, "tagcnt": tagcnt, "delcnt": delcnt, "chcnt": chcnt, "age": age})
+    isAdmin = False
+    cur.execute(f"SELECT * FROM AdminList WHERE userId = {userId}")
+    if len(cur.fetchall()) != 0:
+        isAdmin = True
+
+    return json.dumps({"username": d[0], "email": d[1], "invitationCode": d[2], "inviter": inviter, "cnt": cnt, "tagcnt": tagcnt, "delcnt": delcnt, "chcnt": chcnt, "age": age, "isAdmin": isAdmin})
+
+@app.route("/api/user/updateInfo", methods=['POST'])
+def apiUpdateInfo():
+    cur = conn.cursor()
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
+        abort(401)
+        
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    if not validateToken(userId, token):
+        abort(401)
+    
+    username = request.form["username"]
+    email = request.form["email"]
+
+    if username is None or email is None\
+        or username.replace(" ","") == "" or email.replace(" ","") == "":
+        return json.dumps({"success": False, "msg": "All the fields must be filled!"})
+    if not username.replace("_","").isalnum():
+        return json.dumps({"success": False, "msg": "Username can only contain alphabets, digits and underscore!"})
+    if validators.email(email) != True:
+        return json.dumps({"success": False, "msg": "Invalid email!"})
+    
+    cur.execute(f"SELECT * FROM UserInfo WHERE username = '{username}' AND userId != {userId}")
+    if len(cur.fetchall()) != 0:
+        return json.dumps({"success": False, "msg": "Username occupied!"})
+    
+    cur.execute(f"UPDATE UserInfo SET username = '{username}' WHERE userId = {userId}")
+    cur.execute(f"UPDATE UserInfo SET email = '{email}' WHERE userId = {userId}")
+    conn.commit()
+
+    return json.dumps({"success": True, "msg": "User profile updated!"})
 
 @app.route("/api/user/changePassword", methods=['POST'])
 def apiChangePassword():

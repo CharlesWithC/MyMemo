@@ -13,7 +13,7 @@ from functions import *
 import sessions
 
 
-conn = sqlite3.connect("database.db", check_same_thread = False)
+
 
 
 def getWordCount(userId):
@@ -189,9 +189,13 @@ def apiGetWordStat():
     res = f"About {word}\n"
 
     if astatus == 0:
-        res += f"Added at {ts2dt(ats)} with .xlsx importer.\n"    
+        res += f"Added by magic (unknown adding method).\n"
     elif astatus == -1:
-        res += f"Added at {ts2dt(ats)} on website.\n"    
+        res += f"Imported from file.\n"  
+    elif astatus == -2:
+        res += f"Added at {ts2dt(ats)} on website.\n"  
+    elif astatus == -3:
+        res += f"Imported from a group's word book."
 
     if tagcnt > 0:
         res += f"Tagged for {tagcnt} times\n(Last time: {ts2dt(lsttag)}),\n"

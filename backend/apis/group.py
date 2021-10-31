@@ -15,17 +15,7 @@ from functions import *
 import sessions
 
 
-conn = sqlite3.connect("database.db", check_same_thread = False)
 
-
-def validateToken(userId, token):
-    cur = conn.cursor()
-    cur.execute(f"SELECT username FROM UserInfo WHERE userId = {userId}")
-    d = cur.fetchall()
-    if len(d) == 0 or d[0][0] == "@deleted":
-        return False
-    
-    return sessions.validateToken(userId, token)
 
 
 ##########
@@ -54,6 +44,13 @@ def apiGroup():
             return json.dumps({"success": False, "msg": f"You are not allowed to create groups. Contact administrator for help."})
 
         wordBookId = int(request.form["wordBookId"])
+        if wordBookId == 0:
+            return json.dumps({"success": False, "msg": "You cannot create a group based on your word database."})
+        
+        cur.execute(f"SELECT * FROM WordBook WHERE wordBookId = {wordBookId} AND userId = {userId}")
+        if len(cur.fetchall()) == 0:
+            return json.dumps({"success": False, "msg": "Word book to be used as group word book not found!"})
+
         name = encode(request.form["name"])
         description = encode(request.form["description"])
 
@@ -274,6 +271,8 @@ def apiManageGroup():
     elif op == "kick":
         users = json.loads(request.form["users"])
         for uid in users:
+            if uid == userId:
+                continue
             cur.execute(f"DELETE FROM GroupSync WHERE groupId = {groupId} AND userId = {uid}")
             cur.execute(f"DELETE FROM GroupMember WHERE groupId = {groupId} AND userId = {uid}")
             cur.execute(f"DELETE FROM GroupBind WHERE groupId = {groupId} AND userId = {uid}")

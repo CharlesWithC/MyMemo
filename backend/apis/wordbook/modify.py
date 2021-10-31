@@ -12,7 +12,7 @@ from functions import *
 import sessions
 
 
-conn = sqlite3.connect("database.db", check_same_thread = False)
+
 
 
 def updateWordStatus(userId, wordId, status):
@@ -262,7 +262,7 @@ def apiCloneWordBook():
     d = cur.fetchall()
     if len(d) == 0:
         return json.dumps({"success": False, "msg": "Word book to clone from not found!"})
-    name = encode("(Clone) " + decode(d[0][0]))
+    name = encode(decode(d[0][0]) + " (Clone)")
     
     max_book_allow = config.max_word_book_per_user_allowed
     cur.execute(f"SELECT value FROM Previlege WHERE userId = {userId} AND item = 'word_book_limit'")

@@ -58,7 +58,7 @@ def login(userId):
     try:
         token = str(userId).zfill(9) + "-" + str(uuid.uuid4())
         loginTime = int(time.time())
-        expireTime = loginTime + 7200 # 2 hours
+        expireTime = loginTime + 21600 # 6 hours
 
         cur.execute(f"INSERT INTO ActiveUserLogin VALUES ({userId}, '{token}', {loginTime}, {expireTime})")
         conn.commit()
@@ -154,6 +154,35 @@ def DeleteAccountNow(userId):
         conn.commit()
         
         return 0
+
+    except:
+        global errcnt
+        errcnt += 1
+
+def CheckDeletionMark(userId):
+    try:
+        cur = conn.cursor()
+
+        cur.execute(f"SELECT userId FROM PendingAccountDeletion WHERE userId = {userId}")
+        if len(cur.fetchall()) != 0:
+            return 1
+        
+        return 0
+
+    except:
+        global errcnt
+        errcnt += 1
+
+def CountDeletionMark():
+    try:
+        cur = conn.cursor()
+
+        cur.execute(f"SELECT COUNT(*) FROM PendingAccountDeletion")
+        d = cur.fetchall()
+        if len(d) == 0:
+            return 0
+        
+        return d[0][0]
 
     except:
         global errcnt

@@ -17,19 +17,6 @@ from functions import *
 import sessions
 
 
-conn = sqlite3.connect("database.db", check_same_thread = False)
-
-
-def validateToken(userId, token):
-    cur = conn.cursor()
-    cur.execute(f"SELECT username FROM UserInfo WHERE userId = {userId}")
-    d = cur.fetchall()
-    if len(d) == 0 or d[0][0] == "@deleted":
-        return False
-    
-    return sessions.validateToken(userId, token)
-
-
 ##########
 # Data API
 
@@ -138,7 +125,7 @@ def importData():
             cur.execute(f"SELECT wordId FROM WordList WHERE userId = {userId} AND word = '{encode(word)}'")
             wid = cur.fetchall()[0][0] # do not use wordId as variable name or it will cause conflict
             cur.execute(f"UPDATE WordList SET translation = '{encode(translation)}' WHERE wordId = {wid} AND userId = {userId}")
-            if list(uploaded.keys()).count("Status") == 1 and newlist["Status"][i] in ["Default", "Tagged", "Removed"]:
+            if list(newlist.keys()).count("Status") == 1 and newlist["Status"][i] in ["Default", "Tagged", "Removed"]:
                 status = StatusTextToStatus[newlist["Status"][i]]
                 cur.execute(f"UPDATE WordList SET status = {status} WHERE wordId = {wid} AND userId = {userId}")
             if wordBookId != 0:
@@ -154,15 +141,16 @@ def importData():
         updateWordStatus(userId, wordId, status)
 
         status = 1
-        if list(uploaded.keys()).count("Status") == 1 and newlist["Status"][i] in ["Default", "Tagged", "Removed"]:
+        if list(newlist.keys()).count("Status") == 1 and newlist["Status"][i] in ["Default", "Tagged", "Removed"]:
             status = StatusTextToStatus[newlist["Status"][i]]
             updateWordStatus(userId, wordId, status)
         else:
             status = 1
             updateWordStatus(userId, wordId, status)
-
+            
         cur.execute(f"INSERT INTO WordList VALUES ({userId},{wordId}, '{encode(word)}', '{encode(translation)}', {status})")
         cur.execute(f"INSERT INTO ChallengeData VALUES ({userId},{wordId}, 0, -1)")
+        cur.execute(f"UPDATE IDInfo SET nextId = {wordId + 1} WHERE type = 2 AND userId = {userId}")
         
         if wordBookId != 0:
             cur.execute(f"INSERT INTO WordBookData VALUES ({userId}, {wordBookId}, {wordId})")

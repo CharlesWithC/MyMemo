@@ -13,17 +13,7 @@ from functions import *
 import sessions
 
 
-conn = sqlite3.connect("database.db", check_same_thread = False)
 
-
-def validateToken(userId, token):
-    cur = conn.cursor()
-    cur.execute(f"SELECT username FROM UserInfo WHERE userId = {userId}")
-    d = cur.fetchall()
-    if len(d) == 0 or d[0][0] == "@deleted":
-        return False
-    
-    return sessions.validateToken(userId, token)
 
 
 ##########
@@ -119,6 +109,9 @@ def apiAdminCommand():
         msg = ""
         if banned:
             msg += "Account has been banned\n"
+        
+        if sessions.CheckDeletionMark(uid):
+            msg += "Account disabled and marked for deletion\n"
 
         return json.dumps({"success": True, "msg": f"{d[0]} (UID: {uid})\nEmail: {d[1]}\nInvitation Code: {d[2]}\nInviter: {inviter} (UID: {d[3]})\nWord Count: {cnt}\nAccount age: {age} day(s)\n{msg}"})
     
@@ -294,7 +287,10 @@ def apiAdminCommand():
         if len(d) != 0:
             banned = d[0][0]
         
-        return json.dumps({"success": True, "msg": f"Total user: {tot}\nActive user: {cnt - deled}\nBanned / Banned & Deleted user: {banned}\nDeleted user: {deled}"})
+        marked_deletion = sessions.CountDeletionMark()
+        cnt -= marked_deletion
+        
+        return json.dumps({"success": True, "msg": f"Total user: {tot}\nActive user: {cnt - deled}\nBanned / Banned & Deleted user: {banned}\nDisabled (Pending deletion) user: {marked_deletion}\nDeleted user: {deled}"})
 
     else:
         return json.dumps({"success": False, "msg": "Unknown command"})

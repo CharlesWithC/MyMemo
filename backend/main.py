@@ -3,6 +3,10 @@
 # License: GNU General Public License v3.0
 
 import os, sys
+if not os.path.exists("./database.db"):
+    print("Database not found! If this is the first time you run this script, run firstuse.py first!")
+    sys.exit(0)
+
 import time
 import json
 import threading
@@ -11,11 +15,6 @@ import sqlite3
 from app import app, config
 import sessions
 import api
-
-
-if not os.path.exists("./database.db"):
-    print("Database not found! If this is the first time you run this script, run firstuse.py first!")
-    sys.exit(0)
 
 def PendingAccountDeletion():
     conn = sqlite3.connect("database.db", check_same_thread=False)

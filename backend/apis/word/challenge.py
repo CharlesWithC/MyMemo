@@ -13,30 +13,8 @@ from functions import *
 import sessions
 
 
-conn = sqlite3.connect("database.db", check_same_thread = False)
 
 
-def validateToken(userId, token):
-    cur = conn.cursor()
-    cur.execute(f"SELECT username FROM UserInfo WHERE userId = {userId}")
-    d = cur.fetchall()
-    if len(d) == 0 or d[0][0] == "@deleted":
-        return False
-    
-    return sessions.validateToken(userId, token)
-
-def getWordsInWordBook(userId, wordBookId, statusRequirement):
-    cur = conn.cursor()
-    cur.execute(f"SELECT wordId FROM WordBookData WHERE wordBookId = {wordBookId} AND userId = {userId}")
-    wordbook = cur.fetchall()
-    cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE ({statusRequirement}) AND userId = {userId}")
-    words = cur.fetchall()
-    d = []
-    for word in words:
-        if (word[0],) in wordbook:
-            d.append(word)
-    return d
-    
 
 ##########
 # Word API
@@ -55,7 +33,7 @@ def getChallengeWordId(userId, wordBookId, nofour = False):
         t = rnd[random.randint(0,len(rnd)-1)]
     
     cache = getWordsInWordBook(userId, wordBookId, "status = 1")
-    print("Original Type ", t)
+    
     if t == 1: # tagged word
         cur.execute(f"SELECT wordId FROM ChallengeData WHERE lastChallenge <= {int(time.time()) - 1200} AND userId = {userId} ORDER BY wordId ASC")
         d1 = cur.fetchall()
@@ -84,7 +62,6 @@ def getChallengeWordId(userId, wordBookId, nofour = False):
 
 
         if wordId == -1:
-            print("Move To Type 2")
             t = 2
     
     if t == 2: # words pending next challenge (already challenged)
@@ -99,7 +76,8 @@ def getChallengeWordId(userId, wordBookId, nofour = False):
                 if (dd[0],) in d2:
                     wordId = dd[0]
                     words.append(wordId)
-            wordId = words[random.randint(0, len(words) - 1)]
+            if len(words) != 0:
+                wordId = words[random.randint(0, len(words) - 1)]
 
         else:
             d = cache
@@ -112,7 +90,6 @@ def getChallengeWordId(userId, wordBookId, nofour = False):
             wordId = words[random.randint(0, len(words) - 1)]
         
         if wordId == -1:
-            print("Move To Type 3")
             t = 3
     
     if t == 3: # words not challenged before
@@ -139,7 +116,6 @@ def getChallengeWordId(userId, wordBookId, nofour = False):
             wordId = words[random.randint(0, len(words) - 1)]
         
         if wordId == -1:
-            print("Move To Type 5")
             t = 5
     
     if t == 5: # words already challenged (and not pending challenge), but last challenge is 20 minutes ago
@@ -166,7 +142,6 @@ def getChallengeWordId(userId, wordBookId, nofour = False):
             wordId = words[random.randint(0, len(words) - 1)]
         
         if wordId == -1:
-            print("Move To Type 4")
             t = 4
     
     if t == 4 and not nofour: # deleted word
@@ -187,7 +162,6 @@ def getChallengeWordId(userId, wordBookId, nofour = False):
         if wordId == -1:
             wordId = getChallengeWordId(userId, wordBookId, nofour = True)
     
-    print("Challenge Type: ", t)
     return wordId
 
 @app.route("/api/word/challenge/next", methods = ['POST'])

@@ -6,7 +6,13 @@
 
 *It's only tested in python3.8 + Chrome / Firefox browser environment. But it should support python3.\* and most browsers.*
   
-Current version: v4.1.3  
+Current version: v5.1.1  
+
+## About v5  
+
+After 2 days of working day and night, I have rebuilt the website using bootstrap!  
+Now the website looks better and there's no more resizing problem.  
+It looks more like a website than an experiment now.  
 
 ## About the project
 

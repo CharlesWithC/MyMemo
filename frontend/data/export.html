@@ -1,65 +1,114 @@
-<script src="/js/jquery-3.6.0.min.js"></script>
-<title>Word Memo - Export Data</title>
-<meta charset="utf-8" />
-<h1>Export Data - <a href='/'>Go back to homepage</a></h1>
-<br>
-<p>You can export the data here.</p>
-<p>There are two options for you to choose: Excel Table and Raw Database File</p>
-<p>If you choose Word List, you will get all the words, translations and status in a .xlsx file which is human-readable.</p>
-<p>If you choose All Data, you will get all your data stored on the server except some sensitive data (such as your password).</p>
-<p>Please note that the words and translations stored in the raw database file are encoded with base64. Status code are integars: {1: "Default", 2: "Tagged", 3: "Removed"}</p>
-<p>And by the way, for server safety, you are not allowed to upload database directly.</p>
-<br>
-<p id="msg" style="color:red"></p>
-<p>Type:
-    <input type="radio" id="xlsx" name="exportType" value="xlsx" checked>
-    <label for="xlsx">Word List</label>
-    <input type="radio" id="rawdb" name="exportType" value="rawdb">
-    <label for="rawdb">All Data</label>
-</p>
-<button id="submit">Export</button>
-<script>
-    $("#userId").val(localStorage.getItem("userId"));
-    $("#token").val(localStorage.getItem("token"));
-    $("#submit").click(function(){
-        $.ajax({
-            url: "/api/data/export",
-            method: 'POST',
-            async: true,
-            dataType: "json",
-            data: {
-                userId: localStorage.getItem("userId"),
-                token: localStorage.getItem("token"),
-                exportType: $('input[name="exportType"]:checked').val()
-            },
-            success: function(r) {
-                token = r.token;
-                window.location.href = "/download?token=" + token;
-            },
-            error: function (r) {
-                if (r.status == 401) {
-                    alert("Login session expired! Please login again!");
-                    localStorage.removeItem("userId");
-                    localStorage.removeItem("token");
-                    window.location.href = "/user";
-                }
-            }
-        });
-    });
-</script>
+<html>
 
-<style>
-    .footer {
-        z-index: -1; 
-        position: fixed;
-        right: 10;
-        bottom: 0;
-        width: 100%;
-        text-align: right;
-        font-family: Corbel;
-    }
-</style>
-<div class="footer">
-    <p>v4.1.3 &copy; Charles</p>
-    <p>Contact: <a href="mailto:word@charles14.xyz">word@charles14.xyz</a></p>
-</div>
+<head>
+    <meta charset="utf-8" />
+    <title>Word Memo - Export Data</title>
+
+    <script src="/js/jquery-3.6.0.min.js"></script>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/popper.min.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/js/settings.js"></script>
+
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/font-awesome.min.css" rel="stylesheet">
+    <link href="/css/main.css" rel="stylesheet">
+
+    <link href="/noty/noty.css" rel="stylesheet">
+    <script src="/noty/noty.min.js" type="text/javascript"></script>
+    <link href="/noty/themes/mint.css" rel="stylesheet">
+
+    <link rel="icon" href="/img/icon.png">
+
+    <script>
+        $("#userId").val(localStorage.getItem("userId"));
+        $("#token").val(localStorage.getItem("token"));
+
+        function Export() {
+            $.ajax({
+                url: "/api/data/export",
+                method: 'POST',
+                async: true,
+                dataType: "json",
+                data: {
+                    userId: localStorage.getItem("userId"),
+                    token: localStorage.getItem("token"),
+                    exportType: $('input[name="exportType"]:checked').val()
+                },
+                success: function (r) {
+                    token = r.token;
+                    window.location.href = "/download?token=" + token;
+                    new Noty({
+                        theme: 'mint',
+                        text: 'Success!',
+                        type: 'success',
+                        layout: 'bottomRight',
+                        timeout: 3000
+                    }).show();
+                    new Noty({
+                        theme: 'mint',
+                        text: 'Please be patient while the download is being prepared',
+                        type: 'info',
+                        layout: 'bottomRight',
+                        timeout: 10000
+                    }).show();
+                },
+                error: function (r) {
+                    if (r.status == 401) {
+                        new Noty({
+                            theme: 'mint',
+                            text: 'Login session expired! Please login again!',
+                            type: 'error',
+                            layout: 'bottomRight',
+                            timeout: 3000
+                        }).show();
+                    }
+                }
+            });
+        }
+    </script>
+</head>
+
+<body>
+    <h1 class="title" style="padding-bottom: 0;">Word Memo - Export Data</h1>
+    <div id="navigate" style="z-index:100">
+        <div class="top-left">
+            <button id="home-btn" type="button" class="btn btn-primary control-btn control-btn-top"
+                onclick="Settings()"><i class="fa fa-cogs"></i> Back</button>
+        </div>
+    </div>
+
+    <div class="container" style="margin:3em">
+        <p>You can export the data here.</p>
+        <p>There are two options for you to choose: Excel Table and Raw Database File</p>
+        <p>If you choose Word List, you will get all the words, translations and status in a .xlsx file which is
+            human-readable.</p>
+        <p>If you choose All Data, you will get all your data stored on the server except some sensitive data (such as
+            your password).</p>
+        <p>Please note that the words and translations stored in the raw database file are encoded with base64. Status
+            code are integars: {1: "Default", 2: "Tagged", 3: "Removed"}</p>
+        <p>And by the way, for server safety, you are not allowed to upload database directly.</p>
+        <br>
+        <p id="msg" style="color:red"></p>
+        <p>Type:
+            <input type="radio" id="xlsx" name="exportType" value="xlsx" checked>
+            <label for="xlsx">Word List</label>
+            <input type="radio" id="rawdb" name="exportType" value="rawdb">
+            <label for="rawdb">All Data</label>
+        </p>
+        <button id="submit" type="button" class="btn btn-primary" onclick="Export()"><i class="fa fa-download"></i> Export</button>
+    </div>
+
+    <div class="footer">
+        <p>Copyright &copy; 2021 Word Memo by <a href="https://www.charles14.xyz/" style="color:#ffffff">Charles</a></p>
+        <p>Version: v5.1.1 <i class="fa fa-check-circle"></i></p>
+        <p>Contact: <a href="mailto:word@charles14.xyz" style="color:#ffffff">word@charles14.xyz</a></p>
+        <p>This is an open source project:
+            <a href="https://github.com/Charles-1414/WordMemo" style="color:#ffffff"><i class="fa fa-github"></i>
+                GitHub</a>
+        </p>
+        <p>Your privacy is valued. No 3rd party script is used. No cookie is used. All your local data is stored in Local Storage.</p>
+    </div>
+</body>
+
+</html>

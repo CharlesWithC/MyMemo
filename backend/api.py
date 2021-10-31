@@ -21,7 +21,7 @@ import apis.wordbook.main
 import apis.group
 import apis.data
 
-conn = sqlite3.connect("database.db", check_same_thread = False)
+
 
 @app.route("/api/ping", methods = ['POST'])
 def ping():

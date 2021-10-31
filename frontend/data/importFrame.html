@@ -1,48 +1,98 @@
-<script src="/js/jquery-3.6.0.min.js"></script>
-<meta charset="utf-8" />
-<form action="/api/data/import" method="POST" enctype="multipart/form-data">
-    <p>File: <input type="file" name="file" /></p>
-    <p>Upload Type:
-        <input type="radio" id="append" name="updateType" value="append" checked>
-        <label for="append">Append</label>
-        <input type="radio" id="overwrite" name="updateType" value="overwrite">
-        <label for="overwrite">Overwrite</label>
-        <input type="radio" id="clear_overwrite" name="updateType" value="clear_overwrite">
-        <label for="clear_overwrite">Clear & Overwrite</label>
-    </p>
-    <p>Check duplicate word?
-        <input type="radio" id="yes" name="checkDuplicate" value="yes" checked>
-        <label for="yes">Yes</label>
-        <input type="radio" id="no" name="checkDuplicate" value="no">
-        <label for="no">No</label>
-    </p>
-    <p>Add to word list:
-        <select name="wordBookId" id="wordBook">
-        </select>
-    </p>
-    <input type="text" id="userId" name="userId" style="display:none;" />
-    <input type="text" id="token" name="token" style="display:none;" />
-    <input type="text" id="requestId" name="requestId" style="display:none;" />
-    <input type="submit" value="Import" />
-</form>
-<script>
-    $(document).ready(function(){
-        $("#userId").val(localStorage.getItem("userId"));
-        $("#token").val(localStorage.getItem("token"));
-        wordBookList = [];
-        $.ajax({
-            url: "/api/wordBook",
-            method: 'POST',
-            async: true,
-            dataType: "json",
-            data: {
-                userId: localStorage.getItem("userId"),
-                token: localStorage.getItem("token")
-            },
-            success: function (r) {
-                for (var i = 0; i < r.length; i++)
-                    $("#wordBook").append("<option value=" + r[i].wordBookId + ">" + r[i].name + "</option>");
-            }
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Word Memo - Import Data iFrame</title>
+
+    <script src="/js/jquery-3.6.0.min.js"></script>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/popper.min.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/js/settings.js"></script>
+
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/font-awesome.min.css" rel="stylesheet">
+    <link href="/css/main.css" rel="stylesheet">
+
+    <link rel="icon" href="/img/icon.png">
+
+    <script>
+        $(document).ready(function () {
+            $("#userId").val(localStorage.getItem("userId"));
+            $("#token").val(localStorage.getItem("token"));
+            wordBookList = [];
+            $.ajax({
+                url: "/api/wordBook",
+                method: 'POST',
+                async: true,
+                dataType: "json",
+                data: {
+                    userId: localStorage.getItem("userId"),
+                    token: localStorage.getItem("token")
+                },
+                success: function (r) {
+                    for (var i = 0; i < r.length; i++)
+                        $("#wordBook").append("<option value=" + r[i].wordBookId + ">" + r[i].name +
+                            "</option>");
+                }
+            });
+            $("#submit").click(function(){
+                $("#form").hide();
+                $("#uploading").show();
+            });
         });
-    });
-</script>
+    </script>
+</head>
+
+<body>
+    <form id="form" action="/api/data/import" method="POST" enctype="multipart/form-data">
+        <div class="input-group" style="width:20em">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="inputGroupFileAddon01">Upload</span>
+            </div>
+            <div class="custom-file">
+                <input type="file" class="custom-file-input" id="inputGroupFile01"
+                    aria-describedby="inputGroupFileAddon01" name="file">
+                <label class="custom-file-label" for="inputGroupFile01">Choose file</label>
+            </div>
+        </div>
+        <br>
+        <p>Upload Type:
+            <div class="form-check">
+                <input type="radio" id="append" name="updateType" value="append" checked class="form-check-input" type="radio" name="flexRadioDefault">
+                <label class="form-check-label" for="append">Append</label>
+            </div>
+            <div class="form-check">
+                <input type="radio" id="overwrite" name="updateType" value="overwrite" class="form-check-input" type="radio" name="flexRadioDefault">
+                <label class="form-check-label" for="overwrite">Overwrite</label>
+            </div>
+            <div class="form-check">
+                <input type="radio" id="clear_overwrite" name="updateType" value="clear_overwrite" class="form-check-input" type="radio" name="flexRadioDefault">
+                <label class="form-check-label" for="clear_overwrite">Clear & Overwrite</label>
+            </div>
+        </p>
+        <p>Check duplicate word?
+            <div class="form-check">
+                <input type="radio" id="yes" name="checkDuplicate" value="yes" checked class="form-check-input" type="radio" name="flexRadioDefault">
+                <label class="form-check-label" for="yes">Yes</label>
+            </div>
+            <div class="form-check">
+                <input type="radio" id="no" name="checkDuplicate" value="no" class="form-check-input" type="radio" name="flexRadioDefault">
+                <label class="form-check-label" for="no">No</label>
+            </div>
+        </p>
+        <p>Add to word list:
+            <select name="wordBookId" id="wordBook" class="form-select">
+            </select>
+        </p>
+        <input type="text" id="userId" name="userId" style="display:none;" />
+        <input type="text" id="token" name="token" style="display:none;" />
+        <input type="text" id="requestId" name="requestId" style="display:none;" />
+        <button id="submit" type="submit" class="btn btn-primary"><i class="fa fa-upload"></i> Import</button>
+    </form>
+
+    <p id="uploading" style="display:none">Uploading <i class='fa fa-spinner fa-spin'></i></p>
+
+</body>
+
+</html>

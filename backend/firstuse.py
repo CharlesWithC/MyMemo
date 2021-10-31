@@ -7,7 +7,6 @@ import os, sys
 import bcrypt
 import json
 import random
-from functions import *
 
 
 if os.path.exists("./database.db"):
@@ -18,6 +17,7 @@ if os.path.exists("./database.db"):
     else:
         os.remove("./database.db")
 
+from functions import *
 
 class Dict2Obj(object):
     def __init__(self, d):
@@ -52,7 +52,8 @@ cur.execute(f"CREATE TABLE UserEvent (userId INT, event VARCHAR(32), timestamp I
 # If user id becomes a negative number, it means this user has been banned
 
 defaultpwd = hashpwd(config.default_user_password)
-cur.execute(f"INSERT INTO UserInfo VALUES (0,'default','None','{defaultpwd}',0,'{genCode(6)}')")
+
+cur.execute(f"INSERT INTO UserInfo VALUES (0,'default','None','{encode(defaultpwd)}',0,'{genCode(6)}')")
 cur.execute(f"INSERT INTO UserEvent VALUES (0, 'register', 0)")
 # Default user system's password is 123456
 # Clear default account's password after setup (so it cannot be logged in)

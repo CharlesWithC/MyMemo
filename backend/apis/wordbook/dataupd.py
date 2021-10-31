@@ -12,7 +12,7 @@ from functions import *
 import sessions
 
 
-conn = sqlite3.connect("database.db", check_same_thread = False)
+
 
 
 def updateWordStatus(userId, wordId, status):

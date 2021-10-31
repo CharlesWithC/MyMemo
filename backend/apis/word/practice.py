@@ -13,38 +13,7 @@ from functions import *
 import sessions
 
 
-conn = sqlite3.connect("database.db", check_same_thread = False)
 
-    
-def updateWordStatus(userId, wordId, status):
-    cur = conn.cursor()
-    cur.execute(f"SELECT COUNT(*) FROM StatusUpdate WHERE wordId = {wordId} AND userId = {userId}")
-    d = cur.fetchall()
-    wordUpdateId = 0
-    if len(d) != 0:
-        wordUpdateId = d[0][0]
-    cur.execute(f"INSERT INTO StatusUpdate VALUES ({userId},{wordId},{wordUpdateId},{status},{int(time.time())})")
-
-def validateToken(userId, token):
-    cur = conn.cursor()
-    cur.execute(f"SELECT username FROM UserInfo WHERE userId = {userId}")
-    d = cur.fetchall()
-    if len(d) == 0 or d[0][0] == "@deleted":
-        return False
-    
-    return sessions.validateToken(userId, token)
-
-def getWordsInWordBook(userId, wordBookId, statusRequirement):
-    cur = conn.cursor()
-    cur.execute(f"SELECT wordId FROM WordBookData WHERE wordBookId = {wordBookId} AND userId = {userId}")
-    wordbook = cur.fetchall()
-    cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE ({statusRequirement}) AND userId = {userId}")
-    words = cur.fetchall()
-    d = []
-    for word in words:
-        if (word[0],) in wordbook:
-            d.append(word)
-    return d
 
 
 ##########
