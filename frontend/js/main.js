@@ -247,9 +247,9 @@ function ShowWord() {
         memo.speaker.cancel();
         msg = undefined;
         if (settings.swap != 1 || settings.swap == 1 && memo.displayingAnswer) {
-            msg = new SpeechSynthesisUtterance(memo.word);
+            msg = new SpeechSynthesisUtterance($("#word").val());
         } else {
-            msg = new SpeechSynthesisUtterance(memo.translation);
+            msg = new SpeechSynthesisUtterance($("#translation").val());
         }
         memo.speaker.speak(msg);
     }
@@ -445,7 +445,6 @@ function MemoStart() {
                         if (r.status == 401) {
                             SessionExpired();
                         } else {
-                            $("#startfrom").hide();
                             memo.word = r.status + " " + errorThrown;
                             memo.translation = "Maybe change the settings?\nOr check your connection?";
 
@@ -463,7 +462,6 @@ function MemoStart() {
                 } else if (r.status == 401) {
                     SessionExpired();
                 } else {
-                    $("#startfrom").hide();
                     memo.word = r.status + " " + errorThrown;
                     memo.translation = "Maybe change the settings?\nOr check your connection?";
 
@@ -487,6 +485,12 @@ function MemoStart() {
                 memo.word = r.word;
                 memo.translation = r.translation;
                 memo.wordStatus = r.status;
+                
+                if(memo.wordId == -1){
+                    $("#challenge-control").hide();
+                } else {
+                    $("#challenge-control").show();
+                }
 
                 ShowWord();
             },
@@ -534,7 +538,7 @@ function MemoStart() {
         $(".ap-btn").attr("onclick", "StopAutoPlayer()");
         $(".ap-btn").html('<i class="fa fa-pause-circle"></i> Pause');
         memo.speaker.cancel();
-        msg = new SpeechSynthesisUtterance(memo.word);
+        msg = new SpeechSynthesisUtterance($("#word").val());
         memo.speaker.speak(msg);
     }
 }
@@ -677,6 +681,12 @@ function MemoChallenge(res) {
                 memo.translation = r.translation;
                 memo.wordStatus = r.status;
 
+                if(memo.wordId == -1){
+                    $("#challenge-control").hide();
+                } else {
+                    $("#challenge-control").show();
+                }
+
                 memo.challengeStatus = 0;
                 $("#challenge-msg").html("Do you remember it?");
                 ShowWord();
@@ -778,7 +788,7 @@ function EditWord() {
 function SpeakWord() {
     if (settings.swap != 1 || settings.swap == 1 && memo.displayingAnswer) {
         memo.speaker.cancel();
-        msg = new SpeechSynthesisUtterance(memo.word);
+        msg = new SpeechSynthesisUtterance($("#word").val());
         memo.speaker.speak(msg);
     }
 }

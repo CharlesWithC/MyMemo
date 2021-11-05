@@ -70,8 +70,17 @@ def apiGroup():
         cur.execute(f"INSERT INTO GroupBind VALUES ({groupId}, {userId}, {wordBookId})")
         cur.execute(f"SELECT wordId FROM WordBookData WHERE userId = {userId} AND wordBookId = {wordBookId}")
         words = cur.fetchall()
+        
         gwordId = 1
         for word in words:
+            cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 5 AND userId = {groupId}")
+            d = cur.fetchall()
+            if len(d) == 0:
+                cur.execute(f"INSERT INTO IDInfo VALUES (5, {groupId}, 2)")
+            else:
+                gwordId = d[0][0]
+                cur.execute(f"UPDATE IDInfo SET nextId = {gwordId + 1} WHERE type = 5 AND userId = {groupId}")
+
             wordId = word[0]
             cur.execute(f"SELECT word, translation FROM WordList WHERE userId = {userId} AND wordId = {wordId}")
             d = cur.fetchall()[0]
@@ -188,7 +197,7 @@ def apiGroupMember():
     if not (userId,0,) in d and not (userId,1,) in d:
         return json.dumps({"success": False, "msg": f"You must be a member of the group before viewing its members."})
     
-    cur.execute(f"SELECT * FROM GroupWord")
+    cur.execute(f"SELECT * FROM GroupWord WHERE groupId = {groupId}")
     wordcnt = len(cur.fetchall())
     cur.execute(f"SELECT groupWordId FROM GroupWord WHERE groupId = {groupId}")
     words = cur.fetchall()
@@ -198,6 +207,10 @@ def apiGroupMember():
 
     cur.execute(f"SELECT owner FROM GroupInfo WHERE groupId = {groupId}")
     owner = cur.fetchall()[0][0]
+    
+    isOwner = False
+    if owner == userId:
+        isOwner = True
 
     ret = []
     for dd in d:
@@ -228,7 +241,7 @@ def apiGroupMember():
 
         ret.append({"userId": uid, "username": username, "progress": pgs})
     
-    return json.dumps({"name": decode(info[0]), "description": decode(info[1]), "member": ret})
+    return json.dumps({"name": decode(info[0]), "description": decode(info[1]), "member": ret, "isOwner": isOwner})
 
 @app.route("/api/group/manage", methods = ['POST'])
 def apiManageGroup():

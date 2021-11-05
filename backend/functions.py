@@ -47,9 +47,12 @@ def getWordsInWordBook(userId, wordBookId, statusRequirement):
     cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE ({statusRequirement}) AND userId = {userId}")
     words = cur.fetchall()
     d = []
-    for word in words:
-        if (word[0],) in wordbook:
-            d.append(word)
+    if wordBookId > 0:
+        for word in words:
+            if (word[0],) in wordbook:
+                d.append(word)
+    else:
+        d = words
     return d
     
 def updateWordStatus(userId, wordId, status):

@@ -61,6 +61,11 @@ function UpdateGroupMember() {
         },
         success: function (r) {
             wordBookName = r.name;
+            if(r.isOwner){
+                $(".manage").show();
+            } else {
+                $(".manage").hide();
+            }
             $("title").html("Word Memo - " + wordBookName);
             $(".title").html(wordBookName);
 

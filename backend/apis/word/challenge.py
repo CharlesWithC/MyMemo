@@ -32,59 +32,32 @@ def getChallengeWordId(userId, wordBookId, nofour = False):
         random.shuffle(rnd)
         t = rnd[random.randint(0,len(rnd)-1)]
     
-    cache = getWordsInWordBook(userId, wordBookId, "status = 1")
+    status1 = getWordsInWordBook(userId, wordBookId, "status = 1")
+    status2 = getWordsInWordBook(userId, wordBookId, "status = 2")
     
     if t == 1: # tagged word
         cur.execute(f"SELECT wordId FROM ChallengeData WHERE lastChallenge <= {int(time.time()) - 1200} AND userId = {userId} ORDER BY wordId ASC")
-        d1 = cur.fetchall()
-
-        if wordBookId == 0:
-            cur.execute(f"SELECT wordId FROM WordList WHERE status = 2 AND userId = {userId} ORDER BY wordId ASC")
-            d2 = cur.fetchall()
-            words = []
-            for dd in d2:
-                if (dd[0],) in d1:
-                    wordId = dd[0]
-                    words.append(wordId)
-
-            if len(words) != 0:
-                wordId = words[random.randint(0, len(words) - 1)]
-
-        else:
-            d = getWordsInWordBook(userId, wordBookId, "status = 2")
-            oklist = []
-            for dd in d:
-                if (dd[0],) in d1:
-                    oklist.append(dd[0])
+        cd = cur.fetchall()
+        words = []
+        
+        for dd in status2:
+            if (dd[0],) in cd:
+                words.append(dd[0])
             
-            if len(oklist) != 0:
-                wordId = oklist[random.randint(0,len(oklist)-1)]
-
+        if len(words) != 0:
+            wordId = words[random.randint(0,len(words) - 1)]
 
         if wordId == -1:
             t = 2
     
     if t == 2: # words pending next challenge (already challenged)
         cur.execute(f"SELECT wordId FROM ChallengeData WHERE nextChallenge <= {int(time.time())} AND nextChallenge != 0 AND userId = {userId} ORDER BY nextChallenge ASC")
-        d1 = cur.fetchall()
+        cd = cur.fetchall()
         words = []
         
-        if wordBookId == 0:
-            cur.execute(f"SELECT wordId FROM WordList WHERE status = 1 AND userId = {userId} ORDER BY wordId ASC")
-            d2 = cur.fetchall()
-            for dd in d1:
-                if (dd[0],) in d2:
-                    wordId = dd[0]
-                    words.append(wordId)
-            if len(words) != 0:
-                wordId = words[random.randint(0, len(words) - 1)]
-
-        else:
-            d = cache
-            for dd in d:
-                if (dd[0],) in d1:
-                    wordId = dd[0]
-                    words.append(wordId)
+        for dd in status1:
+            if (dd[0],) in cd:
+                words.append(dd[0])
         
         if len(words) != 0:
             wordId = words[random.randint(0, len(words) - 1)]
@@ -94,23 +67,12 @@ def getChallengeWordId(userId, wordBookId, nofour = False):
     
     if t == 3: # words not challenged before
         cur.execute(f"SELECT wordId FROM ChallengeData WHERE nextChallenge = 0 AND userId = {userId} ORDER BY wordId ASC")
-        d1 = cur.fetchall()
+        cd = cur.fetchall()
         words = []
 
-        if wordBookId == 0:
-            cur.execute(f"SELECT wordId FROM WordList WHERE status = 1 AND userId = {userId} ORDER BY wordId ASC")
-            d2 = cur.fetchall()
-            for dd in d1:
-                if (dd[0],) in d2:
-                    wordId = dd[0]
-                    words.append(wordId)
-
-        else:
-            d = cache
-            for dd in d:
-                if (dd[0],) in d1:
-                    wordId = dd[0]
-                    words.append(wordId)
+        for dd in status1:
+            if (dd[0],) in cd:
+                words.append(dd[0])
         
         if len(words) != 0:
             wordId = words[random.randint(0, len(words) - 1)]
@@ -120,23 +82,12 @@ def getChallengeWordId(userId, wordBookId, nofour = False):
     
     if t == 5: # words already challenged (and not pending challenge), but last challenge is 20 minutes ago
         cur.execute(f"SELECT wordId FROM ChallengeData WHERE lastChallenge <= {int(time.time()) - 1200} AND nextChallenge != 0 AND userId = {userId} ORDER BY nextChallenge ASC")
-        d1 = cur.fetchall()
+        cd = cur.fetchall()
         words = []
         
-        if wordBookId == 0:
-            cur.execute(f"SELECT wordId FROM WordList WHERE status = 1 AND userId = {userId} ORDER BY wordId ASC")
-            d2 = cur.fetchall()
-            for dd in d1:
-                if (dd[0],) in d2:
-                    wordId = dd[0]
-                    words.append(wordId)
-        else:
-            d = cache
-            words = []
-            for dd in d:
-                if (dd[0],) in d1:
-                    wordId = dd[0]
-                    words.append(wordId)
+        for dd in status1:
+            if (dd[0],) in cd:
+                words.append(dd[0])
         
         if len(words) != 0:
             wordId = words[random.randint(0, len(words) - 1)]
@@ -145,21 +96,12 @@ def getChallengeWordId(userId, wordBookId, nofour = False):
             t = 4
     
     if t == 4 and not nofour: # deleted word
-        cur.execute(f"SELECT wordId FROM WordList WHERE status = 3 AND userId = {userId} ORDER BY RANDOM() LIMIT 1")
-        d = cur.fetchall()
-        if len(d) != 0:
-            if wordBookId == 0:
-                wordId = d[0][0]
-            
-            else:
-                cur.execute(f"SELECT wordId FROM WordBookData WHERE userId = {userId} AND wordBookId = {wordBookId}")
-                d2 = cur.fetchall()
-                for dd in d2:
-                    if (dd[0],) in d:
-                        wordId = dd[0]
-                        break
+        d = getWordsInWordBook(userId, wordBookId, "status = 3")
+
+        if len(d) > 0:
+            wordId = d[random.randint(0, len(d) - 1)][0]
         
-        if wordId == -1:
+        else:
             wordId = getChallengeWordId(userId, wordBookId, nofour = True)
     
     return wordId

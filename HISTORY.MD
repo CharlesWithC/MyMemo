@@ -1,5 +1,16 @@
 # Update History
 
+## v5.1.2
+
+*Date: 2021/11/5*  
+Fixed some bugs  
+1.Fixed the bug that non-group-owner can see the management buttons on group member page  
+2.Disallowed user to join a group for multiple times  
+3.Fixed incorrect word id update  
+4.Fixed incorrect group member progress display  
+5.Disabled word reading when they are invisible  
+6.Fixed the bug that word id cannot be found when word book is specified and there are multiple words in database  
+
 ## v5.1.1
 
 *Date: 2021/10/30*  

@@ -76,17 +76,18 @@ def apiGetWordID():
     cur.execute(f"SELECT wordId FROM WordList WHERE word = '{encode(word)}' AND userId = {userId}")
     d = cur.fetchall()
     if len(d) != 0:
-        wordId = d[0][0]
-        if wordBookId > 0:
-            cur.execute(f"SELECT wordBookId FROM WordBookData WHERE wordId = {wordId} AND wordBookId = {wordBookId}")
-            if len(cur.fetchall()) == 0:
-                abort(404)
+        for dd in d:
+            wordId = dd[0]
+            if wordBookId > 0:
+                cur.execute(f"SELECT wordBookId FROM WordBookData WHERE wordId = {wordId} AND wordBookId = {wordBookId} AND userId = {userId}")
+                if len(cur.fetchall()) == 0:
+                    continue
 
-        # If there are multiple records, then return the first one
-        # NOTE: The user should be warned when they try to insert multiple records with the same word
-        return json.dumps({"wordId" : wordId})
-    else:
-        abort(404)
+            # If there are multiple records, then return the first one
+            # NOTE: The user is warned when they try to insert multiple records with the same word
+            return json.dumps({"wordId" : wordId})
+            
+    abort(404)
 
 @app.route("/api/word/stat", methods = ['POST'])
 def apiGetWordStat():

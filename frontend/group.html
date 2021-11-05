@@ -2,12 +2,12 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>Word Memo - Group</title>
+    <title>Word Memo</title>
 
     <script src="/js/jquery-3.6.0.min.js"></script>
     <script src="/js/bootstrap.bundle.min.js"></script>
     <script src="/js/popper.min.js"></script>
-    <script src="/js/group.min.js"></script>
+    <script src="/js/group.js"></script>
 
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/font-awesome.min.css" rel="stylesheet">
@@ -79,7 +79,7 @@
             </table>
         </div>
 
-        <div id="manage" class="manage" style="position:relative;width:35%;float:right">
+        <div id="manage" class="manage" style="position:relative;width:35%;float:right;display:none">
             <p>Manage Group Member: </p>
             <button type="button" class="btn btn-primary" onclick="GroupOperation('kick')"><i class="fa fa-ban"></i> Kick</button>
             <button type="button" class="btn btn-primary" onclick="GroupOperation('makeEditor')">Make / Undo Make Editor</button>

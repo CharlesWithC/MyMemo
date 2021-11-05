@@ -51,15 +51,6 @@ def apiCreateWordBook():
     
     name = str(request.form["name"])
 
-    wordBookId = 1
-    cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 3 AND userId = {userId}")
-    d = cur.fetchall()
-    if len(d) == 0:
-        cur.execute(f"INSERT INTO IDInfo VALUES (3, {userId}, 2)")
-    else:
-        wordBookId = d[0][0]
-        cur.execute(f"UPDATE IDInfo SET nextId = {wordBookId + 1} WHERE type = 3 AND userId = {userId}")
-
     if name.startswith("!") and name[1:].isalnum():
         name = name[1:]
         cur.execute(f"SELECT userId, wordBookId FROM WordBookShare WHERE shareCode = '{name}'")
@@ -109,20 +100,29 @@ def apiCreateWordBook():
             if len(d) != 0 and max_book_allow != -1 and d[0][0] + 1 >= max_book_allow:
                 return json.dumps({"success": False, "msg": f"You have reached your limit of maximum created word book {max_allow}. Remove some word books (this will not remove the words) or contact administrator for help."})
 
+            wordBookId = 1
+            cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 3 AND userId = {userId}")
+            d = cur.fetchall()
+            if len(d) == 0:
+                cur.execute(f"INSERT INTO IDInfo VALUES (3, {userId}, 2)")
+            else:
+                wordBookId = d[0][0]
+                cur.execute(f"UPDATE IDInfo SET nextId = {wordBookId + 1} WHERE type = 3 AND userId = {userId}")
+                
             # do import
             cur.execute(f"INSERT INTO WordBook VALUES ({userId}, {wordBookId}, '{name}')")
             cur.execute(f"INSERT INTO WordBookProgress VALUES ({userId}, {wordBookId}, 0)")
 
             wordId = 1
-            cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 2 AND userId = {userId}")
-            d = cur.fetchall()
-            if len(d) == 0:
-                cur.execute(f"INSERT INTO IDInfo VALUES (2, {userId}, 2)")
-            else:
-                wordId = d[0][0]
-                cur.execute(f"UPDATE IDInfo SET nextId = {wordId + 1} WHERE type = 2 AND userId = {userId}")
-
             for tt in t:
+                cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 2 AND userId = {userId}")
+                d = cur.fetchall()
+                if len(d) == 0:
+                    cur.execute(f"INSERT INTO IDInfo VALUES (2, {userId}, 2)")
+                else:
+                    wordId = d[0][0]
+                    cur.execute(f"UPDATE IDInfo SET nextId = {wordId + 1} WHERE type = 2 AND userId = {userId}")
+                
                 cur.execute(f"SELECT wordId, translation FROM WordList WHERE userId = {userId} AND word = '{di[tt[0]][0]}'")
                 p = cur.fetchall()
                 ctn = False
@@ -162,6 +162,10 @@ def apiCreateWordBook():
             groupId = d[0][0]
             name = d[0][1]
 
+            cur.execute(f"SELECT userId FROM GroupMember WHERE groupId = {groupId} AND userId = {userId}")
+            if len(cur.fetchall()) != 0:
+                return json.dumps({"success": False, "msg": "You have already joined this group!"})
+
             cur.execute(f"SELECT memberLimit FROM GroupInfo WHERE groupId = {groupId}")
             mlmt = cur.fetchall()[0][0]
             cur.execute(f"SELECT * FROM GroupMember WHERE groupId = {groupId}")
@@ -192,6 +196,14 @@ def apiCreateWordBook():
             if len(d) != 0 and max_book_allow != -1 and d[0][0] + 1 >= max_book_allow:
                 return json.dumps({"success": False, "msg": f"You have reached your limit of maximum created word book {max_allow}. Remove some word books (this will not remove the words) or contact administrator for help."})
 
+            wordBookId = 1
+            cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 3 AND userId = {userId}")
+            d = cur.fetchall()
+            if len(d) == 0:
+                cur.execute(f"INSERT INTO IDInfo VALUES (3, {userId}, 2)")
+            else:
+                wordBookId = d[0][0]
+                cur.execute(f"UPDATE IDInfo SET nextId = {wordBookId + 1} WHERE type = 3 AND userId = {userId}")
 
             # do import
             cur.execute(f"INSERT INTO WordBook VALUES ({userId}, {wordBookId}, '{name}')")
@@ -200,15 +212,15 @@ def apiCreateWordBook():
             cur.execute(f"INSERT INTO GroupBind VALUES ({groupId}, {userId}, {wordBookId})")
 
             wordId = 1
-            cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 2 AND userId = {userId}")
-            d = cur.fetchall()
-            if len(d) == 0:
-                cur.execute(f"INSERT INTO IDInfo VALUES (2, {userId}, 2)")
-            else:
-                wordId = d[0][0]
-                cur.execute(f"UPDATE IDInfo SET nextId = {wordId + 1} WHERE type = 2 AND userId = {userId}")
-            
             for tt in t:
+                cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 2 AND userId = {userId}")
+                d = cur.fetchall()
+                if len(d) == 0:
+                    cur.execute(f"INSERT INTO IDInfo VALUES (2, {userId}, 2)")
+                else:
+                    wordId = d[0][0]
+                    cur.execute(f"UPDATE IDInfo SET nextId = {wordId + 1} WHERE type = 2 AND userId = {userId}")
+
                 # no duplicate check as user are not allowed to edit words in group
                 cur.execute(f"INSERT INTO WordBookData VALUES ({userId}, {wordBookId}, {wordId})")
                 cur.execute(f"INSERT INTO WordList VALUES ({userId}, {wordId}, '{tt[0]}', '{tt[1]}', 1)")
@@ -239,6 +251,15 @@ def apiCreateWordBook():
     if len(d) != 0 and max_book_allow != -1 and d[0][0] + 1 >= max_book_allow:
         return json.dumps({"success": False, "msg": f"You have reached your limit of maximum created word book {max_allow}. Remove some word books (this will not remove the words) or contact administrator for help."})
 
+    wordBookId = 1
+    cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 3 AND userId = {userId}")
+    d = cur.fetchall()
+    if len(d) == 0:
+        cur.execute(f"INSERT INTO IDInfo VALUES (3, {userId}, 2)")
+    else:
+        wordBookId = d[0][0]
+        cur.execute(f"UPDATE IDInfo SET nextId = {wordBookId + 1} WHERE type = 3 AND userId = {userId}")
+    
     cur.execute(f"INSERT INTO WordBook VALUES ({userId}, {wordBookId}, '{name}')")
     cur.execute(f"INSERT INTO WordBookProgress VALUES ({userId}, {wordBookId}, 0)")
     conn.commit()
