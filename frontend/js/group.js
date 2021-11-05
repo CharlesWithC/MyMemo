@@ -3,7 +3,7 @@
 // License: GNU General Public License v3.0
 
 var groupId = -1;
-var wordBookName = "";
+var bookName = "";
 var selected = [];
 
 function SessionExpired() {
@@ -60,14 +60,16 @@ function UpdateGroupMember() {
             groupId: groupId
         },
         success: function (r) {
-            wordBookName = r.name;
+            bookName = r.name;
             if(r.isOwner){
                 $(".manage").show();
+                $(".member").attr("style","position:relative;width:55%;float:left;");
             } else {
                 $(".manage").hide();
+                $(".member").attr("style","width:100%");
             }
-            $("title").html("Word Memo - " + wordBookName);
-            $(".title").html(wordBookName);
+            $("title").html("My Memo - " + bookName);
+            $(".title").html(bookName);
 
             $("#groupDescription").html(r.description.replaceAll("\n", "<br>"));
 

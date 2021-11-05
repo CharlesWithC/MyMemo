@@ -31,12 +31,12 @@ def PendingAccountDeletion():
             cur.execute(f"UPDATE UserInfo SET username = '@deleted' WHERE userId = {uid}")
             cur.execute(f"UPDATE UserInfo SET email = '' WHERE userId = {uid}")
             cur.execute(f"UPDATE UserInfo SET password = '' WHERE userId = {uid}")
-            cur.execute(f"DELETE FROM WordList WHERE userId = {uid}")
-            cur.execute(f"DELETE FROM WordBook WHERE userId = {uid}")
-            cur.execute(f"DELETE FROM WordBookData WHERE userId = {uid}")
-            cur.execute(f"DELETE FROM WordBookShare WHERE userId = {uid}")
-            cur.execute(f"DELETE FROM WordMemorized WHERE userId = {uid}")
-            cur.execute(f"DELETE FROM WordBookProgress WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM QuestionList WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM Book WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM BookData WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM BookShare WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM MyMemorized WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM BookProgress WHERE userId = {uid}")
             cur.execute(f"DELETE FROM ChallengeData WHERE userId = {uid}")
             cur.execute(f"DELETE FROM ChallengeRecord WHERE userId = {uid}")
             cur.execute(f"DELETE FROM StatusUpdate WHERE userId = {uid}")
@@ -52,7 +52,7 @@ def ClearCache():
     while 1:
         recoverAccount = []
         duplicate = []
-        os.system("rm -f /tmp/WordMemoCache/*")
+        os.system("rm -f /tmp/MyMemoCache/*")
         time.sleep(3600) # clear each hour
 
 threading.Thread(target = PendingAccountDeletion).start()

@@ -3,7 +3,7 @@
 // License: GNU General Public License v3.0
 
 function lsGetItem(lsItemName, defaultValue = 0) {
-    if (localStorage.getItem(lsItemName) == null) {
+    if (localStorage.getItem(lsItemName) == null || localStorage.getItem(lsItemName) == undefined) {
         localStorage.setItem(lsItemName, defaultValue);
         return defaultValue;
     } else {
@@ -62,11 +62,11 @@ function UpdateSettingsButtons() {
     $(".swap-btn").removeClass("btn-primary btn-secondary");
     $(".swap-btn").addClass("btn-secondary");
     if (swap == 0) {
-        $("#swap-word-btn").removeClass("btn-secondary");
-        $("#swap-word-btn").addClass("btn-primary");
+        $("#swap-question-btn").removeClass("btn-secondary");
+        $("#swap-question-btn").addClass("btn-primary");
     } else if (swap == 1) {
-        $("#swap-translation-btn").removeClass("btn-secondary");
-        $("#swap-translation-btn").addClass("btn-primary");
+        $("#swap-answer-btn").removeClass("btn-secondary");
+        $("#swap-answer-btn").addClass("btn-primary");
     } else if (swap == 2) {
         $("#swap-both-btn").removeClass("btn-secondary");
         $("#swap-both-btn").addClass("btn-primary");
@@ -129,9 +129,9 @@ function UpdateAutoplay(speed) {
     UpdateSettingsButtons();
 }
 
-function ClearDeletedWord() {
+function ClearDeletedQuestion() {
     $.ajax({
-        url: '/api/word/clearDeleted',
+        url: '/api/question/clearDeleted',
         method: 'POST',
         async: true,
         dataType: "json",
@@ -142,7 +142,7 @@ function ClearDeletedWord() {
         success: function (r) {
             new Noty({
                 theme: 'mint',
-                text: 'Cleared all words that are marked deleted!',
+                text: 'Cleared all questions that are marked deleted!',
                 type: 'success',
                 layout: 'bottomRight',
                 timeout: 3000

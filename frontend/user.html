@@ -2,7 +2,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>Word Memo</title>
+    <title>My Memo</title>
 
     <script src="/js/jquery-3.6.0.min.js"></script>
     <script src="/js/bootstrap.bundle.min.js"></script>
@@ -54,7 +54,7 @@
         </div>
     </div>
     <div class="user" style="margin:4em;display:none;z-index:100">
-        <h1 class="title" style="margin-bottom:0.8em">Word Memo</h1>
+        <h1 class="title" style="margin-bottom:0.8em">My Memo</h1>
         <div class="basic-info" style="width: 55%; float:left">
             <h2><span id="username"></span></h2>
             <p style="font-size:0.8em">ID: <span id="userId"></span></p>
@@ -65,7 +65,7 @@
             <p>Invited By: <span id="inviteBy"></span></p>
             <hr>
             <h2>Statistics</h2>
-            <p><span id="cnt">0</span> words in list</p>
+            <p><span id="cnt">0</span> questions in list</p>
             <p><span id="tagged">0</span> tagged and <span id="deleted">0</span> deleted</p>
             <p><span id="chcnt">0</span> challenges done so far</p>
         </div>
@@ -74,7 +74,7 @@
             <br>
             <h4>Basic</h4>
             <button type="button" class="btn btn-primary" onclick="UpdateProfileShow()">Update Profile</button>
-            <button type="button" class="btn btn-primary" onclick="ChangePasswordShow()">Change Password</button>
+            <button type="button" class="btn btn-primary" onclick="ChangepasswordShow()">Change password</button>
             <hr>
             <h4>Danger Zone</h4>
             <button type="button" class="btn btn-danger" onclick="DeleteAccountShow()">Delete Account</button>
@@ -88,13 +88,13 @@
     </div>
 
     <div class="login center" style="margin-bottom:10em;display:none">
-        <h1 style="margin-bottom:0.8em">Word Memo</h1>
+        <h1 style="margin-bottom:0.8em">My Memo</h1>
         <div class="input-group mb-3 w-25 center">
             <span class="input-group-text" id="basic-addon1">Username</span>
             <input type="text" class="form-control" id="input-username" aria-describedby="basic-addon1">
         </div>
         <div class="input-group mb-3 w-25 center">
-            <span class="input-group-text" id="basic-addon1">Password</span>
+            <span class="input-group-text" id="basic-addon1">password</span>
             <input type="password" class="form-control" id="input-password" aria-describedby="basic-addon1">
         </div>
         <div class="center" style="width:30%">
@@ -106,7 +106,7 @@
     </div>
 
     <div class="register center" style="top:5%;margin-bottom:10em;display:none">
-        <h1 style="margin-bottom:0.8em">Word Memo</h1>
+        <h1 style="margin-bottom:0.8em">My Memo</h1>
         <div class="input-group mb-3 w-25 center">
             <span class="input-group-text" id="basic-addon1">Username</span>
             <input type="text" class="form-control" id="register-username" aria-describedby="basic-addon1">
@@ -116,7 +116,7 @@
             <input type="text" class="form-control" id="register-email" aria-describedby="basic-addon1">
         </div>
         <div class="input-group mb-3 w-25 center">
-            <span class="input-group-text" id="basic-addon1">Password</span>
+            <span class="input-group-text" id="basic-addon1">password</span>
             <input type="password" class="form-control" id="register-password" aria-describedby="basic-addon1">
         </div>
         <div class="input-group mb-3 w-25 center">
@@ -165,31 +165,31 @@
         </div>
     </div>
 
-    <div class="modal fade" id="changePasswordModal" tabindex="-1" role="dialog" aria-labelledby="changePasswordModalLabel"
+    <div class="modal fade" id="changepasswordModal" tabindex="-1" role="dialog" aria-labelledby="changepasswordModalLabel"
         aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="changePasswordModalLabel"><i class="fa fa-edit"></i>Change Password</h5>
+                    <h5 class="modal-title" id="changepasswordModalLabel"><i class="fa fa-edit"></i>Change password</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#changePasswordModal').modal('toggle')">
+                        onclick="$('#changepasswordModal').modal('toggle')">
                         <span aria-hidden=" true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
                     <form>
                         <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1">Current Password</span>
+                            <span class="input-group-text" id="basic-addon1">Current password</span>
                             <input type="password" class="form-control" id="oldpwd" aria-describedby="basic-addon1"
                                 style="z-index:100">
                         </div>
                         <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1">New Password</span>
+                            <span class="input-group-text" id="basic-addon1">New password</span>
                             <input type="password" class="form-control" id="newpwd" aria-describedby="basic-addon1"
                                 style="z-index:100">
                         </div>
                         <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1">Repeat new Password</span>
+                            <span class="input-group-text" id="basic-addon1">Repeat new password</span>
                             <input type="password" class="form-control" id="cfmpwd" aria-describedby="basic-addon1"
                                 style="z-index:100">
                         </div>
@@ -197,8 +197,8 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#changePasswordModal').modal('toggle')">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="ChangePassword()">Change</button>
+                        onclick="$('#changepasswordModal').modal('toggle')">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="Changepassword()">Change</button>
                 </div>
             </div>
         </div>
@@ -228,7 +228,7 @@
                                 style="z-index:100">
                         </div>
                         <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1">Password</span>
+                            <span class="input-group-text" id="basic-addon1">password</span>
                             <input type="password" class="form-control" id="delete-password" aria-describedby="basic-addon1"
                                 style="z-index:100">
                         </div>
@@ -244,11 +244,11 @@
     </div>
 
     <div class="footer">
-        <p>Copyright &copy; 2021 Word Memo by <a href="https://www.charles14.xyz/" style="color:#ffffff">Charles</a></p>
-        <p>Version: v5.1.1 <i class="fa fa-check-circle"></i></p>
-        <p>Contact: <a href="mailto:word@charles14.xyz" style="color:#ffffff">word@charles14.xyz</a></p>
+        <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/" style="color:#ffffff">Charles</a></p>
+        <p>Version: v5.1.3 <i class="fa fa-check-circle"></i></p>
+        <p>Contact: <a href="mailto:question@charles14.xyz" style="color:#ffffff">question@charles14.xyz</a></p>
         <p>This is an open source project:
-            <a href="https://github.com/Charles-1414/WordMemo" style="color:#ffffff"><i class="fa fa-github"></i>
+            <a href="https://github.com/Charles-1414/MyMemo" style="color:#ffffff"><i class="fa fa-github"></i>
                 GitHub</a>
         </p>
         <p>Your privacy is valued. No 3rd party script is used. No cookie is used. All your local data is stored in

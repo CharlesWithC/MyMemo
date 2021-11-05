@@ -2,12 +2,12 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>Word Memo</title>
+    <title>My Memo</title>
 
     <script src="/js/jquery-3.6.0.min.js"></script>
     <script src="/js/bootstrap.bundle.min.js"></script>
     <script src="/js/popper.min.js"></script>
-    <script src="/js/wordbook.js"></script>
+    <script src="/js/book.js"></script>
 
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/font-awesome.min.css" rel="stylesheet">
@@ -24,23 +24,24 @@
 
     <script>
         $(document).ready(function () {
-            $('#wordList').DataTable({
+            $('#questionList').DataTable({
                 pagingType: "full_numbers"
             });
-            $("#wordList_length").append(
+            $("#questionList_length").append(
                 '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="selectAll();" href="#">Select All</a>');
-            $("#wordList_length").append(
+            $("#questionList_length").append(
                 '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="deselectAll();" href="#">Deselect All</a>');
-            $("#wordList_length").append('<a class="manage">&nbsp;&nbsp;|&nbsp;&nbsp;Double click word to edit<p>');
+            $("#questionList_length").append(
+                '<a class="manage">&nbsp;&nbsp;|&nbsp;&nbsp;Double click question to edit<p>');
 
             PageInit();
 
-            $('#wordList tbody').on('dblclick', 'tr', function () {
+            $('#questionList tbody').on('dblclick', 'tr', function () {
                 wid = parseInt($(this).attr("id"));
-                EditWordShow(wid);
+                EditQuestionShow(wid);
             });
 
-            $('#wordList tbody').on('click', 'tr', function () {
+            $('#questionList tbody').on('click', 'tr', function () {
                 wid = parseInt($(this).attr("id"));
                 if ($(this).hasClass("selected")) {
                     idx = selected.indexOf(wid);
@@ -52,12 +53,11 @@
                 }
                 $(this).toggleClass('selected');
             });
-            
+
             $("#window").click(function () {
-                HideWordBookList();
+                HideBookList();
             });
         });
-        
     </script>
 
     <style>
@@ -65,7 +65,10 @@
             margin: 0.1em;
             margin-bottom: 0.3em;
         }
-        h4, h5, p {
+
+        h4,
+        h5,
+        p {
             margin: 0.5em;
         }
     </style>
@@ -74,23 +77,23 @@
 <body>
     <div id="window" style="z-index:50;position:fixed;height:100%;width:100%;display:none"></div>
 
-    <h1 class="title" style="padding-bottom: 0;">Word Memo - Word List</h1>
+    <h1 class="title" style="padding-bottom: 0;">My Memo</h1>
     <div id="navigate" style="z-index:100">
         <div class="top-left">
             <button id="home-btn" type="button" class="btn btn-primary control-btn control-btn-top"
                 onclick="BackToHome()"><i class="fa fa-home"></i> Home</button>
-            <button id="wordbook-btn" type="button" class="btn btn-primary control-btn control-btn-top"
-                onclick="ShowWordBook()"><i class="fa fa-book"></i> Word Books</button>
+            <button id="book-btn" type="button" class="btn btn-primary control-btn control-btn-top"
+                onclick="ShowBook()"><i class="fa fa-book"></i> Books</button>
         </div>
     </div>
 
     <div style="position:relative;margin:2em;padding:2em">
         <div style="position:relative;width:55%;float:left">
-            <table class="table" id="wordList" style="text-align:center">
+            <table class="table" id="questionList" style="text-align:center">
                 <thead>
                     <tr>
-                        <th id="word">Word</th>
-                        <th id="translation">Translation</th>
+                        <th id="question">Question</th>
+                        <th id="answer">Answer</th>
                         <th id="status">Status</th>
                     </tr>
                 </thead>
@@ -101,56 +104,67 @@
 
         <div id="manage" class="manage" style="position:relative;width:35%;float:right">
             <div>
-                <h4><i class="fa fa-list"></i> Words</h4>
+                <h4><i class="fa fa-list"></i> Questions</h4>
                 <h5><i class="fa fa-info"></i> Status</h5>
-                <button type="button" class="btn btn-primary" onclick="WordBookUpdateStatus(1)">Default</button>
-                <button type="button" class="btn btn-primary" onclick="WordBookUpdateStatus(2)">Tag <i class="fa fa-star"></i></button>
-                <button type="button" class="btn btn-primary" onclick="WordBookUpdateStatus(3)">Delete <i class="fa fa-trash"></i></button>
-                <br>                
-                <h5><i class="fa fa-edit"></i> Edit Word</h5>
-                <button type="button" class="btn btn-primary" onclick="EditWordFromBtn()">Edit</button>
-                <br>
-                <h5><i class="fa fa-plus"></i> Add Word</h5>
-                <button type="button" class="btn btn-primary not-for-all-words" onclick="ShowWordDatabase()" style="display:none">Select words
-                    to add</button>
-                <button type="button" class="btn btn-primary" onclick="AddWordShow()">Add a new word</button>
-                <br>
-                <h5><i class="fa fa-minus"></i> Remove Word</h5>
-                <button type="button" class="btn btn-warning not-for-all-words" onclick="RemoveFromWordBook()" style="display:none">Remove
-                    from word book</button>
-                <button type="button" class="btn btn-danger" onclick="RemoveWordShow()">Remove from
-                    database</button>
-                <p style="font-size:0.75em">* "Remove from word book" will only unbind selected words from this word book, "Remove from database"
-                    will not only unbind them, but also remove them from all other word books.</p>
+                <button type="button" class="btn btn-primary" onclick="BookUpdateStatus(1)">Default</button>
+                <button type="button" class="btn btn-primary" onclick="BookUpdateStatus(2)">Tag <i
+                        class="fa fa-star"></i></button>
+                <button type="button" class="btn btn-primary" onclick="BookUpdateStatus(3)">Delete <i
+                        class="fa fa-trash"></i></button>
+                <div class="only-group-owner">
+                    <br>
+                    <h5><i class="fa fa-edit"></i> Edit Question</h5>
+                    <button type="button" class="btn btn-primary" onclick="EditQuestionFromBtn()">Edit</button>
+                </div>
+                <div class="only-group-editor">
+                    <br>
+                    <h5><i class="fa fa-plus"></i> Add Question</h5>
+                    <button type="button" class="btn btn-primary not-for-all-questions" onclick="ShowQuestionDatabase()"
+                        style="display:none">Select questions
+                        to add</button>
+                    <button type="button" class="btn btn-primary" onclick="AddQuestionShow()">Add a new
+                        question</button>
+                    <br>
+                    <h5><i class="fa fa-minus"></i> Remove Question</h5>
+                    <button type="button" class="btn btn-warning not-for-all-questions" onclick="RemoveFromBook()"
+                        style="display:none">Remove
+                        from book</button>
+                    <button type="button" class="btn btn-danger" onclick="RemoveQuestionShow()">Remove from
+                        database</button>
+                    <p style="font-size:0.75em">* "Remove from book" will only unbind selected questions from this book,
+                        "Remove from database"
+                        will not only unbind them, but also remove them from all other books.</p>
+                </div>
                 <hr>
             </div>
-            <div class="not-for-all-words" style="display:none">
-                <h4><i class="fa fa-book"></i> Word Book</h4>
-                <button type="button" class="btn btn-primary not-for-all-words" onclick="WordBookClone()">Clone <i class="fa fa-copy"></i></button>
-                <button type="button" class="btn btn-primary not-for-all-words"
-                    onclick="WordBookRenameShow()">Rename <i class="fa fa-edit"></i></button>
-                <button type="button" class="btn btn-danger not-for-all-words"
-                    onclick="WordBookDeleteShow()">Delete <i class="fa fa-trash"></i></button>
+            <div class="not-for-all-questions" style="display:none">
+                <h4><i class="fa fa-book"></i> Book</h4>
+                <button type="button" class="btn btn-primary not-for-all-questions" onclick="BookClone()">Clone <i
+                        class="fa fa-copy"></i></button>
+                <button type="button" class="btn btn-primary not-for-all-questions only-group-owner"
+                    onclick="BookRenameShow()">Rename <i class="fa fa-edit"></i></button>
+                <button type="button" class="btn btn-danger not-for-all-questions" onclick="BookDeleteShow()">Delete <i
+                        class="fa fa-trash"></i></button>
                 <hr>
             </div>
             <div>
                 <h4><i class="fa fa-share-square"></i> Share</h4>
-                <p class="only-shared" style="display:none">Code: <span id="wordBookShareCode">(Private)</span></p>
-                <button type="button" class="btn btn-primary"
-                    onclick="WordBookShare()"><span id="shareop">Share</span></button>
+                <p class="only-shared" style="display:none">Code: <span id="bookShareCode">(Private)</span></p>
+                <button type="button" class="btn btn-primary" onclick="BookShare()"><span
+                        id="shareop">Share</span></button>
                 <hr>
             </div>
-            <div id="group" class="group not-for-all-words" style="display:none">
+            <div id="group" class="group not-for-all-questions" style="display:none">
                 <h4><i class="fa fa-users"></i> Group</h4>
-                <p class="only-group-exist">Code: <span id="groupCode">(Word book not bound to a group)</span></p>
-                
-                <button type="button" class="btn btn-primary only-group-exist"
-                    onclick="GroupMember()">Member <i class="fa fa-list"></i></button>
-                <button type="button" class="btn btn-warning only-group-exist"
-                    onclick="QuitGroupShow()">Quit <i class="fa fa-sign-out"></i></button>
+                <p class="only-group-exist">Code: <span id="groupCode">(Book not bound to a group)</span></p>
 
-                <button type="button" class="btn btn-primary only-group-inexist"
-                    onclick="CreateGroupShow()">Create Group</button>
+                <button type="button" class="btn btn-primary only-group-exist" onclick="GroupMember()">Member <i
+                        class="fa fa-list"></i></button>
+                <button type="button" class="btn btn-warning only-group-exist" onclick="QuitGroupShow()">Quit <i
+                        class="fa fa-sign-out"></i></button>
+
+                <button type="button" class="btn btn-primary only-group-inexist" onclick="CreateGroupShow()">Create
+                    Group</button>
 
                 <div class="only-group-owner">
                     <br>
@@ -164,65 +178,69 @@
                     <button type="button" class="btn btn-primary only-group-owner"
                         onclick="GroupCodeUpdate('revoke')">Revoke code <i class="fa fa-undo"></i> </button>
                     <br>
-                    <button type="button" class="btn btn-danger only-group-owner"
-                    onclick="GroupDismissShow()">Dismiss <i class="fa fa-times"></i></button>
+                    <button type="button" class="btn btn-danger only-group-owner" onclick="GroupDismissShow()">Dismiss
+                        <i class="fa fa-times"></i></button>
                 </div>
             </div>
         </div>
 
-        <div id="addExistingWord" class="addExistingWord" style="position:relative;width:35%;float:right;display:none">
-            <p>Select words to add to <span class="word-book-name"></span></p>
-            <button type="button" class="btn btn-primary not-for-all-words"
-                onclick="AddExistingWord()">Add</button>
-            <button type="button" class="btn btn-secondary not-for-all-words"
-                onclick="ShowManage()">Cancel</button>
+        <div id="addExistingQuestion" class="addExistingQuestion"
+            style="position:relative;width:35%;float:right;display:none">
+            <p>Select questions to add to <span class="question-book-name"></span></p>
+            <button type="button" class="btn btn-primary not-for-all-questions"
+                onclick="AddExistingQuestion()">Add</button>
+            <button type="button" class="btn btn-secondary not-for-all-questions" onclick="ShowManage()">Cancel</button>
         </div>
     </div>
-    
-    <div class="modal fade" id="deleteWordModal" tabindex="-1" role="dialog" aria-labelledby="deleteWordModalLabel"
-        aria-hidden="true">
+
+    <div class="modal fade" id="deleteQuestionModal" tabindex="-1" role="dialog"
+        aria-labelledby="deleteQuestionModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" style="color:red"><i class="fa fa-trash"></i> Remove Word from Database</h5>
+                    <h5 class="modal-title" style="color:red"><i class="fa fa-trash"></i> Remove Question from Database
+                    </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#deleteWordModal').modal('toggle')">
+                        onclick="$('#deleteQuestionModal').modal('toggle')">
                         <span aria-hidden=" true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <p>Are you sure to remove all select words from database? This will remove them from all word books.</p>
+                    <p>Are you sure to remove all select questions from database? This will remove them from all books.
+                    </p>
                     <p>This operation cannot be undone.</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#deleteWordModal').modal('toggle')">Cancel</button>
+                        onclick="$('#deleteQuestionModal').modal('toggle')">Cancel</button>
                     <button type="button" class="btn btn-danger" data-dismiss="modal"
-                        onclick="RemoveWord()">Remove</button>
+                        onclick="RemoveQuestion()">Remove</button>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <div class="modal fade" id="deleteWBModal" tabindex="-1" role="dialog" aria-labelledby="deleteWBModalLabel"
         aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" style="color:red"><i class="fa fa-trash"></i> Delete Word Book</h5>
+                    <h5 class="modal-title" style="color:red"><i class="fa fa-trash"></i> Delete Book</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"
                         onclick="$('#deleteWBModal').modal('toggle')">
                         <span aria-hidden=" true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <p>Are you sure to delete this word book? The words will be preserved in the word database but they will no longer belong to this word book.</p>
+                    <p>Are you sure to delete this book? The questions will be preserved in the question database but
+                        they will no longer belong to this book.</p>
                     <p>This operation cannot be undone.</p>
                     <br>
-                    <p>Type the name of the word book <b><span class="word-book-name"></span></b> to continue:</p>
+                    <p>Type the name of the book <b><span class="question-book-name"></span></b> to continue:</p>
                     <form>
                         <div class="input-group mb-3 center">
-                            <input type="text" class="form-control" id="word-book-delete" aria-describedby="basic-addon1">
+                            <input type="text" class="form-control" id="question-book-delete"
+                                aria-describedby="basic-addon1">
                         </div>
                     </form>
                 </div>
@@ -230,18 +248,18 @@
                     <button type="button" class="btn btn-secondary" data-dismiss="modal"
                         onclick="$('#deleteWBModal').modal('toggle')">Cancel</button>
                     <button type="button" class="btn btn-danger" data-dismiss="modal"
-                        onclick="WordBookDelete()">Delete</button>
+                        onclick="BookDelete()">Delete</button>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <div class="modal fade" id="renameModal" tabindex="-1" role="dialog" aria-labelledby="renameModalLabel"
         aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="renameModalLabel">Rename Word Book</h5>
+                    <h5 class="modal-title" id="renameModalLabel">Rename Book</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"
                         onclick="$('#renameModal').modal('toggle')">
                         <span aria-hidden=" true">&times;</span>
@@ -251,46 +269,48 @@
                     <form>
                         <div class="input-group mb-3 center">
                             <span class="input-group-text" id="basic-addon1">Name</span>
-                            <input type="text" class="form-control" id="word-book-rename" aria-describedby="basic-addon1">
+                            <input type="text" class="form-control" id="question-book-rename"
+                                aria-describedby="basic-addon1">
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal"
                         onclick="$('#renameModal').modal('toggle')">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="WordBookRename()">Rename</button>
+                    <button type="button" class="btn btn-primary" onclick="BookRename()">Rename</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="editWordModal" tabindex="-1" role="dialog" aria-labelledby="editWordModalLabel"
+    <div class="modal fade" id="editQuestionModal" tabindex="-1" role="dialog" aria-labelledby="editQuestionModalLabel"
         aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editWordModalLabel">Edit Word</h5>
+                    <h5 class="modal-title" id="editQuestionModalLabel">Edit Question</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#editWordModal').modal('toggle')">
+                        onclick="$('#editQuestionModal').modal('toggle')">
                         <span aria-hidden=" true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
                     <form>
                         <div class="form-group">
-                            <label for="edit-word" class="col-form-label">Word:</label>
-                            <textarea class="form-control" id="edit-word"></textarea>
+                            <label for="edit-question" class="col-form-label">Question:</label>
+                            <textarea class="form-control" id="edit-question"></textarea>
                         </div>
                         <div class="form-group">
-                            <label for="edit-translation" class="col-form-label">Translation:</label>
-                            <textarea class="form-control" id="edit-translation"></textarea>
+                            <label for="edit-answer" class="col-form-label">Answer:</label>
+                            <textarea class="form-control" id="edit-answer"></textarea>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#editWordModal').modal('toggle')">Close</button>
-                    <button id="edit-word-btn" type="button" class="btn btn-primary" onclick="EditWord()">Edit</button>
+                        onclick="$('#editQuestionModal').modal('toggle')">Close</button>
+                    <button id="edit-question-btn" type="button" class="btn btn-primary"
+                        onclick="EditQuestion()">Edit</button>
                 </div>
             </div>
         </div>
@@ -322,7 +342,8 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal"
                         onclick="$('#createGroupModal').modal('toggle')">Close</button>
-                    <button id="create-group-btn" type="button" class="btn btn-primary" onclick="CreateGroup()">Create</button>
+                    <button id="create-group-btn" type="button" class="btn btn-primary"
+                        onclick="CreateGroup()">Create</button>
                 </div>
             </div>
         </div>
@@ -340,7 +361,8 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <p>Are you sure to quit the group? Your progress will no longer be shared with other members and the word book sync will stop.</p>
+                    <p>Are you sure to quit the group? Your progress will no longer be shared with other members and the
+                        book sync will stop.</p>
                     <p>You will not be able to join the group again unless you have the invite code.</p>
                 </div>
                 <div class="modal-footer">
@@ -365,12 +387,14 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <p>Are you sure to dismiss the group? The group word book sync will stop and it will be deleted permanently.</p>
+                    <p>Are you sure to dismiss the group? The group book sync will stop and it will be deleted
+                        permanently.</p>
                     <p>All members will quit automatically and they will not be able to see each other's progress.</p>
                     <p>This operation cannot be undone.</p>
-                    <p>*If you just want to make your group private or revoke the code, there are options just above the dismiss button.</p>
+                    <p>*If you just want to make your group private or revoke the code, there are options just above the
+                        dismiss button.</p>
                     <br>
-                    <p>Type the name of the group <b><span class="word-book-name"></span></b> to continue:</p>
+                    <p>Type the name of the group <b><span class="question-book-name"></span></b> to continue:</p>
                     <form>
                         <div class="input-group mb-3 center">
                             <input type="text" class="form-control" id="group-delete" aria-describedby="basic-addon1">
@@ -387,25 +411,25 @@
         </div>
     </div>
 
-    <div id="wordbook" class="slide">
+    <div id="book" class="slide">
         <div class="slide-content">
-            <h2 style="float:left">Word Books</h2>
-            <button style="float:right" type="button" class="close" aria-label="Close" onclick="HideWordBookList()">
+            <h2 style="float:left">Books</h2>
+            <button style="float:right" type="button" class="close" aria-label="Close" onclick="HideBookList()">
                 <span aria-hidden=" true">&times;</span>
             </button>
 
         </div>
-        <div class="slide-content-scroll" id="wordbook-list">
+        <div class="slide-content-scroll" id="book-list">
 
         </div>
     </div>
 
     <div class="footer">
-        <p>Copyright &copy; 2021 Word Memo by <a href="https://www.charles14.xyz/" style="color:#ffffff">Charles</a></p>
-        <p>Version: v5.1.1 <i class="fa fa-check-circle"></i></p>
-        <p>Contact: <a href="mailto:word@charles14.xyz" style="color:#ffffff">word@charles14.xyz</a></p>
+        <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/" style="color:#ffffff">Charles</a></p>
+        <p>Version: v5.1.3 <i class="fa fa-check-circle"></i></p>
+        <p>Contact: <a href="mailto:question@charles14.xyz" style="color:#ffffff">question@charles14.xyz</a></p>
         <p>This is an open source project:
-            <a href="https://github.com/Charles-1414/WordMemo" style="color:#ffffff"><i class="fa fa-github"></i>
+            <a href="https://github.com/Charles-1414/MyMemo" style="color:#ffffff"><i class="fa fa-github"></i>
                 GitHub</a>
         </p>
         <p>Your privacy is valued. No 3rd party script is used. No cookie is used. All your local data is stored in

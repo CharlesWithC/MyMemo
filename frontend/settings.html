@@ -2,7 +2,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>Word Memo</title>
+    <title>My Memo</title>
 
     <script src="/js/jquery-3.6.0.min.js"></script>
     <script src="/js/bootstrap.bundle.min.js"></script>
@@ -27,7 +27,7 @@
 </head>
 
 <body>
-    <h1 class="title" style="padding-bottom: 0;">Word Memo - Settings</h1>
+    <h1 class="title" style="padding-bottom: 0;">My Memo</h1>
     <div id="navigate" style="z-index:100">
         <div class="top-left">
             <button id="home-btn" type="button" class="btn btn-primary control-btn control-btn-top"
@@ -53,10 +53,10 @@
                 onclick="UpdateOrder(1)">Random</button>
         </p>
         <p>Display:
-            <button id="swap-word-btn" type="button" class="btn swap-btn btn-secondary" style="margin:0"
-                onclick="UpdateSwap(0)">Word</button>
-            <button id="swap-translation-btn" type="button" class="btn swap-btn btn-secondary" style="margin:0"
-                onclick="UpdateSwap(1)">Translation</button>
+            <button id="swap-question-btn" type="button" class="btn swap-btn btn-secondary" style="margin:0"
+                onclick="UpdateSwap(0)">Question</button>
+            <button id="swap-answer-btn" type="button" class="btn swap-btn btn-secondary" style="margin:0"
+                onclick="UpdateSwap(1)">Answer</button>
             <button id="swap-both-btn" type="button" class="btn swap-btn btn-secondary" style="margin:0"
                 onclick="UpdateSwap(2)">Both</button>
         </p>
@@ -72,18 +72,18 @@
             <button id="ap-none-btn" type="button" class="btn ap-btn btn-secondary" style="margin:0"
                 onclick="UpdateAutoplay(0)">Disabled</button>
             <button id="ap-slow-btn" type="button" class="btn ap-btn btn-secondary" style="margin:0"
-                onclick="UpdateAutoplay(1)">Slow (8 sec/word)</button>
+                onclick="UpdateAutoplay(1)">Slow (8 sec/question)</button>
             <button id="ap-medium-btn" type="button" class="btn ap-btn btn-secondary" style="margin:0"
-                onclick="UpdateAutoplay(2)">Medium (5 sec/word)</button>
+                onclick="UpdateAutoplay(2)">Medium (5 sec/question)</button>
             <button id="ap-fast-btn" type="button" class="btn ap-btn btn-secondary" style="margin:0"
-                onclick="UpdateAutoplay(3)">Fast (3 sec/word)</button>
+                onclick="UpdateAutoplay(3)">Fast (3 sec/question)</button>
         </p>
-        <p style="font-size:0.8em">* Select Word Book at home page</p>
+        <p style="font-size:0.8em">* Select Book at home page</p>
         <hr>
-        <h2>Word Management</h2>
+        <h2>Question Management</h2>
         <br>
         <button id="home-btn" type="button" class="btn btn-danger control-btn control-btn-top" style="width:15em"
-            onclick="$('#clearDeletedModal').modal('toggle')"><i class="fa fa-trash"></i> Clear Deleted Words</button>
+            onclick="$('#clearDeletedModal').modal('toggle')"><i class="fa fa-trash"></i> Clear Deleted Questions</button>
         <br>
         <button id="home-btn" type="button" class="btn btn-primary control-btn control-btn-bottom" onclick="Import()"><i
                 class="fa fa-upload"></i> Import</button>
@@ -96,14 +96,14 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" style="color:red"><i class="fa fa-trash"></i> Clear Deleted Words</h5>
+                    <h5 class="modal-title" style="color:red"><i class="fa fa-trash"></i> Clear Deleted Questions</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"
                         onclick="$('#clearDeletedModal').modal('toggle')">
                         <span aria-hidden=" true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <p>Are you sure to clear all deleted words? This will remove all the words that are marked as
+                    <p>Are you sure to clear all deleted questions? This will remove all the questions that are marked as
                         deleted.</p>
                     <p>This operation cannot be undone.</p>
                 </div>
@@ -111,18 +111,18 @@
                     <button type="button" class="btn btn-secondary" data-dismiss="modal"
                         onclick="$('#clearDeletedModal').modal('toggle')">Cancel</button>
                     <button type="button" class="btn btn-danger" data-dismiss="modal"
-                        onclick="ClearDeletedWord()">Remove</button>
+                        onclick="ClearDeletedQuestion()">Remove</button>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="footer">
-        <p>Copyright &copy; 2021 Word Memo by <a href="https://www.charles14.xyz/" style="color:#ffffff">Charles</a></p>
-        <p>Version: v5.1.1 <i class="fa fa-check-circle"></i></p>
-        <p>Contact: <a href="mailto:word@charles14.xyz" style="color:#ffffff">word@charles14.xyz</a></p>
+        <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/" style="color:#ffffff">Charles</a></p>
+        <p>Version: v5.1.3 <i class="fa fa-check-circle"></i></p>
+        <p>Contact: <a href="mailto:question@charles14.xyz" style="color:#ffffff">question@charles14.xyz</a></p>
         <p>This is an open source project:
-            <a href="https://github.com/Charles-1414/WordMemo" style="color:#ffffff"><i class="fa fa-github"></i>
+            <a href="https://github.com/Charles-1414/MyMemo" style="color:#ffffff"><i class="fa fa-github"></i>
                 GitHub</a>
         </p>
         <p>Your privacy is valued. No 3rd party script is used. No cookie is used. All your local data is stored in Local Storage.</p>

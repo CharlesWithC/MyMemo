@@ -34,12 +34,12 @@ def apiAdminRestart():
     if len(cur.fetchall()) == 0:
         abort(401)
     
-    if os.path.exists("/tmp/WordMemoLastManualRestart"):
-        lst = int(open("/tmp/WordMemoLastManualRestart","r").read())
+    if os.path.exists("/tmp/MyMemoLastManualRestart"):
+        lst = int(open("/tmp/MyMemoLastManualRestart","r").read())
         if int(time.time()) - lst <= 1800:
             return json.dumps({"success": False, "msg": "Only one restart in each 30 minutes is allowed!"})
     
-    open("/tmp/WordMemoLastManualRestart","w").write(str(int(time.time())))
+    open("/tmp/MyMemoLastManualRestart","w").write(str(int(time.time())))
 
     os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
     sys.exit(0)
@@ -50,12 +50,12 @@ def apiAdminRestart():
 
 @app.route("/admin/restart", methods = ['GET'])
 def adminRestart():
-    if os.path.exists("/tmp/WordMemoLastManualRestart"):
-        lst = int(open("/tmp/WordMemoLastManualRestart","r").read())
+    if os.path.exists("/tmp/MyMemoLastManualRestart"):
+        lst = int(open("/tmp/MyMemoLastManualRestart","r").read())
         if int(time.time()) - lst <= 1800:
             return "Only one restart in each 30 minutes is allowed!"
     
-    open("/tmp/WordMemoLastManualRestart","w").write(str(int(time.time())))
+    open("/tmp/MyMemoLastManualRestart","w").write(str(int(time.time())))
 
     os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
     sys.exit(0)
@@ -99,7 +99,7 @@ def apiAdminCommand():
         cur.execute(f"SELECT username FROM UserInfo WHERE userId = {d[3]}")
         inviter = cur.fetchall()[0][0]
 
-        cur.execute(f"SELECT COUNT(*) FROM WordList WHERE userId = {uid}")
+        cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {uid}")
         cnt = cur.fetchall()[0][0]
 
         cur.execute(f"SELECT timestamp FROM UserEvent WHERE userId = {uid} AND event = 'register'")
@@ -113,7 +113,7 @@ def apiAdminCommand():
         if sessions.CheckDeletionMark(uid):
             msg += "Account disabled and marked for deletion\n"
 
-        return json.dumps({"success": True, "msg": f"{d[0]} (UID: {uid})\nEmail: {d[1]}\nInvitation Code: {d[2]}\nInviter: {inviter} (UID: {d[3]})\nWord Count: {cnt}\nAccount age: {age} day(s)\n{msg}"})
+        return json.dumps({"success": True, "msg": f"{d[0]} (UID: {uid})\nEmail: {d[1]}\nInvitation Code: {d[2]}\nInviter: {inviter} (UID: {d[3]})\nQuestion Count: {cnt}\nAccount age: {age} day(s)\n{msg}"})
     
     elif command[0] == "create_user":
         if len(command) != 4:
@@ -168,10 +168,10 @@ def apiAdminCommand():
             cur.execute(f"UPDATE UserInfo SET username = '@deleted' WHERE userId = {uid}")
             cur.execute(f"UPDATE UserInfo SET email = '' WHERE userId = {uid}")
             cur.execute(f"UPDATE UserInfo SET password = '' WHERE userId = {uid}")
-            cur.execute(f"DELETE FROM WordList WHERE userId = {uid}")
-            cur.execute(f"DELETE FROM WordBook WHERE userId = {uid}")
-            cur.execute(f"DELETE FROM WordBookData WHERE userId = {uid}")
-            cur.execute(f"DELETE FROM WordBookShare WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM QuestionList WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM Book WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM BookData WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM BookShare WHERE userId = {uid}")
             cur.execute(f"DELETE FROM ChallengeData WHERE userId = {uid}")
             cur.execute(f"DELETE FROM ChallengeRecord WHERE userId = {uid}")
             cur.execute(f"DELETE FROM StatusUpdate WHERE userId = {uid}")
@@ -179,14 +179,14 @@ def apiAdminCommand():
     
     elif command[0] == "set_previlege":
         if len(command) != 4:
-            return json.dumps({"success": False, "msg": "Usage: set_previlege [userId] [item] [value]\nAdd [item] previlege for user [userId] ([item] can be word_limit)\nIf previlege exists, then update it"})
+            return json.dumps({"success": False, "msg": "Usage: set_previlege [userId] [item] [value]\nAdd [item] previlege for user [userId] ([item] can be question_limit)\nIf previlege exists, then update it"})
 
         uid = int(command[1])
         item = command[2]
         value = int(command[3])
 
-        if not item in ['word_limit', 'word_book_limit', 'allow_group_creation', 'group_member_limit']:
-            return json.dumps({"success": False, "msg": f"Unknown previlege item: {item}. Acceptable item list: word_limit"})
+        if not item in ['question_limit', 'book_limit', 'allow_group_creation', 'group_member_limit']:
+            return json.dumps({"success": False, "msg": f"Unknown previlege item: {item}. Acceptable item list: question_limit"})
 
         cur.execute(f"SELECT * FROM Previlege WHERE userId = {uid} AND item = '{item}'")
         if len(cur.fetchall()) == 0:
@@ -204,8 +204,8 @@ def apiAdminCommand():
         uid = int(command[1])
         item = command[2]
 
-        if not item in ['word_limit', 'word_book_limit', 'allow_group_creation', 'group_member_limit']:
-            return json.dumps({"success": False, "msg": f"Unknown previlege item: {item}. Acceptable item list: word_limit"})
+        if not item in ['question_limit', 'book_limit', 'allow_group_creation', 'group_member_limit']:
+            return json.dumps({"success": False, "msg": f"Unknown previlege item: {item}. Acceptable item list: question_limit"})
 
         cur.execute(f"SELECT * FROM Previlege WHERE userId = {uid} AND item = '{item}'")
         if len(cur.fetchall()) != 0:

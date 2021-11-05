@@ -196,13 +196,13 @@ def apiGetUserInfo():
     cur.execute(f"SELECT username FROM UserInfo WHERE userId = {d[3]}")
     inviter = cur.fetchall()[0][0]
 
-    cur.execute(f"SELECT COUNT(*) FROM WordList WHERE userId = {userId}")
+    cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {userId}")
     cnt = cur.fetchall()[0][0]
 
-    cur.execute(f"SELECT COUNT(*) FROM WordList WHERE userId = {userId} AND status = 2")
+    cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {userId} AND status = 2")
     tagcnt = cur.fetchall()[0][0]
 
-    cur.execute(f"SELECT COUNT(*) FROM WordList WHERE userId = {userId} AND status = 3")
+    cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {userId} AND status = 3")
     delcnt = cur.fetchall()[0][0]
 
     cur.execute(f"SELECT COUNT(*) FROM ChallengeRecord WHERE userId = {userId}")
@@ -251,8 +251,8 @@ def apiUpdateInfo():
 
     return json.dumps({"success": True, "msg": "User profile updated!"})
 
-@app.route("/api/user/changePassword", methods=['POST'])
-def apiChangePassword():
+@app.route("/api/user/changepassword", methods=['POST'])
+def apiChangepassword():
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)

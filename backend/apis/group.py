@@ -43,13 +43,13 @@ def apiGroup():
         if not allow:
             return json.dumps({"success": False, "msg": f"You are not allowed to create groups. Contact administrator for help."})
 
-        wordBookId = int(request.form["wordBookId"])
-        if wordBookId == 0:
-            return json.dumps({"success": False, "msg": "You cannot create a group based on your word database."})
+        bookId = int(request.form["bookId"])
+        if bookId == 0:
+            return json.dumps({"success": False, "msg": "You cannot create a group based on your question database."})
         
-        cur.execute(f"SELECT * FROM WordBook WHERE wordBookId = {wordBookId} AND userId = {userId}")
+        cur.execute(f"SELECT * FROM Book WHERE bookId = {bookId} AND userId = {userId}")
         if len(cur.fetchall()) == 0:
-            return json.dumps({"success": False, "msg": "Word book to be used as group word book not found!"})
+            return json.dumps({"success": False, "msg": "Book to be used as group book not found!"})
 
         name = encode(request.form["name"])
         description = encode(request.form["description"])
@@ -67,30 +67,30 @@ def apiGroup():
         gcode = genCode(8)
         cur.execute(f"INSERT INTO GroupInfo VALUES ({groupId}, {userId}, '{name}', '{description}', {lmt}, '{gcode}')")
         cur.execute(f"INSERT INTO GroupMember VALUES ({groupId}, {userId}, 1)")
-        cur.execute(f"INSERT INTO GroupBind VALUES ({groupId}, {userId}, {wordBookId})")
-        cur.execute(f"SELECT wordId FROM WordBookData WHERE userId = {userId} AND wordBookId = {wordBookId}")
-        words = cur.fetchall()
+        cur.execute(f"INSERT INTO GroupBind VALUES ({groupId}, {userId}, {bookId})")
+        cur.execute(f"SELECT questionId FROM BookData WHERE userId = {userId} AND bookId = {bookId}")
+        questions = cur.fetchall()
         
-        gwordId = 1
-        for word in words:
+        gquestionId = 1
+        for question in questions:
             cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 5 AND userId = {groupId}")
             d = cur.fetchall()
             if len(d) == 0:
                 cur.execute(f"INSERT INTO IDInfo VALUES (5, {groupId}, 2)")
             else:
-                gwordId = d[0][0]
-                cur.execute(f"UPDATE IDInfo SET nextId = {gwordId + 1} WHERE type = 5 AND userId = {groupId}")
+                gquestionId = d[0][0]
+                cur.execute(f"UPDATE IDInfo SET nextId = {gquestionId + 1} WHERE type = 5 AND userId = {groupId}")
 
-            wordId = word[0]
-            cur.execute(f"SELECT word, translation FROM WordList WHERE userId = {userId} AND wordId = {wordId}")
+            questionId = question[0]
+            cur.execute(f"SELECT question, answer FROM QuestionList WHERE userId = {userId} AND questionId = {questionId}")
             d = cur.fetchall()[0]
-            cur.execute(f"INSERT INTO GroupWord VALUES ({groupId}, {gwordId}, '{d[0]}', '{d[1]}')")
-            cur.execute(f"INSERT INTO GroupSync VALUES ({groupId}, {userId}, {wordId}, {gwordId})")
-            gwordId += 1
+            cur.execute(f"INSERT INTO GroupQuestion VALUES ({groupId}, {gquestionId}, '{d[0]}', '{d[1]}')")
+            cur.execute(f"INSERT INTO GroupSync VALUES ({groupId}, {userId}, {questionId}, {gquestionId})")
+            gquestionId += 1
         
         conn.commit()
 
-        return json.dumps({"success": True, "msg": f"Group created! Group code: @{gcode}. Tell your friends to create a word book with this code and they will join your group automatically.", \
+        return json.dumps({"success": True, "msg": f"Group created! Group code: @{gcode}. Tell your friends to create a book with this code and they will join your group automatically.", \
             "groupId": groupId, "groupCode": f"@{gcode}", "isGroupOwner": True})
 
     elif op == "dismiss":
@@ -106,12 +106,12 @@ def apiGroup():
         
         cur.execute(f"DELETE FROM GroupInfo WHERE groupId = {groupId}")
         cur.execute(f"DELETE FROM GroupMember WHERE groupId = {groupId}")
-        cur.execute(f"DELETE FROM GroupWord WHERE groupId = {groupId}")
+        cur.execute(f"DELETE FROM GroupQuestion WHERE groupId = {groupId}")
         cur.execute(f"DELETE FROM GroupSync WHERE groupId = {groupId}")
         cur.execute(f"DELETE FROM GroupBind WHERE groupId = {groupId}")
         conn.commit()
 
-        return json.dumps({"success": True, "msg": f"Group dismissed! Word book sync stopped and members are not able to see others' progress."})
+        return json.dumps({"success": True, "msg": f"Group dismissed! Book sync stopped and members are not able to see others' progress."})
 
 @app.route("/api/group/quit", methods = ['POST'])
 def apiQuitGroup():
@@ -144,7 +144,7 @@ def apiQuitGroup():
 
     conn.commit()
 
-    return json.dumps({"success": True, "msg": "You have quit the group successfully! The word book has became a local one."})
+    return json.dumps({"success": True, "msg": "You have quit the group successfully! The book has became a local one."})
 
 @app.route("/api/group/code/update", methods = ['POST'])
 def apiGroupCodeUpdate():
@@ -197,10 +197,10 @@ def apiGroupMember():
     if not (userId,0,) in d and not (userId,1,) in d:
         return json.dumps({"success": False, "msg": f"You must be a member of the group before viewing its members."})
     
-    cur.execute(f"SELECT * FROM GroupWord WHERE groupId = {groupId}")
-    wordcnt = len(cur.fetchall())
-    cur.execute(f"SELECT groupWordId FROM GroupWord WHERE groupId = {groupId}")
-    words = cur.fetchall()
+    cur.execute(f"SELECT * FROM GroupQuestion WHERE groupId = {groupId}")
+    questioncnt = len(cur.fetchall())
+    cur.execute(f"SELECT groupQuestionId FROM GroupQuestion WHERE groupId = {groupId}")
+    questions = cur.fetchall()
 
     cur.execute(f"SELECT name, description FROM GroupInfo WHERE groupId = {groupId}")
     info = cur.fetchall()[0]
@@ -229,15 +229,15 @@ def apiGroupMember():
         elif isEditor:
             username = username + " (Editor)"
         
-        cur.execute(f"SELECT wordBookId FROM GroupBind WHERE groupId = {groupId} AND userId = {uid}")
-        wordBookId = cur.fetchall()[0][0]
-        cur.execute(f"SELECT progress FROM WordBookProgress WHERE userId = {uid} AND wordBookId = {wordBookId}")
+        cur.execute(f"SELECT bookId FROM GroupBind WHERE groupId = {groupId} AND userId = {uid}")
+        bookId = cur.fetchall()[0][0]
+        cur.execute(f"SELECT progress FROM BookProgress WHERE userId = {uid} AND bookId = {bookId}")
         p = cur.fetchall()
         pgs = 0
         if len(p) != 0:
             pgs = p[0][0]
         
-        pgs = f"{pgs} / {wordcnt}"
+        pgs = f"{pgs} / {questioncnt}"
 
         ret.append({"userId": uid, "username": username, "progress": pgs})
     
@@ -314,12 +314,12 @@ def apiManageGroup():
         description = encode(request.form["description"])
         cur.execute(f"UPDATE GroupInfo SET name = '{name}' WHERE groupId = {groupId}")
         cur.execute(f"UPDATE GroupInfo SET description = '{description}' WHERE groupId = {groupId}")
-        cur.execute(f"SELECT userId, wordBookId FROM GroupBind WHERE groupId = {groupId}")
+        cur.execute(f"SELECT userId, bookId FROM GroupBind WHERE groupId = {groupId}")
         binds = cur.fetchall()
         for bind in binds:
             uid = bind[0]
             wbid = bind[1]
-            cur.execute(f"UPDATE WordBook SET name = '{name}' WHERE wordBookId = {wbid} AND userId = {uid}")
+            cur.execute(f"UPDATE Book SET name = '{name}' WHERE bookId = {wbid} AND userId = {uid}")
         conn.commit()
 
         return json.dumps({"success": True, "msg": f"Success! Group information updated!"})

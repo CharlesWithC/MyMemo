@@ -16,9 +16,9 @@ import sessions
 
 
 
-def getWordCount(userId):
+def getQuestionCount(userId):
     cur = conn.cursor()
-    cur.execute(f"SELECT COUNT(*) FROM WordList WHERE userId = {userId}")
+    cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {userId}")
     return cur.fetchall()[0][0]
 
 def validateToken(userId, token):
@@ -32,11 +32,11 @@ def validateToken(userId, token):
 
 
 ##########
-# Word API
+# Question API
 # Info
 
-@app.route("/api/word", methods = ['POST'])
-def apiGetWord():
+@app.route("/api/question", methods = ['POST'])
+def apiGetQuestion():
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -46,22 +46,22 @@ def apiGetWord():
     if not validateToken(userId, token):
         abort(401)
     
-    wordId = int(request.form["wordId"])
+    questionId = int(request.form["questionId"])
     
-    cur.execute(f"SELECT word, translation, status FROM WordList WHERE wordId = {wordId} AND userId = {userId}")
+    cur.execute(f"SELECT question, answer, status FROM QuestionList WHERE questionId = {questionId} AND userId = {userId}")
     d = cur.fetchall()
 
     if len(d) == 0:
         abort(404)
     
-    (word, translation, status) = d[0]
-    word = decode(word)
-    translation = decode(translation)
+    (question, answer, status) = d[0]
+    question = decode(question)
+    answer = decode(answer)
 
-    return json.dumps({"wordId": wordId, "word":word, "translation": translation, "status": status})
+    return json.dumps({"questionId": questionId, "question":question, "answer": answer, "status": status})
 
-@app.route("/api/word/id", methods = ['POST'])
-def apiGetWordID():
+@app.route("/api/question/id", methods = ['POST'])
+def apiGetQuestionID():
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -71,26 +71,26 @@ def apiGetWordID():
     if not validateToken(userId, token):
         abort(401)
     
-    word = request.form["word"].replace("\n","\\n")
-    wordBookId = int(request.form["wordBookId"])
-    cur.execute(f"SELECT wordId FROM WordList WHERE word = '{encode(word)}' AND userId = {userId}")
+    question = request.form["question"].replace("\n","\\n")
+    bookId = int(request.form["bookId"])
+    cur.execute(f"SELECT questionId FROM QuestionList WHERE question = '{encode(question)}' AND userId = {userId}")
     d = cur.fetchall()
     if len(d) != 0:
         for dd in d:
-            wordId = dd[0]
-            if wordBookId > 0:
-                cur.execute(f"SELECT wordBookId FROM WordBookData WHERE wordId = {wordId} AND wordBookId = {wordBookId} AND userId = {userId}")
+            questionId = dd[0]
+            if bookId > 0:
+                cur.execute(f"SELECT bookId FROM BookData WHERE questionId = {questionId} AND bookId = {bookId} AND userId = {userId}")
                 if len(cur.fetchall()) == 0:
                     continue
 
             # If there are multiple records, then return the first one
-            # NOTE: The user is warned when they try to insert multiple records with the same word
-            return json.dumps({"wordId" : wordId})
+            # NOTE: The user is warned when they try to insert multiple records with the same question
+            return json.dumps({"questionId" : questionId})
             
     abort(404)
 
-@app.route("/api/word/stat", methods = ['POST'])
-def apiGetWordStat():
+@app.route("/api/question/stat", methods = ['POST'])
+def apiGetQuestionStat():
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -100,14 +100,14 @@ def apiGetWordStat():
     if not validateToken(userId, token):
         abort(401)
     
-    wordId = int(request.form["wordId"])
-    cur.execute(f"SELECT word FROM WordList WHERE wordId = {wordId} AND userId = {userId}")
+    questionId = int(request.form["questionId"])
+    cur.execute(f"SELECT question FROM QuestionList WHERE questionId = {questionId} AND userId = {userId}")
     d = cur.fetchall()
     if len(d) == 0:
         abort(404)
-    word = decode(d[0][0])
+    question = decode(d[0][0])
     
-    cur.execute(f"SELECT updateTo, timestamp FROM StatusUpdate WHERE wordId = {wordId} AND updateTo <= 0 AND userId = {userId}")
+    cur.execute(f"SELECT updateTo, timestamp FROM StatusUpdate WHERE questionId = {questionId} AND updateTo <= 0 AND userId = {userId}")
     d = cur.fetchall()
     if len(d) == 0:
         abort(404)
@@ -115,7 +115,7 @@ def apiGetWordStat():
     astatus = d[0] # how it is added
     ats = d[1] # addition timestamp
 
-    cur.execute(f"SELECT updateTo, timestamp FROM StatusUpdate WHERE wordId = {wordId} AND userId = {userId}")
+    cur.execute(f"SELECT updateTo, timestamp FROM StatusUpdate WHERE questionId = {questionId} AND userId = {userId}")
     d = cur.fetchall()
 
     status = 1
@@ -145,7 +145,7 @@ def apiGetWordStat():
             lstundel = d[i][1]
         status = d[i][0]
     
-    cur.execute(f"SELECT nextChallenge, lastChallenge FROM ChallengeData WHERE wordId = {wordId} AND userId = {userId}")
+    cur.execute(f"SELECT nextChallenge, lastChallenge FROM ChallengeData WHERE questionId = {questionId} AND userId = {userId}")
     d = cur.fetchall()
     if len(d) == 0:
         abort(404)
@@ -153,7 +153,7 @@ def apiGetWordStat():
     nxt = d[0]
     lst = d[1]
 
-    cur.execute(f"SELECT memorized, timestamp FROM ChallengeRecord WHERE wordId = {wordId} AND userId = {userId}")
+    cur.execute(f"SELECT memorized, timestamp FROM ChallengeRecord WHERE questionId = {questionId} AND userId = {userId}")
     d = cur.fetchall()
     appeared = len(d)
     mem = 0
@@ -187,7 +187,7 @@ def apiGetWordStat():
     def ts2dt(ts):
         return datetime.datetime.fromtimestamp(ts)
 
-    res = f"About {word}\n"
+    res = f"About {question}\n"
 
     if astatus == 0:
         res += f"Added by magic (unknown adding method).\n"
@@ -196,7 +196,7 @@ def apiGetWordStat():
     elif astatus == -2:
         res += f"Added at {ts2dt(ats)} on website.\n"  
     elif astatus == -3:
-        res += f"Imported from a group's word book."
+        res += f"Imported from a group's book."
 
     if tagcnt > 0:
         res += f"Tagged for {tagcnt} times\n(Last time: {ts2dt(lsttag)}),\n"
@@ -257,8 +257,8 @@ def apiGetWordStat():
     
     return json.dumps({"msg":res})
 
-@app.route("/api/word/count", methods = ['POST'])
-def apiGetWordCount():
+@app.route("/api/question/count", methods = ['POST'])
+def apiGetQuestionCount():
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
         
@@ -267,4 +267,4 @@ def apiGetWordCount():
     if not validateToken(userId, token):
         abort(401)
 
-    return json.dumps({"count": str(getWordCount(userId))})
+    return json.dumps({"count": str(getQuestionCount(userId))})

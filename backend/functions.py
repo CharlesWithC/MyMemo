@@ -40,27 +40,27 @@ def validateToken(userId, token):
     
     return sessions.validateToken(userId, token)
 
-def getWordsInWordBook(userId, wordBookId, statusRequirement):
+def getQuestionsInBook(userId, bookId, statusRequirement):
     cur = conn.cursor()
-    cur.execute(f"SELECT wordId FROM WordBookData WHERE wordBookId = {wordBookId} AND userId = {userId}")
-    wordbook = cur.fetchall()
-    cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE ({statusRequirement}) AND userId = {userId}")
-    words = cur.fetchall()
+    cur.execute(f"SELECT questionId FROM BookData WHERE bookId = {bookId} AND userId = {userId}")
+    book = cur.fetchall()
+    cur.execute(f"SELECT questionId, question, answer, status FROM QuestionList WHERE ({statusRequirement}) AND userId = {userId}")
+    questions = cur.fetchall()
     d = []
-    if wordBookId > 0:
-        for word in words:
-            if (word[0],) in wordbook:
-                d.append(word)
+    if bookId > 0:
+        for question in questions:
+            if (question[0],) in book:
+                d.append(question)
     else:
-        d = words
+        d = questions
     return d
     
-def updateWordStatus(userId, wordId, status):
+def updateQuestionStatus(userId, questionId, status):
     cur = conn.cursor()
-    cur.execute(f"SELECT COUNT(*) FROM StatusUpdate WHERE wordId = {wordId} AND userId = {userId}")
+    cur.execute(f"SELECT COUNT(*) FROM StatusUpdate WHERE questionId = {questionId} AND userId = {userId}")
     d = cur.fetchall()
-    wordUpdateId = 0
+    questionUpdateId = 0
     if len(d) != 0:
-        wordUpdateId = d[0][0]
-    cur.execute(f"INSERT INTO StatusUpdate VALUES ({userId},{wordId},{wordUpdateId},{status},{int(time.time())})")
+        questionUpdateId = d[0][0]
+    cur.execute(f"INSERT INTO StatusUpdate VALUES ({userId},{questionId},{questionUpdateId},{status},{int(time.time())})")
     conn.commit()

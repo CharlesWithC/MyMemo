@@ -3,7 +3,7 @@
 // License: GNU General Public License v3.0
 
 function lsGetItem(lsItemName, defaultValue = 0) {
-    if (localStorage.getItem(lsItemName) == null) {
+    if (localStorage.getItem(lsItemName) == null || localStorage.getItem(lsItemName) == undefined) {
         localStorage.setItem(lsItemName, defaultValue);
         return defaultValue;
     } else {
@@ -13,19 +13,19 @@ function lsGetItem(lsItemName, defaultValue = 0) {
 
 class MemoClass {
     constructor() {
-        this.wordId = 0;
-        this.word = "";
-        this.translation = "";
-        this.wordStatus = 0;
+        this.questionId = 0;
+        this.question = "";
+        this.answer = "";
+        this.questionStatus = 0;
         this.challengeStatus = 0;
 
-        this.wordBookId = 0;
-        this.wordBookName = "";
+        this.bookId = 0;
+        this.bookName = "";
 
-        this.fullWordList = [];
-        this.wordListMap = null;
-        this.wordBookList = [];
-        this.selectedWordList = [];
+        this.fullQuestionList = [];
+        this.questionListMap = null;
+        this.bookList = [];
+        this.selectedQuestionList = [];
 
         this.started = false;
         this.displayingAnswer = false;
@@ -50,10 +50,10 @@ class SettingsClass {
 }
 
 memo = new MemoClass();
-memo.wordId = parseInt(lsGetItem("memo-word-id", 0));
-memo.wordBookId = parseInt(lsGetItem("memo-word-book-id", 0));
-memo.fullWordList = JSON.parse(lsGetItem("word-list", JSON.stringify([])));
-memo.wordBookList = JSON.parse(lsGetItem("word-book-list", JSON.stringify([])));
+memo.questionId = parseInt(lsGetItem("memo-question-id", 0));
+memo.bookId = parseInt(lsGetItem("memo-question-book-id", 0));
+memo.fullQuestionList = JSON.parse(lsGetItem("question-list", JSON.stringify([])));
+memo.bookList = JSON.parse(lsGetItem("question-book-list", JSON.stringify([])));
 
 settings = new SettingsClass();
 settings.random = parseInt(lsGetItem("settings-random", 0));
@@ -66,31 +66,31 @@ settings.firstuse = parseInt(lsGetItem("first-use", 1));
 
 
 
-function MapWordList() {
-    memo.wordListMap = new Map();
-    for (var i = 0; i < memo.wordList.length; i++) {
-        memo.wordListMap.set(memo.wordList[i].wordId, {
-            "word": memo.wordList[i].word,
-            "translation": memo.wordList[i].translation,
-            "status": memo.wordList[i].status
+function MapQuestionList() {
+    memo.questionListMap = new Map();
+    for (var i = 0; i < memo.questionList.length; i++) {
+        memo.questionListMap.set(memo.questionList[i].questionId, {
+            "question": memo.questionList[i].question,
+            "answer": memo.questionList[i].answer,
+            "status": memo.questionList[i].status
         });
     }
 }
 
-function UpdateSelectedWordList() {
-    for (var i = 0; i < memo.wordBookList.length; i++) {
-        if (memo.wordBookList[i].wordBookId == memo.wordBookId) {
-            memo.wordBookName = memo.wordBookList[i].name;
-            $("#word-book").html(memo.wordBookName);
-            memo.selectedWordList = [];
-            for (this.j = 0; j < memo.wordBookList[i].words.length; j++) {
-                wordId = memo.wordBookList[i].words[j];
-                wordData = memo.wordListMap.get(wordId);
-                memo.selectedWordList.push({
-                    "wordId": wordId,
-                    "word": wordData.word,
-                    "translation": wordData.translation,
-                    "status": wordData.status
+function UpdateSelectedQuestionList() {
+    for (var i = 0; i < memo.bookList.length; i++) {
+        if (memo.bookList[i].bookId == memo.bookId) {
+            memo.bookName = memo.bookList[i].name;
+            $("#question-book").html(memo.bookName);
+            memo.selectedQuestionList = [];
+            for (this.j = 0; j < memo.bookList[i].questions.length; j++) {
+                questionId = memo.bookList[i].questions[j];
+                questionData = memo.questionListMap.get(questionId);
+                memo.selectedQuestionList.push({
+                    "questionId": questionId,
+                    "question": questionData.question,
+                    "answer": questionData.answer,
+                    "status": questionData.status
                 });
             }
         }
@@ -114,9 +114,9 @@ function SessionExpired() {
     setTimeout(GoToUser, 3000);
 }
 
-function UpdateWordList(doasync = true) {
+function UpdateQuestionList(doasync = true) {
     $.ajax({
-        url: "/api/wordBook/wordList",
+        url: "/api/book/questionList",
         method: 'POST',
         async: doasync,
         dataType: "json",
@@ -125,16 +125,16 @@ function UpdateWordList(doasync = true) {
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            memo.wordList = r;
-            localStorage.setItem("word-list", JSON.stringify(memo.wordList));
-            MapWordList();
+            memo.questionList = r;
+            localStorage.setItem("question-list", JSON.stringify(memo.questionList));
+            MapQuestionList();
         }
     });
 }
 
-function UpdateWordBookList(doasync = true) {
+function UpdateBookList(doasync = true) {
     $.ajax({
-        url: "/api/wordBook",
+        url: "/api/book",
         method: 'POST',
         async: doasync,
         dataType: "json",
@@ -143,9 +143,9 @@ function UpdateWordBookList(doasync = true) {
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            memo.wordBookList = r;
-            localStorage.setItem("word-book-list", JSON.stringify(memo.wordBookList));
-            UpdateSelectedWordList();
+            memo.bookList = r;
+            localStorage.setItem("question-book-list", JSON.stringify(memo.bookList));
+            UpdateSelectedQuestionList();
         }
     });
 }
@@ -172,30 +172,30 @@ function UpdateHomePage() {
         }
     });
 
-    UpdateWordList(doasync = false);
-    UpdateWordBookList(doasync = false);
+    UpdateQuestionList();
+    UpdateBookList();
 
-    $("#word-book").html(memo.wordBookName);
+    $("#question-book").html(memo.bookName);
 }
 
-function DisplayRandomWord() {
-    if (!$("#start-from").is(":focus") && !memo.started && memo.selectedWordList.length != 0) {
-        index = parseInt(Math.random() * memo.selectedWordList.length);
-        memo.wordId = memo.selectedWordList[index].wordId;
-        memo.word = memo.selectedWordList[index].word;
-        memo.translation = memo.selectedWordList[index].translation;
-        memo.wordStatus = memo.selectedWordList[index].status;
+function DisplayRandomQuestion() {
+    if (!$("#start-from").is(":focus") && !memo.started && memo.selectedQuestionList.length != 0) {
+        index = parseInt(Math.random() * memo.selectedQuestionList.length);
+        memo.questionId = memo.selectedQuestionList[index].questionId;
+        memo.question = memo.selectedQuestionList[index].question;
+        memo.answer = memo.selectedQuestionList[index].answer;
+        memo.questionStatus = memo.selectedQuestionList[index].status;
 
-        $("#start-from").val(memo.word);
+        $("#start-from").val(memo.question);
     }
 }
-setInterval(DisplayRandomWord, 3000);
+setInterval(DisplayRandomQuestion, 3000);
 
-function ShowWord() {
+function ShowQuestion() {
     if (settings.firstuse) {
         new Noty({
             theme: 'mint',
-            text: 'Hint: You can click the word to hear its sound',
+            text: 'Hint: You can click the question to hear its sound',
             type: 'info',
             layout: 'bottomRight',
             timeout: 10000
@@ -204,23 +204,23 @@ function ShowWord() {
         settings.firstuse = false;
     }
     if (settings.swap == 0 || settings.swap == 2 && settings.mode == 1) {
-        $("#word").val(memo.word);
-        $("#translation").val("");
+        $("#question").val(memo.question);
+        $("#answer").val("");
     } else if (settings.swap == 1) {
-        $("#word").val("");
-        $("#translation").val(memo.translation);
+        $("#question").val("");
+        $("#answer").val(memo.answer);
     } else if (settings.swap == 2 && settings.mode != 1) {
-        $("#word").val(memo.word);
-        $("#translation").val(memo.translation);
+        $("#question").val(memo.question);
+        $("#answer").val(memo.answer);
     }
     if (settings.autoPlay != 0) {
         $(".ap-btn").show();
     }
     $(".memo-tag").html("Tag <i class='fa fa-star'></i>");
     $(".memo-delete").html("Delete <i class='fa fa-trash'></i>");
-    if (memo.wordStatus == 2) {
+    if (memo.questionStatus == 2) {
         $(".memo-tag").html("Untag <i class='fa fa-star-o'></i>");
-    } else if (memo.wordStatus == 3) {
+    } else if (memo.questionStatus == 3) {
         $(".memo-delete").html("Undelete <i class='fa fa-undo'></i>");
     }
     $("#home").hide();
@@ -247,9 +247,9 @@ function ShowWord() {
         memo.speaker.cancel();
         msg = undefined;
         if (settings.swap != 1 || settings.swap == 1 && memo.displayingAnswer) {
-            msg = new SpeechSynthesisUtterance($("#word").val());
+            msg = new SpeechSynthesisUtterance($("#question").val());
         } else {
-            msg = new SpeechSynthesisUtterance($("#translation").val());
+            msg = new SpeechSynthesisUtterance($("#answer").val());
         }
         memo.speaker.speak(msg);
     }
@@ -265,16 +265,16 @@ function ShowWord() {
 function DisplayAnswer() {
     if (memo.started && settings.mode != 1) {
         if (settings.swap == 0) {
-            if (!memo.displayingAnswer) $("#translation").val(memo.translation);
-            else $("#translation").val("");
+            if (!memo.displayingAnswer) $("#answer").val(memo.answer);
+            else $("#answer").val("");
         } else if (settings.swap == 1) {
-            if (!memo.displayingAnswer) $("#word").val(memo.word);
-            else $("#word").val("");
+            if (!memo.displayingAnswer) $("#question").val(memo.question);
+            else $("#question").val("");
         }
         memo.displayingAnswer = 1 - memo.displayingAnswer;
     }
     if (!memo.started) {
-        $("#wordbook").animate({
+        $("#book").animate({
             left: "-60%"
         }, {
             queue: false,
@@ -284,7 +284,7 @@ function DisplayAnswer() {
 }
 
 function MemoMove(direction) {
-    $("#statisticsWord").html("");
+    $("#statisticsQuestion").html("");
     $("#statisticsDetail").html("");
     if (settings.mode == 0) {
         moveType = 0;
@@ -300,32 +300,32 @@ function MemoMove(direction) {
         memo.displayingAnswer = 0;
 
         $.ajax({
-            url: '/api/word/next',
+            url: '/api/question/next',
             method: 'POST',
             async: true,
             dataType: "json",
             data: {
-                wordId: memo.wordId,
+                questionId: memo.questionId,
                 status: settings.showStatus,
                 moveType: moveType,
-                wordBookId: memo.wordBookId,
+                bookId: memo.bookId,
                 userId: localStorage.getItem("userId"),
                 token: localStorage.getItem("token")
             },
             success: function (r) {
-                memo.word = r.word;
-                memo.translation = r.translation;
-                memo.wordStatus = r.status;
-                memo.wordId = r.wordId;
-                ShowWord();
+                memo.question = r.question;
+                memo.answer = r.answer;
+                memo.questionStatus = r.status;
+                memo.questionId = r.questionId;
+                ShowQuestion();
             },
             error: function (r, textStatus, errorThrown) {
                 if (r.status == 401) {
                     SessionExpired();
                 } else {
-                    memo.word = r.status + " " + errorThrown;
-                    memo.translation = "Maybe change the settings?\nOr check your connection?";
-                    ShowWord();
+                    memo.question = r.status + " " + errorThrown;
+                    memo.answer = "Maybe change the settings?\nOr check your connection?";
+                    ShowQuestion();
                 }
             }
         });
@@ -343,34 +343,34 @@ function MemoMove(direction) {
         memo.displayingAnswer = 0;
 
         requiredList = [];
-        for (var i = 0; i < memo.selectedWordList.length; i++) {
-            if (settings.showStatus == 1 && (memo.selectedWordList[i].status == 1 || memo.selectedWordList[i].status == 2)) {
-                requiredList.push(memo.selectedWordList[i]);
-            } else if (settings.showStatus == 2 && memo.selectedWordList[i].status == 2) {
-                requiredList.push(memo.selectedWordList[i]);
-            } else if (settings.showStatus == 3 && memo.selectedWordList[i].status == 3) {
-                requiredList.push(memo.selectedWordList[i]);
+        for (var i = 0; i < memo.selectedQuestionList.length; i++) {
+            if (settings.showStatus == 1 && (memo.selectedQuestionList[i].status == 1 || memo.selectedQuestionList[i].status == 2)) {
+                requiredList.push(memo.selectedQuestionList[i]);
+            } else if (settings.showStatus == 2 && memo.selectedQuestionList[i].status == 2) {
+                requiredList.push(memo.selectedQuestionList[i]);
+            } else if (settings.showStatus == 3 && memo.selectedQuestionList[i].status == 3) {
+                requiredList.push(memo.selectedQuestionList[i]);
             }
         }
 
         if (moveType == 0) {
             index = parseInt(Math.random() * requiredList.length);
-            memo.wordId = requiredList[index].wordId;
-            memo.word = requiredList[index].word;
-            memo.translation = requiredList[index].translation;
-            memo.wordStatus = requiredList[index].status;
+            memo.questionId = requiredList[index].questionId;
+            memo.question = requiredList[index].question;
+            memo.answer = requiredList[index].answer;
+            memo.questionStatus = requiredList[index].status;
         } else if (moveType == 1 || moveType == -1) {
             index = -1;
             for (var i = 0; i < requiredList.length; i++) {
-                if (requiredList[i].wordId == memo.wordId) {
+                if (requiredList[i].questionId == memo.questionId) {
                     index = i;
                     break;
                 }
             }
             if (index == -1) {
-                memo.word = "";
-                memo.translation = "Unknown error";
-                ShowWord();
+                memo.question = "";
+                memo.answer = "Unknown error";
+                ShowQuestion();
                 return;
             }
 
@@ -382,13 +382,13 @@ function MemoMove(direction) {
                 index = 0;
             }
 
-            memo.wordId = requiredList[index].wordId;
-            memo.word = requiredList[index].word;
-            memo.translation = requiredList[index].translation;
-            memo.wordStatus = requiredList[index].status;
+            memo.questionId = requiredList[index].questionId;
+            memo.question = requiredList[index].question;
+            memo.answer = requiredList[index].answer;
+            memo.questionStatus = requiredList[index].status;
         }
 
-        ShowWord();
+        ShowQuestion();
     }
 }
 
@@ -397,102 +397,102 @@ function AutoPlayer() {
 }
 
 function MemoStart() {
-    $("#statisticsWord").html("");
+    $("#statisticsQuestion").html("");
     $("#statisticsDetail").html("");
     if (settings.mode == 0) { // Practice mode
-        startword = $("#start-from").val();
-        if (startword == "") {
-            DisplayRandomWord();
-            startword = memo.word;
+        startquestion = $("#start-from").val();
+        if (startquestion == "") {
+            DisplayRandomQuestion();
+            startquestion = memo.question;
         }
 
-        // User decided a word to start from
-        // Get its word id
+        // User decided a question to start from
+        // Get its question id
         $.ajax({
-            url: '/api/word/id',
+            url: '/api/question/id',
             method: 'POST',
             async: true,
             dataType: "json",
             data: {
-                word: startword,
-                wordBookId: memo.wordBookId,
+                question: startquestion,
+                bookId: memo.bookId,
                 userId: localStorage.getItem("userId"),
                 token: localStorage.getItem("token")
             },
             success: function (r) {
-                memo.wordId = r.wordId;
+                memo.questionId = r.questionId;
 
-                // Word exist and get info of the word
+                // Question exist and get info of the question
                 $.ajax({
-                    url: '/api/word',
+                    url: '/api/question',
                     method: 'POST',
                     async: true,
                     dataType: "json",
                     data: {
-                        wordId: memo.wordId,
+                        questionId: memo.questionId,
                         userId: localStorage.getItem("userId"),
                         token: localStorage.getItem("token")
                     },
                     success: function (r) {
-                        memo.wordId = r.wordId;
-                        memo.word = r.word;
-                        memo.translation = r.translation;
-                        memo.wordStatus = r.status;
+                        memo.questionId = r.questionId;
+                        memo.question = r.question;
+                        memo.answer = r.answer;
+                        memo.questionStatus = r.status;
 
-                        ShowWord();
+                        ShowQuestion();
                     },
                     error: function (r, textStatus, errorThrown) {
                         if (r.status == 401) {
                             SessionExpired();
                         } else {
-                            memo.word = r.status + " " + errorThrown;
-                            memo.translation = "Maybe change the settings?\nOr check your connection?";
+                            memo.question = r.status + " " + errorThrown;
+                            memo.answer = "Maybe change the settings?\nOr check your connection?";
 
-                            ShowWord();
+                            ShowQuestion();
                         }
                     }
                 });
             },
 
-            // Word doesn't exist then start from default
+            // Question doesn't exist then start from default
             error: function (r, textStatus, errorThrown) {
                 if (r.status == 404) {
                     $("#start-from").val("Not found!");
-                    DisplayRandomWord();
+                    DisplayRandomQuestion();
                 } else if (r.status == 401) {
                     SessionExpired();
                 } else {
-                    memo.word = r.status + " " + errorThrown;
-                    memo.translation = "Maybe change the settings?\nOr check your connection?";
+                    memo.question = r.status + " " + errorThrown;
+                    memo.answer = "Maybe change the settings?\nOr check your connection?";
 
-                    ShowWord();
+                    ShowQuestion();
                 }
             }
         });
     } else if (settings.mode == 1) { // Challenge mode
         $.ajax({
-            url: '/api/word/challenge/next',
+            url: '/api/question/challenge/next',
             method: 'POST',
             async: true,
             dataType: "json",
             data: {
-                wordBookId: memo.wordBookId,
+                bookId: memo.bookId,
                 userId: localStorage.getItem("userId"),
                 token: localStorage.getItem("token")
             },
             success: function (r) {
-                memo.wordId = r.wordId;
-                memo.word = r.word;
-                memo.translation = r.translation;
-                memo.wordStatus = r.status;
+                memo.questionId = r.questionId;
+                memo.question = r.question;
+                memo.answer = r.answer;
+                memo.questionStatus = r.status;
                 
-                if(memo.wordId == -1){
+                if(memo.questionId == -1){
                     $("#challenge-control").hide();
                 } else {
                     $("#challenge-control").show();
                 }
 
-                ShowWord();
+                ShowQuestion();
             },
             error: function (r) {
                 if (r.status == 401) {
@@ -501,20 +501,20 @@ function MemoStart() {
             }
         });
     } else if (settings.mode == 2) { // Offline Mode
-        if (memo.selectedWordList == []) {
-            alert("Unable to start offline mode: No data in word list!");
+        if (memo.selectedQuestionList == []) {
+            alert("Unable to start offline mode: No data in question list!");
             return;
         }
 
         if ($("#start-from").val() != "") {
-            startword = $("#start-from").val();
+            startquestion = $("#start-from").val();
             found = false;
-            for (var i = 0; i < memo.selectedWordList.length; i++) {
-                if (memo.selectedWordList[i].word == startword) {
-                    memo.wordId = memo.selectedWordList[i].wordId;
-                    memo.word = memo.selectedWordList[i].word;
-                    memo.translation = memo.selectedWordList[i].translation;
-                    memo.wordStatus = memo.selectedWordList[i].status;
+            for (var i = 0; i < memo.selectedQuestionList.length; i++) {
+                if (memo.selectedQuestionList[i].question == startquestion) {
+                    memo.questionId = memo.selectedQuestionList[i].questionId;
+                    memo.question = memo.selectedQuestionList[i].question;
+                    memo.answer = memo.selectedQuestionList[i].answer;
+                    memo.questionStatus = memo.selectedQuestionList[i].status;
 
                     found = true;
                 }
@@ -523,14 +523,14 @@ function MemoStart() {
                 $("#start-from").val("Not found!");
             }
         } else {
-            index = parseInt(Math.random() * memo.selectedWordList.length);
-            memo.wordId = memo.selectedWordList[index].wordId;
-            memo.word = memo.selectedWordList[index].word;
-            memo.translation = memo.selectedWordList[index].translation;
-            memo.wordStatus = memo.selectedWordList[index].status;
+            index = parseInt(Math.random() * memo.selectedQuestionList.length);
+            memo.questionId = memo.selectedQuestionList[index].questionId;
+            memo.question = memo.selectedQuestionList[index].question;
+            memo.answer = memo.selectedQuestionList[index].answer;
+            memo.questionStatus = memo.selectedQuestionList[index].status;
         }
 
-        ShowWord();
+        ShowQuestion();
     }
 
     if (settings.mode != 1 && settings.autoPlay != 0) {
@@ -538,7 +538,7 @@ function MemoStart() {
         $(".ap-btn").attr("onclick", "StopAutoPlayer()");
         $(".ap-btn").html('<i class="fa fa-pause-circle"></i> Pause');
         memo.speaker.cancel();
-        msg = new SpeechSynthesisUtterance($("#word").val());
+        msg = new SpeechSynthesisUtterance($("#question").val());
         memo.speaker.speak(msg);
     }
 }
@@ -549,22 +549,22 @@ function MemoGo() {
 }
 
 function MemoTag() {
-    if (memo.wordStatus == 2) memo.wordStatus = 1;
-    else if (memo.wordStatus == 1 || memo.wordStatus == 3) memo.wordStatus = 2;
+    if (memo.questionStatus == 2) memo.questionStatus = 1;
+    else if (memo.questionStatus == 1 || memo.questionStatus == 3) memo.questionStatus = 2;
 
     $.ajax({
-        url: '/api/word/status/update',
+        url: '/api/question/status/update',
         method: 'POST',
         async: true,
         dataType: "json",
         data: {
-            words: JSON.stringify([memo.wordId]),
-            status: memo.wordStatus,
+            questions: JSON.stringify([memo.questionId]),
+            status: memo.questionStatus,
             userId: localStorage.getItem("userId"),
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            if (memo.wordStatus != 2) $(".memo-tag").html("Tag <i class='fa fa-star'></i>");
+            if (memo.questionStatus != 2) $(".memo-tag").html("Tag <i class='fa fa-star'></i>");
             else $(".memo-tag").html("Untag <i class='fa fa-star-o'></i>");
         },
         error: function (r) {
@@ -576,22 +576,22 @@ function MemoTag() {
 }
 
 function MemoDelete() {
-    if (memo.wordStatus == 3) memo.wordStatus = 1;
-    else if (memo.wordStatus == 1 || memo.wordStatus == 2) memo.wordStatus = 3;
+    if (memo.questionStatus == 3) memo.questionStatus = 1;
+    else if (memo.questionStatus == 1 || memo.questionStatus == 2) memo.questionStatus = 3;
 
     $.ajax({
-        url: '/api/word/status/update',
+        url: '/api/question/status/update',
         method: 'POST',
         async: true,
         dataType: "json",
         data: {
-            words: JSON.stringify([memo.wordId]),
-            status: memo.wordStatus,
+            questions: JSON.stringify([memo.questionId]),
+            status: memo.questionStatus,
             userId: localStorage.getItem("userId"),
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            if (memo.wordStatus != 3) $(".memo-delete").html("Delete <i class='fa fa-trash'></i>");
+            if (memo.questionStatus != 3) $(".memo-delete").html("Delete <i class='fa fa-trash'></i>");
             else $(".memo-delete").html("Undelete <i class='fa fa-undo'></i>");
         },
         error: function (r) {
@@ -605,20 +605,20 @@ function MemoDelete() {
 function MemoChallenge(res) {
     if (memo.challengeStatus != 2 && res == "no") {
         memo.challengeStatus = 2;
-        $("#translation").val(memo.translation);
+        $("#answer").val(memo.answer);
         $("#challenge-msg").html("Try to memorize it!")
         $(".memo-challenge-yes").html("<i class='fa fa-arrow-circle-right'></i> Next");
         $(".memo-challenge-no").html("<i class='fa fa-arrow-circle-right'></i> Next");
         $.ajax({
-            url: '/api/word/challenge/update',
+            url: '/api/question/challenge/update',
             method: 'POST',
             async: true,
             dataType: "json",
             data: {
-                wordId: memo.wordId,
+                questionId: memo.questionId,
                 memorized: 0,
                 getNext: 0,
-                wordBookId: memo.wordBookId,
+                bookId: memo.bookId,
                 userId: localStorage.getItem("userId"),
                 token: localStorage.getItem("token")
             },
@@ -628,33 +628,33 @@ function MemoChallenge(res) {
 
     if (memo.challengeStatus == 0 && res == "yes") {
         memo.challengeStatus = 1;
-        $("#translation").val(memo.translation);
+        $("#answer").val(memo.answer);
         $("#challenge-msg").html("Are you correct?");
     } else if (memo.challengeStatus == 1 && res == "yes") {
         $("#challenge-msg").html("Good job! <i class='fa fa-thumbs-up'></i>");
 
         $.ajax({
-            url: '/api/word/challenge/update',
+            url: '/api/question/challenge/update',
             method: 'POST',
             async: true,
             dataType: "json",
             data: {
-                wordId: memo.wordId,
+                questionId: memo.questionId,
                 memorized: 1,
                 getNext: 1,
-                wordBookId: memo.wordBookId,
+                bookId: memo.bookId,
                 userId: localStorage.getItem("userId"),
                 token: localStorage.getItem("token")
             },
             success: function (r) {
-                memo.wordId = r.wordId;
-                memo.word = r.word;
-                memo.translation = r.translation;
-                memo.wordStatus = r.status;
+                memo.questionId = r.questionId;
+                memo.question = r.question;
+                memo.answer = r.answer;
+                memo.questionStatus = r.status;
 
                 memo.challengeStatus = 0;
                 $("#challenge-msg").html("Do you remember it?");
-                ShowWord();
+                ShowQuestion();
             },
             error: function (r) {
                 if (r.status == 401) {
@@ -666,22 +666,22 @@ function MemoChallenge(res) {
         $(".memo-challenge-yes").html("Yes <i class='fa fa-check'></i>");
         $(".memo-challenge-no").html("No <i class='fa fa-times'></i>");
         $.ajax({
-            url: '/api/word/challenge/next',
+            url: '/api/question/challenge/next',
             method: 'POST',
             async: true,
             dataType: "json",
             data: {
-                wordBookId: memo.wordBookId,
+                bookId: memo.bookId,
                 userId: localStorage.getItem("userId"),
                 token: localStorage.getItem("token")
             },
             success: function (r) {
-                memo.wordId = r.wordId;
-                memo.word = r.word;
-                memo.translation = r.translation;
-                memo.wordStatus = r.status;
+                memo.questionId = r.questionId;
+                memo.question = r.question;
+                memo.answer = r.answer;
+                memo.questionStatus = r.status;
 
-                if(memo.wordId == -1){
+                if(memo.questionId == -1){
                     $("#challenge-control").hide();
                 } else {
                     $("#challenge-control").show();
@@ -689,7 +689,7 @@ function MemoChallenge(res) {
 
                 memo.challengeStatus = 0;
                 $("#challenge-msg").html("Do you remember it?");
-                ShowWord();
+                ShowQuestion();
             },
             error: function (r) {
                 if (r.status == 401) {
@@ -701,24 +701,24 @@ function MemoChallenge(res) {
 }
 
 function Statistics() {
-    if ($("#statisticsWord").text() == memo.word) {
+    if ($("#statisticsQuestion").text() == memo.question) {
         $('#statisticsModal').modal('toggle')
         return;
     }
     $.ajax({
-        url: '/api/word/stat',
+        url: '/api/question/stat',
         method: 'POST',
         async: true,
         dataType: "json",
         data: {
-            wordId: memo.wordId,
+            questionId: memo.questionId,
             userId: localStorage.getItem("userId"),
             token: localStorage.getItem("token")
         },
         success: function (r) {
             statistics = r.msg.replaceAll("\n", "<br>");
 
-            $("#statisticsWord").html(memo.word);
+            $("#statisticsQuestion").html(memo.question);
             $("#statisticsDetail").html(statistics);
 
             $('#statisticsModal').modal('toggle')
@@ -731,51 +731,51 @@ function Statistics() {
     });
 }
 
-function EditWordShow() {
-    $("#edit-word").val(memo.word);
-    $("#edit-translation").val(memo.translation);
-    $("#editWordModal").modal('toggle');
+function EditQuestionShow() {
+    $("#edit-question").val(memo.question);
+    $("#edit-answer").val(memo.answer);
+    $("#editQuestionModal").modal('toggle');
 }
 
-function EditWord() {
-    word = $("#edit-word").val();
-    translation = $("#edit-translation").val();
+function EditQuestion() {
+    question = $("#edit-question").val();
+    answer = $("#edit-answer").val();
     $.ajax({
-        url: '/api/word/edit',
+        url: '/api/question/edit',
         method: 'POST',
         async: true,
         dataType: "json",
         data: {
-            wordId: memo.wordId,
-            word: word,
-            translation: translation,
+            questionId: memo.questionId,
+            question: question,
+            answer: answer,
             userId: localStorage.getItem("userId"),
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            memo.word = word;
-            memo.translation = translation;
+            memo.question = question;
+            memo.answer = answer;
 
             if (settings.swap == 0 || settings.swap == 2 && settings.mode == 1) {
-                $("#word").val(memo.word);
-                $("#translation").val("");
+                $("#question").val(memo.question);
+                $("#answer").val("");
             } else if (settings.swap == 1) {
-                $("#word").val("");
-                $("#translation").val(memo.translation);
+                $("#question").val("");
+                $("#answer").val(memo.answer);
             } else if (settings.swap == 2 && settings.mode != 1) {
-                $("#word").val(memo.word);
-                $("#translation").val(memo.translation);
+                $("#question").val(memo.question);
+                $("#answer").val(memo.answer);
             }
 
             new Noty({
                 theme: 'mint',
-                text: 'Success! Word edited!',
+                text: 'Success! Question edited!',
                 type: 'success',
                 layout: 'bottomRight',
                 timeout: 3000
             }).show();
 
-            $("#editWordModal").modal('toggle');
+            $("#editQuestionModal").modal('toggle');
         },
         error: function (r) {
             if (r.status == 401) {
@@ -785,10 +785,10 @@ function EditWord() {
     });
 }
 
-function SpeakWord() {
+function SpeakQuestion() {
     if (settings.swap != 1 || settings.swap == 1 && memo.displayingAnswer) {
         memo.speaker.cancel();
-        msg = new SpeechSynthesisUtterance($("#word").val());
+        msg = new SpeechSynthesisUtterance($("#question").val());
         memo.speaker.speak(msg);
     }
 }
@@ -817,71 +817,71 @@ function Settings() {
     StopAutoPlayer();
 }
 
-function UpdateWordBookDisplay() {
-    $(".wordbook").remove();
-    $("#wordbook-list").append('<div class="wordbook">\
-        <p>Create Word Book: </p>\
+function UpdateBookDisplay() {
+    $(".book").remove();
+    $("#book-list").append('<div class="book">\
+        <p>Create Book: </p>\
         <div class="input-group mb-3 w-75">\
             <span class="input-group-text" id="basic-addon1">Name</span>\
-            <input type="text" class="form-control" id="create-word-book-name" aria-describedby="basic-addon1">\
+            <input type="text" class="form-control" id="create-question-book-name" aria-describedby="basic-addon1">\
             <div class="input-group-append">\
-                <button class="btn btn-outline-primary" type="button" onclick="CreateWordBook()">Create</button>\
+                <button class="btn btn-outline-primary" type="button" onclick="CreateBook()">Create</button>\
             </div>\
         </div>\
         </div>');
-    for (var i = 0; i < memo.wordBookList.length; i++) {
-        wordBook = memo.wordBookList[i];
+    for (var i = 0; i < memo.bookList.length; i++) {
+        book = memo.bookList[i];
         wcnt = "";
-        if (wordBook.wordBookId == 0) {
-            wcnt = wordBook.words.length + ' words';
+        if (book.bookId == 0) {
+            wcnt = book.questions.length + ' questions';
         } else {
-            wcnt = wordBook.progress + ' memorized / ' + wordBook.words.length + ' words';
+            wcnt = book.progress + ' memorized / ' + book.questions.length + ' questions';
         }
         btn = "";
-        if (wordBook.wordBookId != memo.wordBookId) {
-            btn = '<button type="button" class="btn btn-primary " onclick="SelectWordBook(' + wordBook.wordBookId + ')">Select</button>';
+        if (book.bookId != memo.bookId) {
+            btn = '<button type="button" class="btn btn-primary " onclick="SelectBook(' + book.bookId + ')">Select</button>';
         } else {
             btn = '<button type="button" class="btn btn-secondary">Selected</button>'
         }
 
-        $("#wordbook-list").append('<div class="wordbook">\
-        <p>' + wordBook.name + '</p>\
+        $("#book-list").append('<div class="book">\
+        <p>' + book.name + '</p>\
         <p>' + wcnt + '</p>\
-        <button type="button" class="btn btn-primary " onclick="OpenWordBook(' + wordBook.wordBookId + ')">Open</button>\
+        <button type="button" class="btn btn-primary " onclick="OpenBook(' + book.bookId + ')">Open</button>\
         ' + btn + '\
         <hr>\
         </div>');
     }
 }
 
-function ShowWordBook() {
-    $("#wordbook").animate({
+function ShowBook() {
+    $("#book").animate({
         left: '0'
     }, {
         queue: false,
         duration: 500
     });
-    UpdateWordBookDisplay();
+    UpdateBookDisplay();
 }
 
-function OpenWordBook(wordBookId) {
-    window.location.href = '/wordbook?wordBookId=' + wordBookId;
+function OpenBook(bookId) {
+    window.location.href = '/book?bookId=' + bookId;
 }
 
-function SelectWordBook(wordBookId) {
-    memo.wordBookId = wordBookId;
-    localStorage.setItem("memo-word-book-id", memo.wordBookId);
-    UpdateSelectedWordList();
-    UpdateWordBookDisplay();
+function SelectBook(bookId) {
+    memo.bookId = bookId;
+    localStorage.setItem("memo-question-book-id", memo.bookId);
+    UpdateSelectedQuestionList();
+    UpdateBookDisplay();
 }
 
-function CreateWordBook() {
-    wordBookName = $("#create-word-book-name").val();
+function CreateBook() {
+    bookName = $("#create-question-book-name").val();
 
-    if (wordBookName == "") {
+    if (bookName == "") {
         new Noty({
             theme: 'mint',
-            text: 'Enter a word book name!',
+            text: 'Enter a book name!',
             type: 'warning',
             layout: 'topLeft',
             timeout: 3000
@@ -890,19 +890,19 @@ function CreateWordBook() {
     }
 
     $.ajax({
-        url: '/api/wordBook/create',
+        url: '/api/book/create',
         method: 'POST',
         async: true,
         dataType: "json",
         data: {
-            name: wordBookName,
+            name: bookName,
             userId: localStorage.getItem("userId"),
             token: localStorage.getItem("token")
         },
         success: function (r) {
             if (r.success == true) {
-                UpdateWordBookList(false);
-                UpdateWordBookDisplay();
+                UpdateBookList(false);
+                UpdateBookDisplay();
                 new Noty({
                     theme: 'mint',
                     text: 'Success!',

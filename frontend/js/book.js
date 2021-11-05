@@ -3,7 +3,7 @@
 // License: GNU General Public License v3.0
 
 function lsGetItem(lsItemName, defaultValue = 0) {
-    if (localStorage.getItem(lsItemName) == null) {
+    if (localStorage.getItem(lsItemName) == null || localStorage.getItem(lsItemName) == undefined) {
         localStorage.setItem(lsItemName, defaultValue);
         return defaultValue;
     } else {
@@ -11,16 +11,17 @@ function lsGetItem(lsItemName, defaultValue = 0) {
     }
 }
 
-var wordBookId = -1;
-var wordBookName = "";
-var wordBookShareCode = "";
+var bookId = -1;
+var bookName = "";
+var bookShareCode = "";
 var groupId = -1;
 var groupCode = "";
 var isGroupOwner = false;
-var wordList = JSON.parse(lsGetItem("word-list", JSON.stringify([])));
-var wordBookList = JSON.parse(lsGetItem("word-book-list", JSON.stringify([])));
-var selectedWordList = [];
-var wordListMap = new Map();
+var isGroupEditor = false;
+var questionList = JSON.parse(lsGetItem("question-list", JSON.stringify([])));
+var bookList = JSON.parse(lsGetItem("question-book-list", JSON.stringify([])));
+var selectedQuestionList = [];
+var questionListMap = new Map();
 var selected = [];
 
 function SessionExpired() {
@@ -60,20 +61,20 @@ function getUrlParameter(sParam) {
     return false;
 };
 
-function MapWordList() {
-    wordListMap = new Map();
-    for (var i = 0; i < wordList.length; i++) {
-        wordListMap.set(wordList[i].wordId, {
-            "word": wordList[i].word,
-            "translation": wordList[i].translation,
-            "status": wordList[i].status
+function MapQuestionList() {
+    questionListMap = new Map();
+    for (var i = 0; i < questionList.length; i++) {
+        questionListMap.set(questionList[i].questionId, {
+            "question": questionList[i].question,
+            "answer": questionList[i].answer,
+            "status": questionList[i].status
         });
     }
 }
 
-function UpdateWordList(doasync = true) {
+function UpdateQuestionList(doasync = true) {
     $.ajax({
-        url: "/api/wordBook/wordList",
+        url: "/api/book/questionList",
         method: 'POST',
         async: doasync,
         dataType: "json",
@@ -82,16 +83,16 @@ function UpdateWordList(doasync = true) {
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            wordList = r;
-            localStorage.setItem("wordList", JSON.stringify(wordList));
-            MapWordList();
+            questionList = r;
+            localStorage.setItem("questionList", JSON.stringify(questionList));
+            MapQuestionList();
         }
     });
 }
 
-function UpdateWordBookList(doasync = true) {
+function UpdateBookList(doasync = true) {
     $.ajax({
-        url: "/api/wordBook",
+        url: "/api/book",
         method: 'POST',
         async: doasync,
         dataType: "json",
@@ -100,62 +101,69 @@ function UpdateWordBookList(doasync = true) {
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            wordBookList = r;
-            localStorage.setItem("word-book-list", JSON.stringify(wordBookList));
+            bookList = r;
+            localStorage.setItem("question-book-list", JSON.stringify(bookList));
         }
     });
 }
 
-function SelectWords() {
-    for (var i = 0; i < wordBookList.length; i++) {
-        if (wordBookList[i].wordBookId == wordBookId) {
-            wordBookName = wordBookList[i].name;
-            $(".title").html(wordBookName);
-            $("title").html("Word Memo - " + wordBookName);
-            wordBookShareCode = wordBookList[i].shareCode;
-            if (wordBookShareCode == "") {
-                $("#wordBookShareCode").html("(Private)");
+function SelectQuestions() {
+    for (var i = 0; i < bookList.length; i++) {
+        if (bookList[i].bookId == bookId) {
+            bookName = bookList[i].name;
+            $(".title").html(bookName);
+            $("title").html("My Memo - " + bookName);
+            bookShareCode = bookList[i].shareCode;
+            if (bookShareCode == "") {
+                $("#bookShareCode").html("(Private)");
             } else {
-                $("#wordBookShareCode").html(wordBookShareCode);
+                $("#bookShareCode").html(bookShareCode);
             }
-            if (wordBookShareCode == "") {
+            if (bookShareCode == "") {
                 $("#shareop").html("Share");
                 $(".only-shared").hide();
             } else {
                 $("#shareop").html("Unshare");
                 $(".only-shared").show();
             }
-            groupId = wordBookList[i].groupId;
-            groupCode = wordBookList[i].groupCode;
+            groupId = bookList[i].groupId;
+            groupCode = bookList[i].groupCode;
             $("#groupCode").html(groupCode);
-            isGroupOwner = wordBookList[i].isGroupOwner;
+            isGroupOwner = bookList[i].isGroupOwner;
+            isGroupEditor = bookList[i].isGroupEditor;
             $(".group").show();
+            if (bookId == 0) {
+                $(".not-for-all-questions").hide();
+            } else {
+                $(".not-for-all-questions").show();
+            }
             if (groupId == -1) {
+                $(".only-group-owner").show();
+                $(".only-group-editor").show();
                 $(".only-group-exist").hide();
                 $(".only-group-inexist").show();
-                $(".only-group-owner").hide();
             } else {
                 $(".only-group-exist").show();
                 $(".only-group-inexist").hide();
                 $(".only-group-owner").hide();
+                if (isGroupOwner) {
+                    $(".only-group-owner").show();
+                }
+                if (isGroupEditor) {
+                    $(".only-group-editor").show();
+                } else if(!isGroupEditor && !isGroupOwner){
+                    $(".only-group-editor").hide();
+                }
             }
-            if (isGroupOwner) {
-                $(".only-group-owner").show();
-            }
-            if (wordBookId == 0) {
-                $(".not-for-all-words").hide();
-            } else {
-                $(".not-for-all-words").show();
-            }
-            selectedWordList = [];
-            for (this.j = 0; j < wordBookList[i].words.length; j++) {
-                wordId = wordBookList[i].words[j];
-                wordData = wordListMap.get(wordId);
-                selectedWordList.push({
-                    "wordId": wordId,
-                    "word": wordData.word,
-                    "translation": wordData.translation,
-                    "status": wordData.status
+            selectedQuestionList = [];
+            for (this.j = 0; j < bookList[i].questions.length; j++) {
+                questionId = bookList[i].questions[j];
+                questionData = questionListMap.get(questionId);
+                selectedQuestionList.push({
+                    "questionId": questionId,
+                    "question": questionData.question,
+                    "answer": questionData.answer,
+                    "status": questionData.status
                 });
             }
         }
@@ -165,28 +173,28 @@ function SelectWords() {
 function UpdateTable() {
     selected = [];
 
-    table = $("#wordList").DataTable();
+    table = $("#questionList").DataTable();
     table.clear();
 
     l = ["", "Default", "Tagged", "Deleted"];
 
-    for (var i = 0; i < selectedWordList.length; i++) {
+    for (var i = 0; i < selectedQuestionList.length; i++) {
         table.row.add([
-            [selectedWordList[i].word],
-            [selectedWordList[i].translation],
-            [l[selectedWordList[i].status]]
-        ]).node().id = selectedWordList[i].wordId;
+            [selectedQuestionList[i].question],
+            [selectedQuestionList[i].answer],
+            [l[selectedQuestionList[i].status]]
+        ]).node().id = selectedQuestionList[i].questionId;
     }
 
     table.draw();
 }
 
 function PageInit() {
-    if (wordBookId == -1) {
-        wordBookId = getUrlParameter("wordBookId");
+    if (bookId == -1) {
+        bookId = getUrlParameter("bookId");
     }
 
-    table = $("#wordList").DataTable();
+    table = $("#questionList").DataTable();
     table.clear();
     table.row.add([
         [""],
@@ -196,23 +204,23 @@ function PageInit() {
     table.draw();
     table.clear();
 
-    if (wordBookId == 0) {
-        $(".not-for-all-words").hide();
+    if (bookId == 0) {
+        $(".not-for-all-questions").hide();
     } else {
-        $(".not-for-all-words").show();
+        $(".not-for-all-questions").show();
     }
     $(".group").hide();
 
-    // Use existing words
-    if (wordList.length != 0) {
-        MapWordList();
-        SelectWords();
+    // Use existing questions
+    if (questionList.length != 0) {
+        MapQuestionList();
+        SelectQuestions();
         UpdateTable();
     }
 
     // Update list
     $.ajax({
-        url: "/api/wordBook/wordList",
+        url: "/api/book/questionList",
         method: 'POST',
         async: true,
         dataType: "json",
@@ -221,11 +229,11 @@ function PageInit() {
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            wordList = r;
-            localStorage.setItem("word-list", JSON.stringify(wordList));
-            MapWordList();
+            questionList = r;
+            localStorage.setItem("question-list", JSON.stringify(questionList));
+            MapQuestionList();
             $.ajax({
-                url: "/api/wordBook",
+                url: "/api/book",
                 method: 'POST',
                 async: true,
                 dataType: "json",
@@ -234,10 +242,10 @@ function PageInit() {
                     token: localStorage.getItem("token")
                 },
                 success: function (r) {
-                    wordBookList = r;
-                    localStorage.setItem("word-book-list", JSON.stringify(wordBookList));
-                    MapWordList();
-                    SelectWords();
+                    bookList = r;
+                    localStorage.setItem("question-book-list", JSON.stringify(bookList));
+                    MapQuestionList();
+                    SelectQuestions();
                     UpdateTable();
                 }
             });
@@ -245,32 +253,32 @@ function PageInit() {
     });
 }
 
-var editWordId = -1;
+var editQuestionId = -1;
 
-function EditWordShow(wid) {
-    editWordId = wid;
-    word = "";
-    translation = "";
-    for (var i = 0; i < selectedWordList.length; i++) {
-        if (selectedWordList[i].wordId == wid) {
-            word = selectedWordList[i].word;
-            translation = selectedWordList[i].translation;
+function EditQuestionShow(wid) {
+    editQuestionId = wid;
+    question = "";
+    answer = "";
+    for (var i = 0; i < selectedQuestionList.length; i++) {
+        if (selectedQuestionList[i].questionId == wid) {
+            question = selectedQuestionList[i].question;
+            answer = selectedQuestionList[i].answer;
             break;
         }
     }
-    $("#editWordModalLabel").html("Edit Word");
-    $("#edit-word").val(word);
-    $("#edit-translation").val(translation);
-    $("#editWordModal").modal('toggle');
-    $("#edit-word-btn").html("Edit");
-    $("#edit-word-btn").attr("onclick", "EditWord()");
+    $("#editQuestionModalLabel").html("Edit Question");
+    $("#edit-question").val(question);
+    $("#edit-answer").val(answer);
+    $("#editQuestionModal").modal('toggle');
+    $("#edit-question-btn").html("Edit");
+    $("#edit-question-btn").attr("onclick", "EditQuestion()");
 }
 
-function EditWordFromBtn() {
+function EditQuestionFromBtn() {
     if (selected.length != 1) {
         new Noty({
             theme: 'mint',
-            text: 'Make sure you selected one word!',
+            text: 'Make sure you selected one question!',
             type: 'warning',
             layout: 'bottomRight',
             timeout: 3000
@@ -278,42 +286,42 @@ function EditWordFromBtn() {
         return;
     }
 
-    EditWordShow(selected[0]);
+    EditQuestionShow(selected[0]);
 }
 
-function EditWord() {
-    word = $("#edit-word").val();
-    translation = $("#edit-translation").val();
+function EditQuestion() {
+    question = $("#edit-question").val();
+    answer = $("#edit-answer").val();
     $.ajax({
-        url: '/api/word/edit',
+        url: '/api/question/edit',
         method: 'POST',
         async: true,
         dataType: "json",
         data: {
-            wordId: editWordId,
-            word: word,
-            translation: translation,
+            questionId: editQuestionId,
+            question: question,
+            answer: answer,
             userId: localStorage.getItem("userId"),
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            for (var i = 0; i < selectedWordList.length; i++) {
-                if (selectedWordList[i].wordId == wid) {
-                    selectedWordList[i].word = word;
-                    selectedWordList[i].translation = translation;
+            for (var i = 0; i < selectedQuestionList.length; i++) {
+                if (selectedQuestionList[i].questionId == wid) {
+                    selectedQuestionList[i].question = question;
+                    selectedQuestionList[i].answer = answer;
                     break;
                 }
             }
 
             new Noty({
                 theme: 'mint',
-                text: 'Success! Word edited!',
+                text: 'Success! Question edited!',
                 type: 'success',
                 layout: 'bottomRight',
                 timeout: 3000
             }).show();
 
-            $("#editWordModal").modal('toggle');
+            $("#editQuestionModal").modal('toggle');
             UpdateTable();
         },
         error: function (r) {
@@ -324,24 +332,24 @@ function EditWord() {
     });
 }
 
-function WordBookUpdateStatus(updateTo) {
+function BookUpdateStatus(updateTo) {
     $.ajax({
-        url: '/api/word/status/update',
+        url: '/api/question/status/update',
         method: 'POST',
         async: true,
         dataType: "json",
         data: {
-            words: JSON.stringify(selected),
+            questions: JSON.stringify(selected),
             status: updateTo,
             userId: localStorage.getItem("userId"),
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            for (var i = 0; i < selectedWordList.length; i++) {
+            for (var i = 0; i < selectedQuestionList.length; i++) {
                 for (var j = 0; j < selected.length; j++) {
-                    if (selectedWordList[i].wordId == selected[j]) {
-                        console.log(selectedWordList[i].wordId);
-                        selectedWordList[i].status = updateTo;
+                    if (selectedQuestionList[i].questionId == selected[j]) {
+                        console.log(selectedQuestionList[i].questionId);
+                        selectedQuestionList[i].status = updateTo;
                         break;
                     }
                 }
@@ -349,7 +357,7 @@ function WordBookUpdateStatus(updateTo) {
 
             new Noty({
                 theme: 'mint',
-                text: 'Success! Word status updated!',
+                text: 'Success! Question status updated!',
                 type: 'success',
                 layout: 'bottomRight',
                 timeout: 3000
@@ -365,39 +373,39 @@ function WordBookUpdateStatus(updateTo) {
     });
 }
 
-function ShowWordDatabase() {
+function ShowQuestionDatabase() {
     $(".manage").hide();
-    $("#addExistingWord").show();
-    $(".word-book-name").html(wordBookName);
+    $("#addExistingQuestion").show();
+    $(".question-book-name").html(bookName);
     selected = [];
 
-    table = $("#wordList").DataTable();
+    table = $("#questionList").DataTable();
     table.clear();
-    for (var i = 0; i < wordList.length; i++) {
+    for (var i = 0; i < questionList.length; i++) {
         table.row.add([
-            [wordList[i].word],
-            [wordList[i].translation],
-            [l[wordList[i].status]]
-        ]).node().id = wordList[i].wordId;
+            [questionList[i].question],
+            [questionList[i].answer],
+            [l[questionList[i].status]]
+        ]).node().id = questionList[i].questionId;
     }
     table.draw();
 }
 
 function ShowManage() {
-    $("#addExistingWord").hide();
+    $("#addExistingQuestion").hide();
     $(".manage").show();
     UpdateTable();
 }
 
-function AddExistingWord() {
+function AddExistingQuestion() {
     $.ajax({
-        url: '/api/wordBook/addWord',
+        url: '/api/book/addQuestion',
         method: 'POST',
         async: false,
         dataType: "json",
         data: {
-            words: JSON.stringify(selected),
-            wordBookId: wordBookId,
+            questions: JSON.stringify(selected),
+            bookId: bookId,
             userId: localStorage.getItem("userId"),
             token: localStorage.getItem("token")
         },
@@ -405,15 +413,15 @@ function AddExistingWord() {
             if (r.success == true) {
                 new Noty({
                     theme: 'mint',
-                    text: 'Success! Added ' + selected.length + ' word(s)!',
+                    text: 'Success! Added ' + selected.length + ' question(s)!',
                     type: 'success',
                     layout: 'bottomRight',
                     timeout: 3000
                 }).show();
 
-                UpdateWordBookList(false);
-                MapWordList();
-                SelectWords();
+                UpdateBookList(false);
+                MapQuestionList();
+                SelectQuestions();
                 UpdateTable();
             } else {
                 new Noty({
@@ -433,27 +441,27 @@ function AddExistingWord() {
     });
 }
 
-function AddWordShow() {
-    $("#edit-word").val("");
-    $("#edit-translation").val("");
-    $("#editWordModalLabel").html("Add a new word to " + wordBookName);
-    $("#editWordModal").modal('toggle');
-    $("#edit-word-btn").html("Add");
-    $("#edit-word-btn").attr("onclick", "AddWord()");
+function AddQuestionShow() {
+    $("#edit-question").val("");
+    $("#edit-answer").val("");
+    $("#editQuestionModalLabel").html("Add a new question to " + bookName);
+    $("#editQuestionModal").modal('toggle');
+    $("#edit-question-btn").html("Add");
+    $("#edit-question-btn").attr("onclick", "AddQuestion()");
 }
 
-function AddWord() {
-    word = $("#edit-word").val();
-    translation = $("#edit-translation").val();
+function AddQuestion() {
+    question = $("#edit-question").val();
+    answer = $("#edit-answer").val();
     $.ajax({
-        url: '/api/word/add',
+        url: '/api/question/add',
         method: 'POST',
         async: true,
         dataType: "json",
         data: {
-            word: word,
-            translation: translation,
-            addToWordBook: wordBookId,
+            question: question,
+            answer: answer,
+            addToBook: bookId,
             userId: localStorage.getItem("userId"),
             token: localStorage.getItem("token")
         },
@@ -461,18 +469,18 @@ function AddWord() {
             if (r.success == true) {
                 new Noty({
                     theme: 'mint',
-                    text: 'Success! Added a new word!',
+                    text: 'Success! Added a new question!',
                     type: 'success',
                     layout: 'bottomRight',
                     timeout: 3000
                 }).show();
 
-                $("#editWordModal").modal('toggle');
+                $("#editQuestionModal").modal('toggle');
 
-                UpdateWordList(false);
-                UpdateWordBookList(false);
-                MapWordList();
-                SelectWords();
+                UpdateQuestionList(false);
+                UpdateBookList(false);
+                MapQuestionList();
+                SelectQuestions();
                 UpdateTable();
             } else {
                 new Noty({
@@ -492,15 +500,15 @@ function AddWord() {
     });
 }
 
-function RemoveFromWordBook() {
+function RemoveFromBook() {
     $.ajax({
-        url: '/api/wordBook/deleteWord',
+        url: '/api/book/deleteQuestion',
         method: 'POST',
         async: false,
         dataType: "json",
         data: {
-            words: JSON.stringify(selected),
-            wordBookId: wordBookId,
+            questions: JSON.stringify(selected),
+            bookId: bookId,
             userId: localStorage.getItem("userId"),
             token: localStorage.getItem("token")
         },
@@ -508,15 +516,15 @@ function RemoveFromWordBook() {
             if (r.success == true) {
                 new Noty({
                     theme: 'mint',
-                    text: 'Success! Removed ' + selected.length + ' word(s) from this word book!',
+                    text: 'Success! Removed ' + selected.length + ' question(s) from this book!',
                     type: 'success',
                     layout: 'bottomRight',
                     timeout: 3000
                 }).show();
 
-                UpdateWordBookList(false);
-                MapWordList();
-                SelectWords();
+                UpdateBookList(false);
+                MapQuestionList();
+                SelectQuestions();
                 UpdateTable();
             } else {
                 new Noty({
@@ -536,18 +544,18 @@ function RemoveFromWordBook() {
     });
 }
 
-function RemoveWordShow() {
-    $("#deleteWordModal").modal("toggle");
+function RemoveQuestionShow() {
+    $("#deleteQuestionModal").modal("toggle");
 }
 
-function RemoveWord() {
+function RemoveQuestion() {
     $.ajax({
-        url: '/api/word/delete',
+        url: '/api/question/delete',
         method: 'POST',
         async: false,
         dataType: "json",
         data: {
-            words: JSON.stringify(selected),
+            questions: JSON.stringify(selected),
             userId: localStorage.getItem("userId"),
             token: localStorage.getItem("token")
         },
@@ -555,18 +563,18 @@ function RemoveWord() {
             if (r.success == true) {
                 new Noty({
                     theme: 'mint',
-                    text: 'Success! Removed ' + selected.length + ' word(s) from database!',
+                    text: 'Success! Removed ' + selected.length + ' question(s) from database!',
                     type: 'success',
                     layout: 'bottomRight',
                     timeout: 3000
                 }).show();
 
-                $("#deleteWordModal").modal('toggle');
+                $("#deleteQuestionModal").modal('toggle');
 
-                UpdateWordList(false);
-                UpdateWordBookList(false);
-                MapWordList();
-                SelectWords();
+                UpdateQuestionList(false);
+                UpdateBookList(false);
+                MapQuestionList();
+                SelectQuestions();
                 UpdateTable();
             } else {
                 new Noty({
@@ -586,14 +594,14 @@ function RemoveWord() {
     });
 }
 
-function WordBookClone() {
+function BookClone() {
     $.ajax({
-        url: '/api/wordBook/clone',
+        url: '/api/book/clone',
         method: 'POST',
         async: false,
         dataType: "json",
         data: {
-            fromWordBook: wordBookId,
+            fromBook: bookId,
             userId: localStorage.getItem("userId"),
             token: localStorage.getItem("token")
         },
@@ -601,7 +609,7 @@ function WordBookClone() {
             if (r.success == true) {
                 new Noty({
                     theme: 'mint',
-                    text: 'Success! Cloned this word book!',
+                    text: 'Success! Cloned this book!',
                     type: 'success',
                     layout: 'bottomRight',
                     timeout: 3000
@@ -624,13 +632,13 @@ function WordBookClone() {
     });
 }
 
-function WordBookRenameShow() {
+function BookRenameShow() {
     $("#renameModal").modal("toggle");
-    $("#word-book-rename").val(wordBookName);
+    $("#question-book-rename").val(bookName);
 }
 
-function WordBookRename() {
-    newName = $("#word-book-rename").val();
+function BookRename() {
+    newName = $("#question-book-rename").val();
     if (newName == "") {
         new Noty({
             theme: 'mint',
@@ -643,25 +651,25 @@ function WordBookRename() {
     }
 
     $.ajax({
-        url: '/api/wordBook/rename',
+        url: '/api/book/rename',
         method: 'POST',
         async: false,
         dataType: "json",
         data: {
-            wordBookId: wordBookId,
+            bookId: bookId,
             name: newName,
             userId: localStorage.getItem("userId"),
             token: localStorage.getItem("token")
         },
         success: function (r) {
             if (r.success == true) {
-                wordBookName = newName;
-                $(".word-book-name").html(wordBookName);
-                $(".title").html(wordBookName);
-                $("title").html("Word Memo - " + wordBookName);
+                bookName = newName;
+                $(".question-book-name").html(bookName);
+                $(".title").html(bookName);
+                $("title").html("My Memo - " + bookName);
                 new Noty({
                     theme: 'mint',
-                    text: "Success! Word book renamed!",
+                    text: "Success! Book renamed!",
                     type: 'success',
                     layout: 'bottomRight',
                     timeout: 3000
@@ -685,16 +693,16 @@ function WordBookRename() {
     });
 }
 
-function WordBookDeleteShow() {
+function BookDeleteShow() {
     $("#deleteWBModal").modal("toggle");
-    $(".word-book-name").html(wordBookName);
+    $(".question-book-name").html(bookName);
 }
 
-function WordBookDelete() {
-    if ($("#word-book-delete").val() != wordBookName) {
+function BookDelete() {
+    if ($("#question-book-delete").val() != bookName) {
         new Noty({
             theme: 'mint',
-            text: "Type the name of the word book correctly to continue!",
+            text: "Type the name of the book correctly to continue!",
             type: 'warning',
             layout: 'bottomRight',
             timeout: 3000
@@ -702,12 +710,12 @@ function WordBookDelete() {
         return;
     }
     $.ajax({
-        url: '/api/wordBook/delete',
+        url: '/api/book/delete',
         method: 'POST',
         async: false,
         dataType: "json",
         data: {
-            wordBookId: wordBookId,
+            bookId: bookId,
             userId: localStorage.getItem("userId"),
             token: localStorage.getItem("token")
         },
@@ -715,7 +723,7 @@ function WordBookDelete() {
             if (r.success == true) {
                 new Noty({
                     theme: 'mint',
-                    text: "Success! Word book deleted!",
+                    text: "Success! Book deleted!",
                     type: 'success',
                     layout: 'bottomRight',
                     timeout: 3000
@@ -739,26 +747,26 @@ function WordBookDelete() {
     });
 }
 
-function WordBookShare() {
-    if (wordBookShareCode == "") {
+function BookShare() {
+    if (bookShareCode == "") {
         $.ajax({
-            url: '/api/wordBook/share',
+            url: '/api/book/share',
             method: 'POST',
             async: false,
             dataType: "json",
             data: {
-                wordBookId: wordBookId,
+                bookId: bookId,
                 operation: "share",
                 userId: localStorage.getItem("userId"),
                 token: localStorage.getItem("token")
             },
             success: function (r) {
                 if (r.success == true) {
-                    for (var i = 0; i < wordBookList.length; i++) {
-                        if (wordBookList[i].wordBookId == wordBookId) {
-                            wordBookList[i].shareCode = r.shareCode;
-                            wordBookShareCode = r.shareCode;
-                            localStorage.setItem("word-book-list", JSON.stringify(wordBookList));
+                    for (var i = 0; i < bookList.length; i++) {
+                        if (bookList[i].bookId == bookId) {
+                            bookList[i].shareCode = r.shareCode;
+                            bookShareCode = r.shareCode;
+                            localStorage.setItem("question-book-list", JSON.stringify(bookList));
                             break;
                         }
                     }
@@ -769,7 +777,7 @@ function WordBookShare() {
                         layout: 'bottomRight',
                         timeout: 30000
                     }).show();
-                    $("#wordBookShareCode").html(r.shareCode);
+                    $("#bookShareCode").html(r.shareCode);
                     $("#shareop").html("Unshare");
                     $(".only-shared").show();
                 } else {
@@ -790,23 +798,23 @@ function WordBookShare() {
         });
     } else {
         $.ajax({
-            url: '/api/wordBook/share',
+            url: '/api/book/share',
             method: 'POST',
             async: false,
             dataType: "json",
             data: {
-                wordBookId: wordBookId,
+                bookId: bookId,
                 operation: "unshare",
                 userId: localStorage.getItem("userId"),
                 token: localStorage.getItem("token")
             },
             success: function (r) {
                 if (r.success == true) {
-                    for (var i = 0; i < wordBookList.length; i++) {
-                        if (wordBookList[i].wordBookId == wordBookId) {
-                            wordBookList[i].shareCode = "";
-                            wordBookShareCode = "";
-                            localStorage.setItem("word-book-list", JSON.stringify(wordBookList));
+                    for (var i = 0; i < bookList.length; i++) {
+                        if (bookList[i].bookId == bookId) {
+                            bookList[i].shareCode = "";
+                            bookShareCode = "";
+                            localStorage.setItem("question-book-list", JSON.stringify(bookList));
                             break;
                         }
                     }
@@ -817,7 +825,7 @@ function WordBookShare() {
                         layout: 'bottomRight',
                         timeout: 3000
                     }).show();
-                    $("#wordBookShareCode").html("(Private)");
+                    $("#bookShareCode").html("(Private)");
                     $("#shareop").html("Share");
                     $(".only-shared").hide();
                 } else {
@@ -865,7 +873,7 @@ function CreateGroup() {
         async: false,
         dataType: "json",
         data: {
-            wordBookId: wordBookId,
+            bookId: bookId,
             name: gname,
             description: gdescription,
             operation: "create",
@@ -874,11 +882,11 @@ function CreateGroup() {
         },
         success: function (r) {
             if (r.success == true) {
-                for (var i = 0; i < wordBookList.length; i++) {
-                    if (wordBookList[i].wordBookId == wordBookId) {
-                        wordBookList[i].groupId = r.groupId;
-                        wordBookList[i].groupCode = r.groupCode;
-                        wordBookList[i].isGroupOwner = r.isGroupOwner;
+                for (var i = 0; i < bookList.length; i++) {
+                    if (bookList[i].bookId == bookId) {
+                        bookList[i].groupId = r.groupId;
+                        bookList[i].groupCode = r.groupCode;
+                        bookList[i].isGroupOwner = r.isGroupOwner;
                         groupId = r.groupId;
                         groupCode = r.groupCode;
                         isGroupOwner = r.isGroupOwner;
@@ -887,8 +895,9 @@ function CreateGroup() {
                         $(".only-group-exist").show();
                         $(".only-group-inexist").hide();
                         $(".only-group-owner").show();
+                        $(".only-group-editor").show();
 
-                        localStorage.setItem("word-book-list", JSON.stringify(wordBookList));
+                        localStorage.setItem("question-book-list", JSON.stringify(bookList));
                         break;
                     }
                 }
@@ -900,7 +909,7 @@ function CreateGroup() {
                     layout: 'bottomRight',
                     timeout: 30000
                 }).show();
-                $("#wordBookShareCode").html(r.shareCode);
+                $("#bookShareCode").html(r.shareCode);
                 $("#shareop").html("Unshare");
             } else {
                 new Noty({
@@ -941,11 +950,11 @@ function QuitGroup() {
         },
         success: function (r) {
             if (r.success == true) {
-                for (var i = 0; i < wordBookList.length; i++) {
-                    if (wordBookList[i].wordBookId == wordBookId) {
-                        wordBookList[i].groupId = -1;
-                        wordBookList[i].groupCode = "";
-                        wordBookList[i].isGroupOwner = false;
+                for (var i = 0; i < bookList.length; i++) {
+                    if (bookList[i].bookId == bookId) {
+                        bookList[i].groupId = -1;
+                        bookList[i].groupCode = "";
+                        bookList[i].isGroupOwner = false;
                         groupId = -1;
                         groupCode = "";
                         isGroupOwner = false;
@@ -954,8 +963,9 @@ function QuitGroup() {
                         $(".only-group-exist").show();
                         $(".only-group-inexist").hide();
                         $(".only-group-owner").show();
+                        $(".only-group-editor").show();
 
-                        localStorage.setItem("word-book-list", JSON.stringify(wordBookList));
+                        localStorage.setItem("question-book-list", JSON.stringify(bookList));
                         localStorage.setItem("groupId", "-1");
                         break;
                     }
@@ -1021,20 +1031,21 @@ function GroupInfoUpdate() {
         },
         success: function (r) {
             if (r.success == true) {
-                for (var i = 0; i < wordBookList.length; i++) {
-                    if (wordBookList[i].wordBookId == wordBookId) {
-                        wordBookList[i].name = gname;
-                        wordBookName = gname;
+                for (var i = 0; i < bookList.length; i++) {
+                    if (bookList[i].bookId == bookId) {
+                        bookList[i].name = gname;
+                        bookName = gname;
 
-                        $(".word-book-name").html(wordBookName);
-                        $(".title").html(wordBookName);
-                        $("title").html("Word Memo - " + wordBookName);
+                        $(".question-book-name").html(bookName);
+                        $(".title").html(bookName);
+                        $("title").html("My Memo - " + bookName);
                         $("#groupCode").html(groupCode);
                         $(".only-group-exist").show();
                         $(".only-group-inexist").hide();
                         $(".only-group-owner").show();
+                        $(".only-group-editor").show();
 
-                        localStorage.setItem("word-book-list", JSON.stringify(wordBookList));
+                        localStorage.setItem("question-book-list", JSON.stringify(bookList));
                         localStorage.setItem("groupId", "-1");
                         break;
                     }
@@ -1080,14 +1091,14 @@ function GroupCodeUpdate(operation) {
         },
         success: function (r) {
             if (r.success == true) {
-                for (var i = 0; i < wordBookList.length; i++) {
-                    if (wordBookList[i].wordBookId == wordBookId) {
-                        wordBookList[i].groupCode = r.groupCode;
+                for (var i = 0; i < bookList.length; i++) {
+                    if (bookList[i].bookId == bookId) {
+                        bookList[i].groupCode = r.groupCode;
                         groupCode = r.groupCode;
 
                         $("#groupCode").html(groupCode);
 
-                        localStorage.setItem("word-book-list", JSON.stringify(wordBookList));
+                        localStorage.setItem("question-book-list", JSON.stringify(bookList));
                         break;
                     }
                 }
@@ -1119,11 +1130,11 @@ function GroupCodeUpdate(operation) {
 
 function GroupDismissShow() {
     $("#dismissGroupModal").modal("toggle");
-    $(".word-book-name").html(wordBookName);
+    $(".question-book-name").html(bookName);
 }
 
 function GroupDismiss() {
-    if ($("#group-delete").val() != wordBookName) {
+    if ($("#group-delete").val() != bookName) {
         new Noty({
             theme: 'mint',
             text: "Type the name of the group correctly to continue!",
@@ -1146,11 +1157,11 @@ function GroupDismiss() {
         },
         success: function (r) {
             if (r.success == true) {
-                for (var i = 0; i < wordBookList.length; i++) {
-                    if (wordBookList[i].wordBookId == wordBookId) {
-                        wordBookList[i].groupId = -1;
-                        wordBookList[i].groupCode = "";
-                        wordBookList[i].isGroupOwner = false;
+                for (var i = 0; i < bookList.length; i++) {
+                    if (bookList[i].bookId == bookId) {
+                        bookList[i].groupId = -1;
+                        bookList[i].groupCode = "";
+                        bookList[i].isGroupOwner = false;
                         groupId = -1;
                         groupCode = "";
                         isGroupOwner = false;
@@ -1160,7 +1171,7 @@ function GroupDismiss() {
                         $(".only-group-inexist").show();
                         $(".only-group-owner").hide();
 
-                        localStorage.setItem("word-book-list", JSON.stringify(wordBookList));
+                        localStorage.setItem("question-book-list", JSON.stringify(bookList));
                         break;
                     }
                 }
@@ -1191,7 +1202,7 @@ function GroupDismiss() {
 }
 
 function selectAll() {
-    $("#wordList tr").each(function () {
+    $("#questionList tr").each(function () {
         wid = parseInt($(this).attr("id"));
         if (wid == wid && !$(this).hasClass("selected")) { // check for NaN
             selected.push(wid);
@@ -1202,7 +1213,7 @@ function selectAll() {
 }
 
 function deselectAll() {
-    $("#wordList tr").each(function () {
+    $("#questionList tr").each(function () {
         wid = parseInt($(this).attr("id"));
         if (wid == wid && $(this).hasClass("selected")) { // check for NaN
             idx = selected.indexOf(wid);
@@ -1215,45 +1226,45 @@ function deselectAll() {
     });
 }
 
-function UpdateWordBookDisplay() {
-    $(".wordbook").remove();
-    $("#wordbook-list").append('<div class="wordbook">\
-        <p>Create Word Book: </p>\
+function UpdateBookDisplay() {
+    $(".book").remove();
+    $("#book-list").append('<div class="book">\
+        <p>Create Book: </p>\
         <div class="input-group mb-3 w-75">\
             <span class="input-group-text" id="basic-addon1">Name</span>\
-            <input type="text" class="form-control" id="create-word-book-name" aria-describedby="basic-addon1">\
+            <input type="text" class="form-control" id="create-question-book-name" aria-describedby="basic-addon1">\
             <div class="input-group-append">\
-                <button class="btn btn-outline-primary" type="button" onclick="CreateWordBook()">Create</button>\
+                <button class="btn btn-outline-primary" type="button" onclick="CreateBook()">Create</button>\
             </div>\
         </div>\
         </div>');
-    for (var i = 0; i < wordBookList.length; i++) {
-        wordBook = wordBookList[i];
+    for (var i = 0; i < bookList.length; i++) {
+        book = bookList[i];
         wcnt = "";
-        if (wordBook.wordBookId == 0) {
-            wcnt = wordBook.words.length + ' words';
+        if (book.bookId == 0) {
+            wcnt = book.questions.length + ' questions';
         } else {
-            wcnt = wordBook.progress + ' memorized / ' + wordBook.words.length + ' words';
+            wcnt = book.progress + ' memorized / ' + book.questions.length + ' questions';
         }
         btn = "";
-        if (wordBook.wordBookId != wordBookId) {
-            btn = '<button type="button" class="btn btn-primary " onclick="SelectWordBook(' + wordBook.wordBookId + ')">Select</button>';
+        if (book.bookId != bookId) {
+            btn = '<button type="button" class="btn btn-primary " onclick="SelectBook(' + book.bookId + ')">Select</button>';
         } else {
             btn = '<button type="button" class="btn btn-secondary">Selected</button>'
         }
 
-        $("#wordbook-list").append('<div class="wordbook">\
-        <p>' + wordBook.name + '</p>\
+        $("#book-list").append('<div class="book">\
+        <p>' + book.name + '</p>\
         <p>' + wcnt + '</p>\
-        <button type="button" class="btn btn-primary " onclick="OpenWordBook(' + wordBook.wordBookId + ')">Open</button>\
+        <button type="button" class="btn btn-primary " onclick="OpenBook(' + book.bookId + ')">Open</button>\
         ' + btn + '\
         <hr>\
         </div>');
     }
 }
 
-function HideWordBookList() {
-    $("#wordbook").animate({
+function HideBookList() {
+    $("#book").animate({
         left: "-60%"
     }, {
         queue: false,
@@ -1264,36 +1275,36 @@ function HideWordBookList() {
     $("table").attr("style", "opacity:1");
 }
 
-function ShowWordBook() {
-    $("#wordbook").animate({
+function ShowBook() {
+    $("#book").animate({
         left: '0'
     }, {
         queue: false,
         duration: 500
     });
-    UpdateWordBookDisplay();
+    UpdateBookDisplay();
     $("#window").show();
     $(".manage").fadeOut();
     $("table").attr("style", "opacity:0.5");
 }
 
-function OpenWordBook(wordBookId) {
-    window.location.href = '/wordbook?wordBookId=' + wordBookId;
+function OpenBook(bookId) {
+    window.location.href = '/book?bookId=' + bookId;
 }
 
-function SelectWordBook(wb) {
-    wordBookId = wb;
-    localStorage.setItem("memo-word-book-id", wordBookId);
-    UpdateWordBookDisplay();
+function SelectBook(wb) {
+    bookId = wb;
+    localStorage.setItem("memo-question-book-id", bookId);
+    UpdateBookDisplay();
 }
 
-function CreateWordBook() {
-    wordBookName = $("#create-word-book-name").val();
+function CreateBook() {
+    bookName = $("#create-question-book-name").val();
 
-    if (wordBookName == "") {
+    if (bookName == "") {
         new Noty({
             theme: 'mint',
-            text: 'Enter a word book name!',
+            text: 'Enter a book name!',
             type: 'warning',
             layout: 'topLeft',
             timeout: 3000
@@ -1302,19 +1313,19 @@ function CreateWordBook() {
     }
 
     $.ajax({
-        url: '/api/wordBook/create',
+        url: '/api/book/create',
         method: 'POST',
         async: true,
         dataType: "json",
         data: {
-            name: wordBookName,
+            name: bookName,
             userId: localStorage.getItem("userId"),
             token: localStorage.getItem("token")
         },
         success: function (r) {
             if (r.success == true) {
-                UpdateWordBookList(false);
-                UpdateWordBookDisplay();
+                UpdateBookList(false);
+                UpdateBookDisplay();
                 new Noty({
                     theme: 'mint',
                     text: 'Success!',

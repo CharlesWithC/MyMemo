@@ -2,7 +2,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>Word Memo</title>
+    <title>My Memo</title>
 
     <script src="/js/jquery-3.6.0.min.js"></script>
     <script src="/js/bootstrap.bundle.min.js"></script>
@@ -22,13 +22,13 @@
     <script>
         $(document).ready(function () {
             UpdateHomePage();
-            UpdateWordBookDisplay();
+            UpdateBookDisplay();
 
-            $("#window,#translation").click(function () {
+            $("#window,#answer").click(function () {
                 DisplayAnswer();
             });
-            $("#word").click(function () {
-                SpeakWord();
+            $("#question").click(function () {
+                SpeakQuestion();
             });
 
             function onkeypress() {
@@ -37,9 +37,9 @@
                         MemoGo();
                     }
                 });
-                $("#create-word-book-name").on('keypress', function (e) {
+                $("#create-question-book-name").on('keypress', function (e) {
                     if (e.which == 13) {
-                        CreateWordBook();
+                        CreateBook();
                     }
                 });
             }
@@ -54,7 +54,7 @@
 
     <div id="home" style="position:relative;padding-bottom:5em;line-height:50%">
         <div class="center" style="padding-top:5em">
-            <h1>Word Memo</h1>
+            <h1>My Memo</h1>
             <div class="input-group mb-3 w-25 center">
                 <span class="input-group-text" id="basic-addon1">From</span>
                 <input type="text" class="form-control" id="start-from" aria-describedby="basic-addon1"
@@ -64,15 +64,15 @@
                 style="position:relative;width:10em;z-index:100" onclick="MemoGo()">Go <i
                     class='fa fa-play'></i></button>
             <div class="center" style="margin-top:20px">
-                <p>Word Book: <span id="word-book"></span></p>
+                <p>Book: <span id="question-book"></span></p>
                 <p><span id="mode"></span> Mode</p>
             </div>
         </div>
 
         <div id="navigate" style="z-index:100">
             <div class="top-left">
-                <button id="wordbook-btn" type="button" class="btn btn-primary control-btn control-btn-top"
-                    onclick="ShowWordBook()"><i class="fa fa-book"></i> Word Books</button>
+                <button id="book-btn" type="button" class="btn btn-primary control-btn control-btn-top"
+                    onclick="ShowBook()"><i class="fa fa-book"></i> Books</button>
             </div>
             <div class="top-right">
                 <button id="user-btn" type="button" class="btn btn-primary control-btn control-btn-top"
@@ -84,26 +84,26 @@
         </div>
     </div>
 
-    <div id="wordbook" class="slide">
+    <div id="book" class="slide">
         <div class="slide-content">
-            <h2 style="float:left">Word Books</h2>
+            <h2 style="float:left">Books</h2>
             <button style="float:right" type="button" class="close" aria-label="Close" onclick="DisplayAnswer()">
                 <span aria-hidden=" true">&times;</span>
             </button>
 
         </div>
-        <div class="slide-content-scroll" id="wordbook-list">
+        <div class="slide-content-scroll" id="book-list">
 
         </div>
     </div>
 
     <div id="memo" style="display:none;padding-bottom:5em;z-index:100">
-        <h1 class="title">Word Memo</h1>
+        <h1 class="title">My Memo</h1>
         <div class="center">
-            <textarea class="form-control word center" id="word" style="z-index:100;background-color:#ffffff"
+            <textarea class="form-control question center" id="question" style="z-index:100;background-color:#ffffff"
                 readonly=true></textarea>
             <br><br>
-            <textarea class="form-control translation center" id="translation"
+            <textarea class="form-control answer center" id="answer"
                 style="z-index:100;background-color:#ffffff" readonly=true></textarea>
         </div>
 
@@ -117,7 +117,7 @@
                     onclick="Statistics()"><i class="fa fa-list-alt"></i> Statistics</button>
                 <br>
                 <button id="edit-btn" type="button" class="btn btn-info control-btn control-btn-top"
-                    onclick="EditWordShow()"><i class="fa fa-edit"></i> Edit</button>
+                    onclick="EditQuestionShow()"><i class="fa fa-edit"></i> Edit</button>
                 <br>
                 <button type="button" class="btn btn-primary control-btn control-btn-bottom ap-btn"
                     onclick="StopAutoPlayer()" style="display:none"><i class="fa fa-pause-circle"></i> Pause</button>
@@ -165,7 +165,7 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="statisticsModalLabel">Statistics of <span id="statisticsWord"></span>
+                    <h5 class="modal-title" id="statisticsModalLabel">Statistics of <span id="statisticsQuestion"></span>
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"
                         onclick="$('#statisticsModal').modal('toggle')">
@@ -183,44 +183,44 @@
         </div>
     </div>
 
-    <div class="modal fade" id="editWordModal" tabindex="-1" role="dialog" aria-labelledby="editWordModalLabel"
+    <div class="modal fade" id="editQuestionModal" tabindex="-1" role="dialog" aria-labelledby="editQuestionModalLabel"
         aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Edit Word</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">Edit Question</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#editWordModal').modal('toggle')">
+                        onclick="$('#editQuestionModal').modal('toggle')">
                         <span aria-hidden=" true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
                     <form>
                         <div class="form-group">
-                            <label for="edit-word" class="col-form-label">Word:</label>
-                            <textarea class="form-control" id="edit-word"></textarea>
+                            <label for="edit-question" class="col-form-label">Question:</label>
+                            <textarea class="form-control" id="edit-question"></textarea>
                         </div>
                         <div class="form-group">
-                            <label for="edit-translation" class="col-form-label">Translation:</label>
-                            <textarea class="form-control" id="edit-translation"></textarea>
+                            <label for="edit-answer" class="col-form-label">Answer:</label>
+                            <textarea class="form-control" id="edit-answer"></textarea>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#editWordModal').modal('toggle')">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="EditWord()">Edit</button>
+                        onclick="$('#editQuestionModal').modal('toggle')">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="EditQuestion()">Edit</button>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="footer">
-        <p>Copyright &copy; 2021 Word Memo by <a href="https://www.charles14.xyz/" style="color:#ffffff">Charles</a></p>
-        <p>Version: v5.1.1 <i class="fa fa-check-circle"></i></p>
-        <p>Contact: <a href="mailto:word@charles14.xyz" style="color:#ffffff">word@charles14.xyz</a></p>
+        <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/" style="color:#ffffff">Charles</a></p>
+        <p>Version: v5.1.3 <i class="fa fa-check-circle"></i></p>
+        <p>Contact: <a href="mailto:question@charles14.xyz" style="color:#ffffff">question@charles14.xyz</a></p>
         <p>This is an open source project:
-            <a href="https://github.com/Charles-1414/WordMemo" style="color:#ffffff"><i class="fa fa-github"></i>
+            <a href="https://github.com/Charles-1414/MyMemo" style="color:#ffffff"><i class="fa fa-github"></i>
                 GitHub</a>
         </p>
         <p>Your privacy is valued. No 3rd party script is used. No cookie is used. All your local data

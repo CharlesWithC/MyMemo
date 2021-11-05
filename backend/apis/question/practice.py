@@ -17,10 +17,10 @@ import sessions
 
 
 ##########
-# Word API
+# Question API
 # Practice Mode
 
-@app.route("/api/word/next", methods = ['POST'])
+@app.route("/api/question/next", methods = ['POST'])
 def apiGetNext():
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
@@ -31,7 +31,7 @@ def apiGetNext():
     if not validateToken(userId, token):
         abort(401)
 
-    wordId = -1
+    questionId = -1
 
     op = {-1: "<", 1: ">"}
     order = {-1: "DESC", 1: "ASC"}
@@ -42,28 +42,28 @@ def apiGetNext():
 
     current = -1
     if moveType in [-1, 1]:
-        current = int(request.form["wordId"])
+        current = int(request.form["questionId"])
 
     statusRequirement = {1: "status = 1 OR status = 2", 2: "status = 2", 3: "status = 3"}
     status = int(request.form["status"])
     statusRequirement = statusRequirement[status]
 
-    wordBookId = int(request.form["wordBookId"])
+    bookId = int(request.form["bookId"])
     
-    if wordBookId == 0:
+    if bookId == 0:
         if moveType in [-1,1]:
-            cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE wordId{op}{current} AND ({statusRequirement}) AND userId = {userId} ORDER BY wordId {order} LIMIT 1")
+            cur.execute(f"SELECT questionId, question, answer, status FROM QuestionList WHERE questionId{op}{current} AND ({statusRequirement}) AND userId = {userId} ORDER BY questionId {order} LIMIT 1")
             d = cur.fetchall()
             if len(d) == 0: # no matching results, then find result from first / end
-                cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE ({statusRequirement}) AND userId = {userId} ORDER BY wordId {order} LIMIT 1")
+                cur.execute(f"SELECT questionId, question, answer, status FROM QuestionList WHERE ({statusRequirement}) AND userId = {userId} ORDER BY questionId {order} LIMIT 1")
                 d = cur.fetchall()
 
         elif moveType == 0:
-            cur.execute(f"SELECT wordId, word, translation, status FROM WordList WHERE ({statusRequirement}) AND userId = {userId} ORDER BY RANDOM() LIMIT 1")
+            cur.execute(f"SELECT questionId, question, answer, status FROM QuestionList WHERE ({statusRequirement}) AND userId = {userId} ORDER BY RANDOM() LIMIT 1")
             d = cur.fetchall()
     
     else:
-        d = getWordsInWordBook(userId, wordBookId, statusRequirement)
+        d = getQuestionsInBook(userId, bookId, statusRequirement)
         if len(d) != 0:
             if moveType == -1:
                 lst = d[-1]
@@ -89,10 +89,10 @@ def apiGetNext():
                 d = [d[rnd]]
 
     if len(d) == 0:
-        return json.dumps({"wordId": -1, "word": "[No more word]", "translation": "Maybe change the settings?\nOr check your connection?", "status": 1})
+        return json.dumps({"questionId": -1, "question": "[No more question]", "answer": "Maybe change the settings?\nOr check your connection?", "status": 1})
 
-    (wordId, word, translation, status) = d[0]
-    word = decode(word)
-    translation = decode(translation)
+    (questionId, question, answer, status) = d[0]
+    question = decode(question)
+    answer = decode(answer)
 
-    return json.dumps({"wordId": wordId, "word": word, "translation": translation, "status": status})
+    return json.dumps({"questionId": questionId, "question": question, "answer": answer, "status": status})

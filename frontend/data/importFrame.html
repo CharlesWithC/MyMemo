@@ -2,7 +2,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>Word Memo - Import Data iFrame</title>
+    <title>My Memo</title>
 
     <script src="/js/jquery-3.6.0.min.js"></script>
     <script src="/js/bootstrap.bundle.min.js"></script>
@@ -20,9 +20,9 @@
         $(document).ready(function () {
             $("#userId").val(localStorage.getItem("userId"));
             $("#token").val(localStorage.getItem("token"));
-            wordBookList = [];
+            bookList = [];
             $.ajax({
-                url: "/api/wordBook",
+                url: "/api/book",
                 method: 'POST',
                 async: true,
                 dataType: "json",
@@ -32,7 +32,7 @@
                 },
                 success: function (r) {
                     for (var i = 0; i < r.length; i++)
-                        $("#wordBook").append("<option value=" + r[i].wordBookId + ">" + r[i].name +
+                        $("#book").append("<option value=" + r[i].bookId + ">" + r[i].name +
                             "</option>");
                 }
             });
@@ -71,7 +71,7 @@
                 <label class="form-check-label" for="clear_overwrite">Clear & Overwrite</label>
             </div>
         </p>
-        <p>Check duplicate word?
+        <p>Check duplicate question?
             <div class="form-check">
                 <input type="radio" id="yes" name="checkDuplicate" value="yes" checked class="form-check-input" type="radio" name="flexRadioDefault">
                 <label class="form-check-label" for="yes">Yes</label>
@@ -81,8 +81,8 @@
                 <label class="form-check-label" for="no">No</label>
             </div>
         </p>
-        <p>Add to word book:
-            <select name="wordBookId" id="wordBook" class="form-select">
+        <p>Add to book:
+            <select name="bookId" id="book" class="form-select">
             </select>
         </p>
         <input type="text" id="userId" name="userId" style="display:none;" />

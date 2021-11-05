@@ -1,5 +1,13 @@
 # Update History
 
+## v5.1.3
+
+*Date: 2021/11/5*  
+Project renamed again, to "My Memo" now  
+Why renaming?  
+I have found that the functions of my project is not limited only to "word memorizing", based on my own using experience, it can be used to memorize anything I want, e.g. math formula, chinese poems.  
+I think renaming it will make the use of my project wider.  
+
 ## v5.1.2
 
 *Date: 2021/11/5*  

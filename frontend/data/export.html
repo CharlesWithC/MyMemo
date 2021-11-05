@@ -2,7 +2,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>Word Memo - Export Data</title>
+    <title>My Memo</title>
 
     <script src="/js/jquery-3.6.0.min.js"></script>
     <script src="/js/bootstrap.bundle.min.js"></script>
@@ -70,7 +70,7 @@
 </head>
 
 <body>
-    <h1 class="title" style="padding-bottom: 0;">Word Memo - Export Data</h1>
+    <h1 class="title" style="padding-bottom: 0;">Export Data</h1>
     <div id="navigate" style="z-index:100">
         <div class="top-left">
             <button id="home-btn" type="button" class="btn btn-primary control-btn control-btn-top"
@@ -81,18 +81,18 @@
     <div class="container" style="margin:3em">
         <p>You can export the data here.</p>
         <p>There are two options for you to choose: Excel Table and Raw Database File</p>
-        <p>If you choose Word List, you will get all the words, translations and status in a .xlsx file which is
+        <p>If you choose Question List, you will get all the questions, answers and status in a .xlsx file which is
             human-readable.</p>
         <p>If you choose All Data, you will get all your data stored on the server except some sensitive data (such as
             your password).</p>
-        <p>Please note that the words and translations stored in the raw database file are encoded with base64. Status
+        <p>Please note that the questions and answers stored in the raw database file are encoded with base64. Status
             code are integars: {1: "Default", 2: "Tagged", 3: "Removed"}</p>
         <p>And by the way, for server safety, you are not allowed to upload database directly.</p>
         <br>
         <p id="msg" style="color:red"></p>
         <p>Type:
             <input type="radio" id="xlsx" name="exportType" value="xlsx" checked>
-            <label for="xlsx">Word List</label>
+            <label for="xlsx">Question List</label>
             <input type="radio" id="rawdb" name="exportType" value="rawdb">
             <label for="rawdb">All Data</label>
         </p>
@@ -100,11 +100,11 @@
     </div>
 
     <div class="footer">
-        <p>Copyright &copy; 2021 Word Memo by <a href="https://www.charles14.xyz/" style="color:#ffffff">Charles</a></p>
-        <p>Version: v5.1.1 <i class="fa fa-check-circle"></i></p>
-        <p>Contact: <a href="mailto:word@charles14.xyz" style="color:#ffffff">word@charles14.xyz</a></p>
+        <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/" style="color:#ffffff">Charles</a></p>
+        <p>Version: v5.1.3 <i class="fa fa-check-circle"></i></p>
+        <p>Contact: <a href="mailto:question@charles14.xyz" style="color:#ffffff">question@charles14.xyz</a></p>
         <p>This is an open source project:
-            <a href="https://github.com/Charles-1414/WordMemo" style="color:#ffffff"><i class="fa fa-github"></i>
+            <a href="https://github.com/Charles-1414/MyMemo" style="color:#ffffff"><i class="fa fa-github"></i>
                 GitHub</a>
         </p>
         <p>Your privacy is valued. No 3rd party script is used. No cookie is used. All your local data is stored in Local Storage.</p>

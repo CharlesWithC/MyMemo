@@ -56,14 +56,14 @@ a {
     padding-bottom: 1em;
 }
 
-.word {
+.question {
     font-size: 1.875em;
     height: 1.875em;
     border: none;
     resize: none;
 }
 
-.translation {
+.answer {
     font-size: 1.25em;
     height: 10em;
     border: none;
@@ -143,6 +143,6 @@ a {
     overflow-y: auto;
 }
 
-.wordbook {
+.book {
     padding: 1em;
 }

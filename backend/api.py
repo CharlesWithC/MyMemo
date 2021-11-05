@@ -16,8 +16,8 @@ import sessions
 
 import apis.user
 import apis.admin
-import apis.word.main
-import apis.wordbook.main
+import apis.question.main
+import apis.book.main
 import apis.group
 import apis.data
 

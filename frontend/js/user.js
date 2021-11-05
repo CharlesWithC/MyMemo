@@ -293,7 +293,7 @@ function UpdateUserProfile() {
     });
 }
 
-function ChangePassword() {
+function Changepassword() {
     oldpwd = $("#oldpwd").val();
     newpwd = $("#newpwd").val();
     cfmpwd = $("#cfmpwd").val();
@@ -310,7 +310,7 @@ function ChangePassword() {
     }
 
     $.ajax({
-        url: "/api/user/changePassword",
+        url: "/api/user/changepassword",
         method: 'POST',
         async: false,
         dataType: "json",
@@ -329,13 +329,13 @@ function ChangePassword() {
 
                 new Noty({
                     theme: 'mint',
-                    text: "Success! Password has been changed! You have to log in again!",
+                    text: "Success! password has been changed! You have to log in again!",
                     type: 'success',
                     layout: 'bottomRight',
                     timeout: 3000
                 }).show();
 
-                $("#changePasswordModal").modal("toggle");
+                $("#changepasswordModal").modal("toggle");
 
                 localStorage.removeItem("userid");
                 localStorage.removeItem("username");
@@ -357,8 +357,8 @@ function ChangePassword() {
 }
 
 
-function ChangePasswordShow() {
-    $("#changePasswordModal").modal("toggle");
+function ChangepasswordShow() {
+    $("#changepasswordModal").modal("toggle");
 }
 
 function DeleteAccount() {

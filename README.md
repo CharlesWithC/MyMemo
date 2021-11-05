@@ -1,12 +1,10 @@
-# WordMemo
-*A light-weight word / phrase memorizing website made with python flask + html5 bootstrap.*  
-[Website](https://word.charles14.xyz/)
-
-**Important Notice: The License is GNU General Public License. You must open source your project and let me know about it if your code is based on my code. Otherwise you will be held legally responsible!**
+# My Memo
+*A light-weight memo website made with python flask + html5 bootstrap.*  
+[Website](https://memo.charles14.xyz/)
 
 *It's only tested in python3.8 + Chrome / Firefox browser environment. But it should support python3.\* and most browsers.*
   
-Current version: v5.1.1  
+Current version: v5.1.3  
 
 ## About v5  
 
@@ -42,3 +40,7 @@ The website is archived by Wayback Machine for future offline functions (And if 
 Please open an issue if you met any bugs during the use.  
 You could also open an issue for good suggestions and I'll decide whether to add it.  
 **This product can also be used to memorize any other thing such as formulas in Math!**
+
+## License
+
+**GNU General Public License is used for this project. You must open source your project and let me know about it if your code is based on my code. Otherwise you will be held legally responsible!**
