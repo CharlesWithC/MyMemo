@@ -3,7 +3,7 @@
 // License: GNU General Public License v3.0
 
 function lsGetItem(lsItemName, defaultValue = 0) {
-    if (localStorage.getItem(lsItemName) == null || localStorage.getItem(lsItemName) == undefined) {
+    if (localStorage.getItem(lsItemName) == null || localStorage.getItem(lsItemName) == "undefined") {
         localStorage.setItem(lsItemName, defaultValue);
         return defaultValue;
     } else {
@@ -102,6 +102,50 @@ function UpdateSettingsButtons() {
         $("#ap-fast-btn").removeClass("btn-secondary");
         $("#ap-fast-btn").addClass("btn-primary");
     }
+
+    theme = lsGetItem("settings-theme", "light");
+    $(".theme-btn").removeClass("btn-primary btn-secondary");
+    $(".theme-btn").addClass("btn-secondary");
+    if (theme == "light") {
+        $("#theme-light-btn").removeClass("btn-secondary");
+        $("#theme-light-btn").addClass("btn-primary");
+    } else if (theme == "dark") {
+        $("#theme-dark-btn").removeClass("btn-secondary");
+        $("#theme-dark-btn").addClass("btn-primary");
+    }
+
+    // Update username
+    if (localStorage.getItem("username") != null && localStorage.getItem("username") != "") {
+        username = localStorage.getItem("username");
+        if (username.length <= 16) {
+            $("#navusername").html(username);
+        } else {
+            $("#navusername").html("Account");
+        }
+    } else {
+        $.ajax({
+            url: "/api/user/info",
+            method: 'POST',
+            async: true,
+            dataType: "json",
+            data: {
+                userId: localStorage.getItem("userId"),
+                token: localStorage.getItem("token")
+            },
+            success: function (r) {
+                if (r.username.length <= 16) {
+                    $("#navusername").html(r.username);
+                } else {
+                    $("#navusername").html("Account");
+                }
+                localStorage.setItem("username", r.username);
+            },
+            error: function (r) {
+                $("#navusername").html("Sign in");
+                localStorage.setItem("username", "");
+            }
+        });
+    }
 }
 
 function UpdateMode(mode) {
@@ -127,6 +171,17 @@ function UpdateRange(range) {
 function UpdateAutoplay(speed) {
     localStorage.setItem("settings-auto-play", speed);
     UpdateSettingsButtons();
+}
+
+function UpdateTheme(theme) {
+    localStorage.setItem("settings-theme", theme);
+    UpdateSettingsButtons();
+
+    if (theme == "dark") {
+        $("body").attr("style", "transition:background-color 0.5s ease;color:#ffffff;background-color:#333333");
+    } else {
+        $("body").attr("style", "transition:background-color 0.5s ease;color:#000000;background-color:#ffffff");
+    }
 }
 
 function ClearDeletedQuestion() {
@@ -163,4 +218,30 @@ function Import() {
 
 function Export() {
     window.location.href = '/data/export'
+}
+
+function SignOut() {
+    $.ajax({
+        url: "/api/user/logout",
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        }
+    });
+    localStorage.removeItem("userid");
+    localStorage.removeItem("username");
+    localStorage.removeItem("token");
+
+    $("#navusername").html("Sign in");
+
+    new Noty({
+        theme: 'mint',
+        text: 'Success! You are now signed out!',
+        type: 'success',
+        layout: 'bottomRight',
+        timeout: 3000
+    }).show();
 }

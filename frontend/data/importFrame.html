@@ -18,6 +18,13 @@
 
     <script>
         $(document).ready(function () {
+            if (localStorage.getItem("settings-theme") == "dark") {
+                $("body").attr("style", "color:#ffffff;background-color:#333333");
+                $("textarea").attr("style", "color:#ffffff;background-color:#333333");
+                $(".modal-content").attr("style", "background-color:#333333");
+                $(".fa-times").attr("style", "color:white");
+            }
+
             $("#userId").val(localStorage.getItem("userId"));
             $("#token").val(localStorage.getItem("token"));
             bookList = [];
@@ -36,7 +43,7 @@
                             "</option>");
                 }
             });
-            $("#submit").click(function(){
+            $("#submit").click(function () {
                 $("#form").hide();
                 $("#uploading").show();
             });
@@ -59,25 +66,30 @@
         <br>
         <p>Upload Type:
             <div class="form-check">
-                <input type="radio" id="append" name="updateType" value="append" checked class="form-check-input" type="radio" name="flexRadioDefault">
+                <input type="radio" id="append" name="updateType" value="append" checked class="form-check-input"
+                    type="radio" name="flexRadioDefault">
                 <label class="form-check-label" for="append">Append</label>
             </div>
             <div class="form-check">
-                <input type="radio" id="overwrite" name="updateType" value="overwrite" class="form-check-input" type="radio" name="flexRadioDefault">
+                <input type="radio" id="overwrite" name="updateType" value="overwrite" class="form-check-input"
+                    type="radio" name="flexRadioDefault">
                 <label class="form-check-label" for="overwrite">Overwrite</label>
             </div>
             <div class="form-check">
-                <input type="radio" id="clear_overwrite" name="updateType" value="clear_overwrite" class="form-check-input" type="radio" name="flexRadioDefault">
+                <input type="radio" id="clear_overwrite" name="updateType" value="clear_overwrite"
+                    class="form-check-input" type="radio" name="flexRadioDefault">
                 <label class="form-check-label" for="clear_overwrite">Clear & Overwrite</label>
             </div>
         </p>
         <p>Check duplicate question?
             <div class="form-check">
-                <input type="radio" id="yes" name="checkDuplicate" value="yes" checked class="form-check-input" type="radio" name="flexRadioDefault">
+                <input type="radio" id="yes" name="checkDuplicate" value="yes" checked class="form-check-input"
+                    type="radio" name="flexRadioDefault">
                 <label class="form-check-label" for="yes">Yes</label>
             </div>
             <div class="form-check">
-                <input type="radio" id="no" name="checkDuplicate" value="no" class="form-check-input" type="radio" name="flexRadioDefault">
+                <input type="radio" id="no" name="checkDuplicate" value="no" class="form-check-input" type="radio"
+                    name="flexRadioDefault">
                 <label class="form-check-label" for="no">No</label>
             </div>
         </p>

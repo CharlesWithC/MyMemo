@@ -11,7 +11,7 @@
 
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/font-awesome.min.css" rel="stylesheet">
-    <link href="/css/main.min.css" rel="stylesheet">
+    <link href="/css/main.css" rel="stylesheet">
 
     <link rel="stylesheet" href="/dataTables/jquery.dataTables.min.css">
     <script src="/dataTables/jquery.dataTables.min.js"></script>
@@ -27,6 +27,37 @@
             $('#memberList').DataTable({
                 pagingType: "full_numbers"
             });
+
+            $("#memberList_length").after('<div id="qf" class="dataTables_filter input-group mb-3">\
+                <span class="input-group-text" id="basic-addon1">Search</span>\
+            </div>');
+            $("#memberList_filter > label > input").addClass("form-control");
+            $("#memberList_filter > label > input").appendTo("#qf");
+            $("#memberList_filter").attr("id","qqf");
+            $("#qf").attr("id","memberList_filter");
+            $("#qqf").remove();
+
+            if (localStorage.getItem("settings-theme") == "dark") {
+                $("body").attr("style", "color:#ffffff;background-color:#333333");
+                $("textarea").attr("style", "color:#ffffff;background-color:#333333");
+                $(".modal-content").attr("style", "background-color:#333333");
+                $(".fa-times").attr("style", "color:white");
+                $("#memberList_length").attr("style","color:white");
+
+                $("#memberList_length").append(
+                    '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="selectAll();" href="#" style="color:white">Select All</a>');
+                $("#memberList_length").append(
+                    '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="deselectAll();" href="#" style="color:white">Deselect All</a>');
+                $("#memberList_length").append(
+                    '<a class="manage" style="color:white">&nbsp;&nbsp;|&nbsp;&nbsp;Double click question to edit<p>');
+            } else {
+                $("#memberList_length").append(
+                    '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="selectAll();" href="#">Select All</a>');
+                $("#memberList_length").append(
+                    '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="deselectAll();" href="#">Deselect All</a>');
+                $("#memberList_length").append(
+                    '<a class="manage">&nbsp;&nbsp;|&nbsp;&nbsp;Double click question to edit<p>');
+            }
             PageInit();
 
             $('#memberList tbody').on('click', 'tr', function () {
@@ -41,6 +72,24 @@
                 }
                 $(this).toggleClass('selected');
             });
+
+            if (localStorage.getItem("settings-theme") == "dark") {
+                $("body").attr("style", "color:#ffffff;background-color:#333333");
+                $("textarea").attr("style", "color:#ffffff;background-color:#333333");
+                $(".modal-content").attr("style", "background-color:#333333");
+                $(".fa-times").attr("style", "color:white");
+            }
+
+            if(localStorage.getItem("settings-theme") == "dark"){
+                setInterval(function(){
+                    $("td").attr("style", "background-color:#333333");
+                    $("#memberList_paginate > a").attr("style","background-color:d3d3d3");
+                    $("#memberList_paginate > span > a").attr("style","background-color:d3d3d3");
+                    $("#memberList_paginate > span > span").removeClass("ellipsis");
+                    $("#memberList_paginate > span > span").addClass("paginate_button");
+                    $("#memberList_paginate > span > span").attr("style","background-color:d3d3d3;");
+                }, 50);
+            }
         });
     </script>
 
@@ -49,7 +98,10 @@
             margin: 0.1em;
             margin-bottom: 0.3em;
         }
-        h4, h5, p {
+
+        h4,
+        h5,
+        p {
             margin: 0.5em;
         }
     </style>
@@ -57,14 +109,28 @@
 
 <body>
     <h1 class="title" style="padding-bottom: 0;">My Memo</h1>
+
     <div id="navigate" style="z-index:100">
+        <div class="leftside">
+            <div class="sqbtn">
+                <a href="/"><img src="/img/icon.png" style="width:3em;height:3em"></a>
+            </div>
+            <div class="sqbtn">
+                <a href="#" onclick="window.location.href='/book'"><i class="fa fa-book"></i><br>Books</a>
+            </div>
+        </div>
+        <div class="userctrl">
+            <a href='/user'><i class="fa fa-user"></i> <span id="navusername">Sign in</span></a>
+            <a href='#' onclick="window.location.href='/settings'"><i class="fa fa-cogs"></i></a>
+            <a href='#' onclick="SignOut()"><i class="fa fa-sign-out"></i></a>
+        </div>
         <div class="top-left">
-            <button  type="button" class="btn btn-primary"
-                onclick="window.history.go(-1)"><i class="fa fa-book"></i> Back</button>
+            <button id="back-btn" type="button" class="btn btn-primary control-btn control-btn-top"
+                onclick="window.history.back()"><i class="fa fa-book"></i> Back</button>
         </div>
     </div>
 
-    <div style="position:relative;margin:2em;padding:2em">
+    <div class="container">
         <div id="member" class="member" style="position:relative;width:100%;float:left">
             <p>Description: <br><span id="groupDescription"></span></p>
             <table class="table" id="memberList" style="text-align:center">
@@ -81,20 +147,23 @@
 
         <div id="manage" class="manage" style="position:relative;width:35%;float:right;display:none">
             <p>Manage Group Member: </p>
-            <button type="button" class="btn btn-primary" onclick="GroupOperation('kick')"><i class="fa fa-ban"></i> Kick</button>
-            <button type="button" class="btn btn-primary" onclick="GroupOperation('makeEditor')">Make / Undo Make Editor</button>
-            <button type="button" class="btn btn-danger" onclick="TransferOwnershipShow()"><i class="fa fa-random"></i> Transfer ownership</button>
+            <button type="button" class="btn btn-primary" onclick="GroupOperation('kick')"><i class="fa fa-ban"></i>
+                Kick</button>
+            <button type="button" class="btn btn-primary" onclick="GroupOperation('makeEditor')">Make / Undo Make
+                Editor</button>
+            <button type="button" class="btn btn-danger" onclick="TransferOwnershipShow()"><i class="fa fa-random"></i>
+                Transfer ownership</button>
         </div>
 
-        <div class="modal fade" id="transferOwnershipModal" tabindex="-1" role="dialog" aria-labelledby="transferOwnershipModalLabel"
-            aria-hidden="true">
+        <div class="modal fade" id="transferOwnershipModal" tabindex="-1" role="dialog"
+            aria-labelledby="transferOwnershipModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" style="color:red"><i class="fa fa-random"></i> Transfer Ownership</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"
                             onclick="$('#transferOwnershipModal').modal('toggle')">
-                            <span aria-hidden=" true">&times;</span>
+                            <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                         </button>
                     </div>
                     <div class="modal-body">
@@ -114,8 +183,8 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/" style="color:#ffffff">Charles</a></p>
-        <p>Version: v5.1.3 <i class="fa fa-check-circle"></i></p>
-        <p>Contact: <a href="mailto:question@charles14.xyz" style="color:#ffffff">question@charles14.xyz</a></p>
+        <p>Version: v5.1.4 <i class="fa fa-check-circle"></i></p>
+        <p>Contact: <a href="mailto:memo@charles14.xyz" style="color:#ffffff">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo" style="color:#ffffff"><i class="fa fa-github"></i>
                 GitHub</a>
@@ -124,4 +193,5 @@
             Local Storage.</p>
     </div>
 </body>
+
 </html>

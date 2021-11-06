@@ -11,7 +11,7 @@
 
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/font-awesome.min.css" rel="stylesheet">
-    <link href="/css/main.min.css" rel="stylesheet">
+    <link href="/css/main.css" rel="stylesheet">
 
     <link href="/noty/noty.css" rel="stylesheet">
     <script src="/noty/noty.min.js" type="text/javascript"></script>
@@ -21,7 +21,7 @@
 
     <script>
         $(document).ready(function () {
-            UpdateHomePage();
+            PageInit();
             UpdateBookDisplay();
 
             $("#window,#answer").click(function () {
@@ -30,6 +30,10 @@
             $("#question").click(function () {
                 SpeakQuestion();
             });
+            $("#answer").dblclick(function () {
+                if ($("#answer").val() == "") DisplayAnswer();
+                SpeakAnswer();
+            });
 
             function onkeypress() {
                 $("#start-from").on('keypress', function (e) {
@@ -37,11 +41,27 @@
                         MemoGo();
                     }
                 });
-                $("#create-question-book-name").on('keypress', function (e) {
+                $("#create-book-name").on('keypress', function (e) {
                     if (e.which == 13) {
                         CreateBook();
                     }
                 });
+                $("#book-btn").hover(function () {
+                    ShowBook();
+                });
+                $("#window").hover(function () {
+                    $("#book").fadeOut();
+                });
+            }
+
+            if (localStorage.getItem("settings-theme") == "dark") {
+                $("body").attr("style", "color:#ffffff;background-color:#333333");
+                $("textarea").attr("style", "color:#ffffff;background-color:#333333");
+                $(".modal-content").attr("style", "background-color:#333333");
+                $(".fa-times").attr("style", "color:white");
+                $("textarea").attr("style","z-index:100;color:#ffffff;background-color:#333333");
+            } else {
+                $("textarea").attr("style","z-index:100;color:#000000;background-color:#ffffff");
             }
 
             setTimeout(onkeypress, 500);
@@ -52,8 +72,24 @@
 <body>
     <div id="window" style="z-index:50;position:fixed;height:100%;width:100%"></div>
 
-    <div id="home" style="position:relative;padding-bottom:5em;line-height:50%">
-        <div class="center" style="padding-top:5em">
+    <div id="navigate" style="z-index:100">
+        <div class="leftside">
+            <div class="sqbtn">
+                <a href="/"><img src="/img/icon.png" style="width:3em;height:3em"></a>
+            </div>
+            <div class="sqbtn">
+                <a href="#" onclick="window.location.href='/book'" id="book-btn"><i class="fa fa-book"></i><br>Books</a>
+            </div>
+        </div>
+        <div class="userctrl">
+            <a href='/user'><i class="fa fa-user"></i> <span id="navusername">Sign in</span></a>
+            <a href='#' onclick="window.location.href='/settings'"><i class="fa fa-cogs"></i></a>
+            <a href='#' onclick="SignOut()"><i class="fa fa-sign-out"></i></a>
+        </div>
+    </div>
+
+    <div id="home" style="position:relative;padding-bottom:5em">
+        <div class="center" style="padding-top:5em;line-height:50%">
             <h1>My Memo</h1>
             <div class="input-group mb-3 w-25 center">
                 <span class="input-group-text" id="basic-addon1">From</span>
@@ -64,31 +100,17 @@
                 style="position:relative;width:10em;z-index:100" onclick="MemoGo()">Go <i
                     class='fa fa-play'></i></button>
             <div class="center" style="margin-top:20px">
-                <p>Book: <span id="question-book"></span></p>
+                <p>Book: <span id="book-name"></span></p>
                 <p><span id="mode"></span> Mode</p>
-            </div>
-        </div>
-
-        <div id="navigate" style="z-index:100">
-            <div class="top-left">
-                <button id="book-btn" type="button" class="btn btn-primary control-btn control-btn-top"
-                    onclick="ShowBook()"><i class="fa fa-book"></i> Books</button>
-            </div>
-            <div class="top-right">
-                <button id="user-btn" type="button" class="btn btn-primary control-btn control-btn-top"
-                    onclick="window.location.href='/user'"><i class="fa fa-user"></i> <span id="username">User</span></button>
-                <br>
-                <button id="settings-btn" type="button" class="btn btn-primary control-btn control-btn-top"
-                    onclick="Settings()"><i class="fa fa-cogs"></i> Settings</button>
             </div>
         </div>
     </div>
 
-    <div id="book" class="slide">
+    <div id="book" class="slide" style="left:4em;display:none;border-radius:1em">
         <div class="slide-content">
             <h2 style="float:left">Books</h2>
             <button style="float:right" type="button" class="close" aria-label="Close" onclick="DisplayAnswer()">
-                <span aria-hidden=" true">&times;</span>
+                <span aria-hidden=" true"><i class="fa fa-times"></i></span>
             </button>
 
         </div>
@@ -100,19 +122,15 @@
     <div id="memo" style="display:none;padding-bottom:5em;z-index:100">
         <h1 class="title">My Memo</h1>
         <div class="center">
-            <textarea class="form-control question center" id="question" style="z-index:100;background-color:#ffffff"
-                readonly=true></textarea>
+            <textarea class="form-control question center" id="question"
+                style="z-index:100" readonly=true></textarea>
             <br><br>
-            <textarea class="form-control answer center" id="answer"
-                style="z-index:100;background-color:#ffffff" readonly=true></textarea>
+            <textarea class="form-control answer center" id="answer" style="z-index:100"
+                readonly=true></textarea>
         </div>
 
         <div id="navigate" style="z-index:100">
-            <div class="top-left">
-                <button id="home-btn" type="button" class="btn btn-primary control-btn" onclick="BackToHome()"><i
-                        class='fa fa-home'></i> Home</button>
-            </div>
-            <div class="top-right">
+            <div class="top-right" style="top:4em;right:5em">
                 <button id="statistics-btn" type="button" class="btn btn-info control-btn control-btn-top"
                     onclick="Statistics()"><i class="fa fa-list-alt"></i> Statistics</button>
                 <br>
@@ -165,11 +183,12 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="statisticsModalLabel">Statistics of <span id="statisticsQuestion"></span>
+                    <h5 class="modal-title" id="statisticsModalLabel">Statistics of <span
+                            id="statisticsQuestion"></span>
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"
                         onclick="$('#statisticsModal').modal('toggle')">
-                        <span aria-hidden=" true">&times;</span>
+                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>
                 </div>
                 <div class="modal-body">
@@ -191,7 +210,7 @@
                     <h5 class="modal-title" id="exampleModalLabel">Edit Question</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"
                         onclick="$('#editQuestionModal').modal('toggle')">
-                        <span aria-hidden=" true">&times;</span>
+                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>
                 </div>
                 <div class="modal-body">
@@ -217,8 +236,8 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/" style="color:#ffffff">Charles</a></p>
-        <p>Version: v5.1.3 <i class="fa fa-check-circle"></i></p>
-        <p>Contact: <a href="mailto:question@charles14.xyz" style="color:#ffffff">question@charles14.xyz</a></p>
+        <p>Version: v5.1.4 <i class="fa fa-check-circle"></i></p>
+        <p>Contact: <a href="mailto:memo@charles14.xyz" style="color:#ffffff">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo" style="color:#ffffff"><i class="fa fa-github"></i>
                 GitHub</a>

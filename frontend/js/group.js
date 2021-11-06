@@ -3,6 +3,7 @@
 // License: GNU General Public License v3.0
 
 var groupId = -1;
+var bookId = -1;
 var bookName = "";
 var selected = [];
 
@@ -47,6 +48,9 @@ function UpdateGroupMember() {
         [""],
     ]);
     table.draw();
+    if (localStorage.getItem("settings-theme") == "dark") {
+        $("td").attr("style", "background-color:#333333");
+    }
     table.clear();
 
     $.ajax({
@@ -80,6 +84,9 @@ function UpdateGroupMember() {
                 ]).node().id = r.member[i].userId;
             }
             table.draw();
+            if (localStorage.getItem("settings-theme") == "dark") {
+                $("td").attr("style", "background-color:#333333");
+            }
         },
         error: function (r) {
             table.row.add([
@@ -87,6 +94,9 @@ function UpdateGroupMember() {
                 [""],
             ]);
             table.draw();
+            if (localStorage.getItem("settings-theme") == "dark") {
+                $("td").attr("style", "background-color:#333333");
+            }
         }
     });
 
@@ -157,6 +167,66 @@ function GroupOperation(operation) {
 }
 
 function PageInit() {
+    // Update username
+    if (localStorage.getItem("username") != null && localStorage.getItem("username") != "") {
+        username = localStorage.getItem("username");
+        if(username.length <= 16){
+            $("#navusername").html(username);
+        } else {
+            $("#navusername").html("Account");
+        }
+    }
+    else{
+        $.ajax({
+            url: "/api/user/info",
+            method: 'POST',
+            async: true,
+            dataType: "json",
+            data: {
+                userId: localStorage.getItem("userId"),
+                token: localStorage.getItem("token")
+            },
+            success: function (r) {
+                if(r.username.length <= 16){
+                    $("#navusername").html(r.username);
+                } else {
+                    $("#navusername").html("Account");
+                }
+                localStorage.setItem("username", r.username);
+            },
+            error: function(r){
+                $("#navusername").html("Sign in");
+                localStorage.setItem("username", "");
+            }
+        });
+    }
+
     groupId = getUrlParameter("groupId");
     UpdateGroupMember();
+}
+
+function SignOut() {
+    $.ajax({
+        url: "/api/user/logout",
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        }
+    });
+    localStorage.removeItem("userid");
+    localStorage.removeItem("username");
+    localStorage.removeItem("token");
+
+    $("#navusername").html("Sign in");
+
+    new Noty({
+        theme: 'mint',
+        text: 'Success! You are now signed out!',
+        type: 'success',
+        layout: 'bottomRight',
+        timeout: 3000
+    }).show();
 }

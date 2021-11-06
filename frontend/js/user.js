@@ -49,6 +49,7 @@ $.ajax({
         $(".user").show();
         $("#signout-btn").show();
 
+        $("#navusername").html(user.username);
         $("#username").html(user.username);
         $("#userId").html(user.userId);
         $("#age").html(user.age);
@@ -269,6 +270,7 @@ function UpdateUserProfile() {
                 user.username = username;
                 user.email = email;
 
+                $("#navusername").html(user.username);
                 $("#username").html(user.username);
                 $("#email").html(user.email);
                 $("#updateProfileModal").modal("toggle");
@@ -481,4 +483,30 @@ function RestartServer() {
             }
         }
     });
+}
+
+function SignOut() {
+    $.ajax({
+        url: "/api/user/logout",
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        }
+    });
+    localStorage.removeItem("userid");
+    localStorage.removeItem("username");
+    localStorage.removeItem("token");
+
+    $("#navusername").html("Sign in");
+
+    new Noty({
+        theme: 'mint',
+        text: 'Success! You are now signed out!',
+        type: 'success',
+        layout: 'bottomRight',
+        timeout: 3000
+    }).show();
 }

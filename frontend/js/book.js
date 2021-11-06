@@ -3,7 +3,7 @@
 // License: GNU General Public License v3.0
 
 function lsGetItem(lsItemName, defaultValue = 0) {
-    if (localStorage.getItem(lsItemName) == null || localStorage.getItem(lsItemName) == undefined) {
+    if (localStorage.getItem(lsItemName) == null || localStorage.getItem(lsItemName) == "undefined") {
         localStorage.setItem(lsItemName, defaultValue);
         return defaultValue;
     } else {
@@ -19,7 +19,7 @@ var groupCode = "";
 var isGroupOwner = false;
 var isGroupEditor = false;
 var questionList = JSON.parse(lsGetItem("question-list", JSON.stringify([])));
-var bookList = JSON.parse(lsGetItem("question-book-list", JSON.stringify([])));
+var bookList = JSON.parse(lsGetItem("book-list", JSON.stringify([])));
 var selectedQuestionList = [];
 var questionListMap = new Map();
 var selected = [];
@@ -58,7 +58,7 @@ function getUrlParameter(sParam) {
             return typeof sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
         }
     }
-    return false;
+    return -1;
 };
 
 function MapQuestionList() {
@@ -102,14 +102,19 @@ function UpdateBookList(doasync = true) {
         },
         success: function (r) {
             bookList = r;
-            localStorage.setItem("question-book-list", JSON.stringify(bookList));
+            localStorage.setItem("book-list", JSON.stringify(bookList));
         }
     });
 }
 
 function SelectQuestions() {
+    found = false;
     for (var i = 0; i < bookList.length; i++) {
         if (bookList[i].bookId == bookId) {
+            found = true;
+            $(".book-list-div").hide();
+            $(".book-data-div").show();
+
             bookName = bookList[i].name;
             $(".title").html(bookName);
             $("title").html("My Memo - " + bookName);
@@ -151,7 +156,7 @@ function SelectQuestions() {
                 }
                 if (isGroupEditor) {
                     $(".only-group-editor").show();
-                } else if(!isGroupEditor && !isGroupOwner){
+                } else if (!isGroupEditor && !isGroupOwner) {
                     $(".only-group-editor").hide();
                 }
             }
@@ -167,6 +172,11 @@ function SelectQuestions() {
                 });
             }
         }
+    }
+    if (!found) {
+        $(".book-list-div").show();
+        $(".book-data-div").hide();
+        UpdateBookDisplay();
     }
 }
 
@@ -187,6 +197,9 @@ function UpdateTable() {
     }
 
     table.draw();
+    if (localStorage.getItem("settings-theme") == "dark") {
+        $("td").attr("style", "background-color:#333333");
+    }
 }
 
 function PageInit() {
@@ -202,6 +215,9 @@ function PageInit() {
         [""],
     ]);
     table.draw();
+    if (localStorage.getItem("settings-theme") == "dark") {
+        $("td").attr("style", "background-color:#333333");
+    }
     table.clear();
 
     if (bookId == 0) {
@@ -210,6 +226,39 @@ function PageInit() {
         $(".not-for-all-questions").show();
     }
     $(".group").hide();
+
+    // Update username
+    if (localStorage.getItem("username") != null && localStorage.getItem("username") != "") {
+        username = localStorage.getItem("username");
+        if (username.length <= 16) {
+            $("#navusername").html(username);
+        } else {
+            $("#navusername").html("Account");
+        }
+    } else {
+        $.ajax({
+            url: "/api/user/info",
+            method: 'POST',
+            async: true,
+            dataType: "json",
+            data: {
+                userId: localStorage.getItem("userId"),
+                token: localStorage.getItem("token")
+            },
+            success: function (r) {
+                if (r.username.length <= 16) {
+                    $("#navusername").html(r.username);
+                } else {
+                    $("#navusername").html("Account");
+                }
+                localStorage.setItem("username", r.username);
+            },
+            error: function (r) {
+                $("#navusername").html("Sign in");
+                localStorage.setItem("username", "");
+            }
+        });
+    }
 
     // Use existing questions
     if (questionList.length != 0) {
@@ -243,7 +292,7 @@ function PageInit() {
                 },
                 success: function (r) {
                     bookList = r;
-                    localStorage.setItem("question-book-list", JSON.stringify(bookList));
+                    localStorage.setItem("book-list", JSON.stringify(bookList));
                     MapQuestionList();
                     SelectQuestions();
                     UpdateTable();
@@ -376,7 +425,7 @@ function BookUpdateStatus(updateTo) {
 function ShowQuestionDatabase() {
     $(".manage").hide();
     $("#addExistingQuestion").show();
-    $(".question-book-name").html(bookName);
+    $(".book-name").html(bookName);
     selected = [];
 
     table = $("#questionList").DataTable();
@@ -389,6 +438,9 @@ function ShowQuestionDatabase() {
         ]).node().id = questionList[i].questionId;
     }
     table.draw();
+    if (localStorage.getItem("settings-theme") == "dark") {
+        $("td").attr("style", "background-color:#333333");
+    }
 }
 
 function ShowManage() {
@@ -634,11 +686,11 @@ function BookClone() {
 
 function BookRenameShow() {
     $("#renameModal").modal("toggle");
-    $("#question-book-rename").val(bookName);
+    $("#book-rename").val(bookName);
 }
 
 function BookRename() {
-    newName = $("#question-book-rename").val();
+    newName = $("#book-rename").val();
     if (newName == "") {
         new Noty({
             theme: 'mint',
@@ -664,7 +716,7 @@ function BookRename() {
         success: function (r) {
             if (r.success == true) {
                 bookName = newName;
-                $(".question-book-name").html(bookName);
+                $(".book-name").html(bookName);
                 $(".title").html(bookName);
                 $("title").html("My Memo - " + bookName);
                 new Noty({
@@ -695,11 +747,11 @@ function BookRename() {
 
 function BookDeleteShow() {
     $("#deleteWBModal").modal("toggle");
-    $(".question-book-name").html(bookName);
+    $(".book-name").html(bookName);
 }
 
 function BookDelete() {
-    if ($("#question-book-delete").val() != bookName) {
+    if ($("#book-delete").val() != bookName) {
         new Noty({
             theme: 'mint',
             text: "Type the name of the book correctly to continue!",
@@ -766,7 +818,7 @@ function BookShare() {
                         if (bookList[i].bookId == bookId) {
                             bookList[i].shareCode = r.shareCode;
                             bookShareCode = r.shareCode;
-                            localStorage.setItem("question-book-list", JSON.stringify(bookList));
+                            localStorage.setItem("book-list", JSON.stringify(bookList));
                             break;
                         }
                     }
@@ -814,7 +866,7 @@ function BookShare() {
                         if (bookList[i].bookId == bookId) {
                             bookList[i].shareCode = "";
                             bookShareCode = "";
-                            localStorage.setItem("question-book-list", JSON.stringify(bookList));
+                            localStorage.setItem("book-list", JSON.stringify(bookList));
                             break;
                         }
                     }
@@ -897,7 +949,7 @@ function CreateGroup() {
                         $(".only-group-owner").show();
                         $(".only-group-editor").show();
 
-                        localStorage.setItem("question-book-list", JSON.stringify(bookList));
+                        localStorage.setItem("book-list", JSON.stringify(bookList));
                         break;
                     }
                 }
@@ -965,7 +1017,7 @@ function QuitGroup() {
                         $(".only-group-owner").show();
                         $(".only-group-editor").show();
 
-                        localStorage.setItem("question-book-list", JSON.stringify(bookList));
+                        localStorage.setItem("book-list", JSON.stringify(bookList));
                         localStorage.setItem("groupId", "-1");
                         break;
                     }
@@ -1036,7 +1088,7 @@ function GroupInfoUpdate() {
                         bookList[i].name = gname;
                         bookName = gname;
 
-                        $(".question-book-name").html(bookName);
+                        $(".book-name").html(bookName);
                         $(".title").html(bookName);
                         $("title").html("My Memo - " + bookName);
                         $("#groupCode").html(groupCode);
@@ -1045,7 +1097,7 @@ function GroupInfoUpdate() {
                         $(".only-group-owner").show();
                         $(".only-group-editor").show();
 
-                        localStorage.setItem("question-book-list", JSON.stringify(bookList));
+                        localStorage.setItem("book-list", JSON.stringify(bookList));
                         localStorage.setItem("groupId", "-1");
                         break;
                     }
@@ -1098,7 +1150,7 @@ function GroupCodeUpdate(operation) {
 
                         $("#groupCode").html(groupCode);
 
-                        localStorage.setItem("question-book-list", JSON.stringify(bookList));
+                        localStorage.setItem("book-list", JSON.stringify(bookList));
                         break;
                     }
                 }
@@ -1130,7 +1182,7 @@ function GroupCodeUpdate(operation) {
 
 function GroupDismissShow() {
     $("#dismissGroupModal").modal("toggle");
-    $(".question-book-name").html(bookName);
+    $(".book-name").html(bookName);
 }
 
 function GroupDismiss() {
@@ -1171,7 +1223,7 @@ function GroupDismiss() {
                         $(".only-group-inexist").show();
                         $(".only-group-owner").hide();
 
-                        localStorage.setItem("question-book-list", JSON.stringify(bookList));
+                        localStorage.setItem("book-list", JSON.stringify(bookList));
                         break;
                     }
                 }
@@ -1228,11 +1280,11 @@ function deselectAll() {
 
 function UpdateBookDisplay() {
     $(".book").remove();
-    $("#book-list").append('<div class="book">\
+    $(".book-list").append('<div class="book">\
         <p>Create Book: </p>\
         <div class="input-group mb-3 w-75">\
             <span class="input-group-text" id="basic-addon1">Name</span>\
-            <input type="text" class="form-control" id="create-question-book-name" aria-describedby="basic-addon1">\
+            <input type="text" class="form-control" id="create-book-name" aria-describedby="basic-addon1">\
             <div class="input-group-append">\
                 <button class="btn btn-outline-primary" type="button" onclick="CreateBook()">Create</button>\
             </div>\
@@ -1247,14 +1299,18 @@ function UpdateBookDisplay() {
             wcnt = book.progress + ' memorized / ' + book.questions.length + ' questions';
         }
         btn = "";
-        if (book.bookId != bookId) {
+        if (book.bookId != localStorage.getItem("memo-book-id")) {
             btn = '<button type="button" class="btn btn-primary " onclick="SelectBook(' + book.bookId + ')">Select</button>';
         } else {
             btn = '<button type="button" class="btn btn-secondary">Selected</button>'
         }
+        bname = book.name;
+        if (book.groupId != -1) {
+            bname = "[Group] " + bname;
+        }
 
-        $("#book-list").append('<div class="book">\
-        <p>' + book.name + '</p>\
+        $(".book-list").append('<div class="book">\
+        <p>' + bname + '</p>\
         <p>' + wcnt + '</p>\
         <button type="button" class="btn btn-primary " onclick="OpenBook(' + book.bookId + ')">Open</button>\
         ' + btn + '\
@@ -1263,43 +1319,17 @@ function UpdateBookDisplay() {
     }
 }
 
-function HideBookList() {
-    $("#book").animate({
-        left: "-60%"
-    }, {
-        queue: false,
-        duration: 500
-    });
-    $("#window").hide();
-    $(".manage").fadeIn();
-    $("table").attr("style", "opacity:1");
-}
-
-function ShowBook() {
-    $("#book").animate({
-        left: '0'
-    }, {
-        queue: false,
-        duration: 500
-    });
-    UpdateBookDisplay();
-    $("#window").show();
-    $(".manage").fadeOut();
-    $("table").attr("style", "opacity:0.5");
-}
-
 function OpenBook(bookId) {
     window.location.href = '/book?bookId=' + bookId;
 }
 
-function SelectBook(wb) {
-    bookId = wb;
-    localStorage.setItem("memo-question-book-id", bookId);
+function SelectBook(bookId) {
+    localStorage.setItem("memo-book-id", bookId);
     UpdateBookDisplay();
 }
 
 function CreateBook() {
-    bookName = $("#create-question-book-name").val();
+    bookName = $("#create-book-name").val();
 
     if (bookName == "") {
         new Noty({
@@ -1352,4 +1382,30 @@ function CreateBook() {
             }
         }
     });
+}
+
+function SignOut() {
+    $.ajax({
+        url: "/api/user/logout",
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        }
+    });
+    localStorage.removeItem("userid");
+    localStorage.removeItem("username");
+    localStorage.removeItem("token");
+
+    $("#navusername").html("Sign in");
+
+    new Noty({
+        theme: 'mint',
+        text: 'Success! You are now signed out!',
+        type: 'success',
+        layout: 'bottomRight',
+        timeout: 3000
+    }).show();
 }

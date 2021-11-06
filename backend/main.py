@@ -48,14 +48,6 @@ def PendingAccountDeletion():
 
         time.sleep(3600)
 
-def ClearCache():
-    while 1:
-        recoverAccount = []
-        duplicate = []
-        os.system("rm -f /tmp/MyMemoCache/*")
-        time.sleep(3600) # clear each hour
-
 threading.Thread(target = PendingAccountDeletion).start()
-threading.Thread(target = ClearCache).start()
-
-app.run(config.server_ip, config.server_port)
+if __name__ == "__main__":
+    app.run(config.server_ip, config.server_port)

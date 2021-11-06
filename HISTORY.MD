@@ -1,5 +1,13 @@
 # Update History
 
+## v5.1.4  
+
+*Date: 2021/11/6*  
+1.Added a separate page for "books" (Support slide-out in home page + a dedicate page for it)  
+2.Updated UI  
+3.Added Dark Mode  
+4.Added function to read answer by double-clicking it  
+
 ## v5.1.3
 
 *Date: 2021/11/5*  

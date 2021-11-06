@@ -4,35 +4,33 @@
 
 *It's only tested in python3.8 + Chrome / Firefox browser environment. But it should support python3.\* and most browsers.*
   
-Current version: v5.1.3  
+Current version: v5.1.4  
 
 ## About v5  
 
-After 2 days of working day and night, I have rebuilt the website using bootstrap!  
-Now the website looks better and there's no more resizing problem.  
-It looks more like a website than an experiment now.  
+My Memo v5 is built with python flask + html5 bootstrap.  
+We have a brand new UI comparing to the older versions using canvas.  
+Dark Mode is supported in v5 btw, you can enable it in Settings.  
 
-## About the project
+## About My Memo
 
-The project has experienced 2 stages, the first one can only be used by single user and has limited functions, and the current one can be used by multiple users with Practice & Challenge & Offline Mode.  
+We have three modes to start the site: Practice Mode, Challenge Mode and Offline Mode.  
+Practice Mode is for you to memorize new things, while Challenge Mode is for you to test whether you memorized them.  
+Offline Mode can be enabled when you or the server is offline, CloudFlare will show a snapshot of the website and the questions & answers are fetched from local question list.  
+There are multiple settings for you to decide how you will memorize new things.  
 
-Practice Mode is for you to memorize new words, while Challenge Mode is for you to test whether you memorized them.  
-Offline Mode can be enabled when you or the server is offline, CloudFlare will show a snapshot of the website and the words are fetched from local word list.  
-There are multiple settings for you to decide how you will memorize new words.  
+Books are supported! You can create unlimited books (this can be limited in config.json at backend) and add any questions to it! Select a book before starting memorizing or the default (All questions) will be applied.
 
-Word Books are supported! You can create unlimited word books and add any words to it! Select a word book before starting memorizing or the default (All words) will be selected.
+Groups are also supported! You can learn with your friends using group. The questions & answers will be synced automatically when any update is made. Also, you will be able to see your friends' progress!  
+(Whether you have memorized the item is based on the passed challenges of it, once you have passed 2 challenges in a row, the item will be regarded as memorized)  
 
-Word Groups are also added! You can learn with your friends using word group. The words will be synced automatically when any update is made. Also, you will be able to see your friends' progress!  
-(Whether you have memorized the word is based on the passed challenges of the word, once you have passed 2 challenges in a row, the word will be regarded as memorized)  
-
-You can import and export the wordlist in the format of .xlsx table files, it's so easy and simple!  
-
-Words can be displayed in a list on webpage. You will be able to modify the list on webpage in the future.  
-
-New users can only be invited by old users to prevent abuse, so they must enter an invitation code when registering. (You can allow any user to register by modifying the code)  
 All users have their rights to download their data stored on the server or delete their account and wipe their data permanently.  
 
-I'm hosting it on my own server and you can press [this link](https://word.charles14.xyz/) to get there.  
+## About the demo
+
+New users can only be invited by old users to prevent abuse, so they must enter an invitation code when registering. (You can allow any user to register by changing the config)  
+
+I'm hosting it on my own server and you can press [this link](https://memo.charles14.xyz/) to get there.  
 The website is archived by Wayback Machine for future offline functions (And if my server is offline, CloudFlare will display that archive)
 
 ## More Info

@@ -3,7 +3,7 @@
 // License: GNU General Public License v3.0
 
 function lsGetItem(lsItemName, defaultValue = 0) {
-    if (localStorage.getItem(lsItemName) == null || localStorage.getItem(lsItemName) == undefined) {
+    if (localStorage.getItem(lsItemName) == null || localStorage.getItem(lsItemName) == "undefined") {
         localStorage.setItem(lsItemName, defaultValue);
         return defaultValue;
     } else {
@@ -51,9 +51,9 @@ class SettingsClass {
 
 memo = new MemoClass();
 memo.questionId = parseInt(lsGetItem("memo-question-id", 0));
-memo.bookId = parseInt(lsGetItem("memo-question-book-id", 0));
+memo.bookId = parseInt(lsGetItem("memo-book-id", 0));
 memo.fullQuestionList = JSON.parse(lsGetItem("question-list", JSON.stringify([])));
-memo.bookList = JSON.parse(lsGetItem("question-book-list", JSON.stringify([])));
+memo.bookList = JSON.parse(lsGetItem("book-list", JSON.stringify([])));
 
 settings = new SettingsClass();
 settings.random = parseInt(lsGetItem("settings-random", 0));
@@ -81,7 +81,7 @@ function UpdateSelectedQuestionList() {
     for (var i = 0; i < memo.bookList.length; i++) {
         if (memo.bookList[i].bookId == memo.bookId) {
             memo.bookName = memo.bookList[i].name;
-            $("#question-book").html(memo.bookName);
+            $("#book-name").html(memo.bookName);
             memo.selectedQuestionList = [];
             for (this.j = 0; j < memo.bookList[i].questions.length; j++) {
                 questionId = memo.bookList[i].questions[j];
@@ -144,18 +144,23 @@ function UpdateBookList(doasync = true) {
         },
         success: function (r) {
             memo.bookList = r;
-            localStorage.setItem("question-book-list", JSON.stringify(memo.bookList));
+            localStorage.setItem("book-list", JSON.stringify(memo.bookList));
             UpdateSelectedQuestionList();
         }
     });
 }
 
-function UpdateHomePage() {
+function PageInit() {
     l = ["Practice", "Challenge", "Offline"];
     $("#mode").html(l[settings.mode]);
 
     if (localStorage.getItem("username") != null) {
-        $("#username").html(localStorage.getItem("username"));
+        username = localStorage.getItem("username");
+        if (username.length <= 16) {
+            $("#navusername").html(username);
+        } else {
+            $("#navusername").html("Account");
+        }
     }
     $.ajax({
         url: "/api/user/info",
@@ -167,15 +172,50 @@ function UpdateHomePage() {
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            $("#username").html(r.username);
+            if (r.username.length <= 16) {
+                $("#navusername").html(r.username);
+            } else {
+                $("#navusername").html("Account");
+            }
             localStorage.setItem("username", r.username);
+        },
+        error: function (r) {
+            $("#navusername").html("Sign in");
+            localStorage.setItem("username", "");
         }
     });
 
-    UpdateQuestionList();
-    UpdateBookList();
-
-    $("#question-book").html(memo.bookName);
+    $.ajax({
+        url: "/api/book/questionList",
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            memo.questionList = r;
+            localStorage.setItem("question-list", JSON.stringify(memo.questionList));
+            MapQuestionList();
+            $.ajax({
+                url: "/api/book",
+                method: 'POST',
+                async: true,
+                dataType: "json",
+                data: {
+                    userId: localStorage.getItem("userId"),
+                    token: localStorage.getItem("token")
+                },
+                success: function (r) {
+                    memo.bookList = r;
+                    localStorage.setItem("book-list", JSON.stringify(memo.bookList));
+                    UpdateSelectedQuestionList();
+                    $("#book-name").html(memo.bookName);
+                }
+            });
+        }
+    });
 }
 
 function DisplayRandomQuestion() {
@@ -195,7 +235,7 @@ function ShowQuestion() {
     if (settings.firstuse) {
         new Noty({
             theme: 'mint',
-            text: 'Hint: You can click the question to hear its sound',
+            text: 'Hint: Click question or double click answer to let your device speak it!',
             type: 'info',
             layout: 'bottomRight',
             timeout: 10000
@@ -274,12 +314,7 @@ function DisplayAnswer() {
         memo.displayingAnswer = 1 - memo.displayingAnswer;
     }
     if (!memo.started) {
-        $("#book").animate({
-            left: "-60%"
-        }, {
-            queue: false,
-            duration: 500
-        });
+        $("#book").fadeOut();
     }
 }
 
@@ -485,8 +520,8 @@ function MemoStart() {
                 memo.question = r.question;
                 memo.answer = r.answer;
                 memo.questionStatus = r.status;
-                
-                if(memo.questionId == -1){
+
+                if (memo.questionId == -1) {
                     $("#challenge-control").hide();
                 } else {
                     $("#challenge-control").show();
@@ -681,7 +716,7 @@ function MemoChallenge(res) {
                 memo.answer = r.answer;
                 memo.questionStatus = r.status;
 
-                if(memo.questionId == -1){
+                if (memo.questionId == -1) {
                     $("#challenge-control").hide();
                 } else {
                     $("#challenge-control").show();
@@ -786,11 +821,15 @@ function EditQuestion() {
 }
 
 function SpeakQuestion() {
-    if (settings.swap != 1 || settings.swap == 1 && memo.displayingAnswer) {
-        memo.speaker.cancel();
-        msg = new SpeechSynthesisUtterance($("#question").val());
-        memo.speaker.speak(msg);
-    }
+    memo.speaker.cancel();
+    msg = new SpeechSynthesisUtterance($("#question").val());
+    memo.speaker.speak(msg);
+}
+
+function SpeakAnswer() {
+    memo.speaker.cancel();
+    msg = new SpeechSynthesisUtterance($("#answer").val());
+    memo.speaker.speak(msg);
 }
 
 function StopAutoPlayer() {
@@ -812,18 +851,13 @@ function BackToHome() {
     StopAutoPlayer();
 }
 
-function Settings() {
-    window.location.href = '/settings';
-    StopAutoPlayer();
-}
-
 function UpdateBookDisplay() {
     $(".book").remove();
     $("#book-list").append('<div class="book">\
         <p>Create Book: </p>\
         <div class="input-group mb-3 w-75">\
             <span class="input-group-text" id="basic-addon1">Name</span>\
-            <input type="text" class="form-control" id="create-question-book-name" aria-describedby="basic-addon1">\
+            <input type="text" class="form-control" id="create-book-name" aria-describedby="basic-addon1">\
             <div class="input-group-append">\
                 <button class="btn btn-outline-primary" type="button" onclick="CreateBook()">Create</button>\
             </div>\
@@ -843,9 +877,13 @@ function UpdateBookDisplay() {
         } else {
             btn = '<button type="button" class="btn btn-secondary">Selected</button>'
         }
+        bname = book.name;
+        if (book.groupId != -1) {
+            bname = "[Group] " + bname;
+        }
 
         $("#book-list").append('<div class="book">\
-        <p>' + book.name + '</p>\
+        <p>' + bname + '</p>\
         <p>' + wcnt + '</p>\
         <button type="button" class="btn btn-primary " onclick="OpenBook(' + book.bookId + ')">Open</button>\
         ' + btn + '\
@@ -855,12 +893,7 @@ function UpdateBookDisplay() {
 }
 
 function ShowBook() {
-    $("#book").animate({
-        left: '0'
-    }, {
-        queue: false,
-        duration: 500
-    });
+    $("#book").fadeIn();
     UpdateBookDisplay();
 }
 
@@ -870,13 +903,13 @@ function OpenBook(bookId) {
 
 function SelectBook(bookId) {
     memo.bookId = bookId;
-    localStorage.setItem("memo-question-book-id", memo.bookId);
+    localStorage.setItem("memo-book-id", memo.bookId);
     UpdateSelectedQuestionList();
     UpdateBookDisplay();
 }
 
 function CreateBook() {
-    bookName = $("#create-question-book-name").val();
+    bookName = $("#create-book-name").val();
 
     if (bookName == "") {
         new Noty({
@@ -933,4 +966,30 @@ function CreateBook() {
 
 function BackToHome() {
     window.location.href = '/';
+}
+
+function SignOut() {
+    $.ajax({
+        url: "/api/user/logout",
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        }
+    });
+    localStorage.removeItem("userid");
+    localStorage.removeItem("username");
+    localStorage.removeItem("token");
+
+    $("#navusername").html("Sign in");
+
+    new Noty({
+        theme: 'mint',
+        text: 'Success! You are now signed out!',
+        type: 'success',
+        layout: 'bottomRight',
+        timeout: 3000
+    }).show();
 }

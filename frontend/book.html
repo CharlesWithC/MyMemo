@@ -11,7 +11,7 @@
 
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/font-awesome.min.css" rel="stylesheet">
-    <link href="/css/main.min.css" rel="stylesheet">
+    <link href="/css/main.css" rel="stylesheet">
 
     <link rel="stylesheet" href="/dataTables/jquery.dataTables.min.css">
     <script src="/dataTables/jquery.dataTables.min.js"></script>
@@ -25,14 +25,40 @@
     <script>
         $(document).ready(function () {
             $('#questionList').DataTable({
-                pagingType: "full_numbers"
+                pagingType: "full_numbers",
+                iDisplayLength: 25
             });
-            $("#questionList_length").append(
-                '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="selectAll();" href="#">Select All</a>');
-            $("#questionList_length").append(
-                '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="deselectAll();" href="#">Deselect All</a>');
-            $("#questionList_length").append(
-                '<a class="manage">&nbsp;&nbsp;|&nbsp;&nbsp;Double click question to edit<p>');
+
+            $("#questionList_length").after('<div id="qf" class="dataTables_filter input-group mb-3">\
+                <span class="input-group-text" id="basic-addon1">Search</span>\
+            </div>');
+            $("#questionList_filter > label > input").addClass("form-control");
+            $("#questionList_filter > label > input").appendTo("#qf");
+            $("#questionList_filter").attr("id","qqf");
+            $("#qf").attr("id","questionList_filter");
+            $("#qqf").remove();
+
+            if (localStorage.getItem("settings-theme") == "dark") {
+                $("body").attr("style", "color:#ffffff;background-color:#333333");
+                $("textarea").attr("style", "color:#ffffff;background-color:#333333");
+                $(".modal-content").attr("style", "background-color:#333333");
+                $(".fa-times").attr("style", "color:white");
+                $("#questionList_length").attr("style","color:white");
+
+                $("#questionList_length").append(
+                    '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="selectAll();" href="#" style="color:white">Select All</a>');
+                $("#questionList_length").append(
+                    '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="deselectAll();" href="#" style="color:white">Deselect All</a>');
+                $("#questionList_length").append(
+                    '<a class="manage" style="color:white">&nbsp;&nbsp;|&nbsp;&nbsp;Double click question to edit<p>');
+            } else {
+                $("#questionList_length").append(
+                    '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="selectAll();" href="#">Select All</a>');
+                $("#questionList_length").append(
+                    '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="deselectAll();" href="#">Deselect All</a>');
+                $("#questionList_length").append(
+                    '<a class="manage">&nbsp;&nbsp;|&nbsp;&nbsp;Double click question to edit<p>');
+            }
 
             PageInit();
 
@@ -54,9 +80,16 @@
                 $(this).toggleClass('selected');
             });
 
-            $("#window").click(function () {
-                HideBookList();
-            });
+            if(localStorage.getItem("settings-theme") == "dark"){
+                setInterval(function(){
+                    $("td").attr("style", "background-color:#333333");
+                    $("#questionList_paginate > a").attr("style","background-color:#d3d3d3");
+                    $("#questionList_paginate > span > a").attr("style","background-color:#d3d3d3");
+                    $("#questionList_paginate > span > span").removeClass("ellipsis");
+                    $("#questionList_paginate > span > span").addClass("paginate_button");
+                    $("#questionList_paginate > span > span").attr("style","background-color:#d3d3d3");
+                }, 50);
+            }
         });
     </script>
 
@@ -75,19 +108,31 @@
 </head>
 
 <body>
-    <div id="window" style="z-index:50;position:fixed;height:100%;width:100%;display:none"></div>
-
     <h1 class="title" style="padding-bottom: 0;">My Memo</h1>
+
     <div id="navigate" style="z-index:100">
-        <div class="top-left">
-            <button id="home-btn" type="button" class="btn btn-primary control-btn control-btn-top"
-                onclick="BackToHome()"><i class="fa fa-home"></i> Home</button>
-            <button id="book-btn" type="button" class="btn btn-primary control-btn control-btn-top"
-                onclick="ShowBook()"><i class="fa fa-book"></i> Books</button>
+        <div class="leftside">
+            <div class="sqbtn">
+                <a href="/"><img src="/img/icon.png" style="width:3em;height:3em"></a>
+            </div>
+            <div class="sqbtn">
+                <a href="#" onclick="window.location.href='/book'"><i class="fa fa-book"></i><br>Books</a>
+            </div>
+        </div>
+        <div class="userctrl">
+            <a href='/user'><i class="fa fa-user"></i> <span id="navusername">Sign in</span></a>
+            <a href='#' onclick="window.location.href='/settings'"><i class="fa fa-cogs"></i></a>
+            <a href='#' onclick="SignOut()"><i class="fa fa-sign-out"></i></a>
         </div>
     </div>
 
-    <div style="position:relative;margin:2em;padding:2em">
+    <div class="book-list-div container" style="display:none">
+        <div class="book-list" style="margin:2em;margin-top:0">
+
+        </div>
+    </div>
+
+    <div class="book-data-div container" style="display:none">
         <div style="position:relative;width:55%;float:left">
             <table class="table" id="questionList" style="text-align:center">
                 <thead>
@@ -186,7 +231,7 @@
 
         <div id="addExistingQuestion" class="addExistingQuestion"
             style="position:relative;width:35%;float:right;display:none">
-            <p>Select questions to add to <span class="question-book-name"></span></p>
+            <p>Select questions to add to <span class="book-name"></span></p>
             <button type="button" class="btn btn-primary not-for-all-questions"
                 onclick="AddExistingQuestion()">Add</button>
             <button type="button" class="btn btn-secondary not-for-all-questions" onclick="ShowManage()">Cancel</button>
@@ -202,7 +247,7 @@
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"
                         onclick="$('#deleteQuestionModal').modal('toggle')">
-                        <span aria-hidden=" true">&times;</span>
+                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>
                 </div>
                 <div class="modal-body">
@@ -228,7 +273,7 @@
                     <h5 class="modal-title" style="color:red"><i class="fa fa-trash"></i> Delete Book</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"
                         onclick="$('#deleteWBModal').modal('toggle')">
-                        <span aria-hidden=" true">&times;</span>
+                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>
                 </div>
                 <div class="modal-body">
@@ -236,10 +281,10 @@
                         they will no longer belong to this book.</p>
                     <p>This operation cannot be undone.</p>
                     <br>
-                    <p>Type the name of the book <b><span class="question-book-name"></span></b> to continue:</p>
+                    <p>Type the name of the book <b><span class="book-name"></span></b> to continue:</p>
                     <form>
                         <div class="input-group mb-3 center">
-                            <input type="text" class="form-control" id="question-book-delete"
+                            <input type="text" class="form-control" id="book-delete"
                                 aria-describedby="basic-addon1">
                         </div>
                     </form>
@@ -262,14 +307,14 @@
                     <h5 class="modal-title" id="renameModalLabel">Rename Book</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"
                         onclick="$('#renameModal').modal('toggle')">
-                        <span aria-hidden=" true">&times;</span>
+                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>
                 </div>
                 <div class="modal-body">
                     <form>
                         <div class="input-group mb-3 center">
                             <span class="input-group-text" id="basic-addon1">Name</span>
-                            <input type="text" class="form-control" id="question-book-rename"
+                            <input type="text" class="form-control" id="book-rename"
                                 aria-describedby="basic-addon1">
                         </div>
                     </form>
@@ -291,7 +336,7 @@
                     <h5 class="modal-title" id="editQuestionModalLabel">Edit Question</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"
                         onclick="$('#editQuestionModal').modal('toggle')">
-                        <span aria-hidden=" true">&times;</span>
+                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>
                 </div>
                 <div class="modal-body">
@@ -324,7 +369,7 @@
                     <h5 class="modal-title" id="createGroupModalLabel">Create Group</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"
                         onclick="$('#createGroupModal').modal('toggle')">
-                        <span aria-hidden=" true">&times;</span>
+                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>
                 </div>
                 <div class="modal-body">
@@ -357,7 +402,7 @@
                     <h5 class="modal-title" style="color:red"><i class="fa fa-sign-out"></i> Quit Group</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"
                         onclick="$('#quitGroupModal').modal('toggle')">
-                        <span aria-hidden=" true">&times;</span>
+                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>
                 </div>
                 <div class="modal-body">
@@ -383,7 +428,7 @@
                     <h5 class="modal-title" style="color:red"><i class="fa fa-times"></i> Dismiss Group</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"
                         onclick="$('#dismissGroupModal').modal('toggle')">
-                        <span aria-hidden=" true">&times;</span>
+                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>
                 </div>
                 <div class="modal-body">
@@ -394,7 +439,7 @@
                     <p>*If you just want to make your group private or revoke the code, there are options just above the
                         dismiss button.</p>
                     <br>
-                    <p>Type the name of the group <b><span class="question-book-name"></span></b> to continue:</p>
+                    <p>Type the name of the group <b><span class="book-name"></span></b> to continue:</p>
                     <form>
                         <div class="input-group mb-3 center">
                             <input type="text" class="form-control" id="group-delete" aria-describedby="basic-addon1">
@@ -411,23 +456,10 @@
         </div>
     </div>
 
-    <div id="book" class="slide">
-        <div class="slide-content">
-            <h2 style="float:left">Books</h2>
-            <button style="float:right" type="button" class="close" aria-label="Close" onclick="HideBookList()">
-                <span aria-hidden=" true">&times;</span>
-            </button>
-
-        </div>
-        <div class="slide-content-scroll" id="book-list">
-
-        </div>
-    </div>
-
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/" style="color:#ffffff">Charles</a></p>
-        <p>Version: v5.1.3 <i class="fa fa-check-circle"></i></p>
-        <p>Contact: <a href="mailto:question@charles14.xyz" style="color:#ffffff">question@charles14.xyz</a></p>
+        <p>Version: v5.1.4 <i class="fa fa-check-circle"></i></p>
+        <p>Contact: <a href="mailto:memo@charles14.xyz" style="color:#ffffff">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo" style="color:#ffffff"><i class="fa fa-github"></i>
                 GitHub</a>

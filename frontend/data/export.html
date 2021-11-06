@@ -21,60 +21,114 @@
     <link rel="icon" href="/img/icon.png">
 
     <script>
-        $("#userId").val(localStorage.getItem("userId"));
-        $("#token").val(localStorage.getItem("token"));
+        $(document).ready(function () {
+            if (localStorage.getItem("settings-theme") == "dark") {
+                $("body").attr("style", "color:#ffffff;background-color:#333333");
+                $("textarea").attr("style", "color:#ffffff;background-color:#333333");
+                $(".modal-content").attr("style", "background-color:#333333");
+                $(".fa-times").attr("style", "color:white");
+            }
 
-        function Export() {
-            $.ajax({
-                url: "/api/data/export",
-                method: 'POST',
-                async: true,
-                dataType: "json",
-                data: {
-                    userId: localStorage.getItem("userId"),
-                    token: localStorage.getItem("token"),
-                    exportType: $('input[name="exportType"]:checked').val()
-                },
-                success: function (r) {
-                    token = r.token;
-                    window.location.href = "/download?token=" + token;
-                    new Noty({
-                        theme: 'mint',
-                        text: 'Success!',
-                        type: 'success',
-                        layout: 'bottomRight',
-                        timeout: 3000
-                    }).show();
-                    new Noty({
-                        theme: 'mint',
-                        text: 'Please be patient while the download is being prepared',
-                        type: 'info',
-                        layout: 'bottomRight',
-                        timeout: 10000
-                    }).show();
-                },
-                error: function (r) {
-                    if (r.status == 401) {
+            $("#userId").val(localStorage.getItem("userId"));
+            $("#token").val(localStorage.getItem("token"));
+
+            function Export() {
+                $.ajax({
+                    url: "/api/data/export",
+                    method: 'POST',
+                    async: true,
+                    dataType: "json",
+                    data: {
+                        userId: localStorage.getItem("userId"),
+                        token: localStorage.getItem("token"),
+                        exportType: $('input[name="exportType"]:checked').val()
+                    },
+                    success: function (r) {
+                        token = r.token;
+                        window.location.href = "/download?token=" + token;
                         new Noty({
                             theme: 'mint',
-                            text: 'Login session expired! Please login again!',
-                            type: 'error',
+                            text: 'Success!',
+                            type: 'success',
                             layout: 'bottomRight',
                             timeout: 3000
                         }).show();
+                        new Noty({
+                            theme: 'mint',
+                            text: 'Please be patient while the download is being prepared',
+                            type: 'info',
+                            layout: 'bottomRight',
+                            timeout: 10000
+                        }).show();
+                    },
+                    error: function (r) {
+                        if (r.status == 401) {
+                            new Noty({
+                                theme: 'mint',
+                                text: 'Login session expired! Please login again!',
+                                type: 'error',
+                                layout: 'bottomRight',
+                                timeout: 3000
+                            }).show();
+                        }
                     }
+                });
+            }
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            // Update username
+            if (localStorage.getItem("username") != null && localStorage.getItem("username") != "") {
+                username = localStorage.getItem("username");
+                if (username.length <= 16) {
+                    $("#navusername").html(username);
+                } else {
+                    $("#navusername").html("Account");
                 }
-            });
-        }
+            } else {
+                $.ajax({
+                    url: "/api/user/info",
+                    method: 'POST',
+                    async: true,
+                    dataType: "json",
+                    data: {
+                        userId: localStorage.getItem("userId"),
+                        token: localStorage.getItem("token")
+                    },
+                    success: function (r) {
+                        if (r.username.length <= 16) {
+                            $("#navusername").html(r.username);
+                        } else {
+                            $("#navusername").html("Account");
+                        }
+                        localStorage.setItem("username", r.username);
+                    },
+                    error: function (r) {
+                        $("#navusername").html("Sign in");
+                        localStorage.setItem("username", "");
+                    }
+                });
+            }
+        });
     </script>
 </head>
 
 <body>
     <h1 class="title" style="padding-bottom: 0;">Export Data</h1>
     <div id="navigate" style="z-index:100">
-        <div class="top-left">
-            <button id="home-btn" type="button" class="btn btn-primary control-btn control-btn-top"
-                onclick="Settings()"><i class="fa fa-cogs"></i> Back</button>
+        <div class="leftside">
+            <div class="sqbtn">
+                <a href="/"><img src="/img/icon.png" style="width:3em;height:3em"></a>
+            </div>
+            <div class="sqbtn">
+                <a href="#" onclick="window.location.href='/book'"><i class="fa fa-book"></i><br>Books</a>
+            </div>
+        </div>
+        <div class="userctrl">
+            <a href='/user'><i class="fa fa-user"></i> <span id="navusername">Sign in</span></a>
+            <a href='#' onclick="window.location.href='/settings'"><i class="fa fa-cogs"></i></a>
+            <a href='#' onclick="SignOut()"><i class="fa fa-sign-out"></i></a>
         </div>
     </div>
 
@@ -96,18 +150,20 @@
             <input type="radio" id="rawdb" name="exportType" value="rawdb">
             <label for="rawdb">All Data</label>
         </p>
-        <button id="submit" type="button" class="btn btn-primary" onclick="Export()"><i class="fa fa-download"></i> Export</button>
+        <button id="submit" type="button" class="btn btn-primary" onclick="Export()"><i class="fa fa-download"></i>
+            Export</button>
     </div>
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/" style="color:#ffffff">Charles</a></p>
-        <p>Version: v5.1.3 <i class="fa fa-check-circle"></i></p>
-        <p>Contact: <a href="mailto:question@charles14.xyz" style="color:#ffffff">question@charles14.xyz</a></p>
+        <p>Version: v5.1.4 <i class="fa fa-check-circle"></i></p>
+        <p>Contact: <a href="mailto:memo@charles14.xyz" style="color:#ffffff">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo" style="color:#ffffff"><i class="fa fa-github"></i>
                 GitHub</a>
         </p>
-        <p>Your privacy is valued. No 3rd party script is used. No cookie is used. All your local data is stored in Local Storage.</p>
+        <p>Your privacy is valued. No 3rd party script is used. No cookie is used. All your local data is stored in
+            Local Storage.</p>
     </div>
 </body>
 
