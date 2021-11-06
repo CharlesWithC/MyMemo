@@ -20,8 +20,7 @@ import apis.question.main
 import apis.book.main
 import apis.group
 import apis.data
-
-
+import apis.discovery
 
 @app.route("/api/ping", methods = ['POST'])
 def ping():

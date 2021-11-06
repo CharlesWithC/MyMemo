@@ -22,7 +22,7 @@
     <script>
         $(document).ready(function () {
             if (localStorage.getItem("settings-theme") == "dark") {
-                $("body").attr("style", "color:#ffffff;background-color:#333333");
+                $("body").attr("style", "color:#ffffff;background-color:#333333");$("hr").attr("style", "background-color:#cccccc;");
                 $("textarea").attr("style", "color:#ffffff;background-color:#333333;height:15em");
                 $(".modal-content").attr("style", "background-color:#333333");
                 $(".fa-times").attr("style", "color:white");
@@ -122,10 +122,13 @@
     <div id="navigate" style="z-index:100">
         <div class="leftside">
             <div class="sqbtn">
-                <a href="/"><img src="/img/icon.png" style="width:3em;height:3em"></a>
+                <a href="/"><img src="/img/icon.png" style="width:4em;height:4em"></a>
             </div>
             <div class="sqbtn">
                 <a href="#" onclick="window.location.href='/book'"><i class="fa fa-book"></i><br>Books</a>
+            </div>
+            <div class="sqbtn">
+                <a href="#" onclick="window.location.href='/discovery'"><i class="fa fa-paper-plane"></i><br>Discovery</a>
             </div>
         </div>
         <div class="userctrl">
@@ -173,7 +176,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.1.5 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.2.1 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

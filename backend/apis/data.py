@@ -17,7 +17,6 @@ from functions import *
 import sessions
 import tempdb
 
-
 ##########
 # Data API
 

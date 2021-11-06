@@ -12,10 +12,6 @@ from app import app
 from functions import *
 import sessions
 
-
-
-
-
 ##########
 # Admin API
 
@@ -229,16 +225,41 @@ def apiAdminCommand():
             cur.execute(f"UPDATE UserInfo SET username = '@deleted' WHERE userId = {uid}")
             cur.execute(f"UPDATE UserInfo SET email = '' WHERE userId = {uid}")
             cur.execute(f"UPDATE UserInfo SET password = '' WHERE userId = {uid}")
+            conn.commit()
+            
+            return json.dumps({"success": False, "msg": "Account deleted"})
+    
+    elif command[0] == "delete_user_completely":
+        if len(command) != 2:
+            return json.dumps({"success": False, "msg": "Usage: delete_user_completely [userId]\nThe account must be deleted already and admins will be able to wipe all data stored in the database."})
+
+        uid = int(command[1])
+        
+        username = ""
+        cur.execute(f"SELECT username FROM UserInfo WHERE uid = {uid}")
+        t = cur.fetchall()
+        if len(t) != 0:
+            username = t[0][0]
+        
+        if username != "@deleted":
+            return json.dumps({"success": False, "msg": "Account not deleted yet!"})
+        
+        elif username == "@deleted":        
             cur.execute(f"DELETE FROM QuestionList WHERE userId = {uid}")
             cur.execute(f"DELETE FROM Book WHERE userId = {uid}")
             cur.execute(f"DELETE FROM BookData WHERE userId = {uid}")
             cur.execute(f"DELETE FROM BookShare WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM MyMemorized WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM BookProgress WHERE userId = {uid}")
             cur.execute(f"DELETE FROM ChallengeData WHERE userId = {uid}")
             cur.execute(f"DELETE FROM ChallengeRecord WHERE userId = {uid}")
             cur.execute(f"DELETE FROM StatusUpdate WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM GroupMember WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM GroupSync WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM GroupBind WHERE userId = {uid}")
             conn.commit()
-            
-            return json.dumps({"success": False, "msg": "Account deleted"})
+
+            return json.dumps({"success": False, "msg": "Account data wiped!"})
     
     elif command[0] == "set_previlege":
         if len(command) != 4:

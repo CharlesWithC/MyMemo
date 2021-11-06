@@ -18,6 +18,7 @@ var groupId = -1;
 var groupCode = "";
 var isGroupOwner = false;
 var isGroupEditor = false;
+var discoveryId = -1;
 var questionList = JSON.parse(lsGetItem("question-list", JSON.stringify([])));
 var bookList = JSON.parse(lsGetItem("book-list", JSON.stringify([])));
 var selectedQuestionList = [];
@@ -166,7 +167,7 @@ function SelectQuestions() {
             } else {
                 $(".only-group-exist").show();
                 $(".only-group-inexist").hide();
-                
+
                 if (isGroupOwner) {
                     $(".only-group-owner").show();
                     $(".only-group-owner-if-group-exist").show();
@@ -179,6 +180,15 @@ function SelectQuestions() {
                 } else if (!isGroupEditor && !isGroupOwner) {
                     $(".only-group-editor-if-group-exist").hide();
                 }
+            }
+            discoveryId = bookList[i].discoveryId;
+            if (discoveryId == -1 && bookShareCode != "") {
+                $(".not-published-to-discovery").show();
+                $(".published-to-discovery").hide();
+            } else if (discoveryId != -1) {
+                $(".not-published-to-discovery").hide();
+                $(".published-to-discovery").show();
+                $("#go-to-discovery-btn").attr("onclick", "window.location.href='/discovery?discoveryId=" + discoveryId + "'");
             }
             selectedQuestionList = [];
             for (this.j = 0; j < bookList[i].questions.length; j++) {
@@ -823,6 +833,15 @@ function BookShare() {
                     $("#bookShareCode").html(r.shareCode);
                     $("#shareop").html("Unshare");
                     $(".only-shared").show();
+                    discoveryId = bookList[i].discoveryId;
+                    if (discoveryId == -1 && bookShareCode != "") {
+                        $(".not-published-to-discovery").show();
+                        $(".published-to-discovery").hide();
+                    } else if (discoveryId != -1) {
+                        $(".not-published-to-discovery").hide();
+                        $(".published-to-discovery").show();
+                        $("#go-to-discovery-btn").attr("onclick", "window.location.href='/discovery?discoveryId=" + discoveryId + "'");
+                    }
                 } else {
                     new Noty({
                         theme: 'mint',
@@ -871,6 +890,15 @@ function BookShare() {
                     $("#bookShareCode").html("(Private)");
                     $("#shareop").html("Share");
                     $(".only-shared").hide();
+                    discoveryId = bookList[i].discoveryId;
+                    if (discoveryId == -1 && bookShareCode != "") {
+                        $(".not-published-to-discovery").show();
+                        $(".published-to-discovery").hide();
+                    } else if (discoveryId != -1) {
+                        $(".not-published-to-discovery").hide();
+                        $(".published-to-discovery").show();
+                        $("#go-to-discovery-btn").attr("onclick", "window.location.href='/discovery?discoveryId=" + discoveryId + "'");
+                    }
                 } else {
                     new Noty({
                         theme: 'mint',
@@ -888,6 +916,107 @@ function BookShare() {
             }
         });
     }
+}
+
+function PublishToDiscoveryShow() {
+    $('#publishToDiscoveryModal').modal('toggle');
+}
+
+function PublishToDiscovery() {
+    title = $("#discovery-title").val();
+    description = $("#discovery-description").val();
+
+    $.ajax({
+        url: '/api/discovery/book/publish',
+        method: 'POST',
+        async: false,
+        dataType: "json",
+        data: {
+            bookId: bookId,
+            title: title,
+            description: description,
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            if (r.success == true) {
+                discoveryId = r.discoveryId;
+                $(".not-published-to-discovery").hide();
+                $(".published-to-discovery").show();
+                $("#go-to-discovery-btn").attr("onclick", "window.location.href='/discovery?discoveryId=" + discoveryId + "'");
+                
+                new Noty({
+                    theme: 'mint',
+                    text: r.msg,
+                    type: 'success',
+                    layout: 'bottomRight',
+                    timeout: 30000
+                }).show();
+                
+                $('#publishToDiscoveryModal').modal('toggle');
+            } else {
+                new Noty({
+                    theme: 'mint',
+                    text: r.msg,
+                    type: 'error',
+                    layout: 'bottomRight',
+                    timeout: 3000
+                }).show();
+            }
+        },
+        error: function (r) {
+            if (r.status == 401) {
+                SessionExpired();
+            }
+        }
+    });
+}
+
+function UnpublishDiscoveryShow(){
+    $('#unpublishDiscoveryModal').modal('toggle');
+}
+
+function UnpublishDiscovery(){
+    $.ajax({
+        url: '/api/discovery/book/unpublish',
+        method: 'POST',
+        async: false,
+        dataType: "json",
+        data: {
+            discoveryId: discoveryId,
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            if (r.success == true) {
+                discoveryId = -1;
+                $(".not-published-to-discovery").show();
+                $(".published-to-discovery").hide();
+                $("#go-to-discovery-btn").attr("onclick", "");
+                
+                new Noty({
+                    theme: 'mint',
+                    text: r.msg,
+                    type: 'success',
+                    layout: 'bottomRight',
+                    timeout: 30000
+                }).show();
+            } else {
+                new Noty({
+                    theme: 'mint',
+                    text: r.msg,
+                    type: 'error',
+                    layout: 'bottomRight',
+                    timeout: 3000
+                }).show();
+            }
+        },
+        error: function (r) {
+            if (r.status == 401) {
+                SessionExpired();
+            }
+        }
+    });
 }
 
 function CreateGroupShow() {

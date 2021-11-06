@@ -11,29 +11,6 @@ from app import app, config
 from functions import *
 import sessions
 
-
-
-
-
-def updateQuestionStatus(userId, questionId, status):
-    cur = conn.cursor()
-    cur.execute(f"SELECT COUNT(*) FROM StatusUpdate WHERE questionId = {questionId} AND userId = {userId}")
-    d = cur.fetchall()
-    questionUpdateId = 0
-    if len(d) != 0:
-        questionUpdateId = d[0][0]
-    cur.execute(f"INSERT INTO StatusUpdate VALUES ({userId},{questionId},{questionUpdateId},{status},{int(time.time())})")
-    
-def validateToken(userId, token):
-    cur = conn.cursor()
-    cur.execute(f"SELECT username FROM UserInfo WHERE userId = {userId}")
-    d = cur.fetchall()
-    if len(d) == 0 or d[0][0] == "@deleted":
-        return False
-    
-    return sessions.validateToken(userId, token)
-
-
 ##########
 # Book API
 # Data Update (Add question / Delete question)

@@ -11,29 +11,6 @@ from app import app, config
 from functions import *
 import sessions
 
-
-
-
-
-def updateQuestionStatus(userId, questionId, status):
-    cur = conn.cursor()
-    cur.execute(f"SELECT COUNT(*) FROM StatusUpdate WHERE questionId = {questionId} AND userId = {userId}")
-    d = cur.fetchall()
-    questionUpdateId = 0
-    if len(d) != 0:
-        questionUpdateId = d[0][0]
-    cur.execute(f"INSERT INTO StatusUpdate VALUES ({userId},{questionId},{questionUpdateId},{status},{int(time.time())})")
-    
-def validateToken(userId, token):
-    cur = conn.cursor()
-    cur.execute(f"SELECT username FROM UserInfo WHERE userId = {userId}")
-    d = cur.fetchall()
-    if len(d) == 0 or d[0][0] == "@deleted":
-        return False
-    
-    return sessions.validateToken(userId, token)
-
-
 ##########
 # Book API
 # Modify (Create, Clone, Delete, Rename, Share)
@@ -364,6 +341,11 @@ def apiDeleteBook():
     if len(cur.fetchall()) == 0:
         return json.dumps({"success": False, "msg": "Book does not exist!"})
 
+    cur.execute(f"SELECT * FROM BookDiscovery WHERE publisherId = {userId} AND bookId = {bookId}")
+    notice = ""
+    if len(cur.fetchall()) != 0:
+        return json.dumps({"success": False, "msg": "Book published to Discovery! Unpublish it first before deleting the book."})
+            
     groupId = -1
     cur.execute(f"SELECT groupId FROM GroupBind WHERE userId = {userId} AND bookId = {bookId}")
     d = cur.fetchall()
@@ -383,7 +365,6 @@ def apiDeleteBook():
         cur.execute(f"DELETE FROM GroupMember WHERE groupId = {groupId} AND userId = {userId}")
         cur.execute(f"DELETE FROM GroupBind WHERE groupId = {groupId} AND userId = {userId}")
         
-
     cur.execute(f"DELETE FROM Book WHERE userId = {userId} AND bookId = {bookId}")
     cur.execute(f"DELETE FROM BookData WHERE userId = {userId} AND bookId = {bookId}")
     cur.execute(f"DELETE FROM BookProgress WHERE userId = {userId} AND bookId = {bookId}")
@@ -463,10 +444,15 @@ def apiShareBook():
             return json.dumps({"success": True, "msg": f"Done! Share code: !{shareCode}. Tell your friend to enter it in the textbox of 'Create Book' and he / she will be able to import it!", "shareCode": f"!{shareCode}"})
     
     elif op == "unshare":
+        cur.execute(f"SELECT * FROM BookDiscovery WHERE publisherId = {userId} AND bookId = {bookId}")
+        notice = ""
+        if len(cur.fetchall()) != 0:
+            notice = "Book published to Discovery! This will make it invisible on Discovery."
+            
         cur.execute(f"SELECT * FROM BookShare WHERE userId = {userId} AND bookId = {bookId}")
         if len(cur.fetchall()) == 0:
             return json.dumps({"success": False, "msg": "Book not shared!"})
         else:
             cur.execute(f"DELETE FROM BookShare WHERE userId = {userId} AND bookId = {bookId}")
             conn.commit()
-            return json.dumps({"success": True, "msg": "Book unshared!"})
+            return json.dumps({"success": True, "msg": "Book unshared!" + notice})

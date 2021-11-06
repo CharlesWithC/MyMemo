@@ -121,9 +121,19 @@ cur.execute(f"CREATE TABLE StatusUpdate (userId INT, questionId INT, questionUpd
 # updateTo is the status the question is updated to
 # NOTE: When a new question is added, there should be a StatusUpdate record, with questionUpdateId = 0 and updateTo = 0
 
+cur.execute(f"CREATE TABLE BookDiscovery (discoveryId INT, publisherId INT, bookId INT, title VARCHAR(1024), description VARCHAR(1024))")
+# name is book's name
+# title is discovery title
+# description is discovery description
+cur.execute(f"CREATE TABLE BookDiscoveryClick (discoveryId INT, count INT)")
+cur.execute(f"CREATE TABLE BookDiscoveryLike (discoveryId INT, userId INT, like INT)")
+# User Id is the user who engaged in this discovery item
+# It could be empty is discovery is public to everyone
+
 cur.execute(f"CREATE TABLE IDInfo (type INT, userId INT, nextId INT)")
 cur.execute(f"INSERT INTO IDInfo VALUES (1, -1, 1)")
 cur.execute(f"INSERT INTO IDInfo VALUES (4, -1, 1)")
-# To store next id of userId 1 / questionId 2 / bookId 3 / groupId 4 / groupQuestionId 5
+cur.execute(f"INSERT INTO IDInfo VALUES (6, -1, 1)")
+# To store next id of userId 1 / questionId 2 / bookId 3 / groupId 4 / groupQuestionId 5 / discoveryId 6
 
 conn.commit()

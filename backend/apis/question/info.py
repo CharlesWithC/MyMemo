@@ -12,29 +12,6 @@ from app import app, config
 from functions import *
 import sessions
 
-
-
-
-
-def getQuestionCount(userId):
-    cur = conn.cursor()
-    q = 0
-    cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {userId}")
-    d = cur.fetchall()
-    if len(d) > 0:
-        q = d[0][0]
-    return q
-
-def validateToken(userId, token):
-    cur = conn.cursor()
-    cur.execute(f"SELECT username FROM UserInfo WHERE userId = {userId}")
-    d = cur.fetchall()
-    if len(d) == 0 or d[0][0] == "@deleted":
-        return False
-    
-    return sessions.validateToken(userId, token)
-
-
 ##########
 # Question API
 # Info

@@ -6,13 +6,17 @@
 
 *All the commits since [c610d51](https://github.com/Charles-1414/MyMemo/commit/c610d51cc357b7f0841de62ff77157f93ed986fa) should be signed with my GPG key and marked as verified. Otherwise it might be committed by an unknown person. Commit [99efec8](https://github.com/Charles-1414/MyMemo/commit/99efec8dc9d3e4976c61f17764869a84df50722e) is unverified because the email was configured incorrectly.*
 
-Current version: v5.1.5  
+Current version: v5.2.1  
 
 ## About v5  
 
 My Memo v5 is built with python flask + html5 bootstrap.  
 We have a brand new UI comparing to the older versions using canvas.  
 Dark Mode is supported in v5 btw, you can enable it in Settings.  
+
+Discovery, the first community function, has been finished!  
+Currently only posting Books in Discovery is supported. Groups and usrs will be added soon!  
+And there will be an admin panel to manage discovery to remove abusive data in the future.  
 
 ## About My Memo
 

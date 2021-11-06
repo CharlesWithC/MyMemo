@@ -47,7 +47,7 @@
             setTimeout(onkeypress, 500);
 
             if (localStorage.getItem("settings-theme") == "dark") {
-                $("body").attr("style", "color:#ffffff;background-color:#333333");
+                $("body").attr("style", "color:#ffffff;background-color:#333333");$("hr").attr("style", "background-color:#cccccc;");
                 $("textarea").attr("style", "color:#ffffff;background-color:#333333");
                 $(".modal-content").attr("style", "background-color:#333333");
                 $(".fa-times").attr("style", "color:white");
@@ -73,10 +73,13 @@
     <div id="navigate" style="z-index:100">
         <div class="leftside">
             <div class="sqbtn">
-                <a href="/"><img src="/img/icon.png" style="width:3em;height:3em"></a>
+                <a href="/"><img src="/img/icon.png" style="width:4em;height:4em"></a>
             </div>
             <div class="sqbtn">
                 <a href="#" onclick="window.location.href='/book'"><i class="fa fa-book"></i><br>Books</a>
+            </div>
+            <div class="sqbtn">
+                <a href="#" onclick="window.location.href='/discovery'"><i class="fa fa-paper-plane"></i><br>Discovery</a>
             </div>
         </div>
         <div class="userctrl">
@@ -257,6 +260,11 @@
                         <p>You can recover it by logging in at any time during that period.</p>
                         <p>After 14 days it will be deleted permanently and cannot be recovered.</p>
                         <br>
+                        <p>Deleting your account will make you unable to login permanently but all your other data will be preserved.</p>
+                        <p>You can delete most of the data manually such as questions and books.</p>
+                        <p>If you want a deep data wipe, you can contact administrator and provide your User ID.</p>
+                        <p>Administrators will be able to wipe your data completely when your account is deleted.</p>
+                        <br>
                         <p>Type your "I acknowledge what I'm doing" and your password to continue:</p>
                         <div class="input-group mb-3">
                             <input type="text" class="form-control" id="acknowledge-confirm"
@@ -280,7 +288,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.1.5 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.2.1 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

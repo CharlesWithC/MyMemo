@@ -40,7 +40,7 @@ def apiGetBook():
     if len(t) != 0:
         shareCode = "!"+t[0][0]
     
-    ret.append({"bookId": 0, "name": "All questions", "questions": questions, "shareCode": shareCode, "groupId": -1, "groupCode": "", "isGroupOwner": False, "isGroupEditor": True})
+    ret.append({"bookId": 0, "name": "All questions", "questions": questions, "shareCode": shareCode, "groupId": -1, "groupCode": "", "isGroupOwner": False, "isGroupEditor": True, "discoveryId": -1})
 
     cur.execute(f"SELECT bookId, name FROM Book WHERE userId = {userId}")
     d = cur.fetchall()
@@ -86,7 +86,6 @@ def apiGetBook():
                 if len(cur.fetchall()) != 0:
                     isGroupEditor = True
         
-        
         cur.execute(f"SELECT progress FROM BookProgress WHERE userId = {userId} AND bookId = {dd[0]}")
         t = cur.fetchall()
         progress = 0
@@ -95,8 +94,14 @@ def apiGetBook():
             conn.commit()
         else:
             progress = t[0][0]
+        
+        discoveryId = -1
+        cur.execute(f"SELECT discoveryId FROM BookDiscovery WHERE bookId = {dd[0]} AND publisherId = {userId}")
+        t = cur.fetchall()
+        if len(t) != 0:
+            discoveryId = t[0][0]
 
-        ret.append({"bookId": dd[0], "name": decode(dd[1]), "questions": questions, "progress": progress, "shareCode": shareCode, "groupId": groupId, "groupCode": gcode, "isGroupOwner": isGroupOwner, "isGroupEditor": isGroupEditor})
+        ret.append({"bookId": dd[0], "name": decode(dd[1]), "questions": questions, "progress": progress, "shareCode": shareCode, "groupId": groupId, "groupCode": gcode, "isGroupOwner": isGroupOwner, "isGroupEditor": isGroupEditor, "discoveryId": discoveryId})
     
     return json.dumps(ret)
 

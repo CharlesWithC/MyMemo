@@ -14,10 +14,6 @@ from app import app, config
 from functions import *
 import sessions
 
-
-
-
-
 ##########
 # Group API
 
@@ -293,6 +289,7 @@ def apiManageGroup():
         for uid in users:
             if uid == userId:
                 continue
+
             cur.execute(f"SELECT isEditor FROM GroupMember WHERE groupId = {groupId} AND userId = {uid}")
             t = cur.fetchall()
             if len(t) == 0:
@@ -300,6 +297,14 @@ def apiManageGroup():
             if t[0][0] == 1:
                 cur.execute(f"UPDATE GroupMember SET isEditor = 0 WHERE groupId = {groupId} AND userId = {uid}")            
             elif t[0][0] == 0:
+                editorName = "@deleted"
+                cur.execute(f"SELECT username FROM UserInfo WHERE userId = {uid}")
+                t = cur.fetchall()
+                if len(t) != 0:
+                    editorName = t[0][0]
+                if editorName == "@deleted":
+                    continue
+                
                 cur.execute(f"UPDATE GroupMember SET isEditor = 1 WHERE groupId = {groupId} AND userId = {uid}")
         conn.commit()
         return json.dumps({"success": True, "msg": "Success!"})
@@ -326,6 +331,14 @@ def apiManageGroup():
         t = cur.fetchall()
         if len(t) == 0 or t[0][0] == 0:
             return json.dumps({"success": False, "msg": "Member not in group or member not an editor. Make sure the new owner is already in group and you have made him / her an editor."})
+        
+        newOwner = "@deleted"
+        cur.execute(f"SELECT username FROM UserInfo WHERE userId = {uid}")
+        t = cur.fetchall()
+        if len(t) != 0:
+            newOwner = t[0][0]
+        if newOwner == "@deleted":
+            return json.dumps({"success": False, "msg": f"You cannot transfer ownership to a deleted user!"})
 
         cur.execute(f"UPDATE GroupInfo SET owner = {uid} WHERE groupId = {groupId}")
         cur.execute(f"UPDATE GroupMember SET isEditor = 1 WHERE groupId = {groupId} and userId = {uid}")

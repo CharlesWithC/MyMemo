@@ -64,3 +64,12 @@ def updateQuestionStatus(userId, questionId, status):
         questionUpdateId = d[0][0]
     cur.execute(f"INSERT INTO StatusUpdate VALUES ({userId},{questionId},{questionUpdateId},{status},{int(time.time())})")
     conn.commit()
+    
+def getQuestionCount(userId):
+    cur = conn.cursor()
+    q = 0
+    cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {userId}")
+    d = cur.fetchall()
+    if len(d) > 0:
+        q = d[0][0]
+    return q

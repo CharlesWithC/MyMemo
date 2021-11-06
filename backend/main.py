@@ -31,18 +31,6 @@ def PendingAccountDeletion():
             cur.execute(f"UPDATE UserInfo SET username = '@deleted' WHERE userId = {uid}")
             cur.execute(f"UPDATE UserInfo SET email = '' WHERE userId = {uid}")
             cur.execute(f"UPDATE UserInfo SET password = '' WHERE userId = {uid}")
-            cur.execute(f"DELETE FROM QuestionList WHERE userId = {uid}")
-            cur.execute(f"DELETE FROM Book WHERE userId = {uid}")
-            cur.execute(f"DELETE FROM BookData WHERE userId = {uid}")
-            cur.execute(f"DELETE FROM BookShare WHERE userId = {uid}")
-            cur.execute(f"DELETE FROM MyMemorized WHERE userId = {uid}")
-            cur.execute(f"DELETE FROM BookProgress WHERE userId = {uid}")
-            cur.execute(f"DELETE FROM ChallengeData WHERE userId = {uid}")
-            cur.execute(f"DELETE FROM ChallengeRecord WHERE userId = {uid}")
-            cur.execute(f"DELETE FROM StatusUpdate WHERE userId = {uid}")
-            cur.execute(f"DELETE FROM GroupMember WHERE userId = {uid}")
-            cur.execute(f"DELETE FROM GroupSync WHERE userId = {uid}")
-            cur.execute(f"DELETE FROM GroupBind WHERE userId = {uid}")
 
             conn.commit()
 

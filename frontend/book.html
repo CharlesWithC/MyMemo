@@ -39,7 +39,7 @@
             $("#qqf").remove();
 
             if (localStorage.getItem("settings-theme") == "dark") {
-                $("body").attr("style", "color:#ffffff;background-color:#333333");
+                $("body").attr("style", "color:#ffffff;background-color:#333333");$("hr").attr("style", "background-color:#cccccc;");
                 $("textarea").attr("style", "color:#ffffff;background-color:#333333");
                 $(".modal-content").attr("style", "background-color:#333333");
                 $(".fa-times").attr("style", "color:white");
@@ -80,31 +80,31 @@
                             }
                         }
                         if (found) {
-                            $(this).css("background-color","#888888");
+                            $(this).css("background-color", "#888888");
                         } else {
-                            $(this).css("background-color","#333333");
+                            $(this).css("background-color", "#333333");
                         }
                     });
                 }, 100);
             }
             setInterval(function () {
                 for (var i = 0; i < selectedQuestionList.length; i++) {
-                        if (selectedQuestionList[i].status == 2) {
-                            $("#" + selectedQuestionList[i].questionId).css("color","red");
-                        } else if (selectedQuestionList[i].status == 3) {
-                            if (localStorage.getItem("settings-theme") == "dark") {
-                                $("#" + selectedQuestionList[i].questionId).css("color","gray");
-                            } else {
-                                $("#" + selectedQuestionList[i].questionId).css("color","lightgray");
-                            }
+                    if (selectedQuestionList[i].status == 2) {
+                        $("#" + selectedQuestionList[i].questionId).css("color", "red");
+                    } else if (selectedQuestionList[i].status == 3) {
+                        if (localStorage.getItem("settings-theme") == "dark") {
+                            $("#" + selectedQuestionList[i].questionId).css("color", "gray");
                         } else {
-                            if (localStorage.getItem("settings-theme") == "dark") {
-                                $("#" + selectedQuestionList[i].questionId).css("color","white");
-                            } else {
-                                $("#" + selectedQuestionList[i].questionId).css("color","black");
-                            }
+                            $("#" + selectedQuestionList[i].questionId).css("color", "lightgray");
+                        }
+                    } else {
+                        if (localStorage.getItem("settings-theme") == "dark") {
+                            $("#" + selectedQuestionList[i].questionId).css("color", "white");
+                        } else {
+                            $("#" + selectedQuestionList[i].questionId).css("color", "black");
                         }
                     }
+                }
             }, 100);
 
             PageInit();
@@ -130,16 +130,6 @@
             $("#book-rename").on('keypress', function (e) {
                 if (e.which == 13) {
                     BookRename();
-                }
-            });
-            $("#edit-question,#edit-answer").on('keypress', function (e) {
-                if (e.which == 13) {
-                    EditQuestion();
-                }
-            });
-            $("#group-name,#group-description").on('keypress', function (e) {
-                if (e.which == 13) {
-                    CreateGroup();
                 }
             });
             $("#group-delete").on('keypress', function (e) {
@@ -175,10 +165,13 @@
     <div id="navigate" style="z-index:100">
         <div class="leftside">
             <div class="sqbtn">
-                <a href="/"><img src="/img/icon.png" style="width:3em;height:3em"></a>
+                <a href="/"><img src="/img/icon.png" style="width:4em;height:4em"></a>
             </div>
             <div class="sqbtn">
                 <a href="#" onclick="window.location.href='/book'"><i class="fa fa-book"></i><br>Books</a>
+            </div>
+            <div class="sqbtn">
+                <a href="#" onclick="window.location.href='/discovery'"><i class="fa fa-paper-plane"></i><br>Discovery</a>
             </div>
         </div>
         <div class="userctrl">
@@ -268,6 +261,14 @@
                 <p class="only-shared" style="display:none">Code: <span id="bookShareCode">(Private)</span></p>
                 <button type="button" class="btn btn-primary" onclick="BookShare()"><span
                         id="shareop">Share</span></button>
+                <button type="button" class="btn btn-primary only-shared not-published-to-discovery"
+                    onclick="PublishToDiscoveryShow()">Publish To Discovery <i class="fa fa-paper-plane"></i></button>
+                <button type="button" class="btn btn-primary published-to-discovery" onclick=""
+                    id="go-to-discovery-btn" style="display:none">Check on Discovery <i
+                        class="fa fa-search"></i></button>
+                <button type="button" class="btn btn-outline-danger published-to-discovery"
+                    onclick="UnpublishDiscoveryShow()" style="display:none">Unpublish <i
+                        class="fa fa-trash"></i></button>
                 <hr>
             </div>
             <div id="group" class="group not-for-all-questions" style="display:none">
@@ -286,16 +287,15 @@
                     <br>
                     <p>Manage group: </p>
 
-                    <button type="button" class="btn btn-primary"
-                        onclick="GroupInfoUpdateShow()">Update Information <i class="fa fa-edit"></i></button>
+                    <button type="button" class="btn btn-primary" onclick="GroupInfoUpdateShow()">Update Information <i
+                            class="fa fa-edit"></i></button>
                     <br>
-                    <button type="button" class="btn btn-outline-warning"
-                        onclick="GroupCodeUpdate('disable')">Make private <i class="fa fa-lock"></i></button>
-                    <button type="button" class="btn btn-primary"
-                        onclick="GroupCodeUpdate('revoke')">Revoke code <i class="fa fa-undo"></i> </button>
+                    <button type="button" class="btn btn-outline-warning" onclick="GroupCodeUpdate('disable')">Make
+                        private <i class="fa fa-lock"></i></button>
+                    <button type="button" class="btn btn-primary" onclick="GroupCodeUpdate('revoke')">Revoke code <i
+                            class="fa fa-undo"></i> </button>
                     <br>
-                    <button type="button" class="btn btn-outline-danger"
-                        onclick="GroupDismissShow()">Dismiss
+                    <button type="button" class="btn btn-outline-danger" onclick="GroupDismissShow()">Dismiss
                         <i class="fa fa-times"></i></button>
                 </div>
             </div>
@@ -431,6 +431,73 @@
         </div>
     </div>
 
+    <div class="modal fade" id="publishToDiscoveryModal" tabindex="-1" role="dialog"
+        aria-labelledby="publishToDiscoveryModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="publishToDiscoveryModalLabel"><i class="fa fa-paper-plane"></i> Publish
+                        To Discovery</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                        onclick="$('#publishToDiscoveryModal').modal('toggle')">
+                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>You are about to publish the book to Discovery.</p>
+                    <p>This will make it able to be found by any people.</p>
+                    <p>All your updates made within this word book will be synced to Discovery. (But people already
+                        imported it will not get the sync, use Group function to do that)</p>
+                    <br>
+                    <p>Please enter title and description below. Make them beautiful and others may get engaged.</p>
+                    <form>
+                        <div class="form-group">
+                            <label for="discovery-title" class="col-form-label">Title:</label>
+                            <textarea class="form-control" id="discovery-title"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="discovery-description" class="col-form-label">Description:</label>
+                            <textarea class="form-control" id="discovery-description"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                        onclick="$('#publishToDiscoveryModal').modal('toggle')">Close</button>
+                    <button id="publish-to-discovery-btn" type="button" class="btn btn-primary"
+                        onclick="PublishToDiscovery()">Publish <i class="fa fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="unpublishDiscoveryModal" tabindex="-1" role="dialog"
+        aria-labelledby="unpublishDiscoveryModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" style="color:red"><i class="fa fa-trash"></i> Unpublish From Discovery
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                        onclick="$('#unpublishDiscoveryModal').modal('toggle')">
+                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure to unpublish the book from Discovery?</p>
+                    <p>You will lose all the views and likes of your post.</p>
+                    <p>This operation cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                        onclick="$('#unpublishDiscoveryModal').modal('toggle')">Cancel</button>
+                    <button type="button" class="btn btn-outline-danger" data-dismiss="modal"
+                        onclick="UnpublishDiscovery()">Unpublish</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="createGroupModal" tabindex="-1" role="dialog" aria-labelledby="createGroupModalLabel"
         aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -443,6 +510,8 @@
                     </button>
                 </div>
                 <div class="modal-body">
+                    <p>Your group need a name and a description so others can know what it do. Please enter them below!
+                    </p>
                     <form>
                         <div class="form-group">
                             <label for="group-name" class="col-form-label">Name:</label>
@@ -528,7 +597,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.1.5 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.2.1 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

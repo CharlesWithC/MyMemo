@@ -12,10 +12,6 @@ from app import app, config
 from functions import *
 import sessions
 
-
-
-
-
 ##########
 # Question API
 # Challenge Mode
