@@ -26,6 +26,8 @@ if not db_exists:
 
     cur.execute(f"CREATE TABLE PendingAccountDeletion (userId INT, deletionTime INT)")
 
+    cur.execute(f"CREATE TABLE PasswordTrial (userId INT, count INT, lastts INT)")
+
 
 def validateToken(userId, token):
     try:
@@ -101,6 +103,42 @@ def logoutAll(userId):
     except:
         global errcnt
         errcnt += 1
+
+def getPasswordTrialCount(userId):
+    try:
+        cur.execute(f"SELECT count, lastts FROM PasswordTrial WHERE userId = {userId}")
+        t = cur.fetchall()
+        if len(t) == 0:
+            return (0, 0)
+        else:
+            return (t[0][0], t[0][1])
+
+    except:
+        global errcnt
+        errcnt += 1
+
+def updatePasswordTrialCount(userId, to, ts):
+    try:
+        cur.execute(f"SELECT count FROM PasswordTrial WHERE userId = {userId}")
+        t = cur.fetchall()
+        if len(t) == 0:
+            if to == 0:
+                return
+            cur.execute(f"INSERT INTO PasswordTrial VALUES ({userId}, {to}, {ts})")
+            conn.commit()
+        else:
+            if to == 0:
+                cur.execute(f"DELETE FROM PasswordTrial WHERE userId = {userId}")
+                conn.commit()
+            else:
+                cur.execute(f"UPDATE PasswordTrial SET count = {to} WHERE userId = {userId}")
+                cur.execute(f"UPDATE PasswordTrial SET lastts = {ts} WHERE userId = {userId}")
+                conn.commit()
+
+    except:
+        global errcnt
+        errcnt += 1
+    
 
 def deleteData(userId):
     try:

@@ -33,8 +33,8 @@
             </div>');
             $("#memberList_filter > label > input").addClass("form-control");
             $("#memberList_filter > label > input").appendTo("#qf");
-            $("#memberList_filter").attr("id","qqf");
-            $("#qf").attr("id","memberList_filter");
+            $("#memberList_filter").attr("id", "qqf");
+            $("#qf").attr("id", "memberList_filter");
             $("#qqf").remove();
 
             if (localStorage.getItem("settings-theme") == "dark") {
@@ -42,22 +42,42 @@
                 $("textarea").attr("style", "color:#ffffff;background-color:#333333");
                 $(".modal-content").attr("style", "background-color:#333333");
                 $(".fa-times").attr("style", "color:white");
-                $("#memberList_length").attr("style","color:white");
-
-                $("#memberList_length").append(
-                    '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="selectAll();" href="#" style="color:white">Select All</a>');
-                $("#memberList_length").append(
-                    '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="deselectAll();" href="#" style="color:white">Deselect All</a>');
-                $("#memberList_length").append(
-                    '<a class="manage" style="color:white">&nbsp;&nbsp;|&nbsp;&nbsp;Double click question to edit<p>');
-            } else {
-                $("#memberList_length").append(
-                    '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="selectAll();" href="#">Select All</a>');
-                $("#memberList_length").append(
-                    '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="deselectAll();" href="#">Deselect All</a>');
-                $("#memberList_length").append(
-                    '<a class="manage">&nbsp;&nbsp;|&nbsp;&nbsp;Double click question to edit<p>');
+                $("#memberList_length").attr("style", "color:white");
             }
+
+            if (localStorage.getItem("settings-theme") == "dark") {
+                $("tr").attr("style", "background-color:#333333");
+                setInterval(function () {
+                    $("#memberList_paginate > a").attr("style", "background-color:d3d3d3");
+                    $("#memberList_paginate > span > a").attr("style", "background-color:d3d3d3");
+                    $("#memberList_paginate > span > span").removeClass("ellipsis");
+                    $("#memberList_paginate > span > span").addClass("paginate_button");
+                    $("#memberList_paginate > span > span").attr("style", "background-color:d3d3d3;");
+
+                    $("#memberList tr").each(function () {
+                        found = false;
+                        for (var i = 0; i < selected.length; i++) {
+                            if (selected[i] == parseInt(this.id)) {
+                                found = true;
+                            }
+                        }
+                        if (found) {
+                            $(this).css("background-color", "#888888");
+                        } else {
+                            $(this).css("background-color", "#333333");
+                        }
+                    });
+                }, 100);
+            }
+            setInterval(function () {
+                for (var i = 0; i < member.length; i++) {
+                    if (member[i].username.endsWith("(Owner)")) {
+                        $("#" + member[i].userId).css("color", "red");
+                    } else if (member[i].username.endsWith("(Editor)")) {
+                        $("#" + member[i].userId).css("color", "yellow");
+                    }
+                }
+            }, 100);
             PageInit();
 
             $('#memberList tbody').on('click', 'tr', function () {
@@ -78,17 +98,6 @@
                 $("textarea").attr("style", "color:#ffffff;background-color:#333333");
                 $(".modal-content").attr("style", "background-color:#333333");
                 $(".fa-times").attr("style", "color:white");
-            }
-
-            if(localStorage.getItem("settings-theme") == "dark"){
-                setInterval(function(){
-                    $("td").attr("style", "background-color:#333333");
-                    $("#memberList_paginate > a").attr("style","background-color:d3d3d3");
-                    $("#memberList_paginate > span > a").attr("style","background-color:d3d3d3");
-                    $("#memberList_paginate > span > span").removeClass("ellipsis");
-                    $("#memberList_paginate > span > span").addClass("paginate_button");
-                    $("#memberList_paginate > span > span").attr("style","background-color:d3d3d3;");
-                }, 50);
             }
         });
     </script>
@@ -151,7 +160,8 @@
                 Kick</button>
             <button type="button" class="btn btn-primary" onclick="GroupOperation('makeEditor')">Make / Undo Make
                 Editor</button>
-            <button type="button" class="btn btn-danger" onclick="TransferOwnershipShow()"><i class="fa fa-random"></i>
+            <button type="button" class="btn btn-outline-danger" onclick="TransferOwnershipShow()"><i
+                    class="fa fa-random"></i>
                 Transfer ownership</button>
         </div>
 
@@ -173,7 +183,7 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal"
                             onclick="$('#transferOwnershipModal').modal('toggle')">Cancel</button>
-                        <button type="button" class="btn btn-danger" data-dismiss="modal"
+                        <button type="button" class="btn btn-outline-danger" data-dismiss="modal"
                             onclick="GroupOperation('transferOwnership')">Transfer</button>
                     </div>
                 </div>
@@ -182,11 +192,11 @@
     </div>
 
     <div class="footer">
-        <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/" style="color:#ffffff">Charles</a></p>
-        <p>Version: v5.1.4 <i class="fa fa-check-circle"></i></p>
-        <p>Contact: <a href="mailto:memo@charles14.xyz" style="color:#ffffff">memo@charles14.xyz</a></p>
+        <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
+        <p>Version: v5.1.5 <i class="fa fa-check-circle"></i></p>
+        <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
-            <a href="https://github.com/Charles-1414/MyMemo" style="color:#ffffff"><i class="fa fa-github"></i>
+            <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>
                 GitHub</a>
         </p>
         <p>Your privacy is valued. No 3rd party script is used. No cookie is used. All your local data is stored in

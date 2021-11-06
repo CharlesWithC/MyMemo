@@ -11,10 +11,7 @@ import sqlite3
 from app import app, config
 from functions import *
 import sessions
-
-
-
-
+import tempdb
 
 ##########
 # User API
@@ -26,8 +23,11 @@ def apiRegister():
         
     cur = conn.cursor()
 
+    userCnt = 0
     cur.execute(f"SELECT COUNT(*) FROM UserInfo WHERE userId > 0") # banned users are not counted
-    userCnt = cur.fetchall()[0][0]
+    t = cur.fetchall()
+    if len(t) > 0:
+        userCnt = t[0][0]
     if config.max_user_allowed != -1 and userCnt >= config.max_user_allowed:
         return json.dumps({"success": False, "msg": "System has reached its limit of maximum registered users. Contact administrator for more information."})
 
@@ -59,8 +59,12 @@ def apiRegister():
         if len(d) == 0:
             return json.dumps({"success": False, "msg": "Invalid invitation code!"})
         inviter = d[0][0]
+        inviterUsername = "@deleted"
         cur.execute(f"SELECT username FROM UserInfo WHERE userId = {inviter}")
-        if cur.fetchall()[0][0] == "@deleted" or inviter < 0: # inviter < 0 => account banned
+        t = cur.fetchall()
+        if len(t) > 0:
+            inviterUsername = t[0][0]
+        if inviterUsername == "@deleted" or inviter < 0: # inviter < 0 => account banned
             return json.dumps({"success": False, "msg": "Invalid invitation code!"})
 
     inviteCode = genCode(8)
@@ -68,7 +72,9 @@ def apiRegister():
     userId = 1
     try:
         cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 1")
-        userId = cur.fetchall()[0][0]
+        t = cur.fetchall()
+        if len(t) > 0:
+            userId = t[0][0]
         cur.execute(f"UPDATE IDInfo SET nextId = {userId + 1} WHERE type = 1")
 
         cur.execute(f"INSERT INTO UserInfo VALUES ({userId}, '{username}', '{email}', '{encode(password)}', {inviter}, '{inviteCode}')")
@@ -82,7 +88,6 @@ def apiRegister():
 
     return json.dumps({"success": True, "msg": "You are registered! Now you can login!"})
 
-recoverAccount = []
 @app.route("/api/user/login", methods = ['POST'])
 def apiLogin():
     cur = conn.cursor()
@@ -102,17 +107,32 @@ def apiLogin():
         sessions.errcnt += 1
         return json.dumps({"success": False, "msg": "Unknown error occured. Try again later..."})
         
-    if not checkpwd(password,decode(d[1])):
-        return json.dumps({"success": False, "msg": "Invalid password!"})
-    
     userId = d[0]
 
-    if not userId in recoverAccount:
+    if sessions.getPasswordTrialCount(userId)[0] >= 5 and int(time.time()) - sessions.getPasswordTrialCount(userId)[1] <= 300:
+        return json.dumps({"success": False, "msg": "Too many attempts! Try again later..."})
+
+    if not checkpwd(password,decode(d[1])):
+        if sessions.getPasswordTrialCount(userId)[0] >= 5:
+            sessions.updatePasswordTrialCount(userId, 3, time.time())
+        else:
+            sessions.updatePasswordTrialCount(userId, sessions.getPasswordTrialCount(userId)[0] + 1, time.time())
+            
+        return json.dumps({"success": False, "msg": "Invalid password!"})
+    
+    sessions.updatePasswordTrialCount(userId, 0, 0)
+
+    tempdb.cur.execute(f"SELECT * FROM RequestRecoverAccount WHERE userId = {userId}")
+    t = tempdb.cur.fetchall()
+
+    if len(t) == 0:
         if sessions.checkDeletionMark(userId):
-            recoverAccount.append(userId)
+            tempdb.cur.execute(f"INSERT INTO RequestRecoverAccount VALUES ({userId})")
+            tempdb.conn.commit()
             return json.dumps({"success": False, "msg": "Account marked for deletion, login again to recover it!"})
     else:
-        recoverAccount.remove(userId)
+        tempdb.cur.execute(f"DELETE FROM RequestRecoverAccount WHERE userId = {userId}")
+        tempdb.conn.commit()
         sessions.removeDeletionMark(userId)
     
     if userId < 0:
@@ -190,26 +210,49 @@ def apiGetUserInfo():
     if not validateToken(userId, token):
         abort(401)
     
+    d = None
     cur.execute(f"SELECT username, email, inviteCode, inviter FROM UserInfo WHERE userId = {userId}")
-    d = cur.fetchall()[0]
+    t = cur.fetchall()
+    if len(t) > 0:
+        d = t[0]
+    else:
+        return json.dumps({"success": False, "msg": "User not found!"})
 
+    inviter = 0
     cur.execute(f"SELECT username FROM UserInfo WHERE userId = {d[3]}")
-    inviter = cur.fetchall()[0][0]
+    t = cur.fetchall()
+    if len(t) > 0:
+        inviter = t[0][0]
 
+    cnt = 0
     cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {userId}")
-    cnt = cur.fetchall()[0][0]
+    t = cur.fetchall()
+    if len(t) > 0:
+        cnt = t[0][0]
 
+    tagcnt = 0
     cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {userId} AND status = 2")
-    tagcnt = cur.fetchall()[0][0]
+    t = cur.fetchall()
+    if len(t) > 0:
+        tagcnt = t[0][0]
 
+    delcnt = 0
     cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {userId} AND status = 3")
-    delcnt = cur.fetchall()[0][0]
+    t = cur.fetchall()
+    if len(t) > 0:
+        delcnt = t[0][0]
 
+    chcnt = 0
     cur.execute(f"SELECT COUNT(*) FROM ChallengeRecord WHERE userId = {userId}")
-    chcnt = cur.fetchall()[0][0]
+    t = cur.fetchall()
+    if len(t) > 0:
+        chcnt = t[0][0]
 
+    regts = 0
     cur.execute(f"SELECT timestamp FROM UserEvent WHERE userId = {userId} AND event = 'register'")
-    regts = cur.fetchall()[0][0]
+    t = cur.fetchall()
+    if len(t) > 0:
+        regts = t[0][0]
     age = math.ceil((time.time() - regts) / 86400)
 
     isAdmin = False
@@ -252,7 +295,7 @@ def apiUpdateInfo():
     return json.dumps({"success": True, "msg": "User profile updated!"})
 
 @app.route("/api/user/changepassword", methods=['POST'])
-def apiChangepassword():
+def apiChangePassword():
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -266,8 +309,11 @@ def apiChangepassword():
     newpwd = request.form["newpwd"]
     cfmpwd = request.form["cfmpwd"]
     
+    pwd = ""
     cur.execute(f"SELECT password FROM UserInfo WHERE userId = {userId}")
-    pwd = cur.fetchall()[0][0]
+    t = cur.fetchall()
+    if len(t) > 0:
+        pwd = t[0][0]
     if not checkpwd(oldpwd, decode(pwd)):
         return json.dumps({"success": False, "msg": "Incorrect old password!"})
 

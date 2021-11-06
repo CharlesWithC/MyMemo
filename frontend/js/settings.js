@@ -234,6 +234,10 @@ function SignOut() {
     localStorage.removeItem("userid");
     localStorage.removeItem("username");
     localStorage.removeItem("token");
+    localStorage.removeItem("memo-question-id");
+    localStorage.removeItem("memo-book-id");
+    localStorage.removeItem("book-list");
+    localStorage.removeItem("question-list");
 
     $("#navusername").html("Sign in");
 

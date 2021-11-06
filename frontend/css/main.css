@@ -28,40 +28,6 @@ body {
     z-index: 100;
 }
 
-.userctrl {
-    position: absolute;
-    top: 0;
-    margin-top: 0;
-    right: 4em;
-    height: 3em;
-    padding-top: 0.7em;
-    padding-left: 1em;
-    padding-right: 1em;
-    z-index: 100;
-
-    background-color: #d3d3d3;
-    border: gray;
-    border-bottom-left-radius: 0.5em;
-    border-bottom-right-radius: 0.5em;
-}
-
-.leftside {
-    position: absolute;
-    top: 4em;
-    margin-top: 0;
-    left: 0;
-    width: 4em;
-    height: 8em;
-    padding-top: 0.7em;
-    padding-left: 0.2em;
-    z-index: 100;
-
-    background-color: #d3d3d3;
-    border: gray;
-    border-top-right-radius: 0.5em;
-    border-bottom-right-radius: 0.5em;
-}
-
 .sqbtn {
     text-align: center;
     margin-bottom: 1em;
@@ -81,7 +47,7 @@ h1 {
 
 a {
     text-decoration: none;
-    color: #333333;
+    color: #aaaaaa;
 }
 
 a:hover {
@@ -104,6 +70,50 @@ a:hover {
     font-size: 2.2em;
     padding-top: 0.5em;
     padding-bottom: 1em;
+}
+
+.userctrl {
+    position: absolute;
+    top: 0;
+    margin-top: 0;
+    right: 4em;
+    height: 3em;
+    padding-top: 0.7em;
+    padding-left: 1em;
+    padding-right: 1em;
+    z-index: 100;
+
+    background-color: #d3d3d3;
+    border: gray;
+    color: #333333;
+    border-bottom-left-radius: 0.5em;
+    border-bottom-right-radius: 0.5em;
+}
+
+.userctrl > a {
+    color: #333333;
+}
+
+.leftside {
+    position: absolute;
+    top: 4em;
+    margin-top: 0;
+    left: 0;
+    width: 4em;
+    height: 8em;
+    padding-top: 0.7em;
+    padding-left: 0.2em;
+    z-index: 100;
+
+    background-color: #d3d3d3;
+    border: gray;
+    color: #333333;
+    border-top-right-radius: 0.5em;
+    border-bottom-right-radius: 0.5em;
+}
+
+.leftside > .sqbtn > a {
+    color: #333333;
 }
 
 .question {

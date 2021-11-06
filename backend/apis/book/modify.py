@@ -58,14 +58,24 @@ def apiCreateBook():
         if len(d) != 0:
             sharerUserId = d[0][0]
             sharerBookId = d[0][1]
+
+            cur.execute(f"SELECT userId FROM UserInfo WHERE userId = {sharerUserId}")
+            if len(cur.fetchall()) == 0:
+                return json.dumps({"success": False, "msg": "Invalid share code!"})
             
+            sharerUsername = "Unknown"
             cur.execute(f"SELECT username FROM UserInfo WHERE userId = {sharerUserId}")
-            sharerUsername = cur.fetchall()[0][0]
+            tt = cur.fetchall()
+            if len(tt) > 0:
+                sharerUsername = tt[0][0]
             name = encode(sharerUsername + "'s book")
             if sharerBookId != 0:
                 # create book
+                name = "Unknown Book"
                 cur.execute(f"SELECT name FROM Book WHERE userId = {sharerUserId} AND bookId = {sharerBookId}")
-                name = cur.fetchall()[0][0]
+                tt = cur.fetchall()
+                if len(tt) > 0:
+                    name = tt[0][0]
 
             t = []
             if sharerBookId != 0:
@@ -165,9 +175,24 @@ def apiCreateBook():
             cur.execute(f"SELECT userId FROM GroupMember WHERE groupId = {groupId} AND userId = {userId}")
             if len(cur.fetchall()) != 0:
                 return json.dumps({"success": False, "msg": "You have already joined this group!"})
+            
+            cur.execute(f"SELECT owner FROM GroupInfo WHERE groupId = {groupId}")
+            owner = 0
+            t = cur.fetchall()
+            if t > 0:
+                owner = t[0][0]
+                cur.execute(f"SELECT userId FROM UserInfo WHERE userId = {owner}")
+                if len(cur.fetchall()) == 0:
+                    return json.dumps({"success": False, "msg": "Invalid group code!"})
+            else:
+                return json.dumps({"success": False, "msg": "Invalid group code!"})
+                
 
+            mlmt = 0
             cur.execute(f"SELECT memberLimit FROM GroupInfo WHERE groupId = {groupId}")
-            mlmt = cur.fetchall()[0][0]
+            tt = cur.fetchall()
+            if len(tt) > 0:
+                mlmt = tt[0][0]
             cur.execute(f"SELECT * FROM GroupMember WHERE groupId = {groupId}")
             if len(cur.fetchall()) >= mlmt:
                 return json.dumps({"success": False, "msg": "Group is full!"})
@@ -385,8 +410,11 @@ def apiRenameBook():
     t = cur.fetchall()
     if len(t) != 0:
         groupId = t[0][0]
+        gname = "Unknown Book"
         cur.execute(f"SELECT name FROM GroupInfo WHERE groupId = {groupId}")
-        gname = cur.fetchall()[0][0]
+        tt = cur.fetchall()
+        if len(tt) > 0:
+            gname = tt[0][0]
         cur.execute(f"UPDATE Book SET name = '{gname}' WHERE userId = {userId} AND bookId = {bookId}")
         conn.commit()
         return json.dumps({"success": False, "msg": "You are not allowed to rename a book that is bound to a group!"})

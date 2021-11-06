@@ -853,16 +853,6 @@ function BackToHome() {
 
 function UpdateBookDisplay() {
     $(".book").remove();
-    $("#book-list").append('<div class="book">\
-        <p>Create Book: </p>\
-        <div class="input-group mb-3 w-75">\
-            <span class="input-group-text" id="basic-addon1">Name</span>\
-            <input type="text" class="form-control" id="create-book-name" aria-describedby="basic-addon1">\
-            <div class="input-group-append">\
-                <button class="btn btn-outline-primary" type="button" onclick="CreateBook()">Create</button>\
-            </div>\
-        </div>\
-        </div>');
     for (var i = 0; i < memo.bookList.length; i++) {
         book = memo.bookList[i];
         wcnt = "";
@@ -906,6 +896,13 @@ function SelectBook(bookId) {
     localStorage.setItem("memo-book-id", memo.bookId);
     UpdateSelectedQuestionList();
     UpdateBookDisplay();
+}
+
+function RefreshBookList(){
+    $("#refresh-btn").html('<i class="fa fa-refresh fa-spin"></i>');    
+    UpdateBookList(false);
+    UpdateBookDisplay();
+    $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
 }
 
 function CreateBook() {
@@ -982,6 +979,10 @@ function SignOut() {
     localStorage.removeItem("userid");
     localStorage.removeItem("username");
     localStorage.removeItem("token");
+    localStorage.removeItem("memo-question-id");
+    localStorage.removeItem("memo-book-id");
+    localStorage.removeItem("book-list");
+    localStorage.removeItem("question-list");
 
     $("#navusername").html("Sign in");
 

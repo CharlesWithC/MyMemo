@@ -47,6 +47,7 @@ $.ajax({
         user.isAdmin = r.isAdmin;
 
         $(".user").show();
+        $(".title").show();
         $("#signout-btn").show();
 
         $("#navusername").html(user.username);
@@ -70,6 +71,7 @@ $.ajax({
     error: function (r) {
         $(".user").hide();
         $(".login").show();
+        $(".title").hide();
         $("#signout-btn").hide();
     }
 });
@@ -192,6 +194,7 @@ function Register() {
                 }).show();
                 $(".register").hide();
                 $(".login").show();
+                $(".title").hide();
                 $("#register-password").val("");
             } else {
                 new Noty({
@@ -220,9 +223,16 @@ function SignOut() {
     localStorage.removeItem("userid");
     localStorage.removeItem("username");
     localStorage.removeItem("token");
+    localStorage.removeItem("memo-question-id");
+    localStorage.removeItem("memo-book-id");
+    localStorage.removeItem("book-list");
+    localStorage.removeItem("question-list");
 
     $(".user").hide();
     $(".login").show();
+    $(".title").hide();
+
+    $("#navusername").html("Sign in");
 
     new Noty({
         theme: 'mint',
@@ -295,7 +305,7 @@ function UpdateUserProfile() {
     });
 }
 
-function Changepassword() {
+function ChangePassword() {
     oldpwd = $("#oldpwd").val();
     newpwd = $("#newpwd").val();
     cfmpwd = $("#cfmpwd").val();
@@ -345,6 +355,7 @@ function Changepassword() {
 
                 $(".user").hide();
                 $(".login").show();
+                $(".title").hide();
             } else {
                 new Noty({
                     theme: 'mint',
@@ -359,7 +370,7 @@ function Changepassword() {
 }
 
 
-function ChangepasswordShow() {
+function ChangePasswordShow() {
     $("#changepasswordModal").modal("toggle");
 }
 
@@ -404,7 +415,7 @@ function DeleteAccount() {
 
                 new Noty({
                     theme: 'mint',
-                    text: "Account disabled! It will be deleted after 14 days!",
+                    text: "Account deactivated!! It will be deleted after 14 days!",
                     type: 'warning',
                     layout: 'bottomRight',
                     timeout: 10000
@@ -418,6 +429,7 @@ function DeleteAccount() {
 
                 $(".user").hide();
                 $(".login").show();
+                $(".title").hide();
             } else {
                 new Noty({
                     theme: 'mint',
@@ -470,7 +482,14 @@ function RestartServer() {
         },
         error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
-                SessionExpired();
+                new Noty({
+                    theme: 'mint',
+                    text: 'Access control by NGINX: You have to enter that password to authorize!',
+                    type: 'error',
+                    layout: 'bottomRight',
+                    timeout: 10000
+                }).show();
+                
             } else {
                 new Noty({
                     theme: 'mint',
@@ -479,34 +498,7 @@ function RestartServer() {
                     layout: 'bottomRight',
                     timeout: 10000
                 }).show();
-
             }
         }
     });
-}
-
-function SignOut() {
-    $.ajax({
-        url: "/api/user/logout",
-        method: 'POST',
-        async: true,
-        dataType: "json",
-        data: {
-            userId: localStorage.getItem("userId"),
-            token: localStorage.getItem("token")
-        }
-    });
-    localStorage.removeItem("userid");
-    localStorage.removeItem("username");
-    localStorage.removeItem("token");
-
-    $("#navusername").html("Sign in");
-
-    new Noty({
-        theme: 'mint',
-        text: 'Success! You are now signed out!',
-        type: 'success',
-        layout: 'bottomRight',
-        timeout: 3000
-    }).show();
 }

@@ -39,8 +39,11 @@ def apiAddQuestion():
         d = cur.fetchall()
         if len(d) != 0:
             groupId = d[0][0]
+            isEditor = 0
             cur.execute(f"SELECT isEditor FROM GroupMember WHERE groupId = {groupId} AND userId = {userId}")
-            isEditor = cur.fetchall()[0][0]
+            tt = cur.fetchall()
+            if len(tt) > 0:
+                isEditor = tt[0][0]
             if isEditor == 0:
                 return json.dumps({"success": False, "msg": "You are not allowed to edit this question in group as you are not an editor! Clone the book to edit!"})
 
@@ -104,7 +107,7 @@ def apiAddQuestion():
         t = cur.fetchall()
         for tt in t:
             uid = tt[0]
-            if uid == userId:
+            if uid == userId or uid < 0:
                 continue
             wbid = tt[1]
 
@@ -146,8 +149,11 @@ def apiEditQuestion():
     d = cur.fetchall()
     if len(d) != 0:
         groupId = d[0][0]
+        isEditor = 0
         cur.execute(f"SELECT isEditor FROM GroupMember WHERE groupId = {groupId} AND userId = {userId}")
-        isEditor = cur.fetchall()[0][0]
+        tt = cur.fetchall()
+        if len(tt) > 0:
+            isEditor = tt[0][0]
         if isEditor == 0:
             return json.dumps({"success": False, "msg": "You are not allowed to edit this question in group as you are not an editor! Clone the book to edit!"})
 
@@ -172,7 +178,7 @@ def apiEditQuestion():
             t = cur.fetchall()
             for tt in t:
                 uid = tt[0]
-                if uid == userId:
+                if uid == userId or uid < 0:
                     continue
                 wid = tt[1]
                 cur.execute(f"UPDATE QuestionList SET question = '{question}' WHERE userId = {uid} AND questionId = {wid}")
@@ -201,8 +207,11 @@ def apiDeleteQuestion():
         d = cur.fetchall()
         if len(d) != 0:
             groupId = d[0][0]
+            isEditor = 0
             cur.execute(f"SELECT isEditor FROM GroupMember WHERE groupId = {groupId} AND userId = {userId}")
-            isEditor = cur.fetchall()[0][0]
+            tt = cur.fetchall()
+            if len(tt) > 0:
+                isEditor = tt[0][0]
             if isEditor == 0:
                 return json.dumps({"success": False, "msg": "You are not allowed to edit this question in group as you are not an editor! Clone the book to edit!"})
 
@@ -226,7 +235,7 @@ def apiDeleteQuestion():
             t = cur.fetchall()
             for tt in t:
                 uid = tt[0]
-                if uid == userId:
+                if uid == userId or uid < 0:
                     continue
                 wid = tt[1]
                 cur.execute(f"DELETE FROM QuestionList WHERE userId = {uid} AND questionId = {wid}")

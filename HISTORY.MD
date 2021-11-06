@@ -1,5 +1,16 @@
 # Update History
 
+## v5.1.5
+
+*Date: 2021/11/6*  
+1.Added function for user to press enter to submit modal form  
+2.Added refresh button for user to update data without refreshing the page  
+3.Added UI for admin cli  
+4.Added user list table for admin  
+5.Made table rows colorful  
+6.Added login protection to prevent brute force password attack  
+7.Moved in-memory variables to database for better mutli-threading (gunicorn)  
+
 ## v5.1.4  
 
 *Date: 2021/11/6*  

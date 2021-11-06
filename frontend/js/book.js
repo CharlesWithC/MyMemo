@@ -72,11 +72,13 @@ function MapQuestionList() {
     }
 }
 
-function UpdateQuestionList(doasync = true) {
+function RefreshQuestionList(show401 = false) {
+    $("#refresh-btn").html('<i class="fa fa-refresh fa-spin"></i>');
+    // Update list
     $.ajax({
         url: "/api/book/questionList",
         method: 'POST',
-        async: doasync,
+        async: true,
         dataType: "json",
         data: {
             userId: localStorage.getItem("userId"),
@@ -84,25 +86,38 @@ function UpdateQuestionList(doasync = true) {
         },
         success: function (r) {
             questionList = r;
-            localStorage.setItem("questionList", JSON.stringify(questionList));
+            localStorage.setItem("question-list", JSON.stringify(questionList));
             MapQuestionList();
-        }
-    });
-}
-
-function UpdateBookList(doasync = true) {
-    $.ajax({
-        url: "/api/book",
-        method: 'POST',
-        async: doasync,
-        dataType: "json",
-        data: {
-            userId: localStorage.getItem("userId"),
-            token: localStorage.getItem("token")
+            $.ajax({
+                url: "/api/book",
+                method: 'POST',
+                async: true,
+                dataType: "json",
+                data: {
+                    userId: localStorage.getItem("userId"),
+                    token: localStorage.getItem("token")
+                },
+                success: function (r) {
+                    bookList = r;
+                    localStorage.setItem("book-list", JSON.stringify(bookList));
+                    MapQuestionList();
+                    SelectQuestions();
+                    UpdateTable();
+                    $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
+                },
+                error: function (r) {
+                    if (r.status == 401 && show401) {
+                        $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
+                        SessionExpired();
+                    }
+                }
+            });
         },
-        success: function (r) {
-            bookList = r;
-            localStorage.setItem("book-list", JSON.stringify(bookList));
+        error: function (r) {
+            if (r.status == 401 && show401) {
+                $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
+                SessionExpired();
+            }
         }
     });
 }
@@ -116,7 +131,7 @@ function SelectQuestions() {
             $(".book-data-div").show();
 
             bookName = bookList[i].name;
-            $(".title").html(bookName);
+            $(".title").html(bookName + '&nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-refresh"></i></button>');
             $("title").html("My Memo - " + bookName);
             bookShareCode = bookList[i].shareCode;
             if (bookShareCode == "") {
@@ -143,21 +158,26 @@ function SelectQuestions() {
                 $(".not-for-all-questions").show();
             }
             if (groupId == -1) {
-                $(".only-group-owner").show();
-                $(".only-group-editor").show();
+                $(".only-group-owner").hide();
                 $(".only-group-exist").hide();
                 $(".only-group-inexist").show();
+                $(".only-group-owner-if-group-exist").show();
+                $(".only-group-editor-if-group-exist").show();
             } else {
                 $(".only-group-exist").show();
                 $(".only-group-inexist").hide();
-                $(".only-group-owner").hide();
+                
                 if (isGroupOwner) {
                     $(".only-group-owner").show();
+                    $(".only-group-owner-if-group-exist").show();
+                } else {
+                    $(".only-group-owner").hide();
+                    $(".only-group-owner-if-group-exist").hide();
                 }
                 if (isGroupEditor) {
-                    $(".only-group-editor").show();
+                    $(".only-group-editor-if-group-exist").show();
                 } else if (!isGroupEditor && !isGroupOwner) {
-                    $(".only-group-editor").hide();
+                    $(".only-group-editor-if-group-exist").hide();
                 }
             }
             selectedQuestionList = [];
@@ -195,10 +215,10 @@ function UpdateTable() {
             [l[selectedQuestionList[i].status]]
         ]).node().id = selectedQuestionList[i].questionId;
     }
-
     table.draw();
+
     if (localStorage.getItem("settings-theme") == "dark") {
-        $("td").attr("style", "background-color:#333333");
+        $("#questionList tr").attr("style", "background-color:#333333");
     }
 }
 
@@ -216,7 +236,7 @@ function PageInit() {
     ]);
     table.draw();
     if (localStorage.getItem("settings-theme") == "dark") {
-        $("td").attr("style", "background-color:#333333");
+        $("#questionList tr").attr("style", "background-color:#333333");
     }
     table.clear();
 
@@ -267,39 +287,7 @@ function PageInit() {
         UpdateTable();
     }
 
-    // Update list
-    $.ajax({
-        url: "/api/book/questionList",
-        method: 'POST',
-        async: true,
-        dataType: "json",
-        data: {
-            userId: localStorage.getItem("userId"),
-            token: localStorage.getItem("token")
-        },
-        success: function (r) {
-            questionList = r;
-            localStorage.setItem("question-list", JSON.stringify(questionList));
-            MapQuestionList();
-            $.ajax({
-                url: "/api/book",
-                method: 'POST',
-                async: true,
-                dataType: "json",
-                data: {
-                    userId: localStorage.getItem("userId"),
-                    token: localStorage.getItem("token")
-                },
-                success: function (r) {
-                    bookList = r;
-                    localStorage.setItem("book-list", JSON.stringify(bookList));
-                    MapQuestionList();
-                    SelectQuestions();
-                    UpdateTable();
-                }
-            });
-        }
-    });
+    RefreshQuestionList();
 }
 
 var editQuestionId = -1;
@@ -438,8 +426,19 @@ function ShowQuestionDatabase() {
         ]).node().id = questionList[i].questionId;
     }
     table.draw();
+    for (var i = 0; i < questionList.length; i++) {
+        if (questionList[i].status == "Tagged") {
+            $("#" + questionList[i].questionId).attr("style", "color: red");
+        } else if (questionList[i].status == "Deleted") {
+            if (localStorage.getItem("settings-theme") == "dark") {
+                $("#" + questionList[i].questionId).attr("style", "color: lightgray");
+            } else {
+                $("#" + questionList[i].questionId).attr("style", "color: gray");
+            }
+        }
+    }
     if (localStorage.getItem("settings-theme") == "dark") {
-        $("td").attr("style", "background-color:#333333");
+        $("#questionList tr").attr("style", "background-color:#333333");
     }
 }
 
@@ -529,11 +528,7 @@ function AddQuestion() {
 
                 $("#editQuestionModal").modal('toggle');
 
-                UpdateQuestionList(false);
-                UpdateBookList(false);
-                MapQuestionList();
-                SelectQuestions();
-                UpdateTable();
+                RefreshQuestionList();
             } else {
                 new Noty({
                     theme: 'mint',
@@ -623,11 +618,7 @@ function RemoveQuestion() {
 
                 $("#deleteQuestionModal").modal('toggle');
 
-                UpdateQuestionList(false);
-                UpdateBookList(false);
-                MapQuestionList();
-                SelectQuestions();
-                UpdateTable();
+                RefreshQuestionList();
             } else {
                 new Noty({
                     theme: 'mint',
@@ -717,7 +708,7 @@ function BookRename() {
             if (r.success == true) {
                 bookName = newName;
                 $(".book-name").html(bookName);
-                $(".title").html(bookName);
+                $(".title").html(bookName + '&nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-refresh"></i></button>');
                 $("title").html("My Memo - " + bookName);
                 new Noty({
                     theme: 'mint',
@@ -947,7 +938,8 @@ function CreateGroup() {
                         $(".only-group-exist").show();
                         $(".only-group-inexist").hide();
                         $(".only-group-owner").show();
-                        $(".only-group-editor").show();
+                        $(".only-group-owner-if-group-exist").show();
+                        $(".only-group-editor-if-group-exist").show();
 
                         localStorage.setItem("book-list", JSON.stringify(bookList));
                         break;
@@ -1015,7 +1007,8 @@ function QuitGroup() {
                         $(".only-group-exist").show();
                         $(".only-group-inexist").hide();
                         $(".only-group-owner").show();
-                        $(".only-group-editor").show();
+                        $(".only-group-owner-if-group-exist").show();
+                        $(".only-group-editor-if-group-exist").show();
 
                         localStorage.setItem("book-list", JSON.stringify(bookList));
                         localStorage.setItem("groupId", "-1");
@@ -1089,13 +1082,14 @@ function GroupInfoUpdate() {
                         bookName = gname;
 
                         $(".book-name").html(bookName);
-                        $(".title").html(bookName);
+                        $(".title").html(bookName + '&nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-refresh"></i></button>');
                         $("title").html("My Memo - " + bookName);
                         $("#groupCode").html(groupCode);
                         $(".only-group-exist").show();
                         $(".only-group-inexist").hide();
                         $(".only-group-owner").show();
-                        $(".only-group-editor").show();
+                        $(".only-group-owner-if-group-exist").show();
+                        $(".only-group-editor-if-group-exist").show();
 
                         localStorage.setItem("book-list", JSON.stringify(bookList));
                         localStorage.setItem("groupId", "-1");
@@ -1280,16 +1274,6 @@ function deselectAll() {
 
 function UpdateBookDisplay() {
     $(".book").remove();
-    $(".book-list").append('<div class="book">\
-        <p>Create Book: </p>\
-        <div class="input-group mb-3 w-75">\
-            <span class="input-group-text" id="basic-addon1">Name</span>\
-            <input type="text" class="form-control" id="create-book-name" aria-describedby="basic-addon1">\
-            <div class="input-group-append">\
-                <button class="btn btn-outline-primary" type="button" onclick="CreateBook()">Create</button>\
-            </div>\
-        </div>\
-        </div>');
     for (var i = 0; i < bookList.length; i++) {
         book = bookList[i];
         wcnt = "";
@@ -1326,6 +1310,23 @@ function OpenBook(bookId) {
 function SelectBook(bookId) {
     localStorage.setItem("memo-book-id", bookId);
     UpdateBookDisplay();
+}
+
+function UpdateBookList(doasync = true) {
+    $.ajax({
+        url: "/api/book",
+        method: 'POST',
+        async: doasync,
+        dataType: "json",
+        data: {
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            bookList = r;
+            localStorage.setItem("book-list", JSON.stringify(bookList));
+        }
+    });
 }
 
 function CreateBook() {
@@ -1398,6 +1399,10 @@ function SignOut() {
     localStorage.removeItem("userid");
     localStorage.removeItem("username");
     localStorage.removeItem("token");
+    localStorage.removeItem("memo-question-id");
+    localStorage.removeItem("memo-book-id");
+    localStorage.removeItem("book-list");
+    localStorage.removeItem("question-list");
 
     $("#navusername").html("Sign in");
 

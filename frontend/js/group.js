@@ -6,6 +6,7 @@ var groupId = -1;
 var bookId = -1;
 var bookName = "";
 var selected = [];
+var member = [];
 
 function SessionExpired() {
     new Noty({
@@ -41,6 +42,8 @@ function getUrlParameter(sParam) {
 };
 
 function UpdateGroupMember() {
+    $("#refresh-btn").html('<i class="fa fa-refresh fa-spin"></i>');
+
     table = $("#memberList").DataTable();
     table.clear();
     table.row.add([
@@ -48,9 +51,7 @@ function UpdateGroupMember() {
         [""],
     ]);
     table.draw();
-    if (localStorage.getItem("settings-theme") == "dark") {
-        $("td").attr("style", "background-color:#333333");
-    }
+    $("tr").attr("style", "background-color:#333333");
     table.clear();
 
     $.ajax({
@@ -65,15 +66,17 @@ function UpdateGroupMember() {
         },
         success: function (r) {
             bookName = r.name;
-            if(r.isOwner){
+            member = r.member;
+            
+            if (r.isOwner) {
                 $(".manage").show();
-                $(".member").attr("style","position:relative;width:55%;float:left;");
+                $(".member").attr("style", "position:relative;width:55%;float:left;");
             } else {
                 $(".manage").hide();
-                $(".member").attr("style","width:100%");
+                $(".member").attr("style", "width:100%");
             }
             $("title").html("My Memo - " + bookName);
-            $(".title").html(bookName);
+            $(".title").html(bookName + '&nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="UpdateGroupMember()" id="refresh-btn"><i class="fa fa-refresh"></i></button>');
 
             $("#groupDescription").html(r.description.replaceAll("\n", "<br>"));
 
@@ -84,9 +87,9 @@ function UpdateGroupMember() {
                 ]).node().id = r.member[i].userId;
             }
             table.draw();
-            if (localStorage.getItem("settings-theme") == "dark") {
-                $("td").attr("style", "background-color:#333333");
-            }
+            $("tr").attr("style", "background-color:#333333");
+
+            $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
         },
         error: function (r) {
             table.row.add([
@@ -94,9 +97,9 @@ function UpdateGroupMember() {
                 [""],
             ]);
             table.draw();
-            if (localStorage.getItem("settings-theme") == "dark") {
-                $("td").attr("style", "background-color:#333333");
-            }
+            $("tr").attr("style", "background-color:#333333");
+
+            $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
         }
     });
 
@@ -170,13 +173,12 @@ function PageInit() {
     // Update username
     if (localStorage.getItem("username") != null && localStorage.getItem("username") != "") {
         username = localStorage.getItem("username");
-        if(username.length <= 16){
+        if (username.length <= 16) {
             $("#navusername").html(username);
         } else {
             $("#navusername").html("Account");
         }
-    }
-    else{
+    } else {
         $.ajax({
             url: "/api/user/info",
             method: 'POST',
@@ -187,14 +189,14 @@ function PageInit() {
                 token: localStorage.getItem("token")
             },
             success: function (r) {
-                if(r.username.length <= 16){
+                if (r.username.length <= 16) {
                     $("#navusername").html(r.username);
                 } else {
                     $("#navusername").html("Account");
                 }
                 localStorage.setItem("username", r.username);
             },
-            error: function(r){
+            error: function (r) {
                 $("#navusername").html("Sign in");
                 localStorage.setItem("username", "");
             }
@@ -219,6 +221,10 @@ function SignOut() {
     localStorage.removeItem("userid");
     localStorage.removeItem("username");
     localStorage.removeItem("token");
+    localStorage.removeItem("memo-question-id");
+    localStorage.removeItem("memo-book-id");
+    localStorage.removeItem("book-list");
+    localStorage.removeItem("question-list");
 
     $("#navusername").html("Sign in");
 

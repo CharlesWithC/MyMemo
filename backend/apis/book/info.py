@@ -63,14 +63,20 @@ def apiGetBook():
         gcode = ""
         if len(t) != 0:
             groupId = t[0][0]
+            gcode = "@pvtgroup"
             cur.execute(f"SELECT groupCode FROM GroupInfo WHERE groupId = {groupId}")
-            gcode = "@" + cur.fetchall()[0][0]
+            tt = cur.fetchall()
+            if len(tt) > 0:
+                gcode = "@" + tt[0][0]
         
         isGroupOwner = False
         isGroupEditor = False
         if groupId != -1:
+            owner = 0
             cur.execute(f"SELECT owner FROM GroupInfo WHERE groupId = {groupId}")
-            owner = cur.fetchall()[0][0]
+            tt = cur.fetchall()
+            if len(tt) > 0:
+                owner = tt[0][0]
             if owner == userId:
                 isGroupOwner = True
                 isGroupEditor = True

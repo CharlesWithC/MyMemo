@@ -60,6 +60,56 @@ def adminRestart():
     os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
     sys.exit(0)
 
+@app.route("/api/admin/userList", methods = ['POST'])
+def apiAdminUserList():
+    cur = conn.cursor()
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
+        abort(401)
+        
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    if not validateToken(userId, token):
+        abort(401)
+
+    cur.execute(f"SELECT userId FROM AdminList WHERE userId = {userId}")
+    if len(cur.fetchall()) == 0:
+        abort(401)
+
+    cur.execute(f"SELECT userId FROM AdminList")
+    admins = cur.fetchall()
+    
+    cur.execute(f"SELECT userId, username, email, inviter, inviteCode FROM UserInfo")
+    d = cur.fetchall()
+    users = []
+    for dd in d:
+        status = "Active"
+        if dd[0] < 0:
+            status = "Banned"
+        if dd[1] == "@deleted":
+            status = "Deleted"
+        if sessions.checkDeletionMark(dd[0]):
+            status = "Deactivated"
+        
+        if (dd[0],) in admins:
+            status = "Admin"
+        
+        inviterUsername = "Unknown"
+        cur.execute(f"SELECT username FROM UserInfo WHERE userId = {dd[3]}")
+        t = cur.fetchall()
+        if len(t) != 0:
+            inviterUsername = t[0][0]
+
+        regts = 0
+        cur.execute(f"SELECT timestamp FROM UserEvent WHERE userId = {dd[0]} AND event = 'register'")
+        t = cur.fetchall()
+        if len(t) > 0:
+            regts = t[0][0]
+        age = math.ceil((time.time() - regts) / 86400)
+
+        users.append({"userId": dd[0], "username": dd[1], "email": dd[2], "inviter": f"{inviterUsername} (UID: {dd[3]})", "inviteCode": dd[4], "age": age, "status": status})
+
+    return json.dumps(users)
+
 @app.route("/api/admin/command", methods = ['POST'])
 def apiAdminCommand():
     cur = conn.cursor()
@@ -96,14 +146,23 @@ def apiAdminCommand():
         
         d = d[0]
 
+        inviter = "Unknown"
         cur.execute(f"SELECT username FROM UserInfo WHERE userId = {d[3]}")
-        inviter = cur.fetchall()[0][0]
+        t = cur.fetchall()
+        if len(t) > 0:
+            inviter = t[0][0]
 
+        cnt = 0
         cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {uid}")
-        cnt = cur.fetchall()[0][0]
+        t = cur.fetchall()
+        if len(t) > 0:
+            cnt = t[0][0]
 
+        regts = 0
         cur.execute(f"SELECT timestamp FROM UserEvent WHERE userId = {uid} AND event = 'register'")
-        regts = cur.fetchall()[0][0]
+        t = cur.fetchall()
+        if len(t) > 0:
+            regts = t[0][0]
         age = math.ceil((time.time() - regts) / 86400)
 
         msg = ""
@@ -111,7 +170,7 @@ def apiAdminCommand():
             msg += "Account has been banned\n"
         
         if sessions.CheckDeletionMark(uid):
-            msg += "Account disabled and marked for deletion\n"
+            msg += "Account deactivated! and marked for deletion\n"
 
         return json.dumps({"success": True, "msg": f"{d[0]} (UID: {uid})\nEmail: {d[1]}\nInvitation Code: {d[2]}\nInviter: {inviter} (UID: {d[3]})\nQuestion Count: {cnt}\nAccount age: {age} day(s)\n{msg}"})
     
@@ -140,7 +199,9 @@ def apiAdminCommand():
         uid = 1
         try:
             cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 1")
-            uid = cur.fetchall()[0][0]
+            t = cur.fetchall()
+            if len(t) > 0:
+                uid = t[0][0]
             cur.execute(f"UPDATE IDInfo SET nextId = {uid + 1} WHERE type = 1")
 
             cur.execute(f"INSERT INTO UserInfo VALUES ({uid}, '{username}', '{email}', '{encode(password)}', {inviter}, '{inviteCode}')")
@@ -175,6 +236,8 @@ def apiAdminCommand():
             cur.execute(f"DELETE FROM ChallengeData WHERE userId = {uid}")
             cur.execute(f"DELETE FROM ChallengeRecord WHERE userId = {uid}")
             cur.execute(f"DELETE FROM StatusUpdate WHERE userId = {uid}")
+            conn.commit()
+            
             return json.dumps({"success": False, "msg": "Account deleted"})
     
     elif command[0] == "set_previlege":

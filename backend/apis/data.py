@@ -15,6 +15,7 @@ import io
 from app import app, config
 from functions import *
 import sessions
+import tempdb
 
 
 ##########
@@ -122,8 +123,11 @@ def importData():
         answer = str(newlist['Answer'][i]).replace("\\n","\n")
 
         if question in importDuplicate and updateType == "overwrite":
+            wid = -1
             cur.execute(f"SELECT questionId FROM QuestionList WHERE userId = {userId} AND question = '{encode(question)}'")
-            wid = cur.fetchall()[0][0] # do not use questionId as variable name or it will cause conflict
+            t = cur.fetchall()
+            if len(t) > 0:
+                wid = t[0][0]
             cur.execute(f"UPDATE QuestionList SET answer = '{encode(answer)}' WHERE questionId = {wid} AND userId = {userId}")
             if list(newlist.keys()).count("Status") == 1 and newlist["Status"][i] in ["Default", "Tagged", "Removed"]:
                 status = StatusTextToStatus[newlist["Status"][i]]
@@ -159,7 +163,6 @@ def importData():
 
     return "Data imported successfully!"
 
-dltoken = {}
 @app.route("/api/data/export", methods = ['POST'])
 def exportData():
     cur = conn.cursor()
@@ -173,16 +176,21 @@ def exportData():
     
     exportType = request.form["exportType"]
     tk = str(uuid.uuid4())
-    dltoken[tk] = (userId, exportType, int(time.time()))
+    tempdb.cur.execute(f"INSERT INTO DataDownloadToken VALUES ({userId}, '{exportType}', {int(time.time())}, '{tk}')")
+    tempdb.conn.commit()
 
     return json.dumps({"success": True, "token": tk})
 
 queue = []
 @app.route("/download", methods = ['GET'])
 def download():
-    global dltoken
     token = request.args.get("token")
-    if not token in dltoken.keys():
+    if not token.replace("-").isalnum():
+        abort(404)
+    
+    tempdb.cur.execute(f"SELECT * FROM DataDownloadToken WHERE token = '{token}'")
+    d = tempdb.cur.fetchall()
+    if len(d) == 0:
         abort(404)
     
     if config.max_concurrent_download != -1 and len(queue) > config.max_concurrent_download:
@@ -190,10 +198,11 @@ def download():
     
     queue.append(token)
     
-    userId = dltoken[token][0]
-    exportType = dltoken[token][1]
-    ts = dltoken[token][2]
-    del dltoken[token]
+    userId = d[0][0]
+    exportType = d[0][1]
+    ts = d[0][2]
+    tempdb.cur.execute(f"DELETE FROM DataDownloadToken WHERE token = '{token}'")
+    tempdb.conn.commit()
 
     if int(time.time()) - ts > 1800: # 10 minutes
         abort(404)
@@ -295,11 +304,9 @@ def download():
         return send_file(buf, as_attachment=True, attachment_filename='MyMemo_Export_AllData.xlsx', mimetype='application/octet-stream')
 
 def ClearOutdatedDLToken():
-    global dltoken
     while 1:
-        for token in dltoken.keys():
-            if int(time.time()) - dltoken[token][2] > 1800:
-                del dltoken[token]
+        tempdb.cur.execute(f"DELETE FROM DataDownloadToken WHERE ts <= {int(time.time()) - 1800}")
+        tempdb.conn.commit()
         time.sleep(600)
 
 threading.Thread(target=ClearOutdatedDLToken).start()

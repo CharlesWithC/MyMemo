@@ -61,8 +61,11 @@ def apiAddToBook():
     d = cur.fetchall()
     if len(d) != 0:
         groupId = d[0][0]
+        isEditor = 0
         cur.execute(f"SELECT isEditor FROM GroupMember WHERE groupId = {groupId} AND userId = {userId}")
-        isEditor = cur.fetchall()[0][0]
+        t = cur.fetchall()
+        if len(t) > 0:
+            isEditor = t[0][0]
         if isEditor == 0:
             return json.dumps({"success": False, "msg": "You are not allowed to edit this question in group as you are not an editor! Clone the book to edit!"})
     
@@ -79,8 +82,14 @@ def apiAddToBook():
             t.append((questionId,))
 
             if groupId != -1:
+                p = None
                 cur.execute(f"SELECT question, answer FROM QuestionList WHERE userId = {userId} AND questionId = {questionId}")
-                p = cur.fetchall()[0]
+                tt = cur.fetchall()
+                if len(tt) > 0:
+                    p = tt[0][0]
+                else:
+                    continue
+
                 question = p[0]
                 answer = p[1]
 
@@ -100,7 +109,7 @@ def apiAddToBook():
                 t = cur.fetchall()
                 for tt in t:
                     uid = tt[0]
-                    if uid == userId:
+                    if uid == userId or uid < 0:
                         continue
                     wbid = tt[1]
 
@@ -146,8 +155,11 @@ def apiDeleteFromBook():
     d = cur.fetchall()
     if len(d) != 0:
         groupId = d[0][0]
+        isEditor = 0
         cur.execute(f"SELECT isEditor FROM GroupMember WHERE groupId = {groupId} AND userId = {userId}")
-        isEditor = cur.fetchall()[0][0]
+        tt = cur.fetchall()
+        if len(tt) > 0:
+            isEditor = tt[0][0]
         if isEditor == 0:
             return json.dumps({"success": False, "msg": "You are not allowed to edit this question in group as you are not an editor! Clone the book to edit!"})
 
@@ -170,7 +182,7 @@ def apiDeleteFromBook():
                 t = cur.fetchall()
                 for tt in t:
                     uid = tt[0]
-                    if uid == userId:
+                    if uid == userId or uid < 0:
                         continue
                     wid = tt[1]
                     cur.execute(f"DELETE FROM QuestionList WHERE userId = {uid} AND questionId = {wid}")

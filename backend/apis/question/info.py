@@ -18,8 +18,12 @@ import sessions
 
 def getQuestionCount(userId):
     cur = conn.cursor()
+    q = 0
     cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {userId}")
-    return cur.fetchall()[0][0]
+    d = cur.fetchall()
+    if len(d) > 0:
+        q = d[0][0]
+    return q
 
 def validateToken(userId, token):
     cur = conn.cursor()

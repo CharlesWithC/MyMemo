@@ -34,8 +34,8 @@
             </div>');
             $("#questionList_filter > label > input").addClass("form-control");
             $("#questionList_filter > label > input").appendTo("#qf");
-            $("#questionList_filter").attr("id","qqf");
-            $("#qf").attr("id","questionList_filter");
+            $("#questionList_filter").attr("id", "qqf");
+            $("#qf").attr("id", "questionList_filter");
             $("#qqf").remove();
 
             if (localStorage.getItem("settings-theme") == "dark") {
@@ -43,14 +43,17 @@
                 $("textarea").attr("style", "color:#ffffff;background-color:#333333");
                 $(".modal-content").attr("style", "background-color:#333333");
                 $(".fa-times").attr("style", "color:white");
-                $("#questionList_length").attr("style","color:white");
+                $("#questionList_length").attr("style", "color:white");
 
                 $("#questionList_length").append(
-                    '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="selectAll();" href="#" style="color:white">Select All</a>');
+                    '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="selectAll();" href="#" style="color:white">Select All</a>'
+                );
                 $("#questionList_length").append(
-                    '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="deselectAll();" href="#" style="color:white">Deselect All</a>');
+                    '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="deselectAll();" href="#" style="color:white">Deselect All</a>'
+                );
                 $("#questionList_length").append(
-                    '<a class="manage" style="color:white">&nbsp;&nbsp;|&nbsp;&nbsp;Double click question to edit<p>');
+                    '<a class="manage" style="color:white">&nbsp;&nbsp;|&nbsp;&nbsp;Double click question to edit<p>'
+                );
             } else {
                 $("#questionList_length").append(
                     '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="selectAll();" href="#">Select All</a>');
@@ -59,6 +62,50 @@
                 $("#questionList_length").append(
                     '<a class="manage">&nbsp;&nbsp;|&nbsp;&nbsp;Double click question to edit<p>');
             }
+
+            if (localStorage.getItem("settings-theme") == "dark") {
+                $("#questionList tr").attr("style", "background-color: #333333");
+                setInterval(function () {
+                    $("#questionList_paginate > a").attr("style", "background-color:#d3d3d3");
+                    $("#questionList_paginate > span > a").attr("style", "background-color:#d3d3d3");
+                    $("#questionList_paginate > span > span").removeClass("ellipsis");
+                    $("#questionList_paginate > span > span").addClass("paginate_button");
+                    $("#questionList_paginate > span > span").css("style", "background-color:#d3d3d3");
+
+                    $("#questionList tr").each(function () {
+                        found = false;
+                        for (var i = 0; i < selected.length; i++) {
+                            if (selected[i] == parseInt(this.id)) {
+                                found = true;
+                            }
+                        }
+                        if (found) {
+                            $(this).css("background-color","#888888");
+                        } else {
+                            $(this).css("background-color","#333333");
+                        }
+                    });
+                }, 100);
+            }
+            setInterval(function () {
+                for (var i = 0; i < selectedQuestionList.length; i++) {
+                        if (selectedQuestionList[i].status == 2) {
+                            $("#" + selectedQuestionList[i].questionId).css("color","red");
+                        } else if (selectedQuestionList[i].status == 3) {
+                            if (localStorage.getItem("settings-theme") == "dark") {
+                                $("#" + selectedQuestionList[i].questionId).css("color","gray");
+                            } else {
+                                $("#" + selectedQuestionList[i].questionId).css("color","lightgray");
+                            }
+                        } else {
+                            if (localStorage.getItem("settings-theme") == "dark") {
+                                $("#" + selectedQuestionList[i].questionId).css("color","white");
+                            } else {
+                                $("#" + selectedQuestionList[i].questionId).css("color","black");
+                            }
+                        }
+                    }
+            }, 100);
 
             PageInit();
 
@@ -80,16 +127,31 @@
                 $(this).toggleClass('selected');
             });
 
-            if(localStorage.getItem("settings-theme") == "dark"){
-                setInterval(function(){
-                    $("td").attr("style", "background-color:#333333");
-                    $("#questionList_paginate > a").attr("style","background-color:#d3d3d3");
-                    $("#questionList_paginate > span > a").attr("style","background-color:#d3d3d3");
-                    $("#questionList_paginate > span > span").removeClass("ellipsis");
-                    $("#questionList_paginate > span > span").addClass("paginate_button");
-                    $("#questionList_paginate > span > span").attr("style","background-color:#d3d3d3");
-                }, 50);
-            }
+            $("#book-rename").on('keypress', function (e) {
+                if (e.which == 13) {
+                    BookRename();
+                }
+            });
+            $("#edit-question,#edit-answer").on('keypress', function (e) {
+                if (e.which == 13) {
+                    EditQuestion();
+                }
+            });
+            $("#group-name,#group-description").on('keypress', function (e) {
+                if (e.which == 13) {
+                    CreateGroup();
+                }
+            });
+            $("#group-delete").on('keypress', function (e) {
+                if (e.which == 13) {
+                    GroupDismiss();
+                }
+            });
+            $("#create-book-name").on('keypress', function (e) {
+                if (e.which == 13) {
+                    CreateBook();
+                }
+            });
         });
     </script>
 
@@ -128,7 +190,16 @@
 
     <div class="book-list-div container" style="display:none">
         <div class="book-list" style="margin:2em;margin-top:0">
-
+            <div>
+                <p>Create Book: </p>
+                <div class="input-group mb-3 w-75">
+                    <span class="input-group-text" id="basic-addon1">Name</span>
+                    <input type="text" class="form-control" id="create-book-name" aria-describedby="basic-addon1">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-primary" type="button" onclick="CreateBook()">Create</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -156,12 +227,12 @@
                         class="fa fa-star"></i></button>
                 <button type="button" class="btn btn-primary" onclick="BookUpdateStatus(3)">Delete <i
                         class="fa fa-trash"></i></button>
-                <div class="only-group-owner">
+                <div class="only-group-editor-if-group-exist">
                     <br>
                     <h5><i class="fa fa-edit"></i> Edit Question</h5>
                     <button type="button" class="btn btn-primary" onclick="EditQuestionFromBtn()">Edit</button>
                 </div>
-                <div class="only-group-editor">
+                <div class="only-group-editor-if-group-exist">
                     <br>
                     <h5><i class="fa fa-plus"></i> Add Question</h5>
                     <button type="button" class="btn btn-primary not-for-all-questions" onclick="ShowQuestionDatabase()"
@@ -171,10 +242,10 @@
                         question</button>
                     <br>
                     <h5><i class="fa fa-minus"></i> Remove Question</h5>
-                    <button type="button" class="btn btn-warning not-for-all-questions" onclick="RemoveFromBook()"
-                        style="display:none">Remove
+                    <button type="button" class="btn btn-outline-warning not-for-all-questions"
+                        onclick="RemoveFromBook()" style="display:none">Remove
                         from book</button>
-                    <button type="button" class="btn btn-danger" onclick="RemoveQuestionShow()">Remove from
+                    <button type="button" class="btn btn-outline-danger" onclick="RemoveQuestionShow()">Remove from
                         database</button>
                     <p style="font-size:0.75em">* "Remove from book" will only unbind selected questions from this book,
                         "Remove from database"
@@ -186,10 +257,10 @@
                 <h4><i class="fa fa-book"></i> Book</h4>
                 <button type="button" class="btn btn-primary not-for-all-questions" onclick="BookClone()">Clone <i
                         class="fa fa-copy"></i></button>
-                <button type="button" class="btn btn-primary not-for-all-questions only-group-owner"
+                <button type="button" class="btn btn-primary not-for-all-questions only-group-owner-if-group-exist"
                     onclick="BookRenameShow()">Rename <i class="fa fa-edit"></i></button>
-                <button type="button" class="btn btn-danger not-for-all-questions" onclick="BookDeleteShow()">Delete <i
-                        class="fa fa-trash"></i></button>
+                <button type="button" class="btn btn-outline-danger not-for-all-questions"
+                    onclick="BookDeleteShow()">Delete <i class="fa fa-trash"></i></button>
                 <hr>
             </div>
             <div>
@@ -205,7 +276,7 @@
 
                 <button type="button" class="btn btn-primary only-group-exist" onclick="GroupMember()">Member <i
                         class="fa fa-list"></i></button>
-                <button type="button" class="btn btn-warning only-group-exist" onclick="QuitGroupShow()">Quit <i
+                <button type="button" class="btn btn-outline-warning only-group-exist" onclick="QuitGroupShow()">Quit <i
                         class="fa fa-sign-out"></i></button>
 
                 <button type="button" class="btn btn-primary only-group-inexist" onclick="CreateGroupShow()">Create
@@ -215,15 +286,16 @@
                     <br>
                     <p>Manage group: </p>
 
-                    <button type="button" class="btn btn-primary only-group-owner"
+                    <button type="button" class="btn btn-primary"
                         onclick="GroupInfoUpdateShow()">Update Information <i class="fa fa-edit"></i></button>
                     <br>
-                    <button type="button" class="btn btn-warning only-group-owner"
+                    <button type="button" class="btn btn-outline-warning"
                         onclick="GroupCodeUpdate('disable')">Make private <i class="fa fa-lock"></i></button>
-                    <button type="button" class="btn btn-primary only-group-owner"
+                    <button type="button" class="btn btn-primary"
                         onclick="GroupCodeUpdate('revoke')">Revoke code <i class="fa fa-undo"></i> </button>
                     <br>
-                    <button type="button" class="btn btn-danger only-group-owner" onclick="GroupDismissShow()">Dismiss
+                    <button type="button" class="btn btn-outline-danger"
+                        onclick="GroupDismissShow()">Dismiss
                         <i class="fa fa-times"></i></button>
                 </div>
             </div>
@@ -258,7 +330,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal"
                         onclick="$('#deleteQuestionModal').modal('toggle')">Cancel</button>
-                    <button type="button" class="btn btn-danger" data-dismiss="modal"
+                    <button type="button" class="btn btn-outline-danger" data-dismiss="modal"
                         onclick="RemoveQuestion()">Remove</button>
                 </div>
             </div>
@@ -284,15 +356,14 @@
                     <p>Type the name of the book <b><span class="book-name"></span></b> to continue:</p>
                     <form>
                         <div class="input-group mb-3 center">
-                            <input type="text" class="form-control" id="book-delete"
-                                aria-describedby="basic-addon1">
+                            <input type="text" class="form-control" id="book-delete" aria-describedby="basic-addon1">
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal"
                         onclick="$('#deleteWBModal').modal('toggle')">Cancel</button>
-                    <button type="button" class="btn btn-danger" data-dismiss="modal"
+                    <button type="button" class="btn btn-outline-danger" data-dismiss="modal"
                         onclick="BookDelete()">Delete</button>
                 </div>
             </div>
@@ -314,8 +385,7 @@
                     <form>
                         <div class="input-group mb-3 center">
                             <span class="input-group-text" id="basic-addon1">Name</span>
-                            <input type="text" class="form-control" id="book-rename"
-                                aria-describedby="basic-addon1">
+                            <input type="text" class="form-control" id="book-rename" aria-describedby="basic-addon1">
                         </div>
                     </form>
                 </div>
@@ -413,7 +483,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal"
                         onclick="$('#quitGroupModal').modal('toggle')">Cancel</button>
-                    <button type="button" class="btn btn-danger" data-dismiss="modal"
+                    <button type="button" class="btn btn-outline-danger" data-dismiss="modal"
                         onclick="QuitGroup()">Quit</button>
                 </div>
             </div>
@@ -449,7 +519,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal"
                         onclick="$('#dismissGroupModal').modal('toggle')">Cancel</button>
-                    <button type="button" class="btn btn-danger" data-dismiss="modal"
+                    <button type="button" class="btn btn-outline-danger" data-dismiss="modal"
                         onclick="GroupDismiss()">Dismiss</button>
                 </div>
             </div>
@@ -457,11 +527,11 @@
     </div>
 
     <div class="footer">
-        <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/" style="color:#ffffff">Charles</a></p>
-        <p>Version: v5.1.4 <i class="fa fa-check-circle"></i></p>
-        <p>Contact: <a href="mailto:memo@charles14.xyz" style="color:#ffffff">memo@charles14.xyz</a></p>
+        <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
+        <p>Version: v5.1.5 <i class="fa fa-check-circle"></i></p>
+        <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
-            <a href="https://github.com/Charles-1414/MyMemo" style="color:#ffffff"><i class="fa fa-github"></i>
+            <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>
                 GitHub</a>
         </p>
         <p>Your privacy is valued. No 3rd party script is used. No cookie is used. All your local data is stored in

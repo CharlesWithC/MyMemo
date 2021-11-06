@@ -27,12 +27,30 @@
                         Login();
                     }
                 });
+                $("#update-username,#update-email").on('keypress', function (e) {
+                    if (e.which == 13) {
+                        UpdateUserProfile();
+                    }
+                });
+                $("#oldpwd,#newpwd,#cfmpwd").on('keypress', function (e) {
+                    if (e.which == 13) {
+                        ChangePassword();
+                    }
+                });
+                $("#acknowledge-confirm,#delete-password").on('keypress', function (e) {
+                    if (e.which == 13) {
+                        DeleteAccount();
+                    }
+                });
             }
 
             setTimeout(onkeypress, 500);
 
             if (localStorage.getItem("settings-theme") == "dark") {
                 $("body").attr("style", "color:#ffffff;background-color:#333333");
+                $("textarea").attr("style", "color:#ffffff;background-color:#333333");
+                $(".modal-content").attr("style", "background-color:#333333");
+                $(".fa-times").attr("style", "color:white");
             }
         })
     </script>
@@ -90,16 +108,16 @@
             <br>
             <h4>Basic</h4>
             <button type="button" class="btn btn-primary" onclick="UpdateProfileShow()">Update Profile</button>
-            <button type="button" class="btn btn-primary" onclick="ChangepasswordShow()">Change password</button>
+            <button type="button" class="btn btn-primary" onclick="ChangePasswordShow()">Change Password</button>
             <hr>
             <h4>Danger Zone</h4>
-            <button type="button" class="btn btn-danger" onclick="DeleteAccountShow()">Delete Account</button>
+            <button type="button" class="btn btn-outline-danger" onclick="DeleteAccountShow()">Delete Account</button>
             <hr>
             <div class="only-admin" style="display:none">
                 <h4>Admin</h4>
-                <button type="button" class="btn btn-primary" onclick="window.location.href = '/admin/cli'">Command-Line
+                <button type="button" class="btn btn-primary" onclick="window.location.href = '/admin/cli'">Command Line
                     Interface</button>
-                <button type="button" class="btn btn-warning" onclick="RestartServer()">Restart Server</button>
+                <button type="button" class="btn btn-outline-warning" onclick="RestartServer()">Restart Server</button>
             </div>
         </div>
     </div>
@@ -111,15 +129,15 @@
             <input type="text" class="form-control" id="input-username" aria-describedby="basic-addon1">
         </div>
         <div class="input-group mb-3 w-25 center">
-            <span class="input-group-text" id="basic-addon1">password</span>
+            <span class="input-group-text" id="basic-addon1">Password</span>
             <input type="password" class="form-control" id="input-password" aria-describedby="basic-addon1">
         </div>
         <div class="center" style="width:30%">
-            <a href="#" onclick="$('.login').hide();$('.register').show();" style="float:right">Register</a>
+            <a href="#" onclick="$('.login').hide();$('.register').show();" style="float:right">Sign up</a>
         </div>
         <br>
         <button id="login-btn" type="button" class="btn btn-primary" style="position:relative;width:10em;margin-top:1em"
-            onclick="Login()">Login</button>
+            onclick="Login()">Sign in</button>
     </div>
 
     <div class="register center" style="top:5%;margin-bottom:10em;display:none">
@@ -133,7 +151,7 @@
             <input type="text" class="form-control" id="register-email" aria-describedby="basic-addon1">
         </div>
         <div class="input-group mb-3 w-25 center">
-            <span class="input-group-text" id="basic-addon1">password</span>
+            <span class="input-group-text" id="basic-addon1">Password</span>
             <input type="password" class="form-control" id="register-password" aria-describedby="basic-addon1">
         </div>
         <div class="input-group mb-3 w-25 center">
@@ -141,11 +159,11 @@
             <input type="text" class="form-control" id="register-inviteCode" aria-describedby="basic-addon1">
         </div>
         <div class="center" style="width:30%">
-            <a href="#" onclick="$('.login').show();$('.register').hide();" style="float:right">Login</a>
+            <a href="#" onclick="$('.login').show();$('.register').hide();" style="float:right">Sign in</a>
         </div>
         <br>
         <button id="login-btn" type="button" class="btn btn-primary" style="position:relative;width:10em;margin-top:1em"
-            onclick="Register()">Register</button>
+            onclick="Register()">Sign up</button>
     </div>
 
     <div class="modal fade" id="updateProfileModal" tabindex="-1" role="dialog"
@@ -187,7 +205,7 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="changepasswordModalLabel"><i class="fa fa-edit"></i>Change password</h5>
+                    <h5 class="modal-title" id="changepasswordModalLabel"><i class="fa fa-edit"></i>Change Password</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"
                         onclick="$('#changepasswordModal').modal('toggle')">
                         <span aria-hidden=" true"><i class="fa fa-times"></i></span>
@@ -196,17 +214,17 @@
                 <div class="modal-body">
                     <form>
                         <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1">Current password</span>
+                            <span class="input-group-text" id="basic-addon1">Current Password</span>
                             <input type="password" class="form-control" id="oldpwd" aria-describedby="basic-addon1"
                                 style="z-index:100">
                         </div>
                         <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1">New password</span>
+                            <span class="input-group-text" id="basic-addon1">New Password</span>
                             <input type="password" class="form-control" id="newpwd" aria-describedby="basic-addon1"
                                 style="z-index:100">
                         </div>
                         <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1">Repeat new password</span>
+                            <span class="input-group-text" id="basic-addon1">Repeat new Password</span>
                             <input type="password" class="form-control" id="cfmpwd" aria-describedby="basic-addon1"
                                 style="z-index:100">
                         </div>
@@ -215,7 +233,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal"
                         onclick="$('#changepasswordModal').modal('toggle')">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="Changepassword()">Change</button>
+                    <button type="button" class="btn btn-primary" onclick="ChangePassword()">Change</button>
                 </div>
             </div>
         </div>
@@ -245,7 +263,7 @@
                                 aria-describedby="basic-addon1" style="z-index:100">
                         </div>
                         <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1">password</span>
+                            <span class="input-group-text" id="basic-addon1">Password</span>
                             <input type="password" class="form-control" id="delete-password"
                                 aria-describedby="basic-addon1" style="z-index:100">
                         </div>
@@ -261,11 +279,11 @@
     </div>
 
     <div class="footer">
-        <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/" style="color:#ffffff">Charles</a></p>
-        <p>Version: v5.1.4 <i class="fa fa-check-circle"></i></p>
-        <p>Contact: <a href="mailto:memo@charles14.xyz" style="color:#ffffff">memo@charles14.xyz</a></p>
+        <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
+        <p>Version: v5.1.5 <i class="fa fa-check-circle"></i></p>
+        <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
-            <a href="https://github.com/Charles-1414/MyMemo" style="color:#ffffff"><i class="fa fa-github"></i>
+            <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>
                 GitHub</a>
         </p>
         <p>Your privacy is valued. No 3rd party script is used. No cookie is used. All your local data is stored in

@@ -54,8 +54,11 @@ def apiGroup():
         name = encode(request.form["name"])
         description = encode(request.form["description"])
 
+        groupId = 1
         cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 4")
-        groupId = cur.fetchall()[0][0]
+        t = cur.fetchall()
+        if len(t) > 0:
+            groupId = t[0][0]
         cur.execute(f"UPDATE IDInfo SET nextId = {groupId + 1} WHERE type = 4")
 
         lmt = config.max_group_member
@@ -83,9 +86,13 @@ def apiGroup():
 
             questionId = question[0]
             cur.execute(f"SELECT question, answer FROM QuestionList WHERE userId = {userId} AND questionId = {questionId}")
-            d = cur.fetchall()[0]
-            cur.execute(f"INSERT INTO GroupQuestion VALUES ({groupId}, {gquestionId}, '{d[0]}', '{d[1]}')")
-            cur.execute(f"INSERT INTO GroupSync VALUES ({groupId}, {userId}, {questionId}, {gquestionId})")
+            t = cur.fetchall()
+            if len(t) > 0:
+                d = t[0]
+                cur.execute(f"INSERT INTO GroupQuestion VALUES ({groupId}, {gquestionId}, '{d[0]}', '{d[1]}')")
+                cur.execute(f"INSERT INTO GroupSync VALUES ({groupId}, {userId}, {questionId}, {gquestionId})")
+            else:
+                continue
             gquestionId += 1
         
         conn.commit()
@@ -202,11 +209,21 @@ def apiGroupMember():
     cur.execute(f"SELECT groupQuestionId FROM GroupQuestion WHERE groupId = {groupId}")
     questions = cur.fetchall()
 
+    info = None
     cur.execute(f"SELECT name, description FROM GroupInfo WHERE groupId = {groupId}")
-    info = cur.fetchall()[0]
+    t = cur.fetchall()
+    if len(t) > 0:
+        info = t[0]
+    else:
+        return json.dumps({"success": False, "msg": "Group not found!"})
 
+    owner = 0
     cur.execute(f"SELECT owner FROM GroupInfo WHERE groupId = {groupId}")
-    owner = cur.fetchall()[0][0]
+    t = cur.fetchall()
+    if len(t) > 0:
+        owner = t[0][0]
+        if owner < 0:
+            return json.dumps({"success": False, "msg": "Group is invisible because its owner is banned."})
     
     isOwner = False
     if owner == userId:
@@ -216,6 +233,9 @@ def apiGroupMember():
     for dd in d:
         uid = dd[0]
         isEditor = dd[1]
+
+        if uid < 0:
+            continue
         
         cur.execute(f"SELECT username FROM UserInfo WHERE userId = {uid}")
         t = cur.fetchall()
@@ -229,8 +249,11 @@ def apiGroupMember():
         elif isEditor:
             username = username + " (Editor)"
         
+        bookId = -1
         cur.execute(f"SELECT bookId FROM GroupBind WHERE groupId = {groupId} AND userId = {uid}")
-        bookId = cur.fetchall()[0][0]
+        t = cur.fetchall()
+        if len(t) > 0:
+            bookId = t[0][0]
         cur.execute(f"SELECT progress FROM BookProgress WHERE userId = {uid} AND bookId = {bookId}")
         p = cur.fetchall()
         pgs = 0
