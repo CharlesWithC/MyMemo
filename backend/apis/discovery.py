@@ -198,7 +198,7 @@ def apiDiscoveryPublish():
         abort(401)
 
     if request.form["title"] == "" or request.form["description"] == "":
-            return json.dumps({"success": False, "msg": "Both fields must be filled!"})
+        return json.dumps({"success": False, "msg": "Both fields must be filled!"})
     
     bookId = int(request.form["bookId"])
     title = encode(request.form["title"])
@@ -270,11 +270,23 @@ def apiDiscoveryUnpublish():
     cur.execute(f"SELECT * FROM Discovery WHERE discoveryId = {discoveryId}")
     if len(cur.fetchall()) == 0:
         return json.dumps({"success": False, "msg": "Book not published!"})
+    
+    # allow admin to unpublish
+    cur.execute(f"SELECT userId FROM AdminList WHERE userId = {userId}")
+    if len(cur.fetchall()) == 0:
+        cur.execute(f"SELECT publisherId FROM Discovery WHERE discoveryId = {discoveryId}")
+        publisherId = 0
+        t = cur.fetchall()
+        if len(t) > 0:
+            publisherId = t[0][0]
+        if publisherId != userId:
+            return json.dumps({"success": False, "msg": "You are not the publisher of this post!"})
+
 
     cur.execute(f"DELETE FROM Discovery WHERE discoveryId = {discoveryId}")
     conn.commit()
 
-    return json.dumps({"success": False, "msg": "Book unpublished!"})
+    return json.dumps({"success": True, "msg": "Book unpublished!"})
 
 @app.route("/api/discovery/update", methods = ['POST'])
 def apiDiscoveryUpdate():
@@ -291,13 +303,19 @@ def apiDiscoveryUpdate():
     title = encode(request.form["title"])
     description = encode(request.form["description"])
 
-    cur.execute(f"SELECT publisherId FROM Discovery WHERE discoveryId = {discoveryId}")
-    publisherId = 0
-    t = cur.fetchall()
-    if len(t) > 0:
-        publisherId = t[0][0]
-    if publisherId != userId:
-        return json.dumps({"success": False, "msg": "You are not the publisher of this post!"})
+    if request.form["title"] == "" or request.form["description"] == "":
+        return json.dumps({"success": False, "msg": "Both fields must be filled!"})
+
+    # allow admin to update
+    cur.execute(f"SELECT userId FROM AdminList WHERE userId = {userId}")
+    if len(cur.fetchall()) == 0:
+        cur.execute(f"SELECT publisherId FROM Discovery WHERE discoveryId = {discoveryId}")
+        publisherId = 0
+        t = cur.fetchall()
+        if len(t) > 0:
+            publisherId = t[0][0]
+        if publisherId != userId:
+            return json.dumps({"success": False, "msg": "You are not the publisher of this post!"})
 
     cur.execute(f"UPDATE Discovery SET title = '{title}' WHERE discoveryId = {discoveryId}")
     cur.execute(f"UPDATE Discovery SET description = '{description}' WHERE discoveryId = {discoveryId}")

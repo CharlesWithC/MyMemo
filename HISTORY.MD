@@ -1,5 +1,10 @@
 # Update History
 
+## v5.2.3
+
+*Date: 2021/11/7*  
+Added function for admins to manage discovery post  
+
 ## v5.2.2
 
 *Date: 2021/11/7*  

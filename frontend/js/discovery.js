@@ -117,8 +117,12 @@ function RefreshDiscovery() {
         },
         success: function (r) {
             discoveryList = r;
-            l = ["", "Book", "Group"]
+            l = ["", "Book", "Group"];
             for (var i = 0; i < discoveryList.length; i++) {
+                btns = '<button class="btn btn-primary btn-sm" type="button" onclick="ShowDiscovery(' + discoveryList[i].discoveryId + ')">Show</button>';
+                if (localStorage.getItem("isAdmin") == "1" || discoveryList[i].publisher == localStorage.getItem("username")) {
+                    btns += '&nbsp;&nbsp;<button id="admin-delete-' + discoveryList[i].discoveryId + '" class="btn btn-outline-danger btn-sm" type="button" onclick="AdminUnpublishDiscoveryConfirm(' + discoveryList[i].discoveryId + ')">Delete</button>';
+                }
                 table.row.add([
                     [discoveryList[i].title],
                     [discoveryList[i].description],
@@ -127,7 +131,7 @@ function RefreshDiscovery() {
                     [discoveryList[i].views],
                     [discoveryList[i].likes],
                     //[discoveryList[i].views + " <i class='fa fa-eye'></i>&nbsp;&nbsp;" + discoveryList[i].likes + "<i class='fa fa-heart' style='color:red'></i>"],
-                    ['<button class="btn btn-primary btn-sm" type="button" onclick="ShowDiscovery(' + discoveryList[i].discoveryId + ')">Show</button>']
+                    [btns]
                 ]);
             }
 
@@ -138,6 +142,61 @@ function RefreshDiscovery() {
             }
 
             $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
+        }
+    });
+}
+
+function AdminUnpublishDiscoveryConfirm(disid) {
+    $("#admin-delete-" + disid).html("Confirm?");
+    $("#admin-delete-" + disid).attr("onclick", "AdminUnpublishDiscovery(" + disid + ");");
+}
+
+function AdminUnpublishDiscovery(disid) {
+    publisher = "";
+    for (var i = 0; i < discoveryList.length; i++) {
+        if (discoveryList[i].discoveryId == disid) {
+            publisher = discoveryList[i].publisher;
+            break;
+        }
+    }
+    if (localStorage.getItem("isAdmin") != "1" && publisher != localStorage.getItem("username")) {
+        return;
+    }
+    $.ajax({
+        url: '/api/discovery/unpublish',
+        method: 'POST',
+        async: false,
+        dataType: "json",
+        data: {
+            discoveryId: disid,
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            if (r.success == true) {
+                RefreshDiscovery();
+
+                new Noty({
+                    theme: 'mint',
+                    text: r.msg,
+                    type: 'success',
+                    layout: 'bottomRight',
+                    timeout: 30000
+                }).show();
+            } else {
+                new Noty({
+                    theme: 'mint',
+                    text: r.msg,
+                    type: 'error',
+                    layout: 'bottomRight',
+                    timeout: 3000
+                }).show();
+            }
+        },
+        error: function (r) {
+            if (r.status == 401) {
+                SessionExpired();
+            }
         }
     });
 }
@@ -177,7 +236,7 @@ function UpdateDiscoveryWordList() {
             $("#shareCode").html(shareCode);
             $("#groupCode").html(shareCode);
 
-            if (r.isPublisher) {
+            if (r.isPublisher || localStorage.getItem("isAdmin") == "1") {
                 $(".publisher-only").show();
             } else {
                 $(".publisher-only").hide();
@@ -314,7 +373,6 @@ function UpdateInformation() {
                     layout: 'bottomRight',
                     timeout: 3000
                 }).show();
-                $('#editPostModal').modal('toggle');
             }
         },
         error: function (r) {

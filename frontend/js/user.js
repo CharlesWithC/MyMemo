@@ -45,6 +45,11 @@ $.ajax({
         user.inviter = r.inviter;
         user.age = r.age;
         user.isAdmin = r.isAdmin;
+        if (user.isAdmin) {
+            localStorage.setItem("isAdmin", 1);
+        } else {
+            localStorage.removeItem("isAdmin");
+        }
 
         $(".user").show();
         $(".title").show();
@@ -136,6 +141,11 @@ function Login() {
                         user.inviter = r.inviter;
                         user.age = r.age;
                         user.isAdmin = r.isAdmin;
+                        if (user.isAdmin) {
+                            localStorage.setItem("isAdmin", 1);
+                        } else {
+                            localStorage.removeItem("isAdmin");
+                        }
                     }
                 });
                 $("#input-username").val("");
@@ -489,7 +499,7 @@ function RestartServer() {
                     layout: 'bottomRight',
                     timeout: 10000
                 }).show();
-                
+
             } else {
                 new Noty({
                     theme: 'mint',

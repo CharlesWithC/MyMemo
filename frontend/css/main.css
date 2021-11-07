@@ -89,7 +89,7 @@ a:hover {
     padding-top: 0.7em;
     padding-left: 1em;
     padding-right: 1em;
-    z-index: 100;
+    z-index: 1000;
 
     background-color: #d3d3d3;
     border: gray;
@@ -111,7 +111,7 @@ a:hover {
     padding-top: 0.7em;
     padding-left: 0.2em;
     padding-bottom: 0.7em;
-    z-index: 100;
+    z-index: 1000;
 
     background-color: #d3d3d3;
     border: gray;
