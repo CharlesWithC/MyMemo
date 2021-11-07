@@ -1,5 +1,10 @@
 # Update History
 
+## v5.2.4
+
+*Date: 2021/11/7*  
+Added group anonymous function supporting Open, Anonymous and Full Anonymous
+
 ## v5.2.3
 
 *Date: 2021/11/7*  

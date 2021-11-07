@@ -79,7 +79,7 @@ cur.execute(f"CREATE TABLE BookData (userId INT, bookId INT, questionId INT)")
 cur.execute(f"CREATE TABLE BookShare (userId INT, bookId INT, shareCode VARCHAR(8))")
 cur.execute(f"CREATE TABLE BookProgress (userId INT, bookId INT, progress INT)")
 
-cur.execute(f"CREATE TABLE GroupInfo (groupId INT, owner INT, name VARCHAR(256), description VARCHAR(1024), memberLimit INT, groupCode VARCHAR(8))")
+cur.execute(f"CREATE TABLE GroupInfo (groupId INT, owner INT, name VARCHAR(256), description VARCHAR(1024), memberLimit INT, groupCode VARCHAR(8), anonymous INT)")
 cur.execute(f"CREATE TABLE GroupMember (groupId INT, userId INT, isEditor INT)")
 cur.execute(f"CREATE TABLE GroupQuestion (groupId INT, groupQuestionId INT, question VARCHAR(1024), answer VARCHAR(1024))")
 cur.execute(f"CREATE TABLE GroupSync (groupId INT, userId INT, questionIdOfUser INT, questionIdOfGroup INT)") # book id of user

@@ -40,7 +40,10 @@ def apiGetBook():
     if len(t) != 0:
         shareCode = "!"+t[0][0]
     
-    ret.append({"bookId": 0, "name": "All questions", "questions": questions, "shareCode": shareCode, "groupId": -1, "groupCode": "", "isGroupOwner": False, "isGroupEditor": True, "discoveryId": -1, "groupDiscoveryId": -1})
+    ret.append({"bookId": 0, "name": "All questions", "questions": questions, "shareCode": shareCode, "anonymous": 0,
+        "groupId": -1, "groupCode": "", \
+            "isGroupOwner": False, "isGroupEditor": True, \
+                "discoveryId": -1, "groupDiscoveryId": -1})
 
     cur.execute(f"SELECT bookId, name FROM Book WHERE userId = {userId}")
     d = cur.fetchall()
@@ -71,6 +74,7 @@ def apiGetBook():
         
         isGroupOwner = False
         isGroupEditor = False
+        anonymous = 0
         if groupId != -1:
             owner = 0
             cur.execute(f"SELECT owner FROM GroupInfo WHERE groupId = {groupId}")
@@ -80,6 +84,11 @@ def apiGetBook():
             if owner == userId:
                 isGroupOwner = True
                 isGroupEditor = True
+            
+            cur.execute(f"SELECT anonymous FROM GroupInfo WHERE groupId = {groupId}")
+            tt = cur.fetchall()
+            if len(tt) > 0:
+                anonymous = tt[0][0]
             
             if not isGroupOwner:
                 cur.execute(f"SELECT userId FROM GroupMember WHERE groupId = {groupId} AND userId = {userId} AND isEditor = 1")
@@ -107,7 +116,10 @@ def apiGetBook():
         if len(t) != 0:
             groupDiscoveryId = t[0][0]
 
-        ret.append({"bookId": dd[0], "name": decode(dd[1]), "questions": questions, "progress": progress, "shareCode": shareCode, "groupId": groupId, "groupCode": gcode, "isGroupOwner": isGroupOwner, "isGroupEditor": isGroupEditor, "discoveryId": discoveryId, "groupDiscoveryId": groupDiscoveryId})
+        ret.append({"bookId": dd[0], "name": decode(dd[1]), "questions": questions, "progress": progress, "shareCode": shareCode, \
+            "anonymous": anonymous, "groupId": groupId, "groupCode": gcode, \
+                "isGroupOwner": isGroupOwner, "isGroupEditor": isGroupEditor, \
+                "discoveryId": discoveryId, "groupDiscoveryId": groupDiscoveryId})
     
     return json.dumps(ret)
 

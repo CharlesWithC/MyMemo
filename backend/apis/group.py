@@ -64,7 +64,7 @@ def apiGroup():
             lmt = pr[0][0]
 
         gcode = genCode(8)
-        cur.execute(f"INSERT INTO GroupInfo VALUES ({groupId}, {userId}, '{name}', '{description}', {lmt}, '{gcode}')")
+        cur.execute(f"INSERT INTO GroupInfo VALUES ({groupId}, {userId}, '{name}', '{description}', {lmt}, '{gcode}', 0)")
         cur.execute(f"INSERT INTO GroupMember VALUES ({groupId}, {userId}, 1)")
         cur.execute(f"INSERT INTO GroupBind VALUES ({groupId}, {userId}, {bookId})")
         cur.execute(f"SELECT questionId FROM BookData WHERE userId = {userId} AND bookId = {bookId}")
@@ -210,7 +210,7 @@ def apiGroupMember():
     questions = cur.fetchall()
 
     info = None
-    cur.execute(f"SELECT name, description FROM GroupInfo WHERE groupId = {groupId}")
+    cur.execute(f"SELECT name, description, anonymous FROM GroupInfo WHERE groupId = {groupId}")
     t = cur.fetchall()
     if len(t) > 0:
         info = t[0]
@@ -262,7 +262,12 @@ def apiGroupMember():
         
         pgs = f"{pgs} / {questioncnt}"
 
-        ret.append({"userId": uid, "username": username, "progress": pgs})
+        if info[2] == 0:
+            ret.append({"userId": uid, "username": username, "progress": pgs})
+        elif info[2] == 1:
+            ret.append({"userId": 0, "username": "Anonymous", "progress": pgs})
+        elif info[2] == 2:
+            ret.append({"userId": 0, "username": "Anonymous", "progress": "Unknown"})
     
     return json.dumps({"name": decode(info[0]), "description": decode(info[1]), "member": ret, "isOwner": isOwner})
 
@@ -363,3 +368,17 @@ def apiManageGroup():
         conn.commit()
 
         return json.dumps({"success": True, "msg": f"Success! Group information updated!"})
+    
+    elif op == "anonymous":
+        anonymous = int(request.form["anonymous"])
+        if not anonymous in [0, 1, 2]:
+            return json.dumps({"success": False, "msg": f"Invalid anonymous status!"})
+
+        cur.execute(f"SELECT anonymous FROM GroupInfo WHERE groupId = {groupId}")
+        t = cur.fetchall()
+        if len(t) > 0:
+            cur.execute(f"UPDATE GroupInfo SET anonymous = {anonymous} WHERE groupId = {groupId}")
+            conn.commit()
+            return json.dumps({"success": True, "msg": f"Success!", "anonymous": anonymous})
+        
+        return json.dumps({"success": False, "msg": f"Group not found!"})

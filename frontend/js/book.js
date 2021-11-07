@@ -205,6 +205,19 @@ function SelectQuestions() {
                 $(".group-published-to-discovery").hide();
             }
 
+            $(".group-anonymous-btn").removeClass("btn-primary btn-secondary");
+            $(".group-anonymous-btn").addClass("btn-secondary");
+            if(bookList[i].anonymous == 0){
+                $("#group-anonymous-0").removeClass("btn-secondary");
+                $("#group-anonymous-0").addClass("btn-primary");              
+            } else if(bookList[i].anonymous == 1){
+                $("#group-anonymous-1").removeClass("btn-secondary");
+                $("#group-anonymous-1").addClass("btn-primary"); 
+            } else if(bookList[i].anonymous == 2){
+                $("#group-anonymous-2").removeClass("btn-secondary");
+                $("#group-anonymous-2").addClass("btn-primary"); 
+            }
+
             selectedQuestionList = [];
             for (this.j = 0; j < bookList[i].questions.length; j++) {
                 questionId = bookList[i].questions[j];
@@ -1250,6 +1263,80 @@ function GroupInfoUpdateShow() {
     $("#create-group-btn").html("Update");
     $("#createGroupModalLabel").html("Update Group Information");
     $("#createGroupModal").modal("toggle");
+}
+
+function GroupAnonymousSwitch(anonymous) {
+    $(".group-anonymous-btn").removeClass("btn-primary btn-secondary");
+    $(".group-anonymous-btn").addClass("btn-secondary");
+    if(anonymous == 0){
+        $("#group-anonymous-0").removeClass("btn-secondary");
+        $("#group-anonymous-0").addClass("btn-primary");              
+    } else if(anonymous == 1){
+        $("#group-anonymous-1").removeClass("btn-secondary");
+        $("#group-anonymous-1").addClass("btn-primary"); 
+    } else if(anonymous == 2){
+        $("#group-anonymous-2").removeClass("btn-secondary");
+        $("#group-anonymous-2").addClass("btn-primary"); 
+    }
+
+    $.ajax({
+        url: '/api/group/manage',
+        method: 'POST',
+        async: false,
+        dataType: "json",
+        data: {
+            groupId: groupId,
+            anonymous: anonymous,
+            operation: "anonymous",
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            if (r.success == true) {
+                for (var i = 0; i < bookList.length; i++) {
+                    if (bookList[i].bookId == bookId) {
+                        bookList[i].anonymous = r.anonymous;
+                        localStorage.setItem("book-list", JSON.stringify(bookList));
+                        break;
+                    }
+                }
+                $(".group-anonymous-btn").removeClass("btn-primary btn-secondary");
+                $(".group-anonymous-btn").addClass("btn-secondary");
+                if(r.anonymous == 0){
+                    $("#group-anonymous-0").removeClass("btn-secondary");
+                    $("#group-anonymous-0").addClass("btn-primary");              
+                } else if(r.anonymous == 1){
+                    $("#group-anonymous-1").removeClass("btn-secondary");
+                    $("#group-anonymous-1").addClass("btn-primary"); 
+                } else if(r.anonymous == 2){
+                    $("#group-anonymous-2").removeClass("btn-secondary");
+                    $("#group-anonymous-2").addClass("btn-primary"); 
+                }
+
+                new Noty({
+                    theme: 'mint',
+                    text: r.msg,
+                    type: 'success',
+                    layout: 'bottomRight',
+                    timeout: 30000
+                }).show();
+
+            } else {
+                new Noty({
+                    theme: 'mint',
+                    text: r.msg,
+                    type: 'error',
+                    layout: 'bottomRight',
+                    timeout: 3000
+                }).show();
+            }
+        },
+        error: function (r) {
+            if (r.status == 401) {
+                SessionExpired();
+            }
+        }
+    });
 }
 
 function GroupInfoUpdate() {

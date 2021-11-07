@@ -289,12 +289,12 @@
                     Group</button>
 
                 <div class="only-group-owner">
-                    <br>
-                    <p>Manage group: </p>
-
+                    <hr>
+                    <h4>Manage group: </h4>
                     <button type="button" class="btn btn-primary" onclick="GroupInfoUpdateShow()">Update Information <i
                             class="fa fa-edit"></i></button>
                     <br>
+                    <h5>Discovery:</h5>
                     <button type="button" class="btn btn-primary group-not-published-to-discovery"
                         onclick="GroupPublishToDiscoveryShow()">Publish To Discovery <i
                             class="fa fa-paper-plane"></i></button>
@@ -302,11 +302,20 @@
                         onclick="GroupUnpublishDiscoveryShow()" style="display:none">Unpublish <i
                             class="fa fa-trash"></i></button>
                     <br>
+                    <h5>Group anonymous settings:</h5>
+                    <button id="group-anonymous-0" type="button" class="btn btn-secondary group-anonymous-btn" onclick="GroupAnonymousSwitch(0)">Open</button>
+                    <button id="group-anonymous-1" type="button" class="btn btn-secondary group-anonymous-btn" onclick="GroupAnonymousSwitch(1)">Anonymous</button>
+                    <button id="group-anonymous-2" type="button" class="btn btn-secondary group-anonymous-btn" onclick="GroupAnonymousSwitch(2)">Full Anonymous</button>
+                    <p style="font-size:0.75em">*Open means members can see other members' username and progress. Anonymous means members can see other member's progress but not username. Full Anonymous means members can see no data from other members.</p>
+                    <p style="font-size:0.75em">*Anonymous settings will not stop the group's question list sync.</p>
+                    <br>
+                    <h5>Group code settings:</h5>
                     <button type="button" class="btn btn-outline-warning" onclick="GroupCodeUpdate('disable')">Make
                         private <i class="fa fa-lock"></i></button>
                     <button type="button" class="btn btn-primary" onclick="GroupCodeUpdate('revoke')">Revoke code <i
                             class="fa fa-undo"></i> </button>
                     <br>
+                    <h5>Danger zone:</h5>
                     <button type="button" class="btn btn-outline-danger" onclick="GroupDismissShow()">Dismiss
                         <i class="fa fa-times"></i></button>
                 </div>
@@ -679,7 +688,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.2.3 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.2.4 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>
