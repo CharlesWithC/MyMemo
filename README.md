@@ -15,8 +15,8 @@ We have a brand new UI comparing to the older versions using canvas.
 Dark Mode is supported in v5 btw, you can enable it in Settings.  
 
 Discovery, the first community function, has been introduced!  
-Currently only posting Books in Discovery is supported. Groups and usrs will be added soon!  
-And there will be an admin panel to manage discovery to remove abusive data in the future.  
+You can post your shared books and public groups to Discovery!  
+Admins are able to delete / update post to prevent abuse.  
 
 ## About My Memo
 
