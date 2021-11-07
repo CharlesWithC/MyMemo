@@ -1,8 +1,13 @@
 # Update History
 
-## v5.2.1
+## v5.2.2
 
 *Date: 2021/11/7*  
+Added Discovery for Group  
+
+## v5.2.1
+
+*Date: 2021/11/6*  
 1.Introduced Discovery! Users can find books shared with public by other users.  
 2.Updated account deletion mechanism. This will only remove the user's sensitive data, all his / her other data such as questions and books will be preserved. This update is to adapt the Discovery function so that data from deleted users can also be found.  
 Note: Users can always delete their other data include questions and books manually before deletion. And users can request a complete data deletion by providing their UID with admin.  

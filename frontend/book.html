@@ -39,7 +39,8 @@
             $("#qqf").remove();
 
             if (localStorage.getItem("settings-theme") == "dark") {
-                $("body").attr("style", "color:#ffffff;background-color:#333333");$("hr").attr("style", "background-color:#cccccc;");
+                $("body").attr("style", "color:#ffffff;background-color:#333333");
+                $("hr").attr("style", "background-color:#cccccc;");
                 $("textarea").attr("style", "color:#ffffff;background-color:#333333");
                 $(".modal-content").attr("style", "background-color:#333333");
                 $(".fa-times").attr("style", "color:white");
@@ -171,7 +172,8 @@
                 <a href="#" onclick="window.location.href='/book'"><i class="fa fa-book"></i><br>Books</a>
             </div>
             <div class="sqbtn">
-                <a href="#" onclick="window.location.href='/discovery'"><i class="fa fa-paper-plane"></i><br>Discovery</a>
+                <a href="#" onclick="window.location.href='/discovery'"><i
+                        class="fa fa-paper-plane"></i><br>Discovery</a>
             </div>
         </div>
         <div class="userctrl">
@@ -263,9 +265,8 @@
                         id="shareop">Share</span></button>
                 <button type="button" class="btn btn-primary only-shared not-published-to-discovery"
                     onclick="PublishToDiscoveryShow()">Publish To Discovery <i class="fa fa-paper-plane"></i></button>
-                <button type="button" class="btn btn-primary published-to-discovery" onclick=""
-                    id="go-to-discovery-btn" style="display:none">Check on Discovery <i
-                        class="fa fa-search"></i></button>
+                <button type="button" class="btn btn-primary published-to-discovery" onclick="" id="go-to-discovery-btn"
+                    style="display:none">Check on Discovery <i class="fa fa-search"></i></button>
                 <button type="button" class="btn btn-outline-danger published-to-discovery"
                     onclick="UnpublishDiscoveryShow()" style="display:none">Unpublish <i
                         class="fa fa-trash"></i></button>
@@ -279,6 +280,10 @@
                         class="fa fa-list"></i></button>
                 <button type="button" class="btn btn-outline-warning only-group-exist" onclick="QuitGroupShow()">Quit <i
                         class="fa fa-sign-out"></i></button>
+                <br>
+                <button type="button" class="btn btn-primary group-published-to-discovery" onclick=""
+                    id="group-go-to-discovery-btn" style="display:none">Check on Discovery <i
+                        class="fa fa-search"></i></button>
 
                 <button type="button" class="btn btn-primary only-group-inexist" onclick="CreateGroupShow()">Create
                     Group</button>
@@ -289,6 +294,13 @@
 
                     <button type="button" class="btn btn-primary" onclick="GroupInfoUpdateShow()">Update Information <i
                             class="fa fa-edit"></i></button>
+                    <br>
+                    <button type="button" class="btn btn-primary group-not-published-to-discovery"
+                        onclick="GroupPublishToDiscoveryShow()">Publish To Discovery <i
+                            class="fa fa-paper-plane"></i></button>
+                    <button type="button" class="btn btn-outline-danger group-published-to-discovery"
+                        onclick="GroupUnpublishDiscoveryShow()" style="display:none">Unpublish <i
+                            class="fa fa-trash"></i></button>
                     <br>
                     <button type="button" class="btn btn-outline-warning" onclick="GroupCodeUpdate('disable')">Make
                         private <i class="fa fa-lock"></i></button>
@@ -448,6 +460,7 @@
                     <p>This will make it able to be found by any people.</p>
                     <p>All your updates made within this word book will be synced to Discovery. (But people already
                         imported it will not get the sync, use Group function to do that)</p>
+                    <p>You can unshare the book to make it temporarily invisible on Discovery.</p>
                     <br>
                     <p>Please enter title and description below. Make them beautiful and others may get engaged.</p>
                     <form>
@@ -493,6 +506,75 @@
                         onclick="$('#unpublishDiscoveryModal').modal('toggle')">Cancel</button>
                     <button type="button" class="btn btn-outline-danger" data-dismiss="modal"
                         onclick="UnpublishDiscovery()">Unpublish</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="groupPublishToDiscoveryModal" tabindex="-1" role="dialog"
+        aria-labelledby="groupPublishToDiscoveryModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="groupPublishToDiscoveryModalLabel"><i class="fa fa-paper-plane"></i>
+                        Publish
+                        To Discovery</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                        onclick="$('#groupPublishToDiscoveryModal').modal('toggle')">
+                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>You are about to publish the group to Discovery.</p>
+                    <p>This will make it able to be found by any people.</p>
+                    <p>Any people will be able to find it and join your group.</p>
+                    <p>You can make your group a private group if you want to temporarily make it invisible on
+                        Discovery.</p>
+                    <br>
+                    <p>Please enter title and description below. Make them beautiful and others may get engaged.</p>
+                    <form>
+                        <div class="form-group">
+                            <label for="group-discovery-title" class="col-form-label">Title:</label>
+                            <textarea class="form-control" id="discovery-title"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="group-discovery-description" class="col-form-label">Description:</label>
+                            <textarea class="form-control" id="discovery-description"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                        onclick="$('#groupPublishToDiscoveryModal').modal('toggle')">Close</button>
+                    <button id="publish-to-discovery-btn" type="button" class="btn btn-primary"
+                        onclick="GroupPublishToDiscovery()">Publish <i class="fa fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="groupUnpublishDiscoveryModal" tabindex="-1" role="dialog"
+        aria-labelledby="groupUnpublishDiscoveryModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" style="color:red"><i class="fa fa-trash"></i> Unpublish From Discovery
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                        onclick="$('#groupUnpublishDiscoveryModal').modal('toggle')">
+                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure to unpublish the group from Discovery?</p>
+                    <p>You will lose all the views and likes of your post.</p>
+                    <p>This operation cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                        onclick="$('#groupUnpublishDiscoveryModal').modal('toggle')">Cancel</button>
+                    <button type="button" class="btn btn-outline-danger" data-dismiss="modal"
+                        onclick="GroupUnpublishDiscovery()">Unpublish</button>
                 </div>
             </div>
         </div>
@@ -597,7 +679,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.2.1 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.2.2 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

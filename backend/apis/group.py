@@ -106,6 +106,10 @@ def apiGroup():
 
         if owner != userId:
             return json.dumps({"success": False, "msg": f"You are not the owner of the group!"})
+            
+        cur.execute(f"SELECT * FROM Discovery WHERE publisherId = {userId} AND bookId = {groupId}")
+        if len(cur.fetchall()) != 0:
+            return json.dumps({"success": False, "msg": f"Group published to Discovery! Unpublish it before dismissing it!"})
         
         cur.execute(f"DELETE FROM GroupInfo WHERE groupId = {groupId}")
         cur.execute(f"DELETE FROM GroupMember WHERE groupId = {groupId}")

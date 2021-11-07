@@ -15,6 +15,7 @@ var discoveryId = -1;
 var discoveryList = [];
 var liked = false;
 var shareCode = "";
+var distype = 1;
 var title = "";
 var description = "";
 
@@ -93,6 +94,7 @@ function RefreshDiscovery() {
     table.row.add([
         [""],
         [""],
+        [""],
         ["Loading <i class='fa fa-spinner fa-spin'></i>"],
         [""],
         [""],
@@ -105,7 +107,7 @@ function RefreshDiscovery() {
     table.clear();
 
     $.ajax({
-        url: "/api/discovery/book",
+        url: "/api/discovery",
         method: 'POST',
         async: true,
         dataType: "json",
@@ -115,14 +117,16 @@ function RefreshDiscovery() {
         },
         success: function (r) {
             discoveryList = r;
+            l = ["", "Book", "Group"]
             for (var i = 0; i < discoveryList.length; i++) {
                 table.row.add([
                     [discoveryList[i].title],
                     [discoveryList[i].description],
+                    [l[discoveryList[i].type]],
                     [discoveryList[i].publisher],
                     [discoveryList[i].views],
                     [discoveryList[i].likes],
-                    //[discoveryList[i].views + " <i class='fa fa-eye'></i>&nbsp;&nbsp;" + discoveryList[i].likes + "<i class='fa fa-heart'></i>"],
+                    //[discoveryList[i].views + " <i class='fa fa-eye'></i>&nbsp;&nbsp;" + discoveryList[i].likes + "<i class='fa fa-heart' style='color:red'></i>"],
                     ['<button class="btn btn-primary btn-sm" type="button" onclick="ShowDiscovery(' + discoveryList[i].discoveryId + ')">Show</button>']
                 ]);
             }
@@ -149,7 +153,7 @@ function UpdateDiscoveryWordList() {
     table.clear();
 
     $.ajax({
-        url: "/api/discovery/book/" + discoveryId,
+        url: "/api/discovery/" + discoveryId,
         method: 'POST',
         async: true,
         dataType: "json",
@@ -162,15 +166,16 @@ function UpdateDiscoveryWordList() {
             description = r.description;
             liked = r.liked;
             if (liked) {
-                $(".title").html(r.title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart"></i></a>');
+                $(".title").html(r.title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart" style="color:red"></i></a>');
             } else {
-                $(".title").html(r.title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart-o"></i></a>');
+                $(".title").html(r.title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart-o" style="color:red"></i></a>');
             }
             $("#detail-publisher").html(r.publisher);
             $("#detail-description").html(r.description);
 
             shareCode = r.shareCode;
             $("#shareCode").html(shareCode);
+            $("#groupCode").html(shareCode);
 
             if (r.isPublisher) {
                 $(".publisher-only").show();
@@ -182,6 +187,14 @@ function UpdateDiscoveryWordList() {
                 $(".user-only").hide();
             } else {
                 $(".user-only").show();
+                distype = r.type;
+                if (distype == 1) {
+                    $(".book-only").show();
+                    $(".group-only").hide();
+                } else if (distype == 2) {
+                    $(".book-only").hide();
+                    $(".group-only").show();
+                }
             }
 
             questionList = r.questions;
@@ -265,7 +278,7 @@ function UpdateInformation() {
     description = $("#discovery-description").val();
 
     $.ajax({
-        url: '/api/discovery/book/update',
+        url: '/api/discovery/update',
         method: 'POST',
         async: false,
         dataType: "json",
@@ -279,9 +292,9 @@ function UpdateInformation() {
         success: function (r) {
             if (r.success == true) {
                 if (liked) {
-                    $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart"></i></a>');
+                    $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart" style="color:red"></i></a>');
                 } else {
-                    $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart-o"></i></a>');
+                    $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart-o" style="color:red"></i></a>');
                 }
                 $("#detail-description").html(description);
 
@@ -315,12 +328,12 @@ function UpdateInformation() {
 function LikePost() {
     liked = 1 - liked;
     if (liked) {
-        $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart"></i></a>');
+        $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart" style="color:red"></i></a>');
     } else {
-        $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart-o"></i></a>');
+        $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart-o" style="color:red"></i></a>');
     }
     $.ajax({
-        url: '/api/discovery/book/like',
+        url: '/api/discovery/like',
         method: 'POST',
         async: true,
         dataType: "json",
@@ -333,9 +346,9 @@ function LikePost() {
             if (r.success == true) {
                 liked = r.liked;
                 if (liked) {
-                    $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart"></i></a>');
+                    $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart" style="color:red"></i></a>');
                 } else {
-                    $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart-o"></i></a>');
+                    $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart-o" style="color:red"></i></a>');
                 }
 
                 new Noty({
@@ -358,9 +371,9 @@ function LikePost() {
         error: function (r) {
             liked = 1 - liked;
             if (liked) {
-                $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart"></i></a>');
+                $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart" style="color:red"></i></a>');
             } else {
-                $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart-o"></i></a>');
+                $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart-o" style="color:red"></i></a>');
             }
         }
     });

@@ -190,6 +190,21 @@ function SelectQuestions() {
                 $(".published-to-discovery").show();
                 $("#go-to-discovery-btn").attr("onclick", "window.location.href='/discovery?discoveryId=" + discoveryId + "'");
             }
+            if(groupId != -1){
+                groupDiscoveryId = bookList[i].groupDiscoveryId;
+                if (groupDiscoveryId == -1 && groupCode != "") {
+                    $(".group-not-published-to-discovery").show();
+                    $(".group-published-to-discovery").hide();
+                } else if (groupDiscoveryId != -1) {
+                    $(".group-not-published-to-discovery").hide();
+                    $(".group-published-to-discovery").show();
+                    $("#group-go-to-discovery-btn").attr("onclick", "window.location.href='/discovery?discoveryId=" + groupDiscoveryId + "'");
+                }
+            } else {
+                $(".group-not-published-to-discovery").hide();
+                $(".group-published-to-discovery").hide();
+            }
+
             selectedQuestionList = [];
             for (this.j = 0; j < bookList[i].questions.length; j++) {
                 questionId = bookList[i].questions[j];
@@ -781,7 +796,7 @@ function BookDelete() {
                     layout: 'bottomRight',
                     timeout: 3000
                 }).show();
-                setTimeout(BackToHome, 3000);
+                setTimeout(function(){window.location.href='/book';}, 3000);
             } else {
                 new Noty({
                     theme: 'mint',
@@ -927,7 +942,7 @@ function PublishToDiscovery() {
     description = $("#discovery-description").val();
 
     $.ajax({
-        url: '/api/discovery/book/publish',
+        url: '/api/discovery/publish',
         method: 'POST',
         async: false,
         dataType: "json",
@@ -935,6 +950,7 @@ function PublishToDiscovery() {
             bookId: bookId,
             title: title,
             description: description,
+            type: 1,
             userId: localStorage.getItem("userId"),
             token: localStorage.getItem("token")
         },
@@ -976,9 +992,68 @@ function UnpublishDiscoveryShow(){
     $('#unpublishDiscoveryModal').modal('toggle');
 }
 
+function GroupPublishToDiscoveryShow() {
+    $('#groupPublishToDiscoveryModal').modal('toggle');
+}
+
+function GroupPublishToDiscovery() {
+    title = $("#group-discovery-title").val();
+    description = $("#group-discovery-description").val();
+
+    $.ajax({
+        url: '/api/discovery/publish',
+        method: 'POST',
+        async: false,
+        dataType: "json",
+        data: {
+            bookId: groupId,
+            title: title,
+            description: description,
+            type: 2,
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            if (r.success == true) {
+                discoveryId = r.discoveryId;
+                $(".group-not-published-to-discovery").hide();
+                $(".group-published-to-discovery").show();
+                $("#group-go-to-discovery-btn").attr("onclick", "window.location.href='/discovery?discoveryId=" + discoveryId + "'");
+                
+                new Noty({
+                    theme: 'mint',
+                    text: r.msg,
+                    type: 'success',
+                    layout: 'bottomRight',
+                    timeout: 30000
+                }).show();
+                
+                $('#groupPublishToDiscoveryModal').modal('toggle');
+            } else {
+                new Noty({
+                    theme: 'mint',
+                    text: r.msg,
+                    type: 'error',
+                    layout: 'bottomRight',
+                    timeout: 3000
+                }).show();
+            }
+        },
+        error: function (r) {
+            if (r.status == 401) {
+                SessionExpired();
+            }
+        }
+    });
+}
+
+function GroupUnpublishDiscoveryShow(){
+    $('#groupUnpublishDiscoveryModal').modal('toggle');
+}
+
 function UnpublishDiscovery(){
     $.ajax({
-        url: '/api/discovery/book/unpublish',
+        url: '/api/discovery/unpublish',
         method: 'POST',
         async: false,
         dataType: "json",

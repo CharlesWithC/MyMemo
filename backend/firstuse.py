@@ -121,12 +121,12 @@ cur.execute(f"CREATE TABLE StatusUpdate (userId INT, questionId INT, questionUpd
 # updateTo is the status the question is updated to
 # NOTE: When a new question is added, there should be a StatusUpdate record, with questionUpdateId = 0 and updateTo = 0
 
-cur.execute(f"CREATE TABLE BookDiscovery (discoveryId INT, publisherId INT, bookId INT, title VARCHAR(1024), description VARCHAR(1024))")
-# name is book's name
+cur.execute(f"CREATE TABLE Discovery (discoveryId INT, publisherId INT, bookId INT, title VARCHAR(1024), description VARCHAR(1024), type INT)")
 # title is discovery title
 # description is discovery description
-cur.execute(f"CREATE TABLE BookDiscoveryClick (discoveryId INT, count INT)")
-cur.execute(f"CREATE TABLE BookDiscoveryLike (discoveryId INT, userId INT, like INT)")
+# type: 1: share | 2: group
+cur.execute(f"CREATE TABLE DiscoveryClick (discoveryId INT, count INT)")
+cur.execute(f"CREATE TABLE DiscoveryLike (discoveryId INT, userId INT, like INT)")
 # User Id is the user who engaged in this discovery item
 # It could be empty is discovery is public to everyone
 

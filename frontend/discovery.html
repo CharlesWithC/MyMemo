@@ -27,7 +27,7 @@
             $('#discoveryList').DataTable({
                 pagingType: "full_numbers",
                 iDisplayLength: 25,
-                aaSorting: [[4,'desc'],[3,'desc']]
+                aaSorting: [[5,'desc'],[4,'desc']]
             });
 
             $("#discoveryList_length").after('<div id="qf" class="dataTables_filter input-group mb-3">\
@@ -120,6 +120,7 @@
                     <tr>
                         <th id="title">Title</th>
                         <th id="description">Description</th>
+                        <th id="type">Type</th>
                         <th id="publisher">Publisher</th>
                         <th id="views">Views</th>
                         <th id="likes">Likes</th>
@@ -152,13 +153,20 @@
                 <p>Published by @<span id="detail-publisher"></span></p>
                 <p>*The publisher reserves all rights of this post.</p>
             </div>
-            <div class="user-only" style="display:none">
+            <div class="user-only book-only" style="display:none">
                 <hr>
                 <h4>Import <i class="fa fa-upload"></i></h4>
                 <p>Share code: <span id="shareCode"></span></p>
                 <button type="button" class="btn btn-primary" onclick="ImportBook()">Import</button>
                 <br>
                 <p>*This will clone the book of this discovery post to your book database.</p>
+            </div>
+            <div class="user-only group-only" style="display:none">
+                <hr>
+                <h4>Join <i class="fa fa-users"></i></h4>
+                <p>Group code: <span id="groupCode"></span></p>
+                <button type="button" class="btn btn-primary" onclick="ImportBook()">Join</button>
+                <br>
             </div>
             <div class="publisher-only" style="display:none">
                 <hr>
@@ -205,7 +213,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.2.1 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.2.2 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

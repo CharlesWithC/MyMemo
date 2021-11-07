@@ -156,7 +156,7 @@ def apiCreateBook():
             cur.execute(f"SELECT owner FROM GroupInfo WHERE groupId = {groupId}")
             owner = 0
             t = cur.fetchall()
-            if t > 0:
+            if len(t) > 0:
                 owner = t[0][0]
                 cur.execute(f"SELECT userId FROM UserInfo WHERE userId = {owner}")
                 if len(cur.fetchall()) == 0:
@@ -341,7 +341,7 @@ def apiDeleteBook():
     if len(cur.fetchall()) == 0:
         return json.dumps({"success": False, "msg": "Book does not exist!"})
 
-    cur.execute(f"SELECT * FROM BookDiscovery WHERE publisherId = {userId} AND bookId = {bookId}")
+    cur.execute(f"SELECT * FROM Discovery WHERE publisherId = {userId} AND bookId = {bookId}")
     notice = ""
     if len(cur.fetchall()) != 0:
         return json.dumps({"success": False, "msg": "Book published to Discovery! Unpublish it first before deleting the book."})
@@ -351,7 +351,7 @@ def apiDeleteBook():
     d = cur.fetchall()
     if len(d) != 0:
         groupId = d[0][0]
-
+    
     if groupId != -1:
         cur.execute(f"SELECT owner FROM GroupInfo WHERE groupId = {groupId}")
         d = cur.fetchall()
@@ -359,7 +359,7 @@ def apiDeleteBook():
             return json.dumps({"success": False, "msg": "Group does not exist!"})
         owner = d[0][0]
         if userId == owner:
-            return json.dumps({"success": False, "msg": "You are the owner of the group. You have to transfer group ownership before deleting the book."})
+            return json.dumps({"success": False, "msg": "You are the owner of the group. You have to transfer group ownership or dismiss the group before deleting the book."})
 
         cur.execute(f"DELETE FROM GroupSync WHERE groupId = {groupId} AND userId = {userId}")
         cur.execute(f"DELETE FROM GroupMember WHERE groupId = {groupId} AND userId = {userId}")
@@ -444,7 +444,7 @@ def apiShareBook():
             return json.dumps({"success": True, "msg": f"Done! Share code: !{shareCode}. Tell your friend to enter it in the textbox of 'Create Book' and he / she will be able to import it!", "shareCode": f"!{shareCode}"})
     
     elif op == "unshare":
-        cur.execute(f"SELECT * FROM BookDiscovery WHERE publisherId = {userId} AND bookId = {bookId}")
+        cur.execute(f"SELECT * FROM Discovery WHERE publisherId = {userId} AND bookId = {bookId}")
         notice = ""
         if len(cur.fetchall()) != 0:
             notice = "Book published to Discovery! This will make it invisible on Discovery."
