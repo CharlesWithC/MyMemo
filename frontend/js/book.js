@@ -2,15 +2,6 @@
 // Author: @Charles-1414
 // License: GNU General Public License v3.0
 
-function lsGetItem(lsItemName, defaultValue = 0) {
-    if (localStorage.getItem(lsItemName) == null || localStorage.getItem(lsItemName) == "undefined") {
-        localStorage.setItem(lsItemName, defaultValue);
-        return defaultValue;
-    } else {
-        return localStorage.getItem(lsItemName);
-    }
-}
-
 var bookId = -1;
 var bookName = "";
 var bookShareCode = "";
@@ -24,43 +15,6 @@ var bookList = JSON.parse(lsGetItem("book-list", JSON.stringify([])));
 var selectedQuestionList = [];
 var questionListMap = new Map();
 var selected = [];
-
-function SessionExpired() {
-    new Noty({
-        theme: 'mint',
-        text: 'Login session expired! Please login again!',
-        type: 'error',
-        layout: 'bottomRight',
-        timeout: 3000
-    }).show();
-    localStorage.removeItem("userId");
-    localStorage.removeItem("token");
-    setTimeout(GoToUser, 3000);
-}
-
-function BackToHome() {
-    window.location.href = '/';
-}
-
-function GoToUser() {
-    window.location.href = "/user"
-}
-
-function getUrlParameter(sParam) {
-    var sPageURL = window.location.search.substring(1),
-        sURLVariables = sPageURL.split('&'),
-        sParameterName,
-        i;
-
-    for (i = 0; i < sURLVariables.length; i++) {
-        sParameterName = sURLVariables[i].split('=');
-
-        if (sParameterName[0] === sParam) {
-            return typeof sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
-        }
-    }
-    return -1;
-};
 
 function MapQuestionList() {
     questionListMap = new Map();
@@ -106,18 +60,22 @@ function RefreshQuestionList(show401 = false) {
                     UpdateTable();
                     $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
                 },
-                error: function (r) {
+                error: function (r, textStatus, errorThrown) {
                     if (r.status == 401 && show401) {
                         $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
                         SessionExpired();
+                    } else {
+                        NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
                     }
                 }
             });
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401 && show401) {
                 $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
                 SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
@@ -133,7 +91,7 @@ function SelectQuestions() {
 
             bookName = bookList[i].name;
             $(".title").html(bookName + '&nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-refresh"></i></button>');
-            $("title").html("My Memo - " + bookName);
+            $("title").html(bookName + " | My Memo");
             bookShareCode = bookList[i].shareCode;
             if (bookShareCode == "") {
                 $("#bookShareCode").html("(Private)");
@@ -190,7 +148,7 @@ function SelectQuestions() {
                 $(".published-to-discovery").show();
                 $("#go-to-discovery-btn").attr("onclick", "window.location.href='/discovery?discoveryId=" + discoveryId + "'");
             }
-            if(groupId != -1){
+            if (groupId != -1) {
                 groupDiscoveryId = bookList[i].groupDiscoveryId;
                 if (groupDiscoveryId == -1 && groupCode != "") {
                     $(".group-not-published-to-discovery").show();
@@ -207,15 +165,15 @@ function SelectQuestions() {
 
             $(".group-anonymous-btn").removeClass("btn-primary btn-secondary");
             $(".group-anonymous-btn").addClass("btn-secondary");
-            if(bookList[i].anonymous == 0){
+            if (bookList[i].anonymous == 0) {
                 $("#group-anonymous-0").removeClass("btn-secondary");
-                $("#group-anonymous-0").addClass("btn-primary");              
-            } else if(bookList[i].anonymous == 1){
+                $("#group-anonymous-0").addClass("btn-primary");
+            } else if (bookList[i].anonymous == 1) {
                 $("#group-anonymous-1").removeClass("btn-secondary");
-                $("#group-anonymous-1").addClass("btn-primary"); 
-            } else if(bookList[i].anonymous == 2){
+                $("#group-anonymous-1").addClass("btn-primary");
+            } else if (bookList[i].anonymous == 2) {
                 $("#group-anonymous-2").removeClass("btn-secondary");
-                $("#group-anonymous-2").addClass("btn-primary"); 
+                $("#group-anonymous-2").addClass("btn-primary");
             }
 
             selectedQuestionList = [];
@@ -257,7 +215,32 @@ function UpdateTable() {
 
     if (localStorage.getItem("settings-theme") == "dark") {
         $("#questionList tr").attr("style", "background-color:#333333");
+    } else {
+        $("#questionList tr").attr("style", "background-color:#ffffff");
     }
+}
+
+function UpdateQuestionList() {
+    $("#refresh-btn").html('<i class="fa fa-refresh fa-spin"></i>');
+    $.ajax({
+        url: "/api/book",
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            bookList = r;
+            localStorage.setItem("book-list", JSON.stringify(bookList));
+            UpdateBookDisplay();
+            MapQuestionList();
+            SelectQuestions();
+            UpdateTable();
+            $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
+        }
+    });
 }
 
 function PageInit() {
@@ -275,6 +258,8 @@ function PageInit() {
     table.draw();
     if (localStorage.getItem("settings-theme") == "dark") {
         $("#questionList tr").attr("style", "background-color:#333333");
+    } else {
+        $("#questionList tr").attr("style", "background-color:#ffffff");
     }
     table.clear();
 
@@ -311,7 +296,7 @@ function PageInit() {
                 }
                 localStorage.setItem("username", r.username);
             },
-            error: function (r) {
+            error: function (r, textStatus, errorThrown) {
                 $("#navusername").html("Sign in");
                 localStorage.setItem("username", "");
             }
@@ -344,20 +329,14 @@ function EditQuestionShow(wid) {
     $("#editQuestionModalLabel").html("Edit Question");
     $("#edit-question").val(question);
     $("#edit-answer").val(answer);
-    $("#editQuestionModal").modal('toggle');
+    $("#editQuestionModal").modal('show');
     $("#edit-question-btn").html("Edit");
     $("#edit-question-btn").attr("onclick", "EditQuestion()");
 }
 
 function EditQuestionFromBtn() {
     if (selected.length != 1) {
-        new Noty({
-            theme: 'mint',
-            text: 'Make sure you selected one question!',
-            type: 'warning',
-            layout: 'bottomRight',
-            timeout: 3000
-        }).show();
+        NotyNotification("Make sure you selected one question!", type = 'warning');
         return;
     }
 
@@ -388,20 +367,16 @@ function EditQuestion() {
                 }
             }
 
-            new Noty({
-                theme: 'mint',
-                text: 'Success! Question edited!',
-                type: 'success',
-                layout: 'bottomRight',
-                timeout: 3000
-            }).show();
+            NotyNotification("Success! Question edited!");
 
-            $("#editQuestionModal").modal('toggle');
+            $("#editQuestionModal").modal('hide');
             UpdateTable();
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
@@ -430,19 +405,15 @@ function BookUpdateStatus(updateTo) {
                 }
             }
 
-            new Noty({
-                theme: 'mint',
-                text: 'Success! Question status updated!',
-                type: 'success',
-                layout: 'bottomRight',
-                timeout: 3000
-            }).show();
+            NotyNotification("Success! Question status updated!");
 
             UpdateTable();
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
@@ -477,6 +448,8 @@ function ShowQuestionDatabase() {
     }
     if (localStorage.getItem("settings-theme") == "dark") {
         $("#questionList tr").attr("style", "background-color:#333333");
+    } else {
+        $("#questionList tr").attr("style", "background-color:#ffffff");
     }
 }
 
@@ -490,7 +463,7 @@ function AddExistingQuestion() {
     $.ajax({
         url: '/api/book/addQuestion',
         method: 'POST',
-        async: false,
+        async: true,
         dataType: "json",
         data: {
             questions: JSON.stringify(selected),
@@ -500,31 +473,18 @@ function AddExistingQuestion() {
         },
         success: function (r) {
             if (r.success == true) {
-                new Noty({
-                    theme: 'mint',
-                    text: 'Success! Added ' + selected.length + ' question(s)!',
-                    type: 'success',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification('Success! Added ' + selected.length + ' question(s)!');
 
-                UpdateBookList(false);
-                MapQuestionList();
-                SelectQuestions();
-                UpdateTable();
+                UpdateQuestionList();
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             }
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
@@ -534,7 +494,7 @@ function AddQuestionShow() {
     $("#edit-question").val("");
     $("#edit-answer").val("");
     $("#editQuestionModalLabel").html("Add a new question to " + bookName);
-    $("#editQuestionModal").modal('toggle');
+    $("#editQuestionModal").modal('show');
     $("#edit-question-btn").html("Add");
     $("#edit-question-btn").attr("onclick", "AddQuestion()");
 }
@@ -556,30 +516,18 @@ function AddQuestion() {
         },
         success: function (r) {
             if (r.success == true) {
-                new Noty({
-                    theme: 'mint',
-                    text: 'Success! Added a new question!',
-                    type: 'success',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
-
-                $("#editQuestionModal").modal('toggle');
+                NotyNotification('Success! Added a new question!');
 
                 RefreshQuestionList();
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             }
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
@@ -589,7 +537,7 @@ function RemoveFromBook() {
     $.ajax({
         url: '/api/book/deleteQuestion',
         method: 'POST',
-        async: false,
+        async: true,
         dataType: "json",
         data: {
             questions: JSON.stringify(selected),
@@ -599,45 +547,32 @@ function RemoveFromBook() {
         },
         success: function (r) {
             if (r.success == true) {
-                new Noty({
-                    theme: 'mint',
-                    text: 'Success! Removed ' + selected.length + ' question(s) from this book!',
-                    type: 'success',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification('Success! Removed ' + selected.length + ' question(s) from this book!');
 
-                UpdateBookList(false);
-                MapQuestionList();
-                SelectQuestions();
-                UpdateTable();
+                UpdateQuestionList();
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             }
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
 }
 
 function RemoveQuestionShow() {
-    $("#deleteQuestionModal").modal("toggle");
+    $("#deleteQuestionModal").modal("show");
 }
 
 function RemoveQuestion() {
     $.ajax({
         url: '/api/question/delete',
         method: 'POST',
-        async: false,
+        async: true,
         dataType: "json",
         data: {
             questions: JSON.stringify(selected),
@@ -646,30 +581,20 @@ function RemoveQuestion() {
         },
         success: function (r) {
             if (r.success == true) {
-                new Noty({
-                    theme: 'mint',
-                    text: 'Success! Removed ' + selected.length + ' question(s) from database!',
-                    type: 'success',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification('Success! Removed ' + selected.length + ' question(s) from database!');
 
-                $("#deleteQuestionModal").modal('toggle');
+                $("#deleteQuestionModal").modal('hide');
 
                 RefreshQuestionList();
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             }
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
@@ -679,7 +604,7 @@ function BookClone() {
     $.ajax({
         url: '/api/book/clone',
         method: 'POST',
-        async: false,
+        async: true,
         dataType: "json",
         data: {
             fromBook: bookId,
@@ -688,53 +613,37 @@ function BookClone() {
         },
         success: function (r) {
             if (r.success == true) {
-                new Noty({
-                    theme: 'mint',
-                    text: 'Success! Cloned this book!',
-                    type: 'success',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification('Success! Book cloned!');
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             }
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
 }
 
 function BookRenameShow() {
-    $("#renameModal").modal("toggle");
+    $("#renameModal").modal("show");
     $("#book-rename").val(bookName);
 }
 
 function BookRename() {
     newName = $("#book-rename").val();
     if (newName == "") {
-        new Noty({
-            theme: 'mint',
-            text: "Enter new name!",
-            type: 'warning',
-            layout: 'bottomRight',
-            timeout: 3000
-        }).show();
+        NotyNotification('Please enter a new name!', type = 'warning');
         return;
     }
 
     $.ajax({
         url: '/api/book/rename',
         method: 'POST',
-        async: false,
+        async: true,
         dataType: "json",
         data: {
             bookId: bookId,
@@ -747,53 +656,37 @@ function BookRename() {
                 bookName = newName;
                 $(".book-name").html(bookName);
                 $(".title").html(bookName + '&nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-refresh"></i></button>');
-                $("title").html("My Memo - " + bookName);
-                new Noty({
-                    theme: 'mint',
-                    text: "Success! Book renamed!",
-                    type: 'success',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
-                $("#renameModal").modal("toggle");
+                $("title").html(bookName + " | My Memo");
+                NotyNotification('Success! Book renamed!');
+                $("#renameModal").modal("hide");
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             }
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
 }
 
 function BookDeleteShow() {
-    $("#deleteWBModal").modal("toggle");
+    $("#deleteWBModal").modal("show");
     $(".book-name").html(bookName);
 }
 
 function BookDelete() {
     if ($("#book-delete").val() != bookName) {
-        new Noty({
-            theme: 'mint',
-            text: "Type the name of the book correctly to continue!",
-            type: 'warning',
-            layout: 'bottomRight',
-            timeout: 3000
-        }).show();
+        NotyNotification('Please type the name of the book correctly to continue!', type = 'warning');
         return;
     }
     $.ajax({
         url: '/api/book/delete',
         method: 'POST',
-        async: false,
+        async: true,
         dataType: "json",
         data: {
             bookId: bookId,
@@ -802,27 +695,19 @@ function BookDelete() {
         },
         success: function (r) {
             if (r.success == true) {
-                new Noty({
-                    theme: 'mint',
-                    text: "Success! Book deleted!",
-                    type: 'success',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
-                setTimeout(function(){window.location.href='/book';}, 3000);
+                NotyNotification('Success! Book deleted!');
+                setTimeout(function () {
+                    window.location.href = '/book';
+                }, 3000);
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             }
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
@@ -833,7 +718,7 @@ function BookShare() {
         $.ajax({
             url: '/api/book/share',
             method: 'POST',
-            async: false,
+            async: true,
             dataType: "json",
             data: {
                 bookId: bookId,
@@ -851,13 +736,7 @@ function BookShare() {
                             break;
                         }
                     }
-                    new Noty({
-                        theme: 'mint',
-                        text: r.msg,
-                        type: 'success',
-                        layout: 'bottomRight',
-                        timeout: 30000
-                    }).show();
+                    NotyNotification(r.msg, timeout = 30000);
                     $("#bookShareCode").html(r.shareCode);
                     $("#shareop").html("Unshare");
                     $(".only-shared").show();
@@ -871,18 +750,14 @@ function BookShare() {
                         $("#go-to-discovery-btn").attr("onclick", "window.location.href='/discovery?discoveryId=" + discoveryId + "'");
                     }
                 } else {
-                    new Noty({
-                        theme: 'mint',
-                        text: r.msg,
-                        type: 'error',
-                        layout: 'bottomRight',
-                        timeout: 3000
-                    }).show();
+                    NotyNotification(r.msg, type = 'error');
                 }
             },
-            error: function (r) {
+            error: function (r, textStatus, errorThrown) {
                 if (r.status == 401) {
                     SessionExpired();
+                } else {
+                    NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
                 }
             }
         });
@@ -890,7 +765,7 @@ function BookShare() {
         $.ajax({
             url: '/api/book/share',
             method: 'POST',
-            async: false,
+            async: true,
             dataType: "json",
             data: {
                 bookId: bookId,
@@ -908,13 +783,7 @@ function BookShare() {
                             break;
                         }
                     }
-                    new Noty({
-                        theme: 'mint',
-                        text: r.msg,
-                        type: 'success',
-                        layout: 'bottomRight',
-                        timeout: 3000
-                    }).show();
+                    NotyNotification(r.msg, timeout = 30000);
                     $("#bookShareCode").html("(Private)");
                     $("#shareop").html("Share");
                     $(".only-shared").hide();
@@ -928,18 +797,14 @@ function BookShare() {
                         $("#go-to-discovery-btn").attr("onclick", "window.location.href='/discovery?discoveryId=" + discoveryId + "'");
                     }
                 } else {
-                    new Noty({
-                        theme: 'mint',
-                        text: r.msg,
-                        type: 'error',
-                        layout: 'bottomRight',
-                        timeout: 3000
-                    }).show();
+                    NotyNotification(r.msg, type = 'error');
                 }
             },
-            error: function (r) {
+            error: function (r, textStatus, errorThrown) {
                 if (r.status == 401) {
                     SessionExpired();
+                } else {
+                    NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
                 }
             }
         });
@@ -947,7 +812,7 @@ function BookShare() {
 }
 
 function PublishToDiscoveryShow() {
-    $('#publishToDiscoveryModal').modal('toggle');
+    $('#publishToDiscoveryModal').modal('show');
 }
 
 function PublishToDiscovery() {
@@ -957,7 +822,7 @@ function PublishToDiscovery() {
     $.ajax({
         url: '/api/discovery/publish',
         method: 'POST',
-        async: false,
+        async: true,
         dataType: "json",
         data: {
             bookId: bookId,
@@ -973,40 +838,30 @@ function PublishToDiscovery() {
                 $(".not-published-to-discovery").hide();
                 $(".published-to-discovery").show();
                 $("#go-to-discovery-btn").attr("onclick", "window.location.href='/discovery?discoveryId=" + discoveryId + "'");
-                
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'success',
-                    layout: 'bottomRight',
-                    timeout: 30000
-                }).show();
-                
-                $('#publishToDiscoveryModal').modal('toggle');
+
+                NotyNotification(r.msg);
+
+                $('#publishToDiscoveryModal').modal('hide');
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             }
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
 }
 
-function UnpublishDiscoveryShow(){
-    $('#unpublishDiscoveryModal').modal('toggle');
+function UnpublishDiscoveryShow() {
+    $('#unpublishDiscoveryModal').modal('show');
 }
 
 function GroupPublishToDiscoveryShow() {
-    $('#groupPublishToDiscoveryModal').modal('toggle');
+    $('#groupPublishToDiscoveryModal').modal('show');
 }
 
 function GroupPublishToDiscovery() {
@@ -1016,7 +871,7 @@ function GroupPublishToDiscovery() {
     $.ajax({
         url: '/api/discovery/publish',
         method: 'POST',
-        async: false,
+        async: true,
         dataType: "json",
         data: {
             bookId: groupId,
@@ -1032,43 +887,33 @@ function GroupPublishToDiscovery() {
                 $(".group-not-published-to-discovery").hide();
                 $(".group-published-to-discovery").show();
                 $("#group-go-to-discovery-btn").attr("onclick", "window.location.href='/discovery?discoveryId=" + discoveryId + "'");
-                
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'success',
-                    layout: 'bottomRight',
-                    timeout: 30000
-                }).show();
-                
-                $('#groupPublishToDiscoveryModal').modal('toggle');
+
+                NotyNotification(r.msg, timeout = 30000);
+
+                $('#groupPublishToDiscoveryModal').modal('hide');
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             }
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
 }
 
-function GroupUnpublishDiscoveryShow(){
-    $('#groupUnpublishDiscoveryModal').modal('toggle');
+function GroupUnpublishDiscoveryShow() {
+    $('#groupUnpublishDiscoveryModal').modal('show');
 }
 
-function UnpublishDiscovery(){
+function UnpublishDiscovery() {
     $.ajax({
         url: '/api/discovery/unpublish',
         method: 'POST',
-        async: false,
+        async: true,
         dataType: "json",
         data: {
             discoveryId: discoveryId,
@@ -1081,27 +926,17 @@ function UnpublishDiscovery(){
                 $(".not-published-to-discovery").show();
                 $(".published-to-discovery").hide();
                 $("#go-to-discovery-btn").attr("onclick", "");
-                
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'success',
-                    layout: 'bottomRight',
-                    timeout: 30000
-                }).show();
+
+                NotyNotification(r.msg);
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             }
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
@@ -1111,26 +946,20 @@ function CreateGroupShow() {
     $("#create-group-btn").attr("onclick", "CreateGroup()");
     $("#create-group-btn").html("Create");
     $("#createGroupModalLabel").html("Create Group");
-    $("#createGroupModal").modal("toggle");
+    $("#createGroupModal").modal("show");
 }
 
 function CreateGroup() {
     gname = $("#group-name").val();
     gdescription = $("#group-description").val();
     if (gname == "" || gdescription == "") {
-        new Noty({
-            theme: 'mint',
-            text: 'Both fields must be filled!',
-            type: 'warning',
-            layout: 'topLeft',
-            timeout: 3000
-        }).show();
+        NotyNotification('Both fields must be filled', type = 'warning');
         return;
     }
     $.ajax({
         url: '/api/group',
         method: 'POST',
-        async: false,
+        async: true,
         dataType: "json",
         data: {
             bookId: bookId,
@@ -1162,29 +991,19 @@ function CreateGroup() {
                         break;
                     }
                 }
-                $("#createGroupModal").modal("toggle");
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'success',
-                    layout: 'bottomRight',
-                    timeout: 30000
-                }).show();
+                NotyNotification(r.msg, timeout = 30000);
+                $("#createGroupModal").modal("hide");
                 $("#bookShareCode").html(r.shareCode);
                 $("#shareop").html("Unshare");
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             }
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
@@ -1195,14 +1014,14 @@ function GroupMember() {
 }
 
 function QuitGroupShow() {
-    $("#quitGroupModal").modal('toggle');
+    $("#quitGroupModal").modal('show');
 }
 
 function QuitGroup() {
     $.ajax({
         url: '/api/group/quit',
         method: 'POST',
-        async: false,
+        async: true,
         dataType: "json",
         data: {
             groupId: groupId,
@@ -1232,27 +1051,17 @@ function QuitGroup() {
                         break;
                     }
                 }
-                $("#quitGroupModal").modal('toggle');
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'success',
-                    layout: 'bottomRight',
-                    timeout: 30000
-                }).show();
+                $("#quitGroupModal").modal('hide');
+                NotyNotification(r.msg);
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             }
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
@@ -1262,27 +1071,27 @@ function GroupInfoUpdateShow() {
     $("#create-group-btn").attr("onclick", "GroupInfoUpdate()");
     $("#create-group-btn").html("Update");
     $("#createGroupModalLabel").html("Update Group Information");
-    $("#createGroupModal").modal("toggle");
+    $("#createGroupModal").modal("show");
 }
 
 function GroupAnonymousSwitch(anonymous) {
     $(".group-anonymous-btn").removeClass("btn-primary btn-secondary");
     $(".group-anonymous-btn").addClass("btn-secondary");
-    if(anonymous == 0){
+    if (anonymous == 0) {
         $("#group-anonymous-0").removeClass("btn-secondary");
-        $("#group-anonymous-0").addClass("btn-primary");              
-    } else if(anonymous == 1){
+        $("#group-anonymous-0").addClass("btn-primary");
+    } else if (anonymous == 1) {
         $("#group-anonymous-1").removeClass("btn-secondary");
-        $("#group-anonymous-1").addClass("btn-primary"); 
-    } else if(anonymous == 2){
+        $("#group-anonymous-1").addClass("btn-primary");
+    } else if (anonymous == 2) {
         $("#group-anonymous-2").removeClass("btn-secondary");
-        $("#group-anonymous-2").addClass("btn-primary"); 
+        $("#group-anonymous-2").addClass("btn-primary");
     }
 
     $.ajax({
         url: '/api/group/manage',
         method: 'POST',
-        async: false,
+        async: true,
         dataType: "json",
         data: {
             groupId: groupId,
@@ -1302,38 +1111,28 @@ function GroupAnonymousSwitch(anonymous) {
                 }
                 $(".group-anonymous-btn").removeClass("btn-primary btn-secondary");
                 $(".group-anonymous-btn").addClass("btn-secondary");
-                if(r.anonymous == 0){
+                if (r.anonymous == 0) {
                     $("#group-anonymous-0").removeClass("btn-secondary");
-                    $("#group-anonymous-0").addClass("btn-primary");              
-                } else if(r.anonymous == 1){
+                    $("#group-anonymous-0").addClass("btn-primary");
+                } else if (r.anonymous == 1) {
                     $("#group-anonymous-1").removeClass("btn-secondary");
-                    $("#group-anonymous-1").addClass("btn-primary"); 
-                } else if(r.anonymous == 2){
+                    $("#group-anonymous-1").addClass("btn-primary");
+                } else if (r.anonymous == 2) {
                     $("#group-anonymous-2").removeClass("btn-secondary");
-                    $("#group-anonymous-2").addClass("btn-primary"); 
+                    $("#group-anonymous-2").addClass("btn-primary");
                 }
 
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'success',
-                    layout: 'bottomRight',
-                    timeout: 30000
-                }).show();
+                NotyNotification(r.msg);
 
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             }
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
@@ -1343,19 +1142,13 @@ function GroupInfoUpdate() {
     gname = $("#group-name").val();
     gdescription = $("#group-description").val();
     if (gname == "" || gdescription == "") {
-        new Noty({
-            theme: 'mint',
-            text: 'Both fields must be filled!',
-            type: 'warning',
-            layout: 'topLeft',
-            timeout: 3000
-        }).show();
+        NotyNotification('Both fields must be filled', type = 'warning');
         return;
     }
     $.ajax({
         url: '/api/group/manage',
         method: 'POST',
-        async: false,
+        async: true,
         dataType: "json",
         data: {
             groupId: groupId,
@@ -1374,7 +1167,7 @@ function GroupInfoUpdate() {
 
                         $(".book-name").html(bookName);
                         $(".title").html(bookName + '&nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-refresh"></i></button>');
-                        $("title").html("My Memo - " + bookName);
+                        $("title").html(bookName + " | My Memo");
                         $("#groupCode").html(groupCode);
                         $(".only-group-exist").show();
                         $(".only-group-inexist").hide();
@@ -1387,28 +1180,18 @@ function GroupInfoUpdate() {
                         break;
                     }
                 }
-                $("#createGroupModal").modal('toggle');
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'success',
-                    layout: 'bottomRight',
-                    timeout: 30000
-                }).show();
+                $("#createGroupModal").modal('hide');
+                NotyNotification(r.msg);
 
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             }
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
@@ -1418,7 +1201,7 @@ function GroupCodeUpdate(operation) {
     $.ajax({
         url: '/api/group/code/update',
         method: 'POST',
-        async: false,
+        async: true,
         dataType: "json",
         data: {
             groupId: groupId,
@@ -1439,52 +1222,36 @@ function GroupCodeUpdate(operation) {
                         break;
                     }
                 }
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'success',
-                    layout: 'bottomRight',
-                    timeout: 30000
-                }).show();
+                NotyNotification(r.msg);
 
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             }
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
 }
 
 function GroupDismissShow() {
-    $("#dismissGroupModal").modal("toggle");
+    $("#dismissGroupModal").modal("show");
     $(".book-name").html(bookName);
 }
 
 function GroupDismiss() {
     if ($("#group-delete").val() != bookName) {
-        new Noty({
-            theme: 'mint',
-            text: "Type the name of the group correctly to continue!",
-            type: 'warning',
-            layout: 'bottomRight',
-            timeout: 3000
-        }).show();
+        NotyNotification('Type the name of the group correctly to continue!', type = 'warning');
         return;
     }
     $.ajax({
         url: '/api/group',
         method: 'POST',
-        async: false,
+        async: true,
         dataType: "json",
         data: {
             groupId: groupId,
@@ -1512,27 +1279,17 @@ function GroupDismiss() {
                         break;
                     }
                 }
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'success',
-                    layout: 'bottomRight',
-                    timeout: 30000
-                }).show();
-                $("#dismissGroupModal").modal("toggle");
+                NotyNotification(r.msg);
+                $("#dismissGroupModal").modal("hide");
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             }
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
@@ -1603,11 +1360,12 @@ function SelectBook(bookId) {
     UpdateBookDisplay();
 }
 
-function UpdateBookList(doasync = true) {
+function UpdateBookList() {
+    $("#refresh-btn").html('<i class="fa fa-refresh fa-spin"></i>');
     $.ajax({
         url: "/api/book",
         method: 'POST',
-        async: doasync,
+        async: true,
         dataType: "json",
         data: {
             userId: localStorage.getItem("userId"),
@@ -1616,6 +1374,8 @@ function UpdateBookList(doasync = true) {
         success: function (r) {
             bookList = r;
             localStorage.setItem("book-list", JSON.stringify(bookList));
+            UpdateBookDisplay();
+            $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
         }
     });
 }
@@ -1624,13 +1384,7 @@ function CreateBook() {
     bookName = $("#create-book-name").val();
 
     if (bookName == "") {
-        new Noty({
-            theme: 'mint',
-            text: 'Enter a book name!',
-            type: 'warning',
-            layout: 'topLeft',
-            timeout: 3000
-        }).show();
+        NotyNotification('Please enter the name of the book!', type = 'warning');
         return;
     }
 
@@ -1646,62 +1400,19 @@ function CreateBook() {
         },
         success: function (r) {
             if (r.success == true) {
-                UpdateBookList(false);
+                UpdateBookList();
                 UpdateBookDisplay();
-                new Noty({
-                    theme: 'mint',
-                    text: 'Success!',
-                    type: 'success',
-                    layout: 'topLeft',
-                    timeout: 3000
-                }).show();
+                NotyNotification('Success! Book created!');
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'topLeft',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             }
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
-                alert("Login session expired! Please login again!");
-                localStorage.removeItem("userId");
-                localStorage.removeItem("token");
-                window.location.href = "/user";
+                SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
-}
-
-function SignOut() {
-    $.ajax({
-        url: "/api/user/logout",
-        method: 'POST',
-        async: true,
-        dataType: "json",
-        data: {
-            userId: localStorage.getItem("userId"),
-            token: localStorage.getItem("token")
-        }
-    });
-    localStorage.removeItem("userid");
-    localStorage.removeItem("username");
-    localStorage.removeItem("token");
-    localStorage.removeItem("memo-question-id");
-    localStorage.removeItem("memo-book-id");
-    localStorage.removeItem("book-list");
-    localStorage.removeItem("question-list");
-
-    $("#navusername").html("Sign in");
-
-    new Noty({
-        theme: 'mint',
-        text: 'Success! You are now signed out!',
-        type: 'success',
-        layout: 'bottomRight',
-        timeout: 3000
-    }).show();
 }

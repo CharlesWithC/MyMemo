@@ -7,6 +7,7 @@
     <script src="/js/jquery-3.6.0.min.js"></script>
     <script src="/js/bootstrap.bundle.min.js"></script>
     <script src="/js/popper.min.js"></script>
+    <script src="/js/general.js"></script>
     <script src="/js/main.js"></script>
 
     <link href="/css/bootstrap.min.css" rel="stylesheet">
@@ -24,7 +25,7 @@
             PageInit();
             UpdateBookDisplay();
 
-            $("#window,#answer").click(function () {
+            $("#content,#answer").click(function () {
                 DisplayAnswer();
             });
             $("#question").click(function () {
@@ -49,19 +50,19 @@
                 $("#book-btn").hover(function () {
                     ShowBook();
                 });
-                $("#window").hover(function () {
-                    $("#book").fadeOut();
+                $("#content").hover(function () {
+                    $("#book-div").fadeOut();
                 });
             }
 
             if (localStorage.getItem("settings-theme") == "dark") {
-                $("body").attr("style", "color:#ffffff;background-color:#333333");$("hr").attr("style", "background-color:#cccccc;");
-                $("textarea").attr("style", "color:#ffffff;background-color:#333333");
+                $("body").attr("style", "color:#ffffff;background-color:#333333");
+                $("hr").attr("style", "background-color:#cccccc;");
                 $(".modal-content").attr("style", "background-color:#333333");
                 $(".fa-times").attr("style", "color:white");
-                $("textarea").attr("style","z-index:100;color:#ffffff;background-color:#333333");
+                $("textarea").attr("style", "z-index:100;color:#ffffff;background-color:#333333");
             } else {
-                $("textarea").attr("style","z-index:100;color:#000000;background-color:#ffffff");
+                $("textarea").attr("style", "z-index:100;color:#000000;background-color:#ffffff");
             }
 
             setTimeout(onkeypress, 500);
@@ -70,8 +71,6 @@
 </head>
 
 <body>
-    <div id="window" style="z-index:50;position:fixed;height:100%;width:100%"></div>
-
     <div id="navigate" style="z-index:100">
         <div class="leftside">
             <div class="sqbtn">
@@ -81,7 +80,8 @@
                 <a href="#" onclick="window.location.href='/book'" id="book-btn"><i class="fa fa-book"></i><br>Books</a>
             </div>
             <div class="sqbtn">
-                <a href="#" onclick="window.location.href='/discovery'"><i class="fa fa-paper-plane"></i><br>Discovery</a>
+                <a href="#" onclick="window.location.href='/discovery'"><i
+                        class="fa fa-paper-plane"></i><br>Discovery</a>
             </div>
         </div>
         <div class="userctrl">
@@ -91,34 +91,17 @@
         </div>
     </div>
 
-    <div id="home" style="position:relative;padding-bottom:5em">
-        <div class="center" style="padding-top:5em;line-height:50%">
-            <h1>My Memo</h1>
-            <div class="input-group mb-3 w-25 center">
-                <span class="input-group-text" id="basic-addon1">From</span>
-                <input type="text" class="form-control" id="start-from" aria-describedby="basic-addon1"
-                    style="z-index:100">
-            </div>
-            <button id="start-btn" type="button" class="btn btn-primary"
-                style="position:relative;width:10em;z-index:100" onclick="MemoGo()">Go <i
-                    class='fa fa-play'></i></button>
-            <div class="center" style="margin-top:20px">
-                <p>Book: <span id="book-name"></span></p>
-                <p><span id="mode"></span> Mode</p>
-            </div>
-        </div>
-    </div>
-
-    <div id="book" class="slide" style="left:4em;display:none;border-radius:1em">
-        <div class="slide-content">
+    <div id="book-div" class="book-side" style="left:4em;display:none;border-radius:1em">
+        <div class="book-side-content">
             <h2 style="float:left">Books</h2>
-            <button type="button" class="btn btn-outline-secondary" style="margin:0.5em" onclick="RefreshBookList()" id="refresh-btn"><i class="fa fa-refresh"></i></button>
+            <button type="button" class="btn btn-outline-secondary" style="margin:0.5em" onclick="RefreshBookList()"
+                id="book-list-refresh-btn"><i class="fa fa-refresh"></i></button>
             <button style="float:right" type="button" class="close" aria-label="Close" onclick="DisplayAnswer()">
                 <span aria-hidden=" true"><i class="fa fa-times"></i></span>
             </button>
 
         </div>
-        <div class="slide-content-scroll" id="book-list">
+        <div class="book-side-content-scroll" id="book-list">
             <div>
                 <p>Create Book: </p>
                 <div class="input-group mb-3 w-75">
@@ -132,116 +115,138 @@
         </div>
     </div>
 
-    <div id="memo" style="display:none;padding-bottom:5em;z-index:100">
-        <h1 class="title">My Memo</h1>
-        <div class="center">
-            <textarea class="form-control question center" id="question"
-                style="z-index:100" readonly=true></textarea>
-            <br><br>
-            <textarea class="form-control answer center" id="answer" style="z-index:100"
-                readonly=true></textarea>
-        </div>
-
-        <div id="navigate" style="z-index:100">
-            <div class="top-right" style="top:4em;right:5em">
-                <button id="statistics-btn" type="button" class="btn btn-info control-btn control-btn-top"
-                    onclick="Statistics()"><i class="fa fa-list-alt"></i> Statistics</button>
-                <br>
-                <button id="edit-btn" type="button" class="btn btn-info control-btn control-btn-top"
-                    onclick="EditQuestionShow()"><i class="fa fa-edit"></i> Edit</button>
-                <br>
-                <button type="button" class="btn btn-primary control-btn control-btn-bottom ap-btn"
-                    onclick="StopAutoPlayer()" style="display:none"><i class="fa fa-pause-circle"></i> Pause</button>
-            </div>
-        </div>
-
-        <div id="practice-control" class="control center" style="display:none;padding-top:2em;z-index:100">
-            <button type="button" class="btn btn-primary control-btn control-btn-left control-btn-top memo-tag"
-                onclick="MemoTag()">Tag <i class='fa fa-star'></i></button>
-            <button type="button" class="btn btn-primary control-btn control-btn-right control-btn-top memo-delete"
-                onclick="MemoDelete()">Delete <i class="fa fa-trash"></i></button>
-            <br>
-            <button type="button" class="btn btn-primary control-btn control-btn-left control-btn-bottom memo-previous"
-                onclick="MemoMove('previous')"><i class="fa fa-arrow-circle-left"></i> Previous</button>
-            <button type="button" class="btn btn-primary control-btn control-btn-right control-btn-bottom memo-next"
-                onclick="MemoMove('next')">Next <i class="fa fa-arrow-circle-right"></i></button>
-        </div>
-
-        <div id="challenge-control" class="control center" style="display:none;padding-top:1em;z-index:100">
-            <p style="padding-bottom:1em"><span id="challenge-msg">Do you remember it?</span></p>
-            <button type="button"
-                class="btn btn-primary control-btn control-btn-left control-btn-top memo-challenge-yes"
-                onclick="MemoChallenge('yes')">Yes <i class='fa fa-check'></i></button>
-            <button type="button"
-                class="btn btn-primary control-btn control-btn-right control-btn-top memo-challenge-no"
-                onclick="MemoChallenge('no')">No <i class='fa fa-times'></i></button>
-            <br>
-            <button type="button" class="btn btn-primary control-btn control-btn-left control-btn-top memo-tag"
-                onclick="MemoTag()">Tag <i class='fa fa-star'></i></button>
-            <button type="button" class="btn btn-primary control-btn control-btn-right control-btn-top memo-delete"
-                onclick="MemoDelete()">Delete <i class="fa fa-trash"></i></button>
-        </div>
-
-        <div id="offline-control" class="control center" style="display:none;padding-top:2em;z-index:100">
-            <button type="button" class="btn btn-primary control-btn control-btn-left control-btn-bottom memo-previous"
-                onclick="MemoMove('previous')"><i class="fa fa-arrow-circle-left"></i> Previous</button>
-            <button type="button" class="btn btn-primary control-btn control-btn-right control-btn-bottom memo-next"
-                onclick="MemoMove('next')">Next <i class="fa fa-arrow-circle-right"></i></button>
-            <br>
-        </div>
-    </div>
-
-    <div class="modal fade" id="statisticsModal" tabindex="-1" role="dialog" aria-labelledby="statisticsModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="statisticsModalLabel">Statistics of <span
-                            id="statisticsQuestion"></span>
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#statisticsModal').modal('toggle')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
+    <div id="content" class="container" style="padding:0">
+        <div id="home" style="position:relative;padding-bottom:5em">
+            <div class="center" style="padding-top:5em;line-height:50%">
+                <h1>My Memo</h1>
+                <div class="input-group mb-3 center" style="width:15em">
+                    <span class="input-group-text" id="basic-addon1">From</span>
+                    <input type="text" class="form-control" id="start-from" aria-describedby="basic-addon1"
+                        style="z-index:100">
                 </div>
-                <div class="modal-body">
-                    <p><span id="statisticsDetail"></span></p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#statisticsModal').modal('toggle')">Close</button>
+                <button id="start-btn" type="button" class="btn btn-primary"
+                    style="position:relative;width:10em;z-index:100" onclick="MemoGo()">Go <i
+                        class='fa fa-play'></i></button>
+                <div class="center" style="margin-top:20px">
+                    <p>Book: <span id="book-name"></span></p>
+                    <p><span id="mode"></span> Mode</p>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="modal fade" id="editQuestionModal" tabindex="-1" role="dialog" aria-labelledby="editQuestionModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Edit Question</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#editQuestionModal').modal('toggle')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
+        <div id="memo" style="display:none;padding-bottom:5em;z-index:100">
+            <h1 class="title">My Memo</h1>
+            <div class="center">
+                <textarea class="form-control question center" id="question" style="z-index:100"
+                    readonly=true></textarea>
+                <br><br>
+                <textarea class="form-control answer center" id="answer" style="z-index:100" readonly=true></textarea>
+            </div>
+
+            <div id="navigate" style="z-index:100">
+                <div class="top-right" style="top:4em;right:5em">
+                    <button id="statistics-btn" type="button" class="btn btn-info control-btn control-btn-top"
+                        onclick="Statistics()"><i class="fa fa-list-alt"></i> Statistics</button>
+                    <br>
+                    <button id="edit-btn" type="button" class="btn btn-info control-btn control-btn-top"
+                        onclick="EditQuestionShow()"><i class="fa fa-edit"></i> Edit</button>
+                    <br>
+                    <button type="button" class="btn btn-primary control-btn control-btn-bottom ap-btn"
+                        onclick="StopAutoPlayer()" style="display:none"><i class="fa fa-pause-circle"></i>
+                        Pause</button>
                 </div>
-                <div class="modal-body">
-                    <form>
-                        <div class="form-group">
-                            <label for="edit-question" class="col-form-label">Question:</label>
-                            <textarea class="form-control" id="edit-question"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="edit-answer" class="col-form-label">Answer:</label>
-                            <textarea class="form-control" id="edit-answer"></textarea>
-                        </div>
-                    </form>
+            </div>
+
+            <div id="practice-control" class="control center" style="display:none;padding-top:2em;z-index:100">
+                <button type="button" class="btn btn-primary control-btn control-btn-left control-btn-top memo-tag"
+                    onclick="MemoTag()">Tag <i class='fa fa-star'></i></button>
+                <button type="button" class="btn btn-primary control-btn control-btn-right control-btn-top memo-delete"
+                    onclick="MemoDelete()">Delete <i class="fa fa-trash"></i></button>
+                <br>
+                <button type="button"
+                    class="btn btn-primary control-btn control-btn-left control-btn-bottom memo-previous"
+                    onclick="MemoMove('previous')"><i class="fa fa-arrow-circle-left"></i> Previous</button>
+                <button type="button" class="btn btn-primary control-btn control-btn-right control-btn-bottom memo-next"
+                    onclick="MemoMove('next')">Next <i class="fa fa-arrow-circle-right"></i></button>
+            </div>
+
+            <div id="challenge-control" class="control center" style="display:none;padding-top:1em;z-index:100">
+                <p style="padding-bottom:1em"><span id="challenge-msg">Do you remember it?</span></p>
+                <button type="button"
+                    class="btn btn-primary control-btn control-btn-left control-btn-top memo-challenge-yes"
+                    onclick="MemoChallenge('yes')">Yes <i class='fa fa-check'></i></button>
+                <button type="button"
+                    class="btn btn-primary control-btn control-btn-right control-btn-top memo-challenge-no"
+                    onclick="MemoChallenge('no')">No <i class='fa fa-times'></i></button>
+                <br>
+                <button type="button" class="btn btn-primary control-btn control-btn-left control-btn-top memo-tag"
+                    onclick="MemoTag()">Tag <i class='fa fa-star'></i></button>
+                <button type="button" class="btn btn-primary control-btn control-btn-right control-btn-top memo-delete"
+                    onclick="MemoDelete()">Delete <i class="fa fa-trash"></i></button>
+            </div>
+
+            <div id="offline-control" class="control center" style="display:none;padding-top:2em;z-index:100">
+                <button type="button"
+                    class="btn btn-primary control-btn control-btn-left control-btn-bottom memo-previous"
+                    onclick="MemoMove('previous')"><i class="fa fa-arrow-circle-left"></i> Previous</button>
+                <button type="button" class="btn btn-primary control-btn control-btn-right control-btn-bottom memo-next"
+                    onclick="MemoMove('next')">Next <i class="fa fa-arrow-circle-right"></i></button>
+                <br>
+            </div>
+        </div>
+
+        <div class="modal fade" id="statisticsModal" tabindex="-1" role="dialog" aria-labelledby="statisticsModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="statisticsModalLabel">Statistics of <span
+                                id="statisticsQuestion"></span>
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                            onclick="$('#statisticsModal').modal('hide')">
+                            <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p><span id="statisticsDetail"></span></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                            onclick="$('#statisticsModal').modal('hide')">Close</button>
+                    </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#editQuestionModal').modal('toggle')">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="EditQuestion()">Edit</button>
+            </div>
+        </div>
+
+        <div class="modal fade" id="editQuestionModal" tabindex="-1" role="dialog"
+            aria-labelledby="editQuestionModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Edit Question</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                            onclick="$('#editQuestionModal').modal('hide')">
+                            <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="form-group">
+                                <label for="edit-question" class="col-form-label">Question:</label>
+                                <textarea class="form-control" id="edit-question"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="edit-answer" class="col-form-label">Answer:</label>
+                                <textarea class="form-control" id="edit-answer"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                            onclick="$('#editQuestionModal').modal('hide')">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="EditQuestion()">Edit</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -249,7 +254,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.2.4 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.2.5 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

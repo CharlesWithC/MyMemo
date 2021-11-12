@@ -7,6 +7,7 @@
     <script src="/js/jquery-3.6.0.min.js"></script>
     <script src="/js/bootstrap.bundle.min.js"></script>
     <script src="/js/popper.min.js"></script>
+    <script src="/js/general.js"></script>
     <script src="/js/discovery.js"></script>
 
     <link href="/css/bootstrap.min.css" rel="stylesheet">
@@ -27,8 +28,14 @@
             $('#discoveryList').DataTable({
                 pagingType: "full_numbers",
                 iDisplayLength: 25,
-                aaSorting: [[5,'desc'],[4,'desc']]
+                aaSorting: [
+                    [5, 'desc'],
+                    [4, 'desc']
+                ]
             });
+            if (localStorage.getItem("isAdmin") != "1") {
+                $('#discoveryList').DataTable().column(6).visible(false);
+            }
 
             $("#discoveryList_length").after('<div id="qf" class="dataTables_filter input-group mb-3">\
                 <span class="input-group-text" id="basic-addon1">Search</span>\
@@ -39,23 +46,6 @@
             $("#qf").attr("id", "discoveryList_filter");
             $("#qqf").remove();
 
-            if (localStorage.getItem("settings-theme") == "dark") {
-                $("body").attr("style", "color:#ffffff;background-color:#333333");$("hr").attr("style", "background-color:#cccccc;");
-                $("textarea").attr("style", "color:#ffffff;background-color:#333333");
-                $(".modal-content").attr("style", "background-color:#333333");
-                $(".fa-times").attr("style", "color:white");
-                $("#discoveryList_length").attr("style", "color:white");
-                
-                setInterval(function () {
-                    $("td").attr("style", "background-color:#333333");
-                    $("#discoveryList_paginate > a").attr("style", "background-color:#d3d3d3");
-                    $("#discoveryList_paginate > span > a").attr("style", "background-color:#d3d3d3");
-                    $("#discoveryList_paginate > span > span").removeClass("ellipsis");
-                    $("#discoveryList_paginate > span > span").addClass("paginate_button");
-                    $("#discoveryList_paginate > span > span").css("style", "background-color:#d3d3d3");
-                }, 100);
-            }
-            
             $('#questionList').DataTable({
                 pagingType: "full_numbers"
             });
@@ -70,21 +60,42 @@
             $("#qqf").remove();
 
             if (localStorage.getItem("settings-theme") == "dark") {
-                $("body").attr("style", "color:#ffffff;background-color:#333333");$("hr").attr("style", "background-color:#cccccc;");
+                $("body").attr("style", "color:#ffffff;background-color:#333333");
+                $("hr").attr("style", "background-color:#cccccc;");
                 $("textarea").attr("style", "color:#ffffff;background-color:#333333");
                 $(".modal-content").attr("style", "background-color:#333333");
                 $(".fa-times").attr("style", "color:white");
+                $("#discoveryList_length").attr("style", "color:white");
                 $("#questionList_length").attr("style", "color:white");
-                
+
                 setInterval(function () {
                     $("td").attr("style", "background-color:#333333");
+                    $("#discoveryList_paginate > a").attr("style", "background-color:#d3d3d3");
+                    $("#discoveryList_paginate > span > a").attr("style", "background-color:#d3d3d3");
+                    $("#discoveryList_paginate > span > span").removeClass("ellipsis");
+                    $("#discoveryList_paginate > span > span").addClass("paginate_button");
+                    $("#discoveryList_paginate > span > span").css("style", "background-color:#d3d3d3");
+
                     $("#questionList_paginate > a").attr("style", "background-color:#d3d3d3");
                     $("#questionList_paginate > span > a").attr("style", "background-color:#d3d3d3");
                     $("#questionList_paginate > span > span").removeClass("ellipsis");
                     $("#questionList_paginate > span > span").addClass("paginate_button");
                     $("#questionList_paginate > span > span").css("style", "background-color:#d3d3d3");
                 }, 100);
+            } else {
+                $("textarea").attr("style", "z-index:100;color:#000000;background-color:#ffffff");
             }
+
+            $('#discoveryList tbody').on('click', 'tr', function () {
+                discoveryId = parseInt($(this).attr("id"));
+                window.location.href = "/discovery?discoveryId=" + discoveryId;
+            });
+            $("#book-btn").hover(function () {
+                ShowBook();
+            });
+            $("#content").hover(function () {
+                $("#book-div").fadeOut();
+            });
 
             PageInit();
         });
@@ -92,7 +103,9 @@
 </head>
 
 <body>
-    <h1 class="title" style="padding-bottom: 0;">Discovery &nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="RefreshDiscovery()" id="refresh-btn"><i class="fa fa-refresh"></i></button></h1>
+    <h1 class="title" style="padding-bottom: 0;">Discovery &nbsp;&nbsp;<button type="button"
+            class="btn btn-outline-secondary" onclick="RefreshDiscovery()" id="refresh-btn"><i
+                class="fa fa-refresh"></i></button></h1>
 
     <div id="navigate" style="z-index:100">
         <div class="leftside">
@@ -100,10 +113,11 @@
                 <a href="/"><img src="/img/icon.png" style="width:4em;height:4em"></a>
             </div>
             <div class="sqbtn">
-                <a href="#" onclick="window.location.href='/book'"><i class="fa fa-book"></i><br>Books</a>
+                <a id="book-btn" href="#" onclick="window.location.href='/book'"><i class="fa fa-book"></i><br>Books</a>
             </div>
             <div class="sqbtn">
-                <a href="#" onclick="window.location.href='/discovery'"><i class="fa fa-paper-plane"></i><br>Discovery</a>
+                <a href="#" onclick="window.location.href='/discovery'"><i
+                        class="fa fa-paper-plane"></i><br>Discovery</a>
             </div>
         </div>
         <div class="userctrl">
@@ -113,99 +127,126 @@
         </div>
     </div>
 
-    <div class="discovery-list container">
-        <div style="position:relative;width:100%">
-            <table class="table" id="discoveryList" style="text-align:center">
-                <thead>
-                    <tr>
-                        <th id="title">Title</th>
-                        <th id="description">Description</th>
-                        <th id="type">Type</th>
-                        <th id="publisher">Publisher</th>
-                        <th id="views">Views</th>
-                        <th id="likes">Likes</th>
-                        <th id="operation">Operation</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <div id="book-div" class="book-side" style="left:4em;display:none;border-radius:1em">
+        <div class="book-side-content">
+            <h2 style="float:left">Books</h2>
+            <button type="button" class="btn btn-outline-secondary" style="margin:0.5em" onclick="RefreshBookList()"
+                id="book-list-refresh-btn"><i class="fa fa-refresh"></i></button>
+            <button style="float:right" type="button" class="close" aria-label="Close" onclick="DisplayAnswer()">
+                <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+            </button>
 
-    <div class="discovery-detail container" style="display:none">
-        <div style="position:relative;width:55%;float:left">
-            <table class="table" id="questionList" style="text-align:center">
-                <thead>
-                    <tr>
-                        <th id="question">Question</th>
-                        <th id="answer">Answer</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
         </div>
-
-        <div id="manage" class="manage" style="position:relative;width:35%;float:right">
-            <div id="basic-info">
-                <p>Description: <span id="detail-description"></span></p>
-                <p>Published by @<span id="detail-publisher"></span></p>
-                <p>*The publisher reserves all rights of this post.</p>
-            </div>
-            <div class="user-only book-only" style="display:none">
-                <hr>
-                <h4>Import <i class="fa fa-upload"></i></h4>
-                <p>Share code: <span id="shareCode"></span></p>
-                <button type="button" class="btn btn-primary" onclick="ImportBook()">Import</button>
-                <br>
-                <p>*This will clone the book of this discovery post to your book database.</p>
-            </div>
-            <div class="user-only group-only" style="display:none">
-                <hr>
-                <h4>Join <i class="fa fa-users"></i></h4>
-                <p>Group code: <span id="groupCode"></span></p>
-                <button type="button" class="btn btn-primary" onclick="ImportBook()">Join</button>
-                <br>
-            </div>
-            <div class="publisher-only" style="display:none">
-                <hr>
-                <h4>Manage Post</h4>
-                <button type="button" class="btn btn-primary" onclick="UpdateInformationShow()">Update Information <i class="fa fa-edit"></i></button>
-                <br>
-                <p>*You can unpublish the post or unshare the book at book management page.</p>
+        <div class="book-side-content-scroll" id="book-list">
+            <div>
+                <p>Create Book: </p>
+                <div class="input-group mb-3 w-75">
+                    <span class="input-group-text" id="basic-addon1">Name</span>
+                    <input type="text" class="form-control" id="create-book-name" aria-describedby="basic-addon1">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-primary" type="button" onclick="CreateBook()">Create</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="editPostModal" tabindex="-1" role="dialog" aria-labelledby="editPostModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editPostModalLabel"><i class="fa fa-edit"></i> Edit Post</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#editPostModal').modal('toggle')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
+    <div id="content" class="container">
+        <div class="discovery-list container">
+            <div style="position:relative;width:100%">
+                <table class="table" id="discoveryList" style="text-align:center">
+                    <thead>
+                        <tr>
+                            <th id="title">Title</th>
+                            <th id="description">Description</th>
+                            <th id="type">Type</th>
+                            <th id="publisher">Publisher</th>
+                            <th id="views">Views</th>
+                            <th id="likes">Likes</th>
+                            <th id="operation">Operation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="discovery-detail container" style="display:none">
+            <div style="position:relative;width:55%;float:left">
+                <table class="table" id="questionList" style="text-align:center">
+                    <thead>
+                        <tr>
+                            <th id="question">Question</th>
+                            <th id="answer">Answer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="manage" class="manage" style="position:relative;width:35%;float:right">
+                <div id="basic-info">
+                    <p>Description: <span id="detail-description"></span></p>
+                    <p>Published by @<span id="detail-publisher"></span></p>
+                    <p>*The publisher reserves all rights of this post.</p>
                 </div>
-                <div class="modal-body">
-                    <form>
-                        <div class="form-group">
-                            <label for="discovery-title" class="col-form-label">Title:</label>
-                            <textarea class="form-control" id="discovery-title"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="discovery-description" class="col-form-label">Description:</label>
-                            <textarea class="form-control" id="discovery-description"></textarea>
-                        </div>
-                    </form>
+                <div class="user-only book-only" style="display:none">
+                    <hr>
+                    <h4>Import <i class="fa fa-upload"></i></h4>
+                    <p>Share code: <span id="shareCode"></span></p>
+                    <button type="button" class="btn btn-primary" onclick="ImportBook()">Import</button>
+                    <br>
+                    <p>*This will clone the book of this discovery post to your book database.</p>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#editPostModal').modal('toggle')">Close</button>
-                    <button id="publish-to-discovery-btn" type="button" class="btn btn-primary"
-                        onclick="UpdateInformation()">Edit <i class="fa fa-paper-plane"></i></button>
+                <div class="user-only group-only" style="display:none">
+                    <hr>
+                    <h4>Join <i class="fa fa-users"></i></h4>
+                    <p>Group code: <span id="groupCode"></span></p>
+                    <button type="button" class="btn btn-primary" onclick="ImportBook()">Join</button>
+                    <br>
+                </div>
+                <div class="publisher-only" style="display:none">
+                    <hr>
+                    <h4>Manage Post</h4>
+                    <button type="button" class="btn btn-primary" onclick="UpdateInformationShow()">Update Information
+                        <i class="fa fa-edit"></i></button>
+                    <br>
+                    <p>*You can unpublish the post or unshare the book at book management page.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="editPostModal" tabindex="-1" role="dialog" aria-labelledby="editPostModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editPostModalLabel"><i class="fa fa-edit"></i> Edit Post</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                            onclick="$('#editPostModal').modal('hide')">
+                            <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="form-group">
+                                <label for="discovery-title" class="col-form-label">Title:</label>
+                                <textarea class="form-control" id="discovery-title"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="discovery-description" class="col-form-label">Description:</label>
+                                <textarea class="form-control" id="discovery-description"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                            onclick="$('#editPostModal').modal('hide')">Close</button>
+                        <button id="publish-to-discovery-btn" type="button" class="btn btn-primary"
+                            onclick="UpdateInformation()">Edit <i class="fa fa-paper-plane"></i></button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -213,7 +254,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.2.4 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.2.5 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

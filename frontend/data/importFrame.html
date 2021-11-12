@@ -8,6 +8,7 @@
     <script src="/js/bootstrap.bundle.min.js"></script>
     <script src="/js/popper.min.js"></script>
     <script src="/js/main.js"></script>
+    <script src="/js/general.js"></script>
     <script src="/js/settings.js"></script>
 
     <link href="/css/bootstrap.min.css" rel="stylesheet">
@@ -19,10 +20,8 @@
     <script>
         $(document).ready(function () {
             if (localStorage.getItem("settings-theme") == "dark") {
-                $("body").attr("style", "color:#ffffff;background-color:#333333");$("hr").attr("style", "background-color:#cccccc;");
-                $("textarea").attr("style", "color:#ffffff;background-color:#333333");
-                $(".modal-content").attr("style", "background-color:#333333");
-                $(".fa-times").attr("style", "color:white");
+                $("body").attr("style", "color:#ffffff;background-color:#333333");
+                $("hr").attr("style", "background-color:#cccccc;");
             }
 
             $("#userId").val(localStorage.getItem("userId"));

@@ -1,5 +1,21 @@
 # Update History
 
+## v5.2.5
+
+*Date: 2021/11/12*  
+Bug Fixes:
+1.Fixed the bug that question not displaying in challenge mode with settings.swap = 1 (display answer mode).  
+2.When showing / hiding modal, no longer using toggle and changed to use show / hide directly to prevent abnormal behaviour.  
+3.Made all ajax requests with async enabled.  
+4.Fixed the bug that tables are having dark background while in light mode.  
+Other Updates:  
+1.Allowed users to click row to show Discovery post without pressing the Show operation.  
+Hiding operation column for users and only display delete operation for admins.  
+2.Move functions that are used by nearly all pages to a separate general.js and each page will import it.  
+3.Added sync button for book page.  
+4.Added front-end notifications for request errors.  
+5.Add book list preview for all pages.  
+
 ## v5.2.4
 
 *Date: 2021/11/7*  

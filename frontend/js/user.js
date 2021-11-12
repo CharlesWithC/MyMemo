@@ -1,3 +1,7 @@
+// Copyright (C) 2021 Charles All rights reserved.
+// Author: @Charles-1414
+// License: GNU General Public License v3.0
+
 class UserClass {
     constructor() {
         this.userId = -1;
@@ -14,14 +18,6 @@ class UserClass {
     }
 }
 user = new UserClass();
-
-function BackToHome() {
-    window.location.href = '/';
-}
-
-function GoToUser() {
-    window.location.href = "/user"
-}
 
 $("#signout-btn").hide();
 $.ajax({
@@ -54,6 +50,7 @@ $.ajax({
         $(".user").show();
         $(".title").show();
         $("#signout-btn").show();
+        $("title").html(user.username + " | My Memo");
 
         $("#navusername").html(user.username);
         $("#username").html(user.username);
@@ -73,7 +70,7 @@ $.ajax({
             $(".only-admin").hide();
         }
     },
-    error: function (r) {
+    error: function (r, textStatus, errorThrown) {
         $(".user").hide();
         $(".login").show();
         $(".title").hide();
@@ -86,20 +83,14 @@ function Login() {
     password = $("#input-password").val();
 
     if (username == "" || password == "") {
-        new Noty({
-            theme: 'mint',
-            text: 'Both fields must be filled!',
-            type: 'warning',
-            layout: 'bottomRight',
-            timeout: 3000
-        }).show();
+        NotyNotification('Both fields must be filled', type = 'warning');
         return;
     }
 
     $.ajax({
         url: "/api/user/login",
         method: 'POST',
-        async: false,
+        async: true,
         dataType: "json",
         data: {
             username: username,
@@ -112,13 +103,7 @@ function Login() {
 
                 user.userId = r.userId;
 
-                new Noty({
-                    theme: 'mint',
-                    text: 'Success! You have now logged in!',
-                    type: 'success',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification('You are now signed in!');
 
                 $.ajax({
                     url: "/api/user/info",
@@ -146,6 +131,7 @@ function Login() {
                         } else {
                             localStorage.removeItem("isAdmin");
                         }
+                        $("title").html(user.username + " | My Memo");
                     }
                 });
                 $("#input-username").val("");
@@ -153,13 +139,7 @@ function Login() {
 
                 window.location.reload();
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             }
         }
     });
@@ -172,20 +152,14 @@ function Register() {
     invitationCode = $("#register-inviteCode").val();
 
     if (username == "" || password == "" || email == "" || invitationCode == "") {
-        new Noty({
-            theme: 'mint',
-            text: 'All fields must be filled!',
-            type: 'warning',
-            layout: 'bottomRight',
-            timeout: 3000
-        }).show();
+        NotyNotification('All fields must be filled', type = 'warning');
         return;
     }
 
     $.ajax({
         url: "/api/user/register",
         method: 'POST',
-        async: false,
+        async: true,
         dataType: "json",
         data: {
             username: username,
@@ -195,66 +169,20 @@ function Register() {
         },
         success: function (r) {
             if (r.success == true) {
-                new Noty({
-                    theme: 'mint',
-                    text: 'Success! You are now registered!',
-                    type: 'success',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification('Success! You are now registered!');
                 $(".register").hide();
                 $(".login").show();
                 $(".title").hide();
                 $("#register-password").val("");
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             }
         }
     });
 }
 
-function SignOut() {
-    $.ajax({
-        url: "/api/user/logout",
-        method: 'POST',
-        async: true,
-        dataType: "json",
-        data: {
-            userId: localStorage.getItem("userId"),
-            token: localStorage.getItem("token")
-        }
-    });
-    localStorage.removeItem("userid");
-    localStorage.removeItem("username");
-    localStorage.removeItem("token");
-    localStorage.removeItem("memo-question-id");
-    localStorage.removeItem("memo-book-id");
-    localStorage.removeItem("book-list");
-    localStorage.removeItem("question-list");
-
-    $(".user").hide();
-    $(".login").show();
-    $(".title").hide();
-
-    $("#navusername").html("Sign in");
-
-    new Noty({
-        theme: 'mint',
-        text: 'Success! You are now signed out!',
-        type: 'success',
-        layout: 'bottomRight',
-        timeout: 3000
-    }).show();
-}
-
 function UpdateProfileShow() {
-    $("#updateProfileModal").modal("toggle");
+    $("#updateProfileModal").modal("show");
     $("#update-username").val(user.username);
     $("#update-email").val(user.email);
 }
@@ -264,20 +192,14 @@ function UpdateUserProfile() {
     email = $("#update-email").val();
 
     if (username == "" || email == "") {
-        new Noty({
-            theme: 'mint',
-            text: 'Both fields must be filled!',
-            type: 'warning',
-            layout: 'bottomRight',
-            timeout: 3000
-        }).show();
+        NotyNotification('Both fields must be filled', type = 'warning');
         return;
     }
 
     $.ajax({
         url: "/api/user/updateInfo",
         method: 'POST',
-        async: false,
+        async: true,
         dataType: "json",
         data: {
             username: username,
@@ -293,23 +215,11 @@ function UpdateUserProfile() {
                 $("#navusername").html(user.username);
                 $("#username").html(user.username);
                 $("#email").html(user.email);
-                $("#updateProfileModal").modal("toggle");
+                $("#updateProfileModal").modal("hide");
 
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'success',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg);
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             }
         }
     });
@@ -321,20 +231,14 @@ function ChangePassword() {
     cfmpwd = $("#cfmpwd").val();
 
     if (oldpwd == "" || newpwd == "" || cfmpwd == "") {
-        new Noty({
-            theme: 'mint',
-            text: 'All fields must be filled!',
-            type: 'warning',
-            layout: 'bottomRight',
-            timeout: 3000
-        }).show();
+        NotyNotification('All fields must be filled', type = 'warning');
         return;
     }
 
     $.ajax({
         url: "/api/user/changepassword",
         method: 'POST',
-        async: false,
+        async: true,
         dataType: "json",
         data: {
             oldpwd: oldpwd,
@@ -349,15 +253,9 @@ function ChangePassword() {
                 $("#newpwd").val("");
                 $("#cfmpwd").val("");
 
-                new Noty({
-                    theme: 'mint',
-                    text: "Success! password has been changed! You have to log in again!",
-                    type: 'success',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification('Password has been changed! You have to log in again!', type = 'warning');
 
-                $("#changepasswordModal").modal("toggle");
+                $("#changepasswordModal").modal("hide");
 
                 localStorage.removeItem("userid");
                 localStorage.removeItem("username");
@@ -367,13 +265,7 @@ function ChangePassword() {
                 $(".login").show();
                 $(".title").hide();
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             }
         }
     });
@@ -381,7 +273,7 @@ function ChangePassword() {
 
 
 function ChangePasswordShow() {
-    $("#changepasswordModal").modal("toggle");
+    $("#changepasswordModal").modal("show");
 }
 
 function DeleteAccount() {
@@ -389,30 +281,18 @@ function DeleteAccount() {
     password = $("#delete-password").val();
 
     if (ack != "I acknowledge what I'm doing") {
-        new Noty({
-            theme: 'mint',
-            text: "Type \"I acknowledge what I'm doing\" in the first input box to continue!",
-            type: 'warning',
-            layout: 'bottomRight',
-            timeout: 3000
-        }).show();
+        NotyNotification("Type \"I acknowledge what I'm doing\" in the first input box to continue!", type = 'warning');
         return;
     }
     if (password == "") {
-        new Noty({
-            theme: 'mint',
-            text: "Enter your password!",
-            type: 'warning',
-            layout: 'bottomRight',
-            timeout: 3000
-        }).show();
+        NotyNotification("Please enter your password!", type = 'warning');
         return;
     }
 
     $.ajax({
         url: "/api/user/delete",
         method: 'POST',
-        async: false,
+        async: true,
         dataType: "json",
         data: {
             password: password,
@@ -423,15 +303,9 @@ function DeleteAccount() {
             if (r.success == true) {
                 $("#delete-password").val("");
 
-                new Noty({
-                    theme: 'mint',
-                    text: "Account deactivated!! It will be deleted after 14 days!",
-                    type: 'warning',
-                    layout: 'bottomRight',
-                    timeout: 10000
-                }).show();
+                NotyNotification("Account deactivated! It will be deleted after 14 days!", type = 'warning', timeout = 10000);
 
-                $("#deleteAccountModal").modal("toggle");
+                $("#deleteAccountModal").modal("hide");
 
                 localStorage.removeItem("userid");
                 localStorage.removeItem("username");
@@ -441,20 +315,14 @@ function DeleteAccount() {
                 $(".login").show();
                 $(".title").hide();
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             }
         }
     });
 }
 
 function DeleteAccountShow() {
-    $("#deleteAccountModal").modal("toggle");
+    $("#deleteAccountModal").modal("show");
 }
 
 function RestartServer() {
@@ -473,41 +341,16 @@ function RestartServer() {
         },
         success: function (r) {
             if (r.success == false) {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: "Server is being restarted!",
-                    type: 'success',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification('Server is being restarted!', timeout = 3000);
             }
         },
         error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
-                new Noty({
-                    theme: 'mint',
-                    text: 'Access control by NGINX: You have to enter that password to authorize!',
-                    type: 'error',
-                    layout: 'bottomRight',
-                    timeout: 10000
-                }).show();
-
+                NotyNotification('Access control by NGINX: You have to enter that password to authorize!', type = 'warning', timeout = 10000);
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: "Error: " + r.status + " " + errorThrown,
-                    type: 'error',
-                    layout: 'bottomRight',
-                    timeout: 10000
-                }).show();
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });

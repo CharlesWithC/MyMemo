@@ -7,6 +7,7 @@
     <script src="/js/jquery-3.6.0.min.js"></script>
     <script src="/js/bootstrap.bundle.min.js"></script>
     <script src="/js/popper.min.js"></script>
+    <script src="/js/general.js"></script>
     <script src="/js/user.js"></script>
 
     <link href="/css/bootstrap.min.css" rel="stylesheet">
@@ -22,15 +23,19 @@
     <script>
         $(document).ready(function () {
             if (localStorage.getItem("settings-theme") == "dark") {
-                $("body").attr("style", "color:#ffffff;background-color:#333333");$("hr").attr("style", "background-color:#cccccc;");
+                $("body").attr("style", "color:#ffffff;background-color:#333333");
+                $("hr").attr("style", "background-color:#cccccc;");
                 $("textarea").attr("style", "color:#ffffff;background-color:#333333;height:15em");
                 $(".modal-content").attr("style", "background-color:#333333");
                 $(".fa-times").attr("style", "color:white");
+            } else {
+                $("textarea").attr("style", "z-index:100;color:#000000;background-color:#ffffff");
             }
+
             $.ajax({
                 url: "/api/admin/command",
                 method: 'POST',
-                async: false,
+                async: true,
                 dataType: "json",
                 data: {
                     userId: localStorage.getItem("userId"),
@@ -45,13 +50,13 @@
             function SubmitCommand() {
                 $("#submit").html('<i class="fa fa-refresh fa-spin"></i>');
                 $("#submit").attr("disabled", "disabled");
-                    if (localStorage.getItem("settings-theme") != "dark") {
-                        $("#output").attr("style", "height:15em;color:gray");
-                    } else {
-                        $("#output").attr("style",
-                            "color:#ffffff;background-color:#333333;height:15em;color:lightgray"
-                            );
-                    }
+                if (localStorage.getItem("settings-theme") != "dark") {
+                    $("#output").attr("style", "height:15em;color:gray");
+                } else {
+                    $("#output").attr("style",
+                        "color:#ffffff;background-color:#333333;height:15em;color:lightgray"
+                    );
+                }
                 $("#output").val("Running...");
                 $.ajax({
                     url: "/api/admin/command",
@@ -70,7 +75,7 @@
                             } else {
                                 $("#output").attr("style",
                                     "color:#ffffff;background-color:#333333;height:15em;color:lightgreen"
-                                    );
+                                );
                             }
                         } else if (r.success == false) {
                             if (localStorage.getItem("settings-theme") != "dark") {
@@ -78,7 +83,7 @@
                             } else {
                                 $("#output").attr("style",
                                     "color:#ffffff;background-color:#333333;height:15em;color:red"
-                                    );
+                                );
                             }
                         }
                         $("#output").val(r.msg);
@@ -97,7 +102,7 @@
                             } else {
                                 $("#output").attr("style",
                                     "color:#ffffff;background-color:#333333;height:15em;color:lightgray"
-                                    );
+                                );
                             }
                             $("#output").val("Error " + r.status + " " + errorThrown);
                             $("#submit").html('Run');
@@ -114,6 +119,12 @@
             $("#submit").click(function () {
                 SubmitCommand();
             });
+            $("#book-btn").hover(function () {
+                ShowBook();
+            });
+            $("#content").hover(function () {
+                $("#book-div").fadeOut();
+            });
         });
     </script>
 </head>
@@ -125,10 +136,11 @@
                 <a href="/"><img src="/img/icon.png" style="width:4em;height:4em"></a>
             </div>
             <div class="sqbtn">
-                <a href="#" onclick="window.location.href='/book'"><i class="fa fa-book"></i><br>Books</a>
+                <a id="book-btn" href="#" onclick="window.location.href='/book'"><i class="fa fa-book"></i><br>Books</a>
             </div>
             <div class="sqbtn">
-                <a href="#" onclick="window.location.href='/discovery'"><i class="fa fa-paper-plane"></i><br>Discovery</a>
+                <a href="#" onclick="window.location.href='/discovery'"><i
+                        class="fa fa-paper-plane"></i><br>Discovery</a>
             </div>
         </div>
         <div class="userctrl">
@@ -142,9 +154,33 @@
         </div>
     </div>
 
+    <div id="book-div" class="book-side" style="left:4em;display:none;border-radius:1em">
+        <div class="book-side-content">
+            <h2 style="float:left">Books</h2>
+            <button type="button" class="btn btn-outline-secondary" style="margin:0.5em" onclick="RefreshBookList()"
+                id="book-list-refresh-btn"><i class="fa fa-refresh"></i></button>
+            <button style="float:right" type="button" class="close" aria-label="Close" onclick="DisplayAnswer()">
+                <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+            </button>
+
+        </div>
+        <div class="book-side-content-scroll" id="book-list">
+            <div>
+                <p>Create Book: </p>
+                <div class="input-group mb-3 w-75">
+                    <span class="input-group-text" id="basic-addon1">Name</span>
+                    <input type="text" class="form-control" id="create-book-name" aria-describedby="basic-addon1">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-primary" type="button" onclick="CreateBook()">Create</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <h1 class="title" style="padding-bottom: 0;">Admin Command Line Interface</h1>
 
-    <div class="container">
+    <div id="content" class="container">
         <div class="input-group mb-3 w-50">
             <span class="input-group-text" id="basic-addon1">Command</span>
             <input type="text" class="form-control" id="command" aria-describedby="basic-addon1">
@@ -176,7 +212,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.2.4 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.2.5 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

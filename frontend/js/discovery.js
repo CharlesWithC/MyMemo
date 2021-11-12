@@ -2,15 +2,6 @@
 // Author: @Charles-1414
 // License: GNU General Public License v3.0
 
-function lsGetItem(lsItemName, defaultValue = 0) {
-    if (localStorage.getItem(lsItemName) == null || localStorage.getItem(lsItemName) == "undefined") {
-        localStorage.setItem(lsItemName, defaultValue);
-        return defaultValue;
-    } else {
-        return localStorage.getItem(lsItemName);
-    }
-}
-
 var discoveryId = -1;
 var discoveryList = [];
 var liked = false;
@@ -18,73 +9,6 @@ var shareCode = "";
 var distype = 1;
 var title = "";
 var description = "";
-
-function SessionExpired() {
-    new Noty({
-        theme: 'mint',
-        text: 'Login session expired! Please login again!',
-        type: 'error',
-        layout: 'bottomRight',
-        timeout: 3000
-    }).show();
-    localStorage.removeItem("userId");
-    localStorage.removeItem("token");
-    setTimeout(GoToUser, 3000);
-}
-
-function getUrlParameter(sParam) {
-    var sPageURL = window.location.search.substring(1),
-        sURLVariables = sPageURL.split('&'),
-        sParameterName,
-        i;
-
-    for (i = 0; i < sURLVariables.length; i++) {
-        sParameterName = sURLVariables[i].split('=');
-
-        if (sParameterName[0] === sParam) {
-            return typeof sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
-        }
-    }
-    return -1;
-};
-
-function BackToHome() {
-    window.location.href = '/';
-}
-
-function GoToUser() {
-    window.location.href = "/user"
-}
-
-function SignOut() {
-    $.ajax({
-        url: "/api/user/logout",
-        method: 'POST',
-        async: true,
-        dataType: "json",
-        data: {
-            userId: localStorage.getItem("userId"),
-            token: localStorage.getItem("token")
-        }
-    });
-    localStorage.removeItem("userid");
-    localStorage.removeItem("username");
-    localStorage.removeItem("token");
-    localStorage.removeItem("memo-question-id");
-    localStorage.removeItem("memo-book-id");
-    localStorage.removeItem("book-list");
-    localStorage.removeItem("question-list");
-
-    $("#navusername").html("Sign in");
-
-    new Noty({
-        theme: 'mint',
-        text: 'Success! You are now signed out!',
-        type: 'success',
-        layout: 'bottomRight',
-        timeout: 3000
-    }).show();
-}
 
 function RefreshDiscovery() {
     $("#refresh-btn").html('<i class="fa fa-refresh fa-spin"></i>');
@@ -103,6 +27,8 @@ function RefreshDiscovery() {
     table.draw();
     if (localStorage.getItem("settings-theme") == "dark") {
         $("td").attr("style", "background-color:#333333");
+    } else {
+        $("#questionList tr").attr("style", "background-color:#ffffff");
     }
     table.clear();
 
@@ -119,7 +45,7 @@ function RefreshDiscovery() {
             discoveryList = r;
             l = ["", "Book", "Group"];
             for (var i = 0; i < discoveryList.length; i++) {
-                btns = '<button class="btn btn-primary btn-sm" type="button" onclick="ShowDiscovery(' + discoveryList[i].discoveryId + ')">Show</button>';
+                btns = '';
                 if (localStorage.getItem("isAdmin") == "1" || discoveryList[i].publisher == localStorage.getItem("username")) {
                     btns += '&nbsp;&nbsp;<button id="admin-delete-' + discoveryList[i].discoveryId + '" class="btn btn-outline-danger btn-sm" type="button" onclick="AdminUnpublishDiscoveryConfirm(' + discoveryList[i].discoveryId + ')">Delete</button>';
                 }
@@ -132,13 +58,15 @@ function RefreshDiscovery() {
                     [discoveryList[i].likes],
                     //[discoveryList[i].views + " <i class='fa fa-eye'></i>&nbsp;&nbsp;" + discoveryList[i].likes + "<i class='fa fa-heart' style='color:red'></i>"],
                     [btns]
-                ]);
+                ]).node().id = discoveryList[i].discoveryId;
             }
 
             table.draw();
 
             if (localStorage.getItem("settings-theme") == "dark") {
                 $("td").attr("style", "background-color:#333333");
+            } else {
+                $("#questionList tr").attr("style", "background-color:#ffffff");
             }
 
             $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
@@ -165,7 +93,7 @@ function AdminUnpublishDiscovery(disid) {
     $.ajax({
         url: '/api/discovery/unpublish',
         method: 'POST',
-        async: false,
+        async: true,
         dataType: "json",
         data: {
             discoveryId: disid,
@@ -176,32 +104,23 @@ function AdminUnpublishDiscovery(disid) {
             if (r.success == true) {
                 RefreshDiscovery();
 
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'success',
-                    layout: 'bottomRight',
-                    timeout: 30000
-                }).show();
+                NotyNotification(r.msg);
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             }
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
 }
 
-function UpdateDiscoveryWordList() {
+function UpdateDiscoveryQuestionList() {
+    $(".title").html('Discovery');
     table = $("#questionList").DataTable();
     table.clear();
     table.row.add([
@@ -266,14 +185,8 @@ function UpdateDiscoveryWordList() {
             }
             table.draw();
         },
-        error: function (r) {
-            new Noty({
-                theme: 'mint',
-                text: r.msg,
-                type: 'error',
-                layout: 'bottomRight',
-                timeout: 3000
-            }).show();
+        error: function (r, textStatus, errorThrown) {
+            NotyNotification('Error ' + r.status + ": " + errorThrown, type = 'error');
             $(".discovery-list").show();
             $(".discovery-detail").hide();
             discoveryId = -1;
@@ -294,29 +207,16 @@ function ImportBook() {
         },
         success: function (r) {
             if (r.success == true) {
-                new Noty({
-                    theme: 'mint',
-                    text: 'Success!',
-                    type: 'success',
-                    layout: 'topLeft',
-                    timeout: 3000
-                }).show();
+                NotyNotification("Success! Book imported!");
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'topLeft',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             }
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
-                alert("Login session expired! Please login again!");
-                localStorage.removeItem("userId");
-                localStorage.removeItem("token");
-                window.location.href = "/user";
+                SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
@@ -329,7 +229,7 @@ function ShowDiscovery(discoveryId) {
 function UpdateInformationShow() {
     $("#discovery-title").val(title);
     $("#discovery-description").val(description);
-    $('#editPostModal').modal('toggle');
+    $('#editPostModal').modal('show');
 }
 
 function UpdateInformation() {
@@ -339,7 +239,7 @@ function UpdateInformation() {
     $.ajax({
         url: '/api/discovery/update',
         method: 'POST',
-        async: false,
+        async: true,
         dataType: "json",
         data: {
             discoveryId: discoveryId,
@@ -357,27 +257,17 @@ function UpdateInformation() {
                 }
                 $("#detail-description").html(description);
 
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'success',
-                    layout: 'bottomRight',
-                    timeout: 30000
-                }).show();
-                $('#editPostModal').modal('toggle');
+                NotyNotification(r.msg);
+                $('#editPostModal').modal('hide');
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             }
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
@@ -409,24 +299,12 @@ function LikePost() {
                     $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart-o" style="color:red"></i></a>');
                 }
 
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'success',
-                    layout: 'bottomRight',
-                    timeout: 30000
-                }).show();
+                NotyNotification(r.msg);
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'bottomRight',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             }
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             liked = 1 - liked;
             if (liked) {
                 $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart" style="color:red"></i></a>');
@@ -444,7 +322,7 @@ function PageInit() {
     } else {
         $(".discovery-list").hide();
         $(".discovery-detail").show();
-        UpdateDiscoveryWordList();
+        UpdateDiscoveryQuestionList();
     }
 
     // Update username
@@ -473,7 +351,7 @@ function PageInit() {
                 }
                 localStorage.setItem("username", r.username);
             },
-            error: function (r) {
+            error: function (r, textStatus, errorThrown) {
                 $("#navusername").html("Sign in");
                 localStorage.setItem("username", "");
             }

@@ -7,6 +7,7 @@
     <script src="/js/jquery-3.6.0.min.js"></script>
     <script src="/js/bootstrap.bundle.min.js"></script>
     <script src="/js/popper.min.js"></script>
+    <script src="/js/general.js"></script>
     <script src="/js/group.js"></script>
 
     <link href="/css/bootstrap.min.css" rel="stylesheet">
@@ -26,7 +27,9 @@
         $(document).ready(function () {
             $('#memberList').DataTable({
                 pagingType: "full_numbers",
-                aaSorting: [[1,'desc']]
+                aaSorting: [
+                    [1, 'desc']
+                ]
             });
 
             $("#memberList_length").after('<div id="qf" class="dataTables_filter input-group mb-3">\
@@ -45,9 +48,7 @@
                 $(".modal-content").attr("style", "background-color:#333333");
                 $(".fa-times").attr("style", "color:white");
                 $("#memberList_length").attr("style", "color:white");
-            }
 
-            if (localStorage.getItem("settings-theme") == "dark") {
                 $("tr").attr("style", "background-color:#333333");
                 setInterval(function () {
                     $("#memberList_paginate > a").attr("style", "background-color:d3d3d3");
@@ -70,7 +71,10 @@
                         }
                     });
                 }, 100);
+            } else {
+                $("textarea").attr("style", "z-index:100;color:#000000;background-color:#ffffff");
             }
+
             setInterval(function () {
                 for (var i = 0; i < member.length; i++) {
                     if (member[i].username.endsWith("(Owner)")) {
@@ -94,14 +98,12 @@
                 }
                 $(this).toggleClass('selected');
             });
-
-            if (localStorage.getItem("settings-theme") == "dark") {
-                $("body").attr("style", "color:#ffffff;background-color:#333333");
-                $("hr").attr("style", "background-color:#cccccc;");
-                $("textarea").attr("style", "color:#ffffff;background-color:#333333");
-                $(".modal-content").attr("style", "background-color:#333333");
-                $(".fa-times").attr("style", "color:white");
-            }
+            $("#book-btn").hover(function () {
+                ShowBook();
+            });
+            $("#content").hover(function () {
+                $("#book-div").fadeOut();
+            });
         });
     </script>
 
@@ -128,7 +130,7 @@
                 <a href="/"><img src="/img/icon.png" style="width:4em;height:4em"></a>
             </div>
             <div class="sqbtn">
-                <a href="#" onclick="window.location.href='/book'"><i class="fa fa-book"></i><br>Books</a>
+                <a id="book-btn" href="#" onclick="window.location.href='/book'"><i class="fa fa-book"></i><br>Books</a>
             </div>
             <div class="sqbtn">
                 <a href="#" onclick="window.location.href='/discovery'"><i
@@ -146,7 +148,31 @@
         </div>
     </div>
 
-    <div class="container">
+    <div id="book-div" class="book-side" style="left:4em;display:none;border-radius:1em">
+        <div class="book-side-content">
+            <h2 style="float:left">Books</h2>
+            <button type="button" class="btn btn-outline-secondary" style="margin:0.5em" onclick="RefreshBookList()"
+                id="book-list-refresh-btn"><i class="fa fa-refresh"></i></button>
+            <button style="float:right" type="button" class="close" aria-label="Close" onclick="DisplayAnswer()">
+                <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+            </button>
+
+        </div>
+        <div class="book-side-content-scroll" id="book-list">
+            <div>
+                <p>Create Book: </p>
+                <div class="input-group mb-3 w-75">
+                    <span class="input-group-text" id="basic-addon1">Name</span>
+                    <input type="text" class="form-control" id="create-book-name" aria-describedby="basic-addon1">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-primary" type="button" onclick="CreateBook()">Create</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="content" class="container">
         <div id="member" class="member" style="position:relative;width:100%;float:left">
             <p>Description: <br><span id="groupDescription"></span></p>
             <table class="table" id="memberList" style="text-align:center">
@@ -177,9 +203,10 @@
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" style="color:red"><i class="fa fa-random"></i> Transfer Ownership</h5>
+                        <h5 class="modal-title" style="color:red"><i class="fa fa-random"></i> Transfer Ownership
+                        </h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                            onclick="$('#transferOwnershipModal').modal('toggle')">
+                            onclick="$('#transferOwnershipModal').modal('hide')">
                             <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                         </button>
                     </div>
@@ -189,7 +216,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                            onclick="$('#transferOwnershipModal').modal('toggle')">Cancel</button>
+                            onclick="$('#transferOwnershipModal').modal('hide')">Cancel</button>
                         <button type="button" class="btn btn-outline-danger" data-dismiss="modal"
                             onclick="GroupOperation('transferOwnership')">Transfer</button>
                     </div>
@@ -200,7 +227,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.2.4 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.2.5 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

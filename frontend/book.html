@@ -7,6 +7,7 @@
     <script src="/js/jquery-3.6.0.min.js"></script>
     <script src="/js/bootstrap.bundle.min.js"></script>
     <script src="/js/popper.min.js"></script>
+    <script src="/js/general.js"></script>
     <script src="/js/book.js"></script>
 
     <link href="/css/bootstrap.min.css" rel="stylesheet">
@@ -55,17 +56,8 @@
                 $("#questionList_length").append(
                     '<a class="manage" style="color:white">&nbsp;&nbsp;|&nbsp;&nbsp;Double click question to edit<p>'
                 );
-            } else {
-                $("#questionList_length").append(
-                    '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="selectAll();" href="#">Select All</a>');
-                $("#questionList_length").append(
-                    '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="deselectAll();" href="#">Deselect All</a>');
-                $("#questionList_length").append(
-                    '<a class="manage">&nbsp;&nbsp;|&nbsp;&nbsp;Double click question to edit<p>');
-            }
-
-            if (localStorage.getItem("settings-theme") == "dark") {
                 $("#questionList tr").attr("style", "background-color: #333333");
+
                 setInterval(function () {
                     $("#questionList_paginate > a").attr("style", "background-color:#d3d3d3");
                     $("#questionList_paginate > span > a").attr("style", "background-color:#d3d3d3");
@@ -87,7 +79,16 @@
                         }
                     });
                 }, 100);
+            } else {
+                $("#questionList_length").append(
+                    '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="selectAll();" href="#">Select All</a>');
+                $("#questionList_length").append(
+                    '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="deselectAll();" href="#">Deselect All</a>');
+                $("#questionList_length").append(
+                    '<a class="manage">&nbsp;&nbsp;|&nbsp;&nbsp;Double click question to edit<p>');
+                $("textarea").attr("style", "z-index:100;color:#000000;background-color:#ffffff");
             }
+
             setInterval(function () {
                 for (var i = 0; i < selectedQuestionList.length; i++) {
                     if (selectedQuestionList[i].status == 2) {
@@ -143,6 +144,9 @@
                     CreateBook();
                 }
             });
+            $("#refresh-btn").click(function () {
+                UpdateBookList();
+            });
         });
     </script>
 
@@ -161,7 +165,9 @@
 </head>
 
 <body>
-    <h1 class="title" style="padding-bottom: 0;">My Memo</h1>
+    <h1 class="title" style="padding-bottom: 0;">My Memo&nbsp;&nbsp;<button type="button"
+            class="btn btn-outline-secondary" onclick="UpdateBookList()" id="refresh-btn"><i
+                class="fa fa-refresh"></i></button></h1>
 
     <div id="navigate" style="z-index:100">
         <div class="leftside">
@@ -169,7 +175,7 @@
                 <a href="/"><img src="/img/icon.png" style="width:4em;height:4em"></a>
             </div>
             <div class="sqbtn">
-                <a href="#" onclick="window.location.href='/book'"><i class="fa fa-book"></i><br>Books</a>
+                <a id="book-btn" href="#" onclick="window.location.href='/book'"><i class="fa fa-book"></i><br>Books</a>
             </div>
             <div class="sqbtn">
                 <a href="#" onclick="window.location.href='/discovery'"><i
@@ -183,504 +189,528 @@
         </div>
     </div>
 
-    <div class="book-list-div container" style="display:none">
-        <div class="book-list" style="margin:2em;margin-top:0">
-            <div>
-                <p>Create Book: </p>
-                <div class="input-group mb-3 w-75">
-                    <span class="input-group-text" id="basic-addon1">Name</span>
-                    <input type="text" class="form-control" id="create-book-name" aria-describedby="basic-addon1">
-                    <div class="input-group-append">
-                        <button class="btn btn-outline-primary" type="button" onclick="CreateBook()">Create</button>
+    <div id="content" class="container">
+        <div class="book-list-div container" style="display:none">
+            <div class="book-list" style="margin:2em;margin-top:0">
+                <div>
+                    <p>Create Book: </p>
+                    <div class="input-group mb-3 w-75">
+                        <span class="input-group-text" id="basic-addon1">Name</span>
+                        <input type="text" class="form-control" id="create-book-name" aria-describedby="basic-addon1">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-primary" type="button" onclick="CreateBook()">Create</button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="book-data-div container" style="display:none">
-        <div style="position:relative;width:55%;float:left">
-            <table class="table" id="questionList" style="text-align:center">
-                <thead>
-                    <tr>
-                        <th id="question">Question</th>
-                        <th id="answer">Answer</th>
-                        <th id="status">Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-        </div>
-
-        <div id="manage" class="manage" style="position:relative;width:35%;float:right">
-            <div>
-                <h4><i class="fa fa-list"></i> Questions</h4>
-                <h5><i class="fa fa-info"></i> Status</h5>
-                <button type="button" class="btn btn-primary" onclick="BookUpdateStatus(1)">Default</button>
-                <button type="button" class="btn btn-primary" onclick="BookUpdateStatus(2)">Tag <i
-                        class="fa fa-star"></i></button>
-                <button type="button" class="btn btn-primary" onclick="BookUpdateStatus(3)">Delete <i
-                        class="fa fa-trash"></i></button>
-                <div class="only-group-editor-if-group-exist">
-                    <br>
-                    <h5><i class="fa fa-edit"></i> Edit Question</h5>
-                    <button type="button" class="btn btn-primary" onclick="EditQuestionFromBtn()">Edit</button>
-                </div>
-                <div class="only-group-editor-if-group-exist">
-                    <br>
-                    <h5><i class="fa fa-plus"></i> Add Question</h5>
-                    <button type="button" class="btn btn-primary not-for-all-questions" onclick="ShowQuestionDatabase()"
-                        style="display:none">Select questions
-                        to add</button>
-                    <button type="button" class="btn btn-primary" onclick="AddQuestionShow()">Add a new
-                        question</button>
-                    <br>
-                    <h5><i class="fa fa-minus"></i> Remove Question</h5>
-                    <button type="button" class="btn btn-outline-warning not-for-all-questions"
-                        onclick="RemoveFromBook()" style="display:none">Remove
-                        from book</button>
-                    <button type="button" class="btn btn-outline-danger" onclick="RemoveQuestionShow()">Remove from
-                        database</button>
-                    <p style="font-size:0.75em">* "Remove from book" will only unbind selected questions from this book,
-                        "Remove from database"
-                        will not only unbind them, but also remove them from all other books.</p>
-                </div>
-                <hr>
+        <div class="book-data-div container" style="display:none">
+            <div style="position:relative;width:55%;float:left">
+                <table class="table" id="questionList" style="text-align:center">
+                    <thead>
+                        <tr>
+                            <th id="question">Question</th>
+                            <th id="answer">Answer</th>
+                            <th id="status">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
             </div>
-            <div class="not-for-all-questions" style="display:none">
-                <h4><i class="fa fa-book"></i> Book</h4>
-                <button type="button" class="btn btn-primary not-for-all-questions" onclick="BookClone()">Clone <i
-                        class="fa fa-copy"></i></button>
-                <button type="button" class="btn btn-primary not-for-all-questions only-group-owner-if-group-exist"
-                    onclick="BookRenameShow()">Rename <i class="fa fa-edit"></i></button>
-                <button type="button" class="btn btn-outline-danger not-for-all-questions"
-                    onclick="BookDeleteShow()">Delete <i class="fa fa-trash"></i></button>
-                <hr>
-            </div>
-            <div>
-                <h4><i class="fa fa-share-square"></i> Share</h4>
-                <p class="only-shared" style="display:none">Code: <span id="bookShareCode">(Private)</span></p>
-                <button type="button" class="btn btn-primary" onclick="BookShare()"><span
-                        id="shareop">Share</span></button>
-                <button type="button" class="btn btn-primary only-shared not-published-to-discovery"
-                    onclick="PublishToDiscoveryShow()">Publish To Discovery <i class="fa fa-paper-plane"></i></button>
-                <button type="button" class="btn btn-primary published-to-discovery" onclick="" id="go-to-discovery-btn"
-                    style="display:none">Check on Discovery <i class="fa fa-search"></i></button>
-                <button type="button" class="btn btn-outline-danger published-to-discovery"
-                    onclick="UnpublishDiscoveryShow()" style="display:none">Unpublish <i
-                        class="fa fa-trash"></i></button>
-                <hr>
-            </div>
-            <div id="group" class="group not-for-all-questions" style="display:none">
-                <h4><i class="fa fa-users"></i> Group</h4>
-                <p class="only-group-exist">Code: <span id="groupCode">(Book not bound to a group)</span></p>
 
-                <button type="button" class="btn btn-primary only-group-exist" onclick="GroupMember()">Member <i
-                        class="fa fa-list"></i></button>
-                <button type="button" class="btn btn-outline-warning only-group-exist" onclick="QuitGroupShow()">Quit <i
-                        class="fa fa-sign-out"></i></button>
-                <br>
-                <button type="button" class="btn btn-primary group-published-to-discovery" onclick=""
-                    id="group-go-to-discovery-btn" style="display:none">Check on Discovery <i
-                        class="fa fa-search"></i></button>
-
-                <button type="button" class="btn btn-primary only-group-inexist" onclick="CreateGroupShow()">Create
-                    Group</button>
-
-                <div class="only-group-owner">
-                    <hr>
-                    <h4>Manage group: </h4>
-                    <button type="button" class="btn btn-primary" onclick="GroupInfoUpdateShow()">Update Information <i
-                            class="fa fa-edit"></i></button>
-                    <br>
-                    <h5>Discovery:</h5>
-                    <button type="button" class="btn btn-primary group-not-published-to-discovery"
-                        onclick="GroupPublishToDiscoveryShow()">Publish To Discovery <i
-                            class="fa fa-paper-plane"></i></button>
-                    <button type="button" class="btn btn-outline-danger group-published-to-discovery"
-                        onclick="GroupUnpublishDiscoveryShow()" style="display:none">Unpublish <i
+            <div id="manage" class="manage" style="position:relative;width:35%;float:right">
+                <div>
+                    <h4><i class="fa fa-list"></i> Questions</h4>
+                    <h5><i class="fa fa-info"></i> Status</h5>
+                    <button type="button" class="btn btn-primary" onclick="BookUpdateStatus(1)">Default</button>
+                    <button type="button" class="btn btn-primary" onclick="BookUpdateStatus(2)">Tag <i
+                            class="fa fa-star"></i></button>
+                    <button type="button" class="btn btn-primary" onclick="BookUpdateStatus(3)">Delete <i
                             class="fa fa-trash"></i></button>
+                    <div class="only-group-editor-if-group-exist">
+                        <br>
+                        <h5><i class="fa fa-edit"></i> Edit Question</h5>
+                        <button type="button" class="btn btn-primary" onclick="EditQuestionFromBtn()">Edit</button>
+                    </div>
+                    <div class="only-group-editor-if-group-exist">
+                        <br>
+                        <h5><i class="fa fa-plus"></i> Add Question</h5>
+                        <button type="button" class="btn btn-primary not-for-all-questions"
+                            onclick="ShowQuestionDatabase()" style="display:none">Select questions
+                            to add</button>
+                        <button type="button" class="btn btn-primary" onclick="AddQuestionShow()">Add a new
+                            question</button>
+                        <br>
+                        <h5><i class="fa fa-minus"></i> Remove Question</h5>
+                        <button type="button" class="btn btn-outline-warning not-for-all-questions"
+                            onclick="RemoveFromBook()" style="display:none">Remove
+                            from book</button>
+                        <button type="button" class="btn btn-outline-danger" onclick="RemoveQuestionShow()">Remove from
+                            database</button>
+                        <p style="font-size:0.75em">* "Remove from book" will only unbind selected questions from this
+                            book,
+                            "Remove from database"
+                            will not only unbind them, but also remove them from all other books.</p>
+                    </div>
+                    <hr>
+                </div>
+                <div class="not-for-all-questions" style="display:none">
+                    <h4><i class="fa fa-book"></i> Book</h4>
+                    <button type="button" class="btn btn-primary not-for-all-questions" onclick="BookClone()">Clone <i
+                            class="fa fa-copy"></i></button>
+                    <button type="button" class="btn btn-primary not-for-all-questions only-group-owner-if-group-exist"
+                        onclick="BookRenameShow()">Rename <i class="fa fa-edit"></i></button>
+                    <button type="button" class="btn btn-outline-danger not-for-all-questions"
+                        onclick="BookDeleteShow()">Delete <i class="fa fa-trash"></i></button>
+                    <hr>
+                </div>
+                <div>
+                    <h4><i class="fa fa-share-square"></i> Share</h4>
+                    <p class="only-shared" style="display:none">Code: <span id="bookShareCode">(Private)</span></p>
+                    <button type="button" class="btn btn-primary" onclick="BookShare()"><span
+                            id="shareop">Share</span></button>
+                    <button type="button" class="btn btn-primary only-shared not-published-to-discovery"
+                        onclick="PublishToDiscoveryShow()">Publish To Discovery <i
+                            class="fa fa-paper-plane"></i></button>
+                    <button type="button" class="btn btn-primary published-to-discovery" onclick=""
+                        id="go-to-discovery-btn" style="display:none">Check on Discovery <i
+                            class="fa fa-search"></i></button>
+                    <button type="button" class="btn btn-outline-danger published-to-discovery"
+                        onclick="UnpublishDiscoveryShow()" style="display:none">Unpublish <i
+                            class="fa fa-trash"></i></button>
+                    <hr>
+                </div>
+                <div id="group" class="group not-for-all-questions" style="display:none">
+                    <h4><i class="fa fa-users"></i> Group</h4>
+                    <p class="only-group-exist">Code: <span id="groupCode">(Book not bound to a group)</span></p>
+
+                    <button type="button" class="btn btn-primary only-group-exist" onclick="GroupMember()">Member <i
+                            class="fa fa-list"></i></button>
+                    <button type="button" class="btn btn-outline-warning only-group-exist"
+                        onclick="QuitGroupShow()">Quit <i class="fa fa-sign-out"></i></button>
                     <br>
-                    <h5>Group anonymous settings:</h5>
-                    <button id="group-anonymous-0" type="button" class="btn btn-secondary group-anonymous-btn" onclick="GroupAnonymousSwitch(0)">Open</button>
-                    <button id="group-anonymous-1" type="button" class="btn btn-secondary group-anonymous-btn" onclick="GroupAnonymousSwitch(1)">Anonymous</button>
-                    <button id="group-anonymous-2" type="button" class="btn btn-secondary group-anonymous-btn" onclick="GroupAnonymousSwitch(2)">Full Anonymous</button>
-                    <p style="font-size:0.75em">*Open means members can see other members' username and progress. Anonymous means members can see other member's progress but not username. Full Anonymous means members can see no data from other members.</p>
-                    <p style="font-size:0.75em">*Anonymous settings will not stop the group's question list sync.</p>
-                    <br>
-                    <h5>Group code settings:</h5>
-                    <button type="button" class="btn btn-outline-warning" onclick="GroupCodeUpdate('disable')">Make
-                        private <i class="fa fa-lock"></i></button>
-                    <button type="button" class="btn btn-primary" onclick="GroupCodeUpdate('revoke')">Revoke code <i
-                            class="fa fa-undo"></i> </button>
-                    <br>
-                    <h5>Danger zone:</h5>
-                    <button type="button" class="btn btn-outline-danger" onclick="GroupDismissShow()">Dismiss
-                        <i class="fa fa-times"></i></button>
+                    <button type="button" class="btn btn-primary group-published-to-discovery" onclick=""
+                        id="group-go-to-discovery-btn" style="display:none">Check on Discovery <i
+                            class="fa fa-search"></i></button>
+
+                    <button type="button" class="btn btn-primary only-group-inexist" onclick="CreateGroupShow()">Create
+                        Group</button>
+
+                    <div class="only-group-owner">
+                        <hr>
+                        <h4>Manage group: </h4>
+                        <button type="button" class="btn btn-primary" onclick="GroupInfoUpdateShow()">Update Information
+                            <i class="fa fa-edit"></i></button>
+                        <br>
+                        <h5>Discovery:</h5>
+                        <button type="button" class="btn btn-primary group-not-published-to-discovery"
+                            onclick="GroupPublishToDiscoveryShow()">Publish To Discovery <i
+                                class="fa fa-paper-plane"></i></button>
+                        <button type="button" class="btn btn-outline-danger group-published-to-discovery"
+                            onclick="GroupUnpublishDiscoveryShow()" style="display:none">Unpublish <i
+                                class="fa fa-trash"></i></button>
+                        <br>
+                        <h5>Group anonymous settings:</h5>
+                        <button id="group-anonymous-0" type="button" class="btn btn-secondary group-anonymous-btn"
+                            onclick="GroupAnonymousSwitch(0)">Open</button>
+                        <button id="group-anonymous-1" type="button" class="btn btn-secondary group-anonymous-btn"
+                            onclick="GroupAnonymousSwitch(1)">Anonymous</button>
+                        <button id="group-anonymous-2" type="button" class="btn btn-secondary group-anonymous-btn"
+                            onclick="GroupAnonymousSwitch(2)">Full Anonymous</button>
+                        <p style="font-size:0.75em">*Open means members can see other members' username and progress.
+                            Anonymous means members can see other member's progress but not username. Full Anonymous
+                            means
+                            members can see no data from other members.</p>
+                        <p style="font-size:0.75em">*Anonymous settings will not stop the group's question list sync.
+                        </p>
+                        <br>
+                        <h5>Group code settings:</h5>
+                        <button type="button" class="btn btn-outline-warning" onclick="GroupCodeUpdate('disable')">Make
+                            private <i class="fa fa-lock"></i></button>
+                        <button type="button" class="btn btn-primary" onclick="GroupCodeUpdate('revoke')">Revoke code <i
+                                class="fa fa-undo"></i> </button>
+                        <br>
+                        <h5>Danger zone:</h5>
+                        <button type="button" class="btn btn-outline-danger" onclick="GroupDismissShow()">Dismiss
+                            <i class="fa fa-times"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="addExistingQuestion" class="addExistingQuestion"
+                style="position:relative;width:35%;float:right;display:none">
+                <p>Select questions to add to <span class="book-name"></span></p>
+                <button type="button" class="btn btn-primary not-for-all-questions"
+                    onclick="AddExistingQuestion()">Add</button>
+                <button type="button" class="btn btn-secondary not-for-all-questions"
+                    onclick="ShowManage()">Cancel</button>
+            </div>
+        </div>
+
+        <div class="modal fade" id="deleteQuestionModal" tabindex="-1" role="dialog"
+            aria-labelledby="deleteQuestionModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" style="color:red"><i class="fa fa-trash"></i> Remove Question from
+                            Database
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                            onclick="$('#deleteQuestionModal').modal('hide')">
+                            <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure to remove all select questions from database? This will remove them from all
+                            books.
+                        </p>
+                        <p>This operation cannot be undone.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                            onclick="$('#deleteQuestionModal').modal('hide')">Cancel</button>
+                        <button type="button" class="btn btn-outline-danger" data-dismiss="modal"
+                            onclick="RemoveQuestion()">Remove</button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div id="addExistingQuestion" class="addExistingQuestion"
-            style="position:relative;width:35%;float:right;display:none">
-            <p>Select questions to add to <span class="book-name"></span></p>
-            <button type="button" class="btn btn-primary not-for-all-questions"
-                onclick="AddExistingQuestion()">Add</button>
-            <button type="button" class="btn btn-secondary not-for-all-questions" onclick="ShowManage()">Cancel</button>
-        </div>
-    </div>
-
-    <div class="modal fade" id="deleteQuestionModal" tabindex="-1" role="dialog"
-        aria-labelledby="deleteQuestionModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" style="color:red"><i class="fa fa-trash"></i> Remove Question from Database
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#deleteQuestionModal').modal('toggle')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure to remove all select questions from database? This will remove them from all books.
-                    </p>
-                    <p>This operation cannot be undone.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#deleteQuestionModal').modal('toggle')">Cancel</button>
-                    <button type="button" class="btn btn-outline-danger" data-dismiss="modal"
-                        onclick="RemoveQuestion()">Remove</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="deleteWBModal" tabindex="-1" role="dialog" aria-labelledby="deleteWBModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" style="color:red"><i class="fa fa-trash"></i> Delete Book</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#deleteWBModal').modal('toggle')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure to delete this book? The questions will be preserved in the question database but
-                        they will no longer belong to this book.</p>
-                    <p>This operation cannot be undone.</p>
-                    <br>
-                    <p>Type the name of the book <b><span class="book-name"></span></b> to continue:</p>
-                    <form>
-                        <div class="input-group mb-3 center">
-                            <input type="text" class="form-control" id="book-delete" aria-describedby="basic-addon1">
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#deleteWBModal').modal('toggle')">Cancel</button>
-                    <button type="button" class="btn btn-outline-danger" data-dismiss="modal"
-                        onclick="BookDelete()">Delete</button>
+        <div class="modal fade" id="deleteWBModal" tabindex="-1" role="dialog" aria-labelledby="deleteWBModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" style="color:red"><i class="fa fa-trash"></i> Delete Book</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                            onclick="$('#deleteWBModal').modal('hide')">
+                            <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure to delete this book? The questions will be preserved in the question database
+                            but
+                            they will no longer belong to this book.</p>
+                        <p>This operation cannot be undone.</p>
+                        <br>
+                        <p>Type the name of the book <b><span class="book-name"></span></b> to continue:</p>
+                        <form>
+                            <div class="input-group mb-3 center">
+                                <input type="text" class="form-control" id="book-delete"
+                                    aria-describedby="basic-addon1">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                            onclick="$('#deleteWBModal').modal('hide')">Cancel</button>
+                        <button type="button" class="btn btn-outline-danger" data-dismiss="modal"
+                            onclick="BookDelete()">Delete</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="modal fade" id="renameModal" tabindex="-1" role="dialog" aria-labelledby="renameModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="renameModalLabel">Rename Book</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#renameModal').modal('toggle')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form>
-                        <div class="input-group mb-3 center">
-                            <span class="input-group-text" id="basic-addon1">Name</span>
-                            <input type="text" class="form-control" id="book-rename" aria-describedby="basic-addon1">
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#renameModal').modal('toggle')">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="BookRename()">Rename</button>
+        <div class="modal fade" id="renameModal" tabindex="-1" role="dialog" aria-labelledby="renameModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="renameModalLabel">Rename Book</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                            onclick="$('#renameModal').modal('hide')">
+                            <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="input-group mb-3 center">
+                                <span class="input-group-text" id="basic-addon1">Name</span>
+                                <input type="text" class="form-control" id="book-rename"
+                                    aria-describedby="basic-addon1">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                            onclick="$('#renameModal').modal('hide')">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="BookRename()">Rename</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="modal fade" id="editQuestionModal" tabindex="-1" role="dialog" aria-labelledby="editQuestionModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editQuestionModalLabel">Edit Question</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#editQuestionModal').modal('toggle')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form>
-                        <div class="form-group">
-                            <label for="edit-question" class="col-form-label">Question:</label>
-                            <textarea class="form-control" id="edit-question"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="edit-answer" class="col-form-label">Answer:</label>
-                            <textarea class="form-control" id="edit-answer"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#editQuestionModal').modal('toggle')">Close</button>
-                    <button id="edit-question-btn" type="button" class="btn btn-primary"
-                        onclick="EditQuestion()">Edit</button>
+        <div class="modal fade" id="editQuestionModal" tabindex="-1" role="dialog"
+            aria-labelledby="editQuestionModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editQuestionModalLabel">Edit Question</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                            onclick="$('#editQuestionModal').modal('hide')">
+                            <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="form-group">
+                                <label for="edit-question" class="col-form-label">Question:</label>
+                                <textarea class="form-control" id="edit-question"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="edit-answer" class="col-form-label">Answer:</label>
+                                <textarea class="form-control" id="edit-answer"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                            onclick="$('#editQuestionModal').modal('hide')">Close</button>
+                        <button id="edit-question-btn" type="button" class="btn btn-primary"
+                            onclick="EditQuestion()">Edit</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="modal fade" id="publishToDiscoveryModal" tabindex="-1" role="dialog"
-        aria-labelledby="publishToDiscoveryModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="publishToDiscoveryModalLabel"><i class="fa fa-paper-plane"></i> Publish
-                        To Discovery</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#publishToDiscoveryModal').modal('toggle')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>You are about to publish the book to Discovery.</p>
-                    <p>This will make it able to be found by any people.</p>
-                    <p>All your updates made within this word book will be synced to Discovery. (But people already
-                        imported it will not get the sync, use Group function to do that)</p>
-                    <p>You can unshare the book to make it temporarily invisible on Discovery.</p>
-                    <br>
-                    <p>Please enter title and description below. Make them beautiful and others may get engaged.</p>
-                    <form>
-                        <div class="form-group">
-                            <label for="discovery-title" class="col-form-label">Title:</label>
-                            <textarea class="form-control" id="discovery-title"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="discovery-description" class="col-form-label">Description:</label>
-                            <textarea class="form-control" id="discovery-description"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#publishToDiscoveryModal').modal('toggle')">Close</button>
-                    <button id="publish-to-discovery-btn" type="button" class="btn btn-primary"
-                        onclick="PublishToDiscovery()">Publish <i class="fa fa-paper-plane"></i></button>
+        <div class="modal fade" id="publishToDiscoveryModal" tabindex="-1" role="dialog"
+            aria-labelledby="publishToDiscoveryModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="publishToDiscoveryModalLabel"><i class="fa fa-paper-plane"></i>
+                            Publish
+                            To Discovery</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                            onclick="$('#publishToDiscoveryModal').modal('hide')">
+                            <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>You are about to publish the book to Discovery.</p>
+                        <p>This will make it able to be found by any people.</p>
+                        <p>All your updates made within this book will be synced to Discovery. (But people already
+                            imported it will not get the sync, use Group function to do that)</p>
+                        <p>You can unshare the book to make it temporarily invisible on Discovery.</p>
+                        <br>
+                        <p>Please enter title and description below. Make them beautiful and others may get engaged.</p>
+                        <form>
+                            <div class="form-group">
+                                <label for="discovery-title" class="col-form-label">Title:</label>
+                                <textarea class="form-control" id="discovery-title"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="discovery-description" class="col-form-label">Description:</label>
+                                <textarea class="form-control" id="discovery-description"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                            onclick="$('#publishToDiscoveryModal').modal('hide')">Close</button>
+                        <button id="publish-to-discovery-btn" type="button" class="btn btn-primary"
+                            onclick="PublishToDiscovery()">Publish <i class="fa fa-paper-plane"></i></button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="modal fade" id="unpublishDiscoveryModal" tabindex="-1" role="dialog"
-        aria-labelledby="unpublishDiscoveryModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" style="color:red"><i class="fa fa-trash"></i> Unpublish From Discovery
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#unpublishDiscoveryModal').modal('toggle')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure to unpublish the book from Discovery?</p>
-                    <p>You will lose all the views and likes of your post.</p>
-                    <p>This operation cannot be undone.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#unpublishDiscoveryModal').modal('toggle')">Cancel</button>
-                    <button type="button" class="btn btn-outline-danger" data-dismiss="modal"
-                        onclick="UnpublishDiscovery()">Unpublish</button>
+        <div class="modal fade" id="unpublishDiscoveryModal" tabindex="-1" role="dialog"
+            aria-labelledby="unpublishDiscoveryModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" style="color:red"><i class="fa fa-trash"></i> Unpublish From Discovery
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                            onclick="$('#unpublishDiscoveryModal').modal('hide')">
+                            <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure to unpublish the book from Discovery?</p>
+                        <p>You will lose all the views and likes of your post.</p>
+                        <p>This operation cannot be undone.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                            onclick="$('#unpublishDiscoveryModal').modal('hide')">Cancel</button>
+                        <button type="button" class="btn btn-outline-danger" data-dismiss="modal"
+                            onclick="UnpublishDiscovery()">Unpublish</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="modal fade" id="groupPublishToDiscoveryModal" tabindex="-1" role="dialog"
-        aria-labelledby="groupPublishToDiscoveryModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="groupPublishToDiscoveryModalLabel"><i class="fa fa-paper-plane"></i>
-                        Publish
-                        To Discovery</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#groupPublishToDiscoveryModal').modal('toggle')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>You are about to publish the group to Discovery.</p>
-                    <p>This will make it able to be found by any people.</p>
-                    <p>Any people will be able to find it and join your group.</p>
-                    <p>You can make your group a private group if you want to temporarily make it invisible on
-                        Discovery.</p>
-                    <br>
-                    <p>Please enter title and description below. Make them beautiful and others may get engaged.</p>
-                    <form>
-                        <div class="form-group">
-                            <label for="group-discovery-title" class="col-form-label">Title:</label>
-                            <textarea class="form-control" id="group-discovery-title"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="group-discovery-description" class="col-form-label">Description:</label>
-                            <textarea class="form-control" id="group-discovery-description"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#groupPublishToDiscoveryModal').modal('toggle')">Close</button>
-                    <button id="publish-to-discovery-btn" type="button" class="btn btn-primary"
-                        onclick="GroupPublishToDiscovery()">Publish <i class="fa fa-paper-plane"></i></button>
+        <div class="modal fade" id="groupPublishToDiscoveryModal" tabindex="-1" role="dialog"
+            aria-labelledby="groupPublishToDiscoveryModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="groupPublishToDiscoveryModalLabel"><i class="fa fa-paper-plane"></i>
+                            Publish
+                            To Discovery</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                            onclick="$('#groupPublishToDiscoveryModal').modal('hide')">
+                            <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>You are about to publish the group to Discovery.</p>
+                        <p>This will make it able to be found by any people.</p>
+                        <p>Any people will be able to find it and join your group.</p>
+                        <p>You can make your group a private group if you want to temporarily make it invisible on
+                            Discovery.</p>
+                        <br>
+                        <p>Please enter title and description below. Make them beautiful and others may get engaged.</p>
+                        <form>
+                            <div class="form-group">
+                                <label for="group-discovery-title" class="col-form-label">Title:</label>
+                                <textarea class="form-control" id="group-discovery-title"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="group-discovery-description" class="col-form-label">Description:</label>
+                                <textarea class="form-control" id="group-discovery-description"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                            onclick="$('#groupPublishToDiscoveryModal').modal('hide')">Close</button>
+                        <button id="publish-to-discovery-btn" type="button" class="btn btn-primary"
+                            onclick="GroupPublishToDiscovery()">Publish <i class="fa fa-paper-plane"></i></button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="modal fade" id="groupUnpublishDiscoveryModal" tabindex="-1" role="dialog"
-        aria-labelledby="groupUnpublishDiscoveryModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" style="color:red"><i class="fa fa-trash"></i> Unpublish From Discovery
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#groupUnpublishDiscoveryModal').modal('toggle')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure to unpublish the group from Discovery?</p>
-                    <p>You will lose all the views and likes of your post.</p>
-                    <p>This operation cannot be undone.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#groupUnpublishDiscoveryModal').modal('toggle')">Cancel</button>
-                    <button type="button" class="btn btn-outline-danger" data-dismiss="modal"
-                        onclick="GroupUnpublishDiscovery()">Unpublish</button>
+        <div class="modal fade" id="groupUnpublishDiscoveryModal" tabindex="-1" role="dialog"
+            aria-labelledby="groupUnpublishDiscoveryModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" style="color:red"><i class="fa fa-trash"></i> Unpublish From Discovery
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                            onclick="$('#groupUnpublishDiscoveryModal').modal('hide')">
+                            <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure to unpublish the group from Discovery?</p>
+                        <p>You will lose all the views and likes of your post.</p>
+                        <p>This operation cannot be undone.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                            onclick="$('#groupUnpublishDiscoveryModal').modal('hide')">Cancel</button>
+                        <button type="button" class="btn btn-outline-danger" data-dismiss="modal"
+                            onclick="GroupUnpublishDiscovery()">Unpublish</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="modal fade" id="createGroupModal" tabindex="-1" role="dialog" aria-labelledby="createGroupModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="createGroupModalLabel">Create Group</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#createGroupModal').modal('toggle')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Your group need a name and a description so others can know what it do. Please enter them below!
-                    </p>
-                    <form>
-                        <div class="form-group">
-                            <label for="group-name" class="col-form-label">Name:</label>
-                            <textarea class="form-control" id="group-name"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="group-description" class="col-form-label">Description:</label>
-                            <textarea class="form-control" id="group-description"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#createGroupModal').modal('toggle')">Close</button>
-                    <button id="create-group-btn" type="button" class="btn btn-primary"
-                        onclick="CreateGroup()">Create</button>
+        <div class="modal fade" id="createGroupModal" tabindex="-1" role="dialog"
+            aria-labelledby="createGroupModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="createGroupModalLabel">Create Group</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                            onclick="$('#createGroupModal').modal('hide')">
+                            <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Your group need a name and a description so others can know what it do. Please enter them
+                            below!
+                        </p>
+                        <form>
+                            <div class="form-group">
+                                <label for="group-name" class="col-form-label">Name:</label>
+                                <textarea class="form-control" id="group-name"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="group-description" class="col-form-label">Description:</label>
+                                <textarea class="form-control" id="group-description"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                            onclick="$('#createGroupModal').modal('hide')">Close</button>
+                        <button id="create-group-btn" type="button" class="btn btn-primary"
+                            onclick="CreateGroup()">Create</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="modal fade" id="quitGroupModal" tabindex="-1" role="dialog" aria-labelledby="quitGroupModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" style="color:red"><i class="fa fa-sign-out"></i> Quit Group</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#quitGroupModal').modal('toggle')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure to quit the group? Your progress will no longer be shared with other members and the
-                        book sync will stop.</p>
-                    <p>You will not be able to join the group again unless you have the invite code.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#quitGroupModal').modal('toggle')">Cancel</button>
-                    <button type="button" class="btn btn-outline-danger" data-dismiss="modal"
-                        onclick="QuitGroup()">Quit</button>
+        <div class="modal fade" id="quitGroupModal" tabindex="-1" role="dialog" aria-labelledby="quitGroupModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" style="color:red"><i class="fa fa-sign-out"></i> Quit Group</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                            onclick="$('#quitGroupModal').modal('hide')">
+                            <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure to quit the group? Your progress will no longer be shared with other members and
+                            the
+                            book sync will stop.</p>
+                        <p>You will not be able to join the group again unless you have the invite code.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                            onclick="$('#quitGroupModal').modal('hide')">Cancel</button>
+                        <button type="button" class="btn btn-outline-danger" data-dismiss="modal"
+                            onclick="QuitGroup()">Quit</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="modal fade" id="dismissGroupModal" tabindex="-1" role="dialog" aria-labelledby="dismissGroupModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" style="color:red"><i class="fa fa-times"></i> Dismiss Group</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#dismissGroupModal').modal('toggle')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure to dismiss the group? The group book sync will stop and it will be deleted
-                        permanently.</p>
-                    <p>All members will quit automatically and they will not be able to see each other's progress.</p>
-                    <p>This operation cannot be undone.</p>
-                    <p>*If you just want to make your group private or revoke the code, there are options just above the
-                        dismiss button.</p>
-                    <br>
-                    <p>Type the name of the group <b><span class="book-name"></span></b> to continue:</p>
-                    <form>
-                        <div class="input-group mb-3 center">
-                            <input type="text" class="form-control" id="group-delete" aria-describedby="basic-addon1">
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#dismissGroupModal').modal('toggle')">Cancel</button>
-                    <button type="button" class="btn btn-outline-danger" data-dismiss="modal"
-                        onclick="GroupDismiss()">Dismiss</button>
+        <div class="modal fade" id="dismissGroupModal" tabindex="-1" role="dialog"
+            aria-labelledby="dismissGroupModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" style="color:red"><i class="fa fa-times"></i> Dismiss Group</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                            onclick="$('#dismissGroupModal').modal('hide')">
+                            <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure to dismiss the group? The group book sync will stop and it will be deleted
+                            permanently.</p>
+                        <p>All members will quit automatically and they will not be able to see each other's progress.
+                        </p>
+                        <p>This operation cannot be undone.</p>
+                        <p>*If you just want to make your group private or revoke the code, there are options just above
+                            the
+                            dismiss button.</p>
+                        <br>
+                        <p>Type the name of the group <b><span class="book-name"></span></b> to continue:</p>
+                        <form>
+                            <div class="input-group mb-3 center">
+                                <input type="text" class="form-control" id="group-delete"
+                                    aria-describedby="basic-addon1">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                            onclick="$('#dismissGroupModal').modal('hide')">Cancel</button>
+                        <button type="button" class="btn btn-outline-danger" data-dismiss="modal"
+                            onclick="GroupDismiss()">Dismiss</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -688,7 +718,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.2.4 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.2.5 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

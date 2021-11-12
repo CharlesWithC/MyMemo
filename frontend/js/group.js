@@ -8,39 +8,6 @@ var bookName = "";
 var selected = [];
 var member = [];
 
-function SessionExpired() {
-    new Noty({
-        theme: 'mint',
-        text: 'Login session expired! Please login again!',
-        type: 'error',
-        layout: 'bottomRight',
-        timeout: 3000
-    }).show();
-    localStorage.removeItem("userId");
-    localStorage.removeItem("token");
-    setTimeout(GoToUser, 3000);
-}
-
-function BackToHome() {
-    window.location.href = '/';
-}
-
-function getUrlParameter(sParam) {
-    var sPageURL = window.location.search.substring(1),
-        sURLVariables = sPageURL.split('&'),
-        sParameterName,
-        i;
-
-    for (i = 0; i < sURLVariables.length; i++) {
-        sParameterName = sURLVariables[i].split('=');
-
-        if (sParameterName[0] === sParam) {
-            return typeof sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
-        }
-    }
-    return false;
-};
-
 function UpdateGroupMember() {
     $("#refresh-btn").html('<i class="fa fa-refresh fa-spin"></i>');
 
@@ -51,7 +18,9 @@ function UpdateGroupMember() {
         [""],
     ]);
     table.draw();
-    $("tr").attr("style", "background-color:#333333");
+    if (localStorage.getItem("settings-theme") == "dark") {
+        $("tr").attr("style", "background-color:#333333");
+    }
     table.clear();
 
     $.ajax({
@@ -67,7 +36,7 @@ function UpdateGroupMember() {
         success: function (r) {
             bookName = r.name;
             member = r.member;
-            
+
             if (r.isOwner) {
                 $(".manage").show();
                 $(".member").attr("style", "position:relative;width:55%;float:left;");
@@ -75,7 +44,7 @@ function UpdateGroupMember() {
                 $(".manage").hide();
                 $(".member").attr("style", "width:100%");
             }
-            $("title").html("My Memo - " + bookName);
+            $("title").html(bookName + " | My Memo");
             $(".title").html(bookName + '&nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="UpdateGroupMember()" id="refresh-btn"><i class="fa fa-refresh"></i></button>');
 
             $("#groupDescription").html(r.description.replaceAll("\n", "<br>"));
@@ -87,17 +56,21 @@ function UpdateGroupMember() {
                 ]).node().id = r.member[i].userId;
             }
             table.draw();
-            $("tr").attr("style", "background-color:#333333");
+            if (localStorage.getItem("settings-theme") == "dark") {
+                $("tr").attr("style", "background-color:#333333");
+            }
 
             $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             table.row.add([
                 ["Failed to fetch group member list"],
                 [""],
             ]);
             table.draw();
-            $("tr").attr("style", "background-color:#333333");
+            if (localStorage.getItem("settings-theme") == "dark") {
+                $("tr").attr("style", "background-color:#333333");
+            }
 
             $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
         }
@@ -107,7 +80,7 @@ function UpdateGroupMember() {
 }
 
 function TransferOwnershipShow() {
-    $("#transferOwnershipModal").modal("toggle");
+    $("#transferOwnershipModal").modal("show");
 }
 
 function GroupOperation(operation) {
@@ -116,19 +89,13 @@ function GroupOperation(operation) {
             return;
         }
         if (operation == "transferOwnership" && selected.length > 1) {
-            new Noty({
-                theme: 'mint',
-                text: "Make sure you only selected one user!",
-                type: 'warning',
-                layout: 'bottomRight',
-                timeout: 3000
-            }).show();
+            NotyNotification("Please select only one user!", type = 'warning');
             return;
         }
         $.ajax({
             url: '/api/group/manage',
             method: 'POST',
-            async: false,
+            async: true,
             dataType: "json",
             data: {
                 groupId: groupId,
@@ -140,29 +107,19 @@ function GroupOperation(operation) {
             success: function (r) {
                 if (r.success == true) {
                     UpdateGroupMember();
-                    new Noty({
-                        theme: 'mint',
-                        text: r.msg,
-                        type: 'success',
-                        layout: 'bottomRight',
-                        timeout: 3000
-                    }).show();
+                    NotyNotification(r.msg);
                     if (operation == "transferOwnership") {
-                        $("#transferOwnershipModal").modal("toggle");
+                        $("#transferOwnershipModal").modal("hide");
                     }
                 } else {
-                    new Noty({
-                        theme: 'mint',
-                        text: r.msg,
-                        type: 'error',
-                        layout: 'bottomRight',
-                        timeout: 3000
-                    }).show();
+                    NotyNotification(r.msg, type = 'error');
                 }
             },
-            error: function (r) {
+            error: function (r, textStatus, errorThrown) {
                 if (r.status == 401) {
                     SessionExpired();
+                } else {
+                    NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
                 }
             }
         });
@@ -196,7 +153,7 @@ function PageInit() {
                 }
                 localStorage.setItem("username", r.username);
             },
-            error: function (r) {
+            error: function (r, textStatus, errorThrown) {
                 $("#navusername").html("Sign in");
                 localStorage.setItem("username", "");
             }
@@ -205,34 +162,4 @@ function PageInit() {
 
     groupId = getUrlParameter("groupId");
     UpdateGroupMember();
-}
-
-function SignOut() {
-    $.ajax({
-        url: "/api/user/logout",
-        method: 'POST',
-        async: true,
-        dataType: "json",
-        data: {
-            userId: localStorage.getItem("userId"),
-            token: localStorage.getItem("token")
-        }
-    });
-    localStorage.removeItem("userid");
-    localStorage.removeItem("username");
-    localStorage.removeItem("token");
-    localStorage.removeItem("memo-question-id");
-    localStorage.removeItem("memo-book-id");
-    localStorage.removeItem("book-list");
-    localStorage.removeItem("question-list");
-
-    $("#navusername").html("Sign in");
-
-    new Noty({
-        theme: 'mint',
-        text: 'Success! You are now signed out!',
-        type: 'success',
-        layout: 'bottomRight',
-        timeout: 3000
-    }).show();
 }

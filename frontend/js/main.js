@@ -2,15 +2,6 @@
 // Author: @Charles-1414
 // License: GNU General Public License v3.0
 
-function lsGetItem(lsItemName, defaultValue = 0) {
-    if (localStorage.getItem(lsItemName) == null || localStorage.getItem(lsItemName) == "undefined") {
-        localStorage.setItem(lsItemName, defaultValue);
-        return defaultValue;
-    } else {
-        return localStorage.getItem(lsItemName);
-    }
-}
-
 class MemoClass {
     constructor() {
         this.questionId = 0;
@@ -97,46 +88,42 @@ function UpdateSelectedQuestionList() {
     }
 }
 
-function GoToUser() {
-    window.location.href = "/user"
-}
-
-function SessionExpired() {
-    new Noty({
-        theme: 'mint',
-        text: 'Login session expired! Please login again!',
-        type: 'error',
-        layout: 'bottomRight',
-        timeout: 3000
-    }).show();
-    localStorage.removeItem("userId");
-    localStorage.removeItem("token");
-    setTimeout(GoToUser, 3000);
-}
-
-function UpdateQuestionList(doasync = true) {
-    $.ajax({
-        url: "/api/book/questionList",
-        method: 'POST',
-        async: doasync,
-        dataType: "json",
-        data: {
-            userId: localStorage.getItem("userId"),
-            token: localStorage.getItem("token")
-        },
-        success: function (r) {
-            memo.questionList = r;
-            localStorage.setItem("question-list", JSON.stringify(memo.questionList));
-            MapQuestionList();
+function UpdateBookDisplay() {
+    $(".book").remove();
+    for (var i = 0; i < memo.bookList.length; i++) {
+        book = memo.bookList[i];
+        wcnt = "";
+        if (book.bookId == 0) {
+            wcnt = book.questions.length + ' questions';
+        } else {
+            wcnt = book.progress + ' memorized / ' + book.questions.length + ' questions';
         }
-    });
+        btn = "";
+        if (book.bookId != memo.bookId) {
+            btn = '<button type="button" class="btn btn-primary " onclick="SelectBook(' + book.bookId + ')">Select</button>';
+        } else {
+            btn = '<button type="button" class="btn btn-secondary">Selected</button>'
+        }
+        bname = book.name;
+        if (book.groupId != -1) {
+            bname = "[Group] " + bname;
+        }
+
+        $("#book-list").append('<div class="book">\
+        <p>' + bname + '</p>\
+        <p>' + wcnt + '</p>\
+        <button type="button" class="btn btn-primary " onclick="OpenBook(' + book.bookId + ')">Open</button>\
+        ' + btn + '\
+        <hr>\
+        </div>');
+    }
 }
 
-function UpdateBookList(doasync = true) {
+function UpdateBookList() {
     $.ajax({
         url: "/api/book",
         method: 'POST',
-        async: doasync,
+        async: true,
         dataType: "json",
         data: {
             userId: localStorage.getItem("userId"),
@@ -146,6 +133,7 @@ function UpdateBookList(doasync = true) {
             memo.bookList = r;
             localStorage.setItem("book-list", JSON.stringify(memo.bookList));
             UpdateSelectedQuestionList();
+            UpdateBookDisplay();
         }
     });
 }
@@ -179,7 +167,7 @@ function PageInit() {
             }
             localStorage.setItem("username", r.username);
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             $("#navusername").html("Sign in");
             localStorage.setItem("username", "");
         }
@@ -233,13 +221,7 @@ setInterval(DisplayRandomQuestion, 3000);
 
 function ShowQuestion() {
     if (settings.firstuse) {
-        new Noty({
-            theme: 'mint',
-            text: 'Hint: Click question or double click answer to let your device speak it!',
-            type: 'info',
-            layout: 'bottomRight',
-            timeout: 10000
-        }).show();
+        NotyNotification('Hint: Click question or double click answer to let your device speak it!', type = 'info', timeout = 10000);
         localStorage.setItem("first-use", 0);
         settings.firstuse = false;
     }
@@ -303,18 +285,22 @@ function ShowQuestion() {
 }
 
 function DisplayAnswer() {
-    if (memo.started && settings.mode != 1) {
-        if (settings.swap == 0) {
-            if (!memo.displayingAnswer) $("#answer").val(memo.answer);
-            else $("#answer").val("");
-        } else if (settings.swap == 1) {
-            if (!memo.displayingAnswer) $("#question").val(memo.question);
-            else $("#question").val("");
+    if (memo.started) {
+        if (settings.mode == 0 || settings.mode == 2) {
+            if (settings.swap == 0) {
+                if (!memo.displayingAnswer) $("#answer").val(memo.answer);
+                else $("#answer").val("");
+            } else if (settings.swap == 1) {
+                if (!memo.displayingAnswer) $("#question").val(memo.question);
+                else $("#question").val("");
+            } else if (settings.swap == 2) {
+                return;
+            }
         }
         memo.displayingAnswer = 1 - memo.displayingAnswer;
     }
     if (!memo.started) {
-        $("#book").fadeOut();
+        $("#book-div").fadeOut();
     }
 }
 
@@ -358,9 +344,7 @@ function MemoMove(direction) {
                 if (r.status == 401) {
                     SessionExpired();
                 } else {
-                    memo.question = r.status + " " + errorThrown;
-                    memo.answer = "Maybe change the settings?\nOr check your connection?";
-                    ShowQuestion();
+                    NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
                 }
             }
         });
@@ -480,10 +464,7 @@ function MemoStart() {
                         if (r.status == 401) {
                             SessionExpired();
                         } else {
-                            memo.question = r.status + " " + errorThrown;
-                            memo.answer = "Maybe change the settings?\nOr check your connection?";
-
-                            ShowQuestion();
+                            NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
                         }
                     }
                 });
@@ -492,15 +473,12 @@ function MemoStart() {
             // Question doesn't exist then start from default
             error: function (r, textStatus, errorThrown) {
                 if (r.status == 404) {
-                    $("#start-from").val("Not found!");
+                    NotyNotification("Question to start from not found!", type = 'warning');
                     DisplayRandomQuestion();
                 } else if (r.status == 401) {
                     SessionExpired();
                 } else {
-                    memo.question = r.status + " " + errorThrown;
-                    memo.answer = "Maybe change the settings?\nOr check your connection?";
-
-                    ShowQuestion();
+                    NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
                 }
             }
         });
@@ -529,9 +507,11 @@ function MemoStart() {
 
                 ShowQuestion();
             },
-            error: function (r) {
+            error: function (r, textStatus, errorThrown) {
                 if (r.status == 401) {
                     SessionExpired();
+                } else {
+                    NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
                 }
             }
         });
@@ -602,9 +582,11 @@ function MemoTag() {
             if (memo.questionStatus != 2) $(".memo-tag").html("Tag <i class='fa fa-star'></i>");
             else $(".memo-tag").html("Untag <i class='fa fa-star-o'></i>");
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
@@ -629,9 +611,11 @@ function MemoDelete() {
             if (memo.questionStatus != 3) $(".memo-delete").html("Delete <i class='fa fa-trash'></i>");
             else $(".memo-delete").html("Undelete <i class='fa fa-undo'></i>");
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
@@ -640,7 +624,11 @@ function MemoDelete() {
 function MemoChallenge(res) {
     if (memo.challengeStatus != 2 && res == "no") {
         memo.challengeStatus = 2;
-        $("#answer").val(memo.answer);
+        if(settings.swap == 0 || settings.swap == 2){
+            $("#answer").val(memo.answer);
+        } else {
+            $("#question").val(memo.question);
+        }
         $("#challenge-msg").html("Try to memorize it!")
         $(".memo-challenge-yes").html("<i class='fa fa-arrow-circle-right'></i> Next");
         $(".memo-challenge-no").html("<i class='fa fa-arrow-circle-right'></i> Next");
@@ -663,7 +651,11 @@ function MemoChallenge(res) {
 
     if (memo.challengeStatus == 0 && res == "yes") {
         memo.challengeStatus = 1;
-        $("#answer").val(memo.answer);
+        if(settings.swap == 0 || settings.swap == 2){
+            $("#answer").val(memo.answer);
+        } else {
+            $("#question").val(memo.question);
+        }
         $("#challenge-msg").html("Are you correct?");
     } else if (memo.challengeStatus == 1 && res == "yes") {
         $("#challenge-msg").html("Good job! <i class='fa fa-thumbs-up'></i>");
@@ -691,9 +683,11 @@ function MemoChallenge(res) {
                 $("#challenge-msg").html("Do you remember it?");
                 ShowQuestion();
             },
-            error: function (r) {
+            error: function (r, textStatus, errorThrown) {
                 if (r.status == 401) {
                     SessionExpired();
+                } else {
+                    NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
                 }
             }
         });
@@ -726,9 +720,11 @@ function MemoChallenge(res) {
                 $("#challenge-msg").html("Do you remember it?");
                 ShowQuestion();
             },
-            error: function (r) {
+            error: function (r, textStatus, errorThrown) {
                 if (r.status == 401) {
                     SessionExpired();
+                } else {
+                    NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
                 }
             }
         });
@@ -737,7 +733,7 @@ function MemoChallenge(res) {
 
 function Statistics() {
     if ($("#statisticsQuestion").text() == memo.question) {
-        $('#statisticsModal').modal('toggle')
+        $('#statisticsModal').modal('show');
         return;
     }
     $.ajax({
@@ -756,11 +752,13 @@ function Statistics() {
             $("#statisticsQuestion").html(memo.question);
             $("#statisticsDetail").html(statistics);
 
-            $('#statisticsModal').modal('toggle')
+            $('#statisticsModal').modal('show');
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
@@ -769,7 +767,7 @@ function Statistics() {
 function EditQuestionShow() {
     $("#edit-question").val(memo.question);
     $("#edit-answer").val(memo.answer);
-    $("#editQuestionModal").modal('toggle');
+    $("#editQuestionModal").modal('show');
 }
 
 function EditQuestion() {
@@ -802,19 +800,15 @@ function EditQuestion() {
                 $("#answer").val(memo.answer);
             }
 
-            new Noty({
-                theme: 'mint',
-                text: 'Success! Question edited!',
-                type: 'success',
-                layout: 'bottomRight',
-                timeout: 3000
-            }).show();
+            NotyNotification('Success! Question edited!');
 
-            $("#editQuestionModal").modal('toggle');
+            $("#editQuestionModal").modal('hide');
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
@@ -851,46 +845,6 @@ function BackToHome() {
     StopAutoPlayer();
 }
 
-function UpdateBookDisplay() {
-    $(".book").remove();
-    for (var i = 0; i < memo.bookList.length; i++) {
-        book = memo.bookList[i];
-        wcnt = "";
-        if (book.bookId == 0) {
-            wcnt = book.questions.length + ' questions';
-        } else {
-            wcnt = book.progress + ' memorized / ' + book.questions.length + ' questions';
-        }
-        btn = "";
-        if (book.bookId != memo.bookId) {
-            btn = '<button type="button" class="btn btn-primary " onclick="SelectBook(' + book.bookId + ')">Select</button>';
-        } else {
-            btn = '<button type="button" class="btn btn-secondary">Selected</button>'
-        }
-        bname = book.name;
-        if (book.groupId != -1) {
-            bname = "[Group] " + bname;
-        }
-
-        $("#book-list").append('<div class="book">\
-        <p>' + bname + '</p>\
-        <p>' + wcnt + '</p>\
-        <button type="button" class="btn btn-primary " onclick="OpenBook(' + book.bookId + ')">Open</button>\
-        ' + btn + '\
-        <hr>\
-        </div>');
-    }
-}
-
-function ShowBook() {
-    $("#book").fadeIn();
-    UpdateBookDisplay();
-}
-
-function OpenBook(bookId) {
-    window.location.href = '/book?bookId=' + bookId;
-}
-
 function SelectBook(bookId) {
     memo.bookId = bookId;
     localStorage.setItem("memo-book-id", memo.bookId);
@@ -898,24 +852,11 @@ function SelectBook(bookId) {
     UpdateBookDisplay();
 }
 
-function RefreshBookList(){
-    $("#refresh-btn").html('<i class="fa fa-refresh fa-spin"></i>');    
-    UpdateBookList(false);
-    UpdateBookDisplay();
-    $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
-}
-
 function CreateBook() {
     bookName = $("#create-book-name").val();
 
     if (bookName == "") {
-        new Noty({
-            theme: 'mint',
-            text: 'Enter a book name!',
-            type: 'warning',
-            layout: 'topLeft',
-            timeout: 3000
-        }).show();
+        NotyNotification('Please enter the book name!', type = 'warning');
         return;
     }
 
@@ -931,66 +872,18 @@ function CreateBook() {
         },
         success: function (r) {
             if (r.success == true) {
-                UpdateBookList(false);
-                UpdateBookDisplay();
-                new Noty({
-                    theme: 'mint',
-                    text: 'Success!',
-                    type: 'success',
-                    layout: 'topLeft',
-                    timeout: 3000
-                }).show();
+                UpdateBookList();
+                NotyNotification('Success! Book created!');
             } else {
-                new Noty({
-                    theme: 'mint',
-                    text: r.msg,
-                    type: 'error',
-                    layout: 'topLeft',
-                    timeout: 3000
-                }).show();
+                NotyNotification(r.msg, type = 'error');
             }
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
-                alert("Login session expired! Please login again!");
-                localStorage.removeItem("userId");
-                localStorage.removeItem("token");
-                window.location.href = "/user";
+                SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
-}
-
-function BackToHome() {
-    window.location.href = '/';
-}
-
-function SignOut() {
-    $.ajax({
-        url: "/api/user/logout",
-        method: 'POST',
-        async: true,
-        dataType: "json",
-        data: {
-            userId: localStorage.getItem("userId"),
-            token: localStorage.getItem("token")
-        }
-    });
-    localStorage.removeItem("userid");
-    localStorage.removeItem("username");
-    localStorage.removeItem("token");
-    localStorage.removeItem("memo-question-id");
-    localStorage.removeItem("memo-book-id");
-    localStorage.removeItem("book-list");
-    localStorage.removeItem("question-list");
-
-    $("#navusername").html("Sign in");
-
-    new Noty({
-        theme: 'mint',
-        text: 'Success! You are now signed out!',
-        type: 'success',
-        layout: 'bottomRight',
-        timeout: 3000
-    }).show();
 }

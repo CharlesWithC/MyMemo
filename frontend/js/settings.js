@@ -2,36 +2,6 @@
 // Author: @Charles-1414
 // License: GNU General Public License v3.0
 
-function lsGetItem(lsItemName, defaultValue = 0) {
-    if (localStorage.getItem(lsItemName) == null || localStorage.getItem(lsItemName) == "undefined") {
-        localStorage.setItem(lsItemName, defaultValue);
-        return defaultValue;
-    } else {
-        return localStorage.getItem(lsItemName);
-    }
-}
-
-function BackToHome() {
-    window.location.href = '/';
-}
-
-function GoToUser() {
-    window.location.href = "/user"
-}
-
-function SessionExpired() {
-    new Noty({
-        theme: 'mint',
-        text: 'Login session expired! Please login again!',
-        type: 'error',
-        layout: 'bottomRight',
-        timeout: 3000
-    }).show();
-    localStorage.removeItem("userId");
-    localStorage.removeItem("token");
-    setTimeout(GoToUser, 3000);
-}
-
 function UpdateSettingsButtons() {
     mode = lsGetItem("settings-mode", 0);
     $(".mode-btn").removeClass("btn-primary btn-secondary");
@@ -140,7 +110,7 @@ function UpdateSettingsButtons() {
                 }
                 localStorage.setItem("username", r.username);
             },
-            error: function (r) {
+            error: function (r, textStatus, errorThrown) {
                 $("#navusername").html("Sign in");
                 localStorage.setItem("username", "");
             }
@@ -195,57 +165,15 @@ function ClearDeletedQuestion() {
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            new Noty({
-                theme: 'mint',
-                text: 'Cleared all questions that are marked deleted!',
-                type: 'success',
-                layout: 'bottomRight',
-                timeout: 3000
-            }).show();
-            $('#clearDeletedModal').modal('toggle');
+            NotyNotification('Success! All questions marked deleted are removed from database!');
+            $('#clearDeletedModal').modal('hide');
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
-}
-
-function Import() {
-    window.location.href = '/data/import'
-}
-
-function Export() {
-    window.location.href = '/data/export'
-}
-
-function SignOut() {
-    $.ajax({
-        url: "/api/user/logout",
-        method: 'POST',
-        async: true,
-        dataType: "json",
-        data: {
-            userId: localStorage.getItem("userId"),
-            token: localStorage.getItem("token")
-        }
-    });
-    localStorage.removeItem("userid");
-    localStorage.removeItem("username");
-    localStorage.removeItem("token");
-    localStorage.removeItem("memo-question-id");
-    localStorage.removeItem("memo-book-id");
-    localStorage.removeItem("book-list");
-    localStorage.removeItem("question-list");
-
-    $("#navusername").html("Sign in");
-
-    new Noty({
-        theme: 'mint',
-        text: 'Success! You are now signed out!',
-        type: 'success',
-        layout: 'bottomRight',
-        timeout: 3000
-    }).show();
 }
