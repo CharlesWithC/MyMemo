@@ -123,82 +123,84 @@
 
     <h1 class="title" style="padding-bottom: 0;">My Memo</h1>
 
-    <div id="content" class="user container">
-        <div class="basic-info" style="width: 55%; float:left">
-            <h2><span id="username"></span></h2>
-            <p style="font-size:0.8em">ID: <span id="userId"></span></p>
-            <p>Age: <span id="age">0</span> days</p>
-            <p>Email: <span id="email"></span></p>
-            <hr>
-            <p>Invitation Code: <span id="inviteCode"></span></p>
-            <p>Invited By: <span id="inviteBy"></span></p>
-            <hr>
-            <h2>Statistics</h2>
-            <p><span id="cnt">0</span> questions in list</p>
-            <p><span id="tagged">0</span> tagged and <span id="deleted">0</span> deleted</p>
-            <p><span id="chcnt">0</span> challenges done so far</p>
-        </div>
-        <div class="manage-account" style="width: 35%; float:right">
-            <h3>Manage Account</h3>
-            <br>
-            <h4>Basic</h4>
-            <button type="button" class="btn btn-primary" onclick="UpdateProfileShow()">Update Profile</button>
-            <button type="button" class="btn btn-primary" onclick="ChangePasswordShow()">Change Password</button>
-            <hr>
-            <h4>Danger Zone</h4>
-            <button type="button" class="btn btn-outline-danger" onclick="DeleteAccountShow()">Delete Account</button>
-            <hr>
-            <div class="only-admin" style="display:none">
-                <h4>Admin</h4>
-                <button type="button" class="btn btn-primary" onclick="window.location.href = '/admin/cli'">Command Line
-                    Interface</button>
-                <button type="button" class="btn btn-outline-warning" onclick="RestartServer()">Restart Server</button>
+    <div id="content" class="container">
+        <div class="user container">
+            <div class="basic-info" style="width: 55%; float:left">
+                <h2><span id="username"></span></h2>
+                <p style="font-size:0.8em">ID: <span id="userId"></span></p>
+                <p>Age: <span id="age">0</span> days</p>
+                <p>Email: <span id="email"></span></p>
+                <hr>
+                <p>Invitation Code: <span id="inviteCode"></span></p>
+                <p>Invited By: <span id="inviteBy"></span></p>
+                <hr>
+                <h2>Statistics</h2>
+                <p><span id="cnt">0</span> questions in list</p>
+                <p><span id="tagged">0</span> tagged and <span id="deleted">0</span> deleted</p>
+                <p><span id="chcnt">0</span> challenges done so far</p>
+            </div>
+            <div class="manage-account" style="width: 35%; float:right">
+                <h3>Manage Account</h3>
+                <br>
+                <h4>Basic</h4>
+                <button type="button" class="btn btn-primary" onclick="UpdateProfileShow()">Update Profile</button>
+                <button type="button" class="btn btn-primary" onclick="ChangePasswordShow()">Change Password</button>
+                <hr>
+                <h4>Danger Zone</h4>
+                <button type="button" class="btn btn-outline-danger" onclick="DeleteAccountShow()">Delete Account</button>
+                <hr>
+                <div class="only-admin" style="display:none">
+                    <h4>Admin</h4>
+                    <button type="button" class="btn btn-primary" onclick="window.location.href = '/admin/cli'">Command Line
+                        Interface</button>
+                    <button type="button" class="btn btn-outline-warning" onclick="RestartServer()">Restart Server</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="login center" style="margin-bottom:10em;display:none">
-        <h1 style="margin-bottom:0.8em">My Memo</h1>
-        <div class="input-group mb-3 w-25 center">
-            <span class="input-group-text" id="basic-addon1">Username</span>
-            <input type="text" class="form-control" id="input-username" aria-describedby="basic-addon1">
+        <div class="login center" style="margin-bottom:10em;display:none">
+            <h1 style="margin-bottom:0.8em">My Memo</h1>
+            <div class="input-group mb-3 center" style="width:15em">
+                <span class="input-group-text" id="basic-addon1">Username</span>
+                <input type="text" class="form-control" id="input-username" aria-describedby="basic-addon1">
+            </div>
+            <div class="input-group mb-3 center" style="width:15em">
+                <span class="input-group-text" id="basic-addon1">Password</span>
+                <input type="password" class="form-control" id="input-password" aria-describedby="basic-addon1">
+            </div>
+            <div class="center" style="width:30%">
+                <a href="#" onclick="$('.login').hide();$('.register').show();" style="float:right">Sign up</a>
+            </div>
+            <br>
+            <button id="login-btn" type="button" class="btn btn-primary" style="position:relative;width:10em;margin-top:1em"
+                onclick="Login()">Sign in</button>
         </div>
-        <div class="input-group mb-3 w-25 center">
-            <span class="input-group-text" id="basic-addon1">Password</span>
-            <input type="password" class="form-control" id="input-password" aria-describedby="basic-addon1">
-        </div>
-        <div class="center" style="width:30%">
-            <a href="#" onclick="$('.login').hide();$('.register').show();" style="float:right">Sign up</a>
-        </div>
-        <br>
-        <button id="login-btn" type="button" class="btn btn-primary" style="position:relative;width:10em;margin-top:1em"
-            onclick="Login()">Sign in</button>
-    </div>
 
-    <div class="register center" style="top:5%;margin-bottom:10em;display:none">
-        <h1 style="margin-bottom:0.8em">My Memo</h1>
-        <div class="input-group mb-3 w-25 center">
-            <span class="input-group-text" id="basic-addon1">Username</span>
-            <input type="text" class="form-control" id="register-username" aria-describedby="basic-addon1">
+        <div class="register center" style="top:5%;margin-bottom:10em;display:none">
+            <h1 style="margin-bottom:0.8em">My Memo</h1>
+            <div class="input-group mb-3 center" style="width:15em">
+                <span class="input-group-text" id="basic-addon1">Username</span>
+                <input type="text" class="form-control" id="register-username" aria-describedby="basic-addon1">
+            </div>
+            <div class="input-group mb-3 center" style="width:15em">
+                <span class="input-group-text" id="basic-addon1">Email</span>
+                <input type="text" class="form-control" id="register-email" aria-describedby="basic-addon1">
+            </div>
+            <div class="input-group mb-3 center" style="width:15em">
+                <span class="input-group-text" id="basic-addon1">Password</span>
+                <input type="password" class="form-control" id="register-password" aria-describedby="basic-addon1">
+            </div>
+            <div class="input-group mb-3 center" style="width:15em">
+                <span class="input-group-text" id="basic-addon1">Invitation Code</span>
+                <input type="text" class="form-control" id="register-inviteCode" aria-describedby="basic-addon1">
+            </div>
+            <div class="center" style="width:30%">
+                <a href="#" onclick="$('.login').show();$('.register').hide();" style="float:right">Sign in</a>
+            </div>
+            <br>
+            <button id="login-btn" type="button" class="btn btn-primary" style="position:relative;width:10em;margin-top:1em"
+                onclick="Register()">Sign up</button>
         </div>
-        <div class="input-group mb-3 w-25 center">
-            <span class="input-group-text" id="basic-addon1">Email</span>
-            <input type="text" class="form-control" id="register-email" aria-describedby="basic-addon1">
-        </div>
-        <div class="input-group mb-3 w-25 center">
-            <span class="input-group-text" id="basic-addon1">Password</span>
-            <input type="password" class="form-control" id="register-password" aria-describedby="basic-addon1">
-        </div>
-        <div class="input-group mb-3 w-25 center">
-            <span class="input-group-text" id="basic-addon1">Invitation Code</span>
-            <input type="text" class="form-control" id="register-inviteCode" aria-describedby="basic-addon1">
-        </div>
-        <div class="center" style="width:30%">
-            <a href="#" onclick="$('.login').show();$('.register').hide();" style="float:right">Sign in</a>
-        </div>
-        <br>
-        <button id="login-btn" type="button" class="btn btn-primary" style="position:relative;width:10em;margin-top:1em"
-            onclick="Register()">Sign up</button>
     </div>
 
     <div class="modal fade" id="updateProfileModal" tabindex="-1" role="dialog"
@@ -321,7 +323,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.2.5 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.1 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

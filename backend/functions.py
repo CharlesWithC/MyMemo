@@ -5,12 +5,27 @@
 import bcrypt
 import random
 import base64
-import sqlite3
-
-import sessions
 import time
 
-conn = sqlite3.connect("database.db", check_same_thread = False)
+from app import app, config
+import sessions
+
+import MySQLdb
+import sqlite3
+conn = None
+
+def updateconn():
+    global conn
+    if config.database == "mysql":
+        if app.config["DB_ENABLED"]:
+            conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
+                passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
+    elif config.database == "sqlite":
+        if app.config["DB_ENABLED"]:
+            conn = sqlite3.connect("database.db", check_same_thread = False)
+
+updateconn()
+
 
 def hashpwd(password):
     return bcrypt.hashpw(password.encode(),bcrypt.gensalt(12)).decode()

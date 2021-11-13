@@ -208,7 +208,9 @@ function UpdateTable() {
         table.row.add([
             [selectedQuestionList[i].question],
             [selectedQuestionList[i].answer],
-            [l[selectedQuestionList[i].status]]
+            [l[selectedQuestionList[i].status]],
+            ['<button type="button" class="btn btn-primary btn-sm only-group-editor-if-group-exist" onclick="EditQuestionShow(' + selectedQuestionList[i].questionId + ')">Edit</button>\
+            <button type="button" class="btn btn-outline-danger btn-sm only-group-editor-if-group-exist" onclick="RemoveFromBook(' + selectedQuestionList[i].questionId + ')">Delete</button>']
         ]).node().id = selectedQuestionList[i].questionId;
     }
     table.draw();
@@ -254,6 +256,7 @@ function PageInit() {
         [""],
         ["Loading <i class='fa fa-spinner fa-spin'></i>"],
         [""],
+        [""]
     ]);
     table.draw();
     if (localStorage.getItem("settings-theme") == "dark") {
@@ -431,7 +434,9 @@ function ShowQuestionDatabase() {
         table.row.add([
             [questionList[i].question],
             [questionList[i].answer],
-            [l[questionList[i].status]]
+            [l[questionList[i].status]],
+            ['<button type="button" class="btn btn-primary btn-sm only-group-editor-if-group-exist" onclick="EditQuestionShow(' + questionList[i].questionId + ')">Edit</button>\
+            <button type="button" class="btn btn-outline-danger btn-sm only-group-editor-if-group-exist" onclick="RemoveFromBook(' + questionList[i].questionId + ')">Delete</button>']
         ]).node().id = questionList[i].questionId;
     }
     table.draw();
@@ -533,7 +538,13 @@ function AddQuestion() {
     });
 }
 
-function RemoveFromBook() {
+function RemoveFromBook(wid = -1) {
+    questions = [];
+    if (wid == -1) {
+        questions = selected;
+    } else {
+        questionId = [wid];
+    }
     $.ajax({
         url: '/api/book/deleteQuestion',
         method: 'POST',

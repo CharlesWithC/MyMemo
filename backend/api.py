@@ -7,10 +7,10 @@ import os, sys, datetime, time, math
 import random, uuid
 import json
 import validators
-import sqlite3
 import pandas as pd
 
 from app import app, config
+import db
 from functions import *
 import sessions
 

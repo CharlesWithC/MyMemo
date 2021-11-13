@@ -6,11 +6,20 @@ from flask import request, abort
 import os, sys, datetime, time
 import random
 import json
-import sqlite3
 
 from app import app, config
+import db
 from functions import *
 import sessions
+
+import MySQLdb
+import sqlite3
+conn = None
+if config.database == "mysql":
+    conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
+        passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
+elif config.database == "sqlite":
+    conn = sqlite3.connect("database.db", check_same_thread = False)
 
 ##########
 # Question API
@@ -44,7 +53,7 @@ def apiAddQuestion():
                 return json.dumps({"success": False, "msg": "You are not allowed to edit this question in group as you are not an editor! Clone the book to edit!"})
 
     max_allow = config.max_question_per_user_allowed
-    cur.execute(f"SELECT value FROM Previlege WHERE userId = {userId} AND item = 'question_limit'")
+    cur.execute(f"SELECT value FROM Privilege WHERE userId = {userId} AND item = 'question_limit'")
     pr = cur.fetchall()
     if len(pr) != 0:
         max_allow = pr[0][0]

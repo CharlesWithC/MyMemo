@@ -6,11 +6,20 @@ from flask import request, abort
 import os, sys, time, math
 import json
 import validators
-import sqlite3
 
-from app import app
+from app import app, config
+import db
 from functions import *
 import sessions
+
+import MySQLdb
+import sqlite3
+conn = None
+if config.database == "mysql":
+    conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
+        passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
+elif config.database == "sqlite":
+    conn = sqlite3.connect("database.db", check_same_thread = False)
 
 ##########
 # Admin API
@@ -261,43 +270,43 @@ def apiAdminCommand():
 
             return json.dumps({"success": False, "msg": "Account data wiped!"})
     
-    elif command[0] == "set_previlege":
+    elif command[0] == "set_privilege":
         if len(command) != 4:
-            return json.dumps({"success": False, "msg": "Usage: set_previlege [userId] [item] [value]\nAdd [item] previlege for user [userId] ([item] can be question_limit)\nIf previlege exists, then update it"})
+            return json.dumps({"success": False, "msg": "Usage: set_privilege [userId] [item] [value]\nAdd [item] privilege for user [userId] ([item] can be question_limit)\nIf privilege exists, then update it"})
 
         uid = int(command[1])
         item = command[2]
         value = int(command[3])
 
         if not item in ['question_limit', 'book_limit', 'allow_group_creation', 'group_member_limit']:
-            return json.dumps({"success": False, "msg": f"Unknown previlege item: {item}. Acceptable item list: question_limit"})
+            return json.dumps({"success": False, "msg": f"Unknown privilege item: {item}. Acceptable item list: question_limit"})
 
-        cur.execute(f"SELECT * FROM Previlege WHERE userId = {uid} AND item = '{item}'")
+        cur.execute(f"SELECT * FROM Privilege WHERE userId = {uid} AND item = '{item}'")
         if len(cur.fetchall()) == 0:
-            cur.execute(f"INSERT INTO Previlege VALUES ({uid}, '{item}', {value})")
+            cur.execute(f"INSERT INTO Privilege VALUES ({uid}, '{item}', {value})")
         else:
-            cur.execute(f"UPDATE Previlege SET value = {value} WHERE userId = {uid} AND item = '{item}'")
+            cur.execute(f"UPDATE Privilege SET value = {value} WHERE userId = {uid} AND item = '{item}'")
         conn.commit()
 
-        return json.dumps({"success": True, "msg": "Previlege set"})
+        return json.dumps({"success": True, "msg": "Privilege set"})
     
-    elif command[0] == "remove_previlege":
+    elif command[0] == "remove_privilege":
         if len(command) != 3:
-            return json.dumps({"success": False, "msg": "Usage: remove_previlege [userId] [item]\nDelete [item] previlege from user [userId]"})
+            return json.dumps({"success": False, "msg": "Usage: remove_privilege [userId] [item]\nDelete [item] privilege from user [userId]"})
 
         uid = int(command[1])
         item = command[2]
 
         if not item in ['question_limit', 'book_limit', 'allow_group_creation', 'group_member_limit']:
-            return json.dumps({"success": False, "msg": f"Unknown previlege item: {item}. Acceptable item list: question_limit"})
+            return json.dumps({"success": False, "msg": f"Unknown privilege item: {item}. Acceptable item list: question_limit"})
 
-        cur.execute(f"SELECT * FROM Previlege WHERE userId = {uid} AND item = '{item}'")
+        cur.execute(f"SELECT * FROM Privilege WHERE userId = {uid} AND item = '{item}'")
         if len(cur.fetchall()) != 0:
-            cur.execute(f"DELETE FROM Previlege WHERE userId = {uid} AND item = '{item}'")
+            cur.execute(f"DELETE FROM Privilege WHERE userId = {uid} AND item = '{item}'")
             conn.commit()
-            return json.dumps({"success": True, "msg": "Previlege removed for this user"})
+            return json.dumps({"success": True, "msg": "Privilege removed for this user"})
         else:
-            return json.dumps({"success": False, "msg": "This user doesn't have this previlege!"})
+            return json.dumps({"success": False, "msg": "This user doesn't have this privilege!"})
 
     elif command[0] == "ban_account":
         if len(command) != 2:

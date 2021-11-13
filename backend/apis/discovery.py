@@ -6,12 +6,20 @@ from flask import request, abort
 import os, sys, time, math
 import json
 import validators
-import sqlite3
 
 from app import app, config
+import db
 from functions import *
 import sessions
-import tempdb
+
+import MySQLdb
+import sqlite3
+conn = None
+if config.database == "mysql":
+    conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
+        passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
+elif config.database == "sqlite":
+    conn = sqlite3.connect("database.db", check_same_thread = False)
 
 ##########
 # Discovery API
@@ -39,7 +47,7 @@ def apiDiscovery():
             views = t[0][0]
         
         # get views and likes
-        cur.execute(f"SELECT COUNT(like) FROM DiscoveryLike WHERE discoveryId = {dd[0]}")
+        cur.execute(f"SELECT COUNT(likes) FROM DiscoveryLike WHERE discoveryId = {dd[0]}")
         likes = 0
         t = cur.fetchall()
         if len(t) > 0:
@@ -171,14 +179,14 @@ def apiDiscoveryData(discoveryId):
     conn.commit()
     
     # get views and likes
-    cur.execute(f"SELECT COUNT(like) FROM DiscoveryLike WHERE discoveryId = {discoveryId}")
+    cur.execute(f"SELECT COUNT(likes) FROM DiscoveryLike WHERE discoveryId = {discoveryId}")
     likes = 0
     t = cur.fetchall()
     if len(t) > 0:
         likes = t[0][0]
     
     # get user liked
-    cur.execute(f"SELECT like FROM DiscoveryLike WHERE discoveryId = {discoveryId} AND userId = {userId}")
+    cur.execute(f"SELECT likes FROM DiscoveryLike WHERE discoveryId = {discoveryId} AND userId = {userId}")
     liked = False
     t = cur.fetchall()
     if len(t) > 0:

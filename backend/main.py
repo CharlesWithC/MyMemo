@@ -3,26 +3,34 @@
 # License: GNU General Public License v3.0
 
 import os, sys
-if not os.path.exists("./database.db"):
-    print("Database not found! If this is the first time you run this script, run firstuse.py first!")
-    sys.exit(0)
+from app import app, config
+import db
 
 import time
 import json
 import threading
+
+import MySQLdb
 import sqlite3
 
-from app import app, config
 import sessions
+import functions
 import api
 
+functions.updateconn()
+sessions.updateconn()
+
 def PendingAccountDeletion():
-    conn = sqlite3.connect("database.db", check_same_thread=False)
+    conn = None
+    if config.database == "mysql":
+        conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
+            passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
+    else:
+        conn = sqlite3.connect("database.db", check_same_thread = False)
     cur = conn.cursor()
-    sscur = sessions.conn.cursor()
     while 1:
-        sscur.execute(f"SELECT userId FROM PendingAccountDeletion WHERE deletionTime <= {int(time.time())}")
-        d = sscur.fetchall()
+        cur.execute(f"SELECT userId FROM PendingAccountDeletion WHERE deletionTime <= {int(time.time())}")
+        d = cur.fetchall()
         for dd in d:
             userId = dd[0]
 

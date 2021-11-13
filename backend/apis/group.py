@@ -7,12 +7,20 @@ import os, sys, datetime, time, math
 import random, uuid
 import json
 import validators
-import sqlite3
-import pandas as pd
 
 from app import app, config
+import db
 from functions import *
 import sessions
+
+import MySQLdb
+import sqlite3
+conn = None
+if config.database == "mysql":
+    conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
+        passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
+elif config.database == "sqlite":
+    conn = sqlite3.connect("database.db", check_same_thread = False)
 
 ##########
 # Group API
@@ -32,7 +40,7 @@ def apiGroup():
 
     if op == "create":
         allow = config.allow_group_creation_for_all_user
-        cur.execute(f"SELECT value FROM Previlege WHERE userId = {userId} AND item = 'allow_group_creation'")
+        cur.execute(f"SELECT value FROM Privilege WHERE userId = {userId} AND item = 'allow_group_creation'")
         pr = cur.fetchall()
         if len(pr) != 0:
             allow = pr[0][0]
@@ -58,7 +66,7 @@ def apiGroup():
         cur.execute(f"UPDATE IDInfo SET nextId = {groupId + 1} WHERE type = 4")
 
         lmt = config.max_group_member
-        cur.execute(f"SELECT value FROM Previlege WHERE userId = {userId} AND item = 'group_member_limit'")
+        cur.execute(f"SELECT value FROM Privilege WHERE userId = {userId} AND item = 'group_member_limit'")
         pr = cur.fetchall()
         if len(pr) != 0:
             lmt = pr[0][0]

@@ -1,5 +1,10 @@
 # Update History
 
+## v5.3.1
+
+*Date: 2021/11/13*  
+Added support for MySQL database  
+
 ## v5.2.5
 
 *Date: 2021/11/12*  
@@ -116,7 +121,7 @@ Allowed user to add / import word(s) directly to word book
 
 *Date: 2021/10/9*  
 Added admin cli control panel  
-Added previlege system to expand word limit for specific users  
+Added privilege system to expand word limit for specific users  
 
 ## v3.2.1
 

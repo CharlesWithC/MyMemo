@@ -5,11 +5,20 @@
 from flask import request, abort
 import os, sys, time
 import json
-import sqlite3
 
 from app import app, config
+import db
 from functions import *
 import sessions
+
+import MySQLdb
+import sqlite3
+conn = None
+if config.database == "mysql":
+    conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
+        passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
+elif config.database == "sqlite":
+    conn = sqlite3.connect("database.db", check_same_thread = False)
 
 ##########
 # Book API
@@ -68,7 +77,7 @@ def apiCreateBook():
                 di[bb[0]] = (bb[1], bb[2])
             
             max_allow = config.max_question_per_user_allowed
-            cur.execute(f"SELECT value FROM Previlege WHERE userId = {userId} AND item = 'question_limit'")
+            cur.execute(f"SELECT value FROM Privilege WHERE userId = {userId} AND item = 'question_limit'")
             pr = cur.fetchall()
             if len(pr) != 0:
                 max_allow = pr[0][0]
@@ -78,7 +87,7 @@ def apiCreateBook():
                 return json.dumps({"success": False, "msg": f"You have reached your limit of maximum added questions {max_allow}. Remove some old questions or contact administrator for help."})
 
             max_book_allow = config.max_book_per_user_allowed
-            cur.execute(f"SELECT value FROM Previlege WHERE userId = {userId} AND item = 'book_limit'")
+            cur.execute(f"SELECT value FROM Privilege WHERE userId = {userId} AND item = 'book_limit'")
             pr = cur.fetchall()
             if len(pr) != 0:
                 max_book_allow = pr[0][0]
@@ -179,7 +188,7 @@ def apiCreateBook():
             
             # preserve limit check here as if the owner dismissed the group, the questions will remain in users' lists
             max_allow = config.max_question_per_user_allowed
-            cur.execute(f"SELECT value FROM Previlege WHERE userId = {userId} AND item = 'question_limit'")
+            cur.execute(f"SELECT value FROM Privilege WHERE userId = {userId} AND item = 'question_limit'")
             pr = cur.fetchall()
             if len(pr) != 0:
                 max_allow = pr[0][0]
@@ -189,7 +198,7 @@ def apiCreateBook():
                 return json.dumps({"success": False, "msg": f"You have reached your limit of maximum added questions {max_allow}. Remove some old questions or contact administrator for help."})
 
             max_book_allow = config.max_book_per_user_allowed
-            cur.execute(f"SELECT value FROM Previlege WHERE userId = {userId} AND item = 'book_limit'")
+            cur.execute(f"SELECT value FROM Privilege WHERE userId = {userId} AND item = 'book_limit'")
             pr = cur.fetchall()
             if len(pr) != 0:
                 max_book_allow = pr[0][0]
@@ -244,7 +253,7 @@ def apiCreateBook():
     name = encode(name)
     
     max_book_allow = config.max_book_per_user_allowed
-    cur.execute(f"SELECT value FROM Previlege WHERE userId = {userId} AND item = 'book_limit'")
+    cur.execute(f"SELECT value FROM Privilege WHERE userId = {userId} AND item = 'book_limit'")
     pr = cur.fetchall()
     if len(pr) != 0:
         max_book_allow = pr[0][0]
@@ -288,7 +297,7 @@ def apiCloneBook():
     name = encode(decode(d[0][0]) + " (Clone)")
     
     max_book_allow = config.max_book_per_user_allowed
-    cur.execute(f"SELECT value FROM Previlege WHERE userId = {userId} AND item = 'book_limit'")
+    cur.execute(f"SELECT value FROM Privilege WHERE userId = {userId} AND item = 'book_limit'")
     pr = cur.fetchall()
     if len(pr) != 0:
         max_book_allow = pr[0][0]

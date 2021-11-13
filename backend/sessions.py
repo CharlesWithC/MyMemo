@@ -3,31 +3,28 @@
 # License: GNU General Public License v3.0
 
 import os, time, uuid
+from app import app, config
+import db
+
+import MySQLdb
 import sqlite3
+conn = None
+
+def updateconn():
+    global conn
+    if config.database == "mysql":
+        if app.config["DB_ENABLED"]:
+            conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
+                passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
+    elif config.database == "sqlite":
+        if app.config["DB_ENABLED"]:
+            conn = sqlite3.connect("database.db", check_same_thread = False)
+
+updateconn()
 
 # Unexpected errors often happen
 # So automatically restart the program when there are 5 errors
 errcnt = 0
-
-db_exists = os.path.exists("sessions.db")
-conn = sqlite3.connect("sessions.db", check_same_thread=False)
-cur = conn.cursor()
-if not db_exists:
-    cur.execute(f"CREATE TABLE ActiveUserLogin (userId INT, token CHAR(46), loginTime INT, expireTime INT)")
-    # Active user login data
-    # Remove data when expired / logged out
-    # Token = 9-digit-userId + '-' + uuid.uuid(4)
-
-    cur.execute(f"CREATE TABLE UserSessionHistory (userId INT, loginTime INT, logoutTime INT, expire INT)")
-    # User Session History, updated when user logs out
-    # If user logged out manually, then logout time is his/her logout time and "expire" will be set to 0
-    # If the token expired, then logout time is the expireTime and "expire" will be set to 1
-    # When the user changes his/her password, all of the sessions will be logged out, and expire will be set to 2
-
-    cur.execute(f"CREATE TABLE PendingAccountDeletion (userId INT, deletionTime INT)")
-
-    cur.execute(f"CREATE TABLE PasswordTrial (userId INT, count INT, lastts INT)")
-
 
 def validateToken(userId, token):
     try:
@@ -58,6 +55,7 @@ def validateToken(userId, token):
 
 def login(userId):
     try:
+        cur = conn.cursor()
         token = str(userId).zfill(9) + "-" + str(uuid.uuid4())
         loginTime = int(time.time())
         expireTime = loginTime + 21600 # 6 hours
@@ -73,6 +71,7 @@ def login(userId):
 
 def logout(userId, token):
     try:
+        cur = conn.cursor()
         if not validateToken(userId, token):
             return True
         
@@ -91,6 +90,7 @@ def logout(userId, token):
 
 def logoutAll(userId):
     try: 
+        cur = conn.cursor()
         cur.execute(f"SELECT * FROM ActiveUserLogin WHERE userId = {userId}")
         d = cur.fetchall()
         for dd in d:
@@ -106,6 +106,7 @@ def logoutAll(userId):
 
 def getPasswordTrialCount(userId):
     try:
+        cur = conn.cursor()
         cur.execute(f"SELECT count, lastts FROM PasswordTrial WHERE userId = {userId}")
         t = cur.fetchall()
         if len(t) == 0:
@@ -119,6 +120,7 @@ def getPasswordTrialCount(userId):
 
 def updatePasswordTrialCount(userId, to, ts):
     try:
+        cur = conn.cursor()
         cur.execute(f"SELECT count FROM PasswordTrial WHERE userId = {userId}")
         t = cur.fetchall()
         if len(t) == 0:
@@ -142,6 +144,7 @@ def updatePasswordTrialCount(userId, to, ts):
 
 def deleteData(userId):
     try:
+        cur = conn.cursor()
         cur.execute(f"DELETE FROM ActiveUserLogin WHERE userId = {userId}")
         cur.execute(f"DELETE FROM UserSessionHistory WHERE userId = {userId}")
         cur.execute(f"DELETE FROM PendingAccountDeletion WHERE userId = {userId}")
@@ -152,6 +155,7 @@ def deleteData(userId):
 
 def markDeletion(userId):
     try:
+        cur = conn.cursor()
         cur.execute(f"INSERT INTO PendingAccountDeletion VALUES ({userId}, {int(time.time()+86401*14)})")
         conn.commit()
         
@@ -161,6 +165,7 @@ def markDeletion(userId):
 
 def checkDeletionMark(userId):
     try:
+        cur = conn.cursor()
         cur.execute(f"SELECT * FROM PendingAccountDeletion WHERE userId = {userId}")
         if len(cur.fetchall()) > 0:
             return True
@@ -173,6 +178,7 @@ def checkDeletionMark(userId):
 
 def removeDeletionMark(userId):
     try:
+        cur = conn.cursor()
         cur.execute(f"DELETE FROM PendingAccountDeletion WHERE userId = {userId}")
         conn.commit()
         

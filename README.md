@@ -6,7 +6,7 @@
 
 *All the commits since [c610d51](https://github.com/Charles-1414/MyMemo/commit/c610d51cc357b7f0841de62ff77157f93ed986fa) should be signed with my GPG key and marked as verified. Otherwise it might be committed by an unknown person. Commit [99efec8](https://github.com/Charles-1414/MyMemo/commit/99efec8dc9d3e4976c61f17764869a84df50722e) is unverified because the email was configured incorrectly.*
 
-Current version: v5.2.5  
+Current version: v5.3.1  
 
 ## About v5  
 
@@ -18,9 +18,12 @@ Discovery, the first community function, has been introduced!
 You can post your shared books and public groups to Discovery!  
 Admins are able to delete / update post to prevent abuse.  
 
+MySQL, a popular database for websites, is finally implemented!  
+You can decide whether to use MySQL or continue to use sqlite by changing the config.  
+
 ## About My Memo
 
-We have three modes to start the site: Practice Mode, Challenge Mode and Offline Mode.  
+You have three modes to start the site: Practice Mode, Challenge Mode and Offline Mode.  
 Practice Mode is for you to memorize new things, while Challenge Mode is for you to test whether you memorized them.  
 Offline Mode can be enabled when you or the server is offline, CloudFlare will show a snapshot of the website and the questions & answers are fetched from local question list.  
 There are multiple settings for you to decide how you will memorize new things.  

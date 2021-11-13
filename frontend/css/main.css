@@ -33,11 +33,11 @@ body {
     margin: 0.5em;
 }
 
-.sqbtn > a {
+.sqbtn>a {
     font-size: 0.8em;
 }
 
-.sqbtn > a > i {
+.sqbtn>a>i {
     font-size: 1.8em;
 }
 
@@ -48,6 +48,10 @@ body {
     padding: 2em;
     min-height: 105%;
     z-index: 200;
+}
+
+.subcontainer {
+    padding: 0.5em;
 }
 
 h1 {
@@ -101,7 +105,7 @@ a:hover {
     border-bottom-right-radius: 0.5em;
 }
 
-.userctrl > a {
+.userctrl>a {
     color: #333333;
 }
 
@@ -123,7 +127,7 @@ a:hover {
     border-bottom-right-radius: 0.5em;
 }
 
-.leftside > .sqbtn > a {
+.leftside>.sqbtn>a {
     color: #333333;
 }
 

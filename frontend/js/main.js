@@ -141,6 +141,10 @@ function UpdateBookList() {
 function PageInit() {
     l = ["Practice", "Challenge", "Offline"];
     $("#mode").html(l[settings.mode]);
+    if(memo.fullQuestionList.length != 0){
+        UpdateSelectedQuestionList();
+        $("#book-name").html(memo.bookName);
+    }
 
     if (localStorage.getItem("username") != null) {
         username = localStorage.getItem("username");

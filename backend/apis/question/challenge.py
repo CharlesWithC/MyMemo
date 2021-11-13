@@ -6,11 +6,20 @@ from flask import request, abort
 import os, sys, datetime, time
 import random
 import json
-import sqlite3
 
 from app import app, config
+import db
 from functions import *
 import sessions
+
+import MySQLdb
+import sqlite3
+conn = None
+if config.database == "mysql":
+    conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
+        passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
+elif config.database == "sqlite":
+    conn = sqlite3.connect("database.db", check_same_thread = False)
 
 ##########
 # Question API

@@ -6,12 +6,20 @@ from flask import request, abort
 import os, sys, time, math
 import json
 import validators
-import sqlite3
 
 from app import app, config
+import db
 from functions import *
 import sessions
-import tempdb
+
+import MySQLdb
+import sqlite3
+conn = None
+if config.database == "mysql":
+    conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
+        passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
+elif config.database == "sqlite":
+    conn = sqlite3.connect("database.db", check_same_thread = False)
 
 ##########
 # User API
@@ -122,17 +130,17 @@ def apiLogin():
     
     sessions.updatePasswordTrialCount(userId, 0, 0)
 
-    tempdb.cur.execute(f"SELECT * FROM RequestRecoverAccount WHERE userId = {userId}")
-    t = tempdb.cur.fetchall()
+    cur.execute(f"SELECT * FROM RequestRecoverAccount WHERE userId = {userId}")
+    t = cur.fetchall()
 
     if len(t) == 0:
         if sessions.checkDeletionMark(userId):
-            tempdb.cur.execute(f"INSERT INTO RequestRecoverAccount VALUES ({userId})")
-            tempdb.conn.commit()
+            cur.execute(f"INSERT INTO RequestRecoverAccount VALUES ({userId})")
+            conn.commit()
             return json.dumps({"success": False, "msg": "Account marked for deletion, login again to recover it!"})
     else:
-        tempdb.cur.execute(f"DELETE FROM RequestRecoverAccount WHERE userId = {userId}")
-        tempdb.conn.commit()
+        cur.execute(f"DELETE FROM RequestRecoverAccount WHERE userId = {userId}")
+        conn.commit()
         sessions.removeDeletionMark(userId)
     
     if userId < 0:

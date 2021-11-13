@@ -5,6 +5,17 @@
 
     "default_user_password": "123456",
 
+    "database": "mysql", // alternative: sqlite
+    // if you use sqlite as database, the script will automatically create a database.db and sessions.db
+    // you don't need to do anything else
+    // if you use mysql as database, fill the following data
+    // you should create a dedicate user for mymemo, and create a database called mymemo to store data
+    // the following could be empty and they will be asked when you run the script
+    "mysql_host": "localhost",
+    "mysql_user": "mymemo",
+    "mysql_passwd": "123456",
+    "mysql_db": "mymemo",
+
     "max_user_allowed": -1,
     "max_question_per_user_allowed": -1,
     "max_book_per_user_allowed": -1,

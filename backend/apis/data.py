@@ -6,16 +6,24 @@ from flask import request, abort, send_file
 import os, sys, datetime, time
 import random, uuid
 import json
-import sqlite3
 import pandas as pd
 import xlrd
 import threading
 import io
 
 from app import app, config
+import db
 from functions import *
 import sessions
-import tempdb
+
+import MySQLdb
+import sqlite3
+conn = None
+if config.database == "mysql":
+    conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
+        passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
+elif config.database == "sqlite":
+    conn = sqlite3.connect("database.db", check_same_thread = False)
 
 ##########
 # Data API
@@ -76,7 +84,7 @@ def importData():
 
     
     max_allow = config.max_question_per_user_allowed
-    cur.execute(f"SELECT value FROM Previlege WHERE userId = {userId} AND item = 'question_limit'")
+    cur.execute(f"SELECT value FROM Privilege WHERE userId = {userId} AND item = 'question_limit'")
     pr = cur.fetchall()
     if len(pr) != 0:
         max_allow = pr[0][0]
@@ -175,20 +183,21 @@ def exportData():
     
     exportType = request.form["exportType"]
     tk = str(uuid.uuid4())
-    tempdb.cur.execute(f"INSERT INTO DataDownloadToken VALUES ({userId}, '{exportType}', {int(time.time())}, '{tk}')")
-    tempdb.conn.commit()
+    cur.execute(f"INSERT INTO DataDownloadToken VALUES ({userId}, '{exportType}', {int(time.time())}, '{tk}')")
+    conn.commit()
 
     return json.dumps({"success": True, "token": tk})
 
 queue = []
 @app.route("/download", methods = ['GET'])
 def download():
+    cur = conn.cursor()
     token = request.args.get("token")
     if not token.replace("-").isalnum():
         abort(404)
     
-    tempdb.cur.execute(f"SELECT * FROM DataDownloadToken WHERE token = '{token}'")
-    d = tempdb.cur.fetchall()
+    cur.execute(f"SELECT * FROM DataDownloadToken WHERE token = '{token}'")
+    d = cur.fetchall()
     if len(d) == 0:
         abort(404)
     
@@ -200,8 +209,8 @@ def download():
     userId = d[0][0]
     exportType = d[0][1]
     ts = d[0][2]
-    tempdb.cur.execute(f"DELETE FROM DataDownloadToken WHERE token = '{token}'")
-    tempdb.conn.commit()
+    cur.execute(f"DELETE FROM DataDownloadToken WHERE token = '{token}'")
+    conn.commit()
 
     if int(time.time()) - ts > 1800: # 10 minutes
         abort(404)
@@ -303,9 +312,10 @@ def download():
         return send_file(buf, as_attachment=True, attachment_filename='MyMemo_Export_AllData.xlsx', mimetype='application/octet-stream')
 
 def ClearOutdatedDLToken():
+    cur = conn.cursor()
     while 1:
-        tempdb.cur.execute(f"DELETE FROM DataDownloadToken WHERE ts <= {int(time.time()) - 1800}")
-        tempdb.conn.commit()
+        cur.execute(f"DELETE FROM DataDownloadToken WHERE ts <= {int(time.time()) - 1800}")
+        conn.commit()
         time.sleep(600)
 
 threading.Thread(target=ClearOutdatedDLToken).start()

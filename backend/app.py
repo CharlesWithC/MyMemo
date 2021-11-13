@@ -6,7 +6,6 @@ from flask import Flask
 import os
 import json
 
-
 class Dict2Obj(object):
     def __init__(self, d):
         for key in d:
@@ -26,3 +25,4 @@ app = Flask(__name__)
 
 app.jinja_env.auto_reload = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.config['DB_ENABLED'] = False
