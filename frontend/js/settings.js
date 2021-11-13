@@ -10,9 +10,12 @@ function UpdateSettingsButtons() {
         $("#mode-practice-btn").removeClass("btn-secondary");
         $("#mode-practice-btn").addClass("btn-primary");
     } else if (mode == 1) {
-        $("#mode-challenge-btn").removeClass("btn-secondary");
-        $("#mode-challenge-btn").addClass("btn-primary");
+        $("#mode-challenge-yesno-btn").removeClass("btn-secondary");
+        $("#mode-challenge-yesno-btn").addClass("btn-primary");
     } else if (mode == 2) {
+        $("#mode-challenge-choice-btn").removeClass("btn-secondary");
+        $("#mode-challenge-choice-btn").addClass("btn-primary");
+    } else if (mode == 3) {
         $("#mode-offline-btn").removeClass("btn-secondary");
         $("#mode-offline-btn").addClass("btn-primary");
     }

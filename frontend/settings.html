@@ -73,7 +73,8 @@
             <h2 style="float:left">Books</h2>
             <button type="button" class="btn btn-outline-secondary" style="margin:0.5em" onclick="RefreshBookList()"
                 id="book-list-refresh-btn"><i class="fa fa-refresh"></i></button>
-            <button style="float:right" type="button" class="close" aria-label="Close" onclick="$('#book-div').fadeOut()">
+            <button style="float:right" type="button" class="close" aria-label="Close"
+                onclick="$('#book-div').fadeOut()">
                 <span aria-hidden=" true"><i class="fa fa-times"></i></span>
             </button>
 
@@ -98,10 +99,12 @@
         <p>Mode:
             <button id="mode-practice-btn" type="button" class="btn mode-btn btn-secondary" style="margin:0"
                 onclick="UpdateMode(0)">Practice</button>
-            <button id="mode-challenge-btn" type="button" class="btn mode-btn btn-secondary" style="margin:0"
-                onclick="UpdateMode(1)">Challenge</button>
+            <button id="mode-challenge-yesno-btn" type="button" class="btn mode-btn btn-secondary" style="margin:0"
+                onclick="UpdateMode(1)">Challenge YESNO</button>
+            <button id="mode-challenge-choice-btn" type="button" class="btn mode-btn btn-secondary" style="margin:0"
+                onclick="UpdateMode(2)">Challenge CHOICE</button>
             <button id="mode-offline-btn" type="button" class="btn mode-btn btn-secondary" style="margin:0"
-                onclick="UpdateMode(2)">Offline</button>
+                onclick="UpdateMode(3)">Offline</button>
         </p>
         <p>Display order:
             <button id="order-sequence-btn" type="button" class="btn order-btn btn-secondary" style="margin:0"
@@ -139,8 +142,8 @@
         <hr>
         <h2>Question Management</h2>
         <br>
-        <button id="home-btn" type="button" class="btn btn-danger control-btn control-btn-top"
-            style="width:15em" onclick="$('#clearDeletedModal').modal('hide')"><i class="fa fa-trash"></i> Clear Deleted
+        <button id="home-btn" type="button" class="btn btn-danger control-btn control-btn-top" style="width:15em"
+            onclick="$('#clearDeletedModal').modal('hide')"><i class="fa fa-trash"></i> Clear Deleted
             Questions</button>
         <br>
         <button id="home-btn" type="button" class="btn btn-primary control-btn control-btn-bottom" onclick="Import()"><i
@@ -191,7 +194,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.3 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.4 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

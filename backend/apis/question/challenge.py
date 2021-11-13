@@ -141,7 +141,15 @@ def apiGetNextChallenge():
     question = decode(question)
     answer = decode(answer)
 
-    return json.dumps({"questionId": questionId, "question": question, "answer": answer, "status": status})
+    mixcnt = int(request.form["mixcnt"])
+    mix = []
+    qs = list(getQuestionsInBook(userId, bookId, "status >= 0"))
+    for _ in range(mixcnt):
+        random.shuffle(qs)
+    for i in range(mixcnt):
+        mix.append({"question": decode(qs[i][1]), "answer": decode(qs[i][2])})
+
+    return json.dumps({"questionId": questionId, "question": question, "answer": answer, "status": status, "mix": mix})
 
 # addtime = [20 minute, 1 hour, 3 hour, 8 hour, 1 day, 2 day, 5 day, 10 day]
 addtime = [300, 1200, 3600, 10800, 28800, 86401, 172800, 432000, 864010]
@@ -227,7 +235,15 @@ def apiUpdateChallengeRecord():
         question = decode(question)
         answer = decode(answer)
 
-        return json.dumps({"questionId": questionId, "question": question, "answer": answer, "status": status})
+        mixcnt = int(request.form["mixcnt"])
+        mix = []
+        qs = list(getQuestionsInBook(userId, bookId, "status >= 0"))
+        for _ in range(mixcnt):
+            random.shuffle(qs)
+        for i in range(mixcnt):
+            mix.append({"question": decode(qs[i][1]), "answer": decode(qs[i][2])})
+
+        return json.dumps({"questionId": questionId, "question": question, "answer": answer, "status": status, "mix": mix})
 
     else:
         return json.dumps({"success": True})

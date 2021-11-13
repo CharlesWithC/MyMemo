@@ -16,6 +16,10 @@ div {
     overflow: hidden
 }
 
+textarea {
+    margin: 0.5em;
+}
+
 .top-left {
     position: absolute;
     top: 1em;

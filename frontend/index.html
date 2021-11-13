@@ -14,6 +14,9 @@
     <link href="/css/font-awesome.min.css" rel="stylesheet">
     <link href="/css/main.css" rel="stylesheet">
 
+    <link rel="stylesheet" href="/dataTables/jquery.dataTables.min.css">
+    <script src="/dataTables/jquery.dataTables.min.js"></script>
+
     <link href="/noty/noty.css" rel="stylesheet">
     <script src="/noty/noty.min.js" type="text/javascript"></script>
     <link href="/noty/themes/mint.css" rel="stylesheet">
@@ -24,6 +27,50 @@
         $(document).ready(function () {
             PageInit();
             UpdateBookDisplay();
+
+            ccDisplayAnswer = false;
+            $('#choiceList').DataTable();
+            $("#choiceList > thead").hide();
+            $("#choiceList_length").remove();
+            $("#choiceList_filter").remove();
+            $("#choiceList_info").remove();
+            $("#choiceList_paginate").remove();
+            var tableUpdated = false;
+            setInterval(function () {
+                $("#choiceList").css("width", "");
+                if (ccDisplayAnswer) {
+                    for (var i = 0; i < 4; i++) {
+                        if (i != ccCorrect) {
+                            if (!tableUpdated) {
+                                $("#choice-" + i + " > td:last-child").append(
+                                    "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class='fa fa-times'></i>");
+                                if (i == ccSelected) {
+                                    $("#choice-" + i + " > td:last-child").append(" (Selected)");
+                                }
+                            }
+                            $("#choice-" + i).css("background-color", "red");
+                        } else {
+                            if (!tableUpdated) {
+                                $("#choice-" + i + " > td:last-child").append(
+                                    "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class='fa fa-check'></i>");
+                                if (i == ccSelected) {
+                                    $("#choice-" + i + " > td:last-child").append(" (Selected)");
+                                }
+                            }
+                            $("#choice-" + ccCorrect).css("background-color", "green");
+                        }
+                    }
+                    tableUpdated = true;
+                } else {
+                    tableUpdated = false;
+                    if (localStorage.getItem("settings-theme") == "dark") {
+                        $("tr").attr("style", "color:#ffffff;background-color:#333333");
+                    } else if (localStorage.getItem("settings-theme") == "light") {
+                        $("tr").attr("style", "color:#000000;background-color:#ffffff");
+                    }
+                }
+            }, 10);
+
 
             $("#content,#answer").click(function () {
                 DisplayAnswer();
@@ -53,6 +100,13 @@
                 $("#content").hover(function () {
                     $("#book-div").fadeOut();
                 });
+                $('#choiceList tbody').on('click', 'tr', function () {
+                    if (ccDisplayAnswer) {
+                        return;
+                    }
+                    wid = $(this).attr("id")[$(this).attr("id").indexOf('-') + 1];
+                    ChallengeChoice(wid);
+                });
             }
 
             if (localStorage.getItem("settings-theme") == "dark") {
@@ -60,9 +114,11 @@
                 $("hr").attr("style", "background-color:#cccccc;");
                 $(".modal-content").attr("style", "background-color:#333333");
                 $(".fa-times").attr("style", "color:white");
-                $("textarea").attr("style", "z-index:100;color:#ffffff;background-color:#333333");
+                $("textarea").css("color", "#ffffff");
+                $("textarea").css("background-color", "#333333");
             } else {
-                $("textarea").attr("style", "z-index:100;color:#000000;background-color:#ffffff");
+                $("textarea").css("color", "#000000");
+                $("textarea").css("background-color", "#ffffff");
             }
 
             $("#edit-question,#edit-answer").on('keypress', function (e) {
@@ -102,7 +158,8 @@
             <h2 style="float:left">Books</h2>
             <button type="button" class="btn btn-outline-secondary" style="margin:0.5em" onclick="RefreshBookList()"
                 id="book-list-refresh-btn"><i class="fa fa-refresh"></i></button>
-            <button style="float:right" type="button" class="close" aria-label="Close" onclick="$('#book-div').fadeOut()">
+            <button style="float:right" type="button" class="close" aria-label="Close"
+                onclick="$('#book-div').fadeOut()">
                 <span aria-hidden=" true"><i class="fa fa-times"></i></span>
             </button>
 
@@ -133,7 +190,8 @@
                 <button id="start-btn" type="button" class="btn btn-primary"
                     style="position:relative;width:10em;z-index:100" onclick="MemoGo()">Go <i
                         class='fa fa-play'></i></button>
-                <div class="center" style="margin-top:20px">
+                <div class="center" style="margin-top:1em">
+                    <br>
                     <p>Book: <span id="book-name"></span></p>
                     <p><span id="mode"></span> Mode</p>
                 </div>
@@ -142,13 +200,6 @@
 
         <div id="memo" style="display:none;padding-bottom:5em;z-index:100">
             <h1 class="title">My Memo</h1>
-            <div class="center">
-                <textarea class="form-control question center" id="question" style="z-index:100"
-                    readonly=true></textarea>
-                <br><br>
-                <textarea class="form-control answer center" id="answer" style="z-index:100" readonly=true></textarea>
-            </div>
-
             <div id="navigate" style="z-index:100">
                 <div class="top-right" style="top:4em;right:5em">
                     <button id="statistics-btn" type="button" class="btn btn-info control-btn control-btn-top"
@@ -161,6 +212,26 @@
                         onclick="StopAutoPlayer()" style="display:none"><i class="fa fa-pause-circle"></i>
                         Pause</button>
                 </div>
+            </div>
+
+            <div class="center" id="qa1">
+                <textarea class="form-control question center" id="question" style="z-index:100"
+                    readonly=true></textarea>
+                <br><br>
+                <textarea class="form-control answer center" id="answer" style="z-index:100" readonly=true></textarea>
+            </div>
+
+            <div class="center" id="qa2" style="display:none;margin-bottom:1em">
+                <textarea class="form-control question center" id="cc-question"
+                    style="z-index:100;height:4em;margin-bottom:1em" readonly=true></textarea>
+                <table class="table" id="choiceList" style="text-align:center">
+                    <thead>
+                        <th id="choice-key"></th>
+                        <th id="choice-description"></th>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
             </div>
 
             <div id="practice-control" class="control center" style="display:none;padding-top:2em;z-index:100">
@@ -176,7 +247,7 @@
                     onclick="MemoMove('next')">Next <i class="fa fa-arrow-circle-right"></i></button>
             </div>
 
-            <div id="challenge-control" class="control center" style="display:none;padding-top:1em;z-index:100">
+            <div id="challenge-yesno-control" class="control center" style="display:none;padding-top:1em;z-index:100">
                 <p style="padding-bottom:1em"><span id="challenge-msg">Do you remember it?</span></p>
                 <button type="button"
                     class="btn btn-primary control-btn control-btn-left control-btn-top memo-challenge-yes"
@@ -184,6 +255,21 @@
                 <button type="button"
                     class="btn btn-primary control-btn control-btn-right control-btn-top memo-challenge-no"
                     onclick="MemoChallenge('no')">No <i class='fa fa-times'></i></button>
+                <br>
+                <button type="button" class="btn btn-primary control-btn control-btn-left control-btn-top memo-tag"
+                    onclick="MemoTag()">Tag <i class='fa fa-star'></i></button>
+                <button type="button" class="btn btn-primary control-btn control-btn-right control-btn-top memo-delete"
+                    onclick="MemoDelete()">Delete <i class="fa fa-trash"></i></button>
+            </div>
+
+            <div id="challenge-choice-control" class="control center" style="display:none;padding-top:1em;z-index:100">
+                <p style="padding-bottom:1em"><span id="challenge-choice-msg"></span></p>
+                <button type="button" id="challenge-choice-continue"
+                    class="btn btn-primary control-btn control-btn-left control-btn-top challenge-choice-continue"
+                    onclick="ChallengeChoice(-1)">Continue <i class='fa fa-arrow-circle-right'></i></button>
+                <button type="button" id="challenge-choice-continue"
+                    class="btn btn-primary control-btn control-btn-right control-btn-top challenge-choice-continue"
+                    onclick="ChallengeChoice(-1)">Continue <i class='fa fa-arrow-circle-right'></i></button>
                 <br>
                 <button type="button" class="btn btn-primary control-btn control-btn-left control-btn-top memo-tag"
                     onclick="MemoTag()">Tag <i class='fa fa-star'></i></button>
@@ -260,7 +346,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.3 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.4 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

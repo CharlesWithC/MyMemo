@@ -1,5 +1,11 @@
 # Update History
 
+## v5.3.4  
+
+*Date: 2021/11/14*  
+Added Challenge CHOICE to make it like a quiz  
+The old challenge mode is renamed to Challenge YESNO  
+
 ## v5.3.3  
 
 *Date: 2021/11/13*  
