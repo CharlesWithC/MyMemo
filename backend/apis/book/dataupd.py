@@ -14,11 +14,16 @@ import sessions
 import MySQLdb
 import sqlite3
 conn = None
-if config.database == "mysql":
-    conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
-        passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
-elif config.database == "sqlite":
-    conn = sqlite3.connect("database.db", check_same_thread = False)
+
+def updateconn():
+    global conn
+    if config.database == "mysql":
+        conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
+            passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
+    elif config.database == "sqlite":
+        conn = sqlite3.connect("database.db", check_same_thread = False)
+    
+updateconn()
 
 ##########
 # Book API
@@ -26,6 +31,7 @@ elif config.database == "sqlite":
 
 @app.route("/api/book/addQuestion", methods = ['POST'])
 def apiAddToBook():
+    updateconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -57,9 +63,11 @@ def apiAddToBook():
     
     cur.execute(f"SELECT questionId FROM QuestionList WHERE userId = {userId}")
     d = cur.fetchall()
+    d = list(d)
 
     cur.execute(f"SELECT questionId FROM BookData WHERE userId = {userId} AND bookId = {bookId}")
     t = cur.fetchall()
+    t = list(t)
 
     for questionId in questions:
         if (questionId,) in d and not (questionId,) in t:
@@ -92,8 +100,8 @@ def apiAddToBook():
                 cur.execute(f"INSERT INTO GroupSync VALUES ({groupId}, {userId}, {questionId}, {gquestionId})")
                 
                 cur.execute(f"SELECT userId, bookId FROM GroupBind WHERE groupId = {groupId}")
-                t = cur.fetchall()
-                for tt in t:
+                ttt = cur.fetchall()
+                for tt in ttt:
                     uid = tt[0]
                     if uid == userId or uid < 0:
                         continue
@@ -120,6 +128,7 @@ def apiAddToBook():
 
 @app.route("/api/book/deleteQuestion", methods = ['POST'])
 def apiDeleteFromBook():
+    updateconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)

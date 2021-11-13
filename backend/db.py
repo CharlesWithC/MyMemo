@@ -5,6 +5,7 @@
 import MySQLdb # Install MySQLdb using `apt install python3-mysqldb`
 import sqlite3
 import os, sys, json
+import getpass
 
 from app import app
 from functions import hashpwd, genCode, encode
@@ -40,9 +41,7 @@ elif config["database"] == "mysql":
 
     passwd = "123456"
     if not "mysql_passwd" in config.keys():
-        passwd = input("MySQL Password: ")
-        sys.stdout.write("\033[F")
-        print("MySQL Password: " + '*' * len(passwd))
+        passwd = getpass.getpass("MySQL Password: ")
     else:
         passwd = config["mysql_passwd"]
 
@@ -86,7 +85,8 @@ if doinit:
         config = Dict2Obj(json.loads(config_txt))
 
     cur = conn.cursor()
-    cur.execute(f"CREATE TABLE UserInfo (userId INT, username VARCHAR(64), email VARCHAR(128), password VARCHAR(256), inviter INT, inviteCode CHAR(8))")
+    cur.execute(f"CREATE TABLE UserInfo (userId INT, username VARCHAR(512), email VARCHAR(128), password VARCHAR(256), inviter INT, inviteCode CHAR(8))")
+    # encode username
     # Allow only inviting registration mode to prevent abuse
     cur.execute(f"CREATE TABLE UserEvent (userId INT, event VARCHAR(32), timestamp INT)")
     # Available event: register, login, change_password, delete_account
@@ -102,7 +102,9 @@ if doinit:
 
     defaultpwd = hashpwd(config.default_user_password)
 
-    cur.execute(f"INSERT INTO UserInfo VALUES (0,'default','None','{encode(defaultpwd)}',0,'{genCode(8)}')")
+    inviteCode = genCode(8)
+    print(f"Created default user with invitation code: {inviteCode}")
+    cur.execute(f"INSERT INTO UserInfo VALUES (0,'{encode('default')}','None','{encode(defaultpwd)}',0,'{inviteCode}')")
     cur.execute(f"INSERT INTO UserEvent VALUES (0, 'register', 0)")
     # Default user system's password is 123456
     # Clear default account's password after setup (so it cannot be logged in)
@@ -186,12 +188,12 @@ if doinit:
     # To store next id of userId 1 / questionId 2 / bookId 3 / groupId 4 / groupQuestionId 5 / discoveryId 6
 
     # Sessions
-    cur.execute(f"CREATE TABLE ActiveUserLogin (userId INT, token CHAR(46), loginTime INT, expireTime INT)")
+    cur.execute(f"CREATE TABLE ActiveUserLogin (userId INT, token CHAR(46), loginTime INT, expireTime INT, ua VARCHAR(256), ip VARCHAR(128))")
     # Active user login data
     # Remove data when expired / logged out
     # Token = 9-digit-userId + '-' + uuid.uuid(4)
 
-    cur.execute(f"CREATE TABLE UserSessionHistory (userId INT, loginTime INT, logoutTime INT, expire INT)")
+    cur.execute(f"CREATE TABLE UserSessionHistory (userId INT, loginTime INT, logoutTime INT, expire INT, ip VARCHAR(128))")
     # User Session History, updated when user logs out
     # If user logged out manually, then logout time is his/her logout time and "expire" will be set to 0
     # If the token expired, then logout time is the expireTime and "expire" will be set to 1

@@ -28,6 +28,7 @@ errcnt = 0
 
 def validateToken(userId, token):
     try:
+        updateconn()
         cur = conn.cursor()
         if not token.replace("-","").isalnum():
             return False
@@ -41,8 +42,13 @@ def validateToken(userId, token):
         expireTime = d[0][1]
 
         if expireTime <= int(time.time()):
+            ip = ""
+            cur.execute(f"SELECT ip FROM ActiveUserLogin WHERE userId = {userId} AND token = '{token}'")
+            t = cur.fetchall()
+            if len(t) > 0:
+                ip = t[0][0]
+            cur.execute(f"INSERT INTO UserSessionHistory VALUES ({userId}, {loginTime}, {expireTime}, 1, '{ip}')")
             cur.execute(f"DELETE FROM ActiveUserLogin WHERE userId = {userId} AND token = '{token}'")
-            cur.execute(f"INSERT INTO UserSessionHistory VALUES ({userId}, {loginTime}, {expireTime}, 1)")
             conn.commit()
             return False
         
@@ -53,14 +59,15 @@ def validateToken(userId, token):
         global errcnt
         errcnt += 1
 
-def login(userId):
+def login(userId, ua, ip):
     try:
+        updateconn()
         cur = conn.cursor()
         token = str(userId).zfill(9) + "-" + str(uuid.uuid4())
         loginTime = int(time.time())
         expireTime = loginTime + 21600 # 6 hours
 
-        cur.execute(f"INSERT INTO ActiveUserLogin VALUES ({userId}, '{token}', {loginTime}, {expireTime})")
+        cur.execute(f"INSERT INTO ActiveUserLogin VALUES ({userId}, '{token}', {loginTime}, {expireTime}, '{ua}', '{ip}')")
         conn.commit()
 
         return token
@@ -71,6 +78,7 @@ def login(userId):
 
 def logout(userId, token):
     try:
+        updateconn()
         cur = conn.cursor()
         if not validateToken(userId, token):
             return True
@@ -78,8 +86,13 @@ def logout(userId, token):
         cur.execute(f"SELECT loginTime FROM ActiveUserLogin WHERE userId = {userId} AND token = '{token}'")
         d = cur.fetchall()
         loginTime = d[0][0]
+        ip = ""
+        cur.execute(f"SELECT ip FROM ActiveUserLogin WHERE userId = {userId} AND token = '{token}'")
+        t = cur.fetchall()
+        if len(t) > 0:
+            ip = t[0][0]
+        cur.execute(f"INSERT INTO UserSessionHistory VALUES ({userId}, {loginTime}, {expireTime}, 1, '{ip}')")
         cur.execute(f"DELETE FROM ActiveUserLogin WHERE userId = {userId} AND token = '{token}'")
-        cur.execute(f"INSERT INTO UserSessionHistory VALUES ({userId}, {loginTime}, {int(time.time())}, 0)")
         conn.commit()
 
         return True
@@ -90,11 +103,17 @@ def logout(userId, token):
 
 def logoutAll(userId):
     try: 
+        updateconn()
         cur = conn.cursor()
         cur.execute(f"SELECT * FROM ActiveUserLogin WHERE userId = {userId}")
         d = cur.fetchall()
         for dd in d:
-            cur.execute(f"INSERT INTO UserSessionHistory VALUES ({userId}, {dd[2]}, {int(time.time())}, 2)")
+            ip = ""
+            cur.execute(f"SELECT ip FROM ActiveUserLogin WHERE userId = {userId} AND token = '{token}'")
+            t = cur.fetchall()
+            if len(t) > 0:
+                ip = t[0][0]
+            cur.execute(f"INSERT INTO UserSessionHistory VALUES ({userId}, {loginTime}, {expireTime}, 1, '{ip}')")
         cur.execute(f"DELETE FROM ActiveUserLogin WHERE userId = {userId}")
         conn.commit()
 
@@ -106,6 +125,7 @@ def logoutAll(userId):
 
 def getPasswordTrialCount(userId):
     try:
+        updateconn()
         cur = conn.cursor()
         cur.execute(f"SELECT count, lastts FROM PasswordTrial WHERE userId = {userId}")
         t = cur.fetchall()
@@ -120,6 +140,7 @@ def getPasswordTrialCount(userId):
 
 def updatePasswordTrialCount(userId, to, ts):
     try:
+        updateconn()
         cur = conn.cursor()
         cur.execute(f"SELECT count FROM PasswordTrial WHERE userId = {userId}")
         t = cur.fetchall()
@@ -144,6 +165,7 @@ def updatePasswordTrialCount(userId, to, ts):
 
 def deleteData(userId):
     try:
+        updateconn()
         cur = conn.cursor()
         cur.execute(f"DELETE FROM ActiveUserLogin WHERE userId = {userId}")
         cur.execute(f"DELETE FROM UserSessionHistory WHERE userId = {userId}")
@@ -155,6 +177,7 @@ def deleteData(userId):
 
 def markDeletion(userId):
     try:
+        updateconn()
         cur = conn.cursor()
         cur.execute(f"INSERT INTO PendingAccountDeletion VALUES ({userId}, {int(time.time()+86401*14)})")
         conn.commit()
@@ -165,6 +188,7 @@ def markDeletion(userId):
 
 def checkDeletionMark(userId):
     try:
+        updateconn()
         cur = conn.cursor()
         cur.execute(f"SELECT * FROM PendingAccountDeletion WHERE userId = {userId}")
         if len(cur.fetchall()) > 0:
@@ -178,6 +202,7 @@ def checkDeletionMark(userId):
 
 def removeDeletionMark(userId):
     try:
+        updateconn()
         cur = conn.cursor()
         cur.execute(f"DELETE FROM PendingAccountDeletion WHERE userId = {userId}")
         conn.commit()
@@ -188,6 +213,7 @@ def removeDeletionMark(userId):
 
 def DeleteAccountNow(userId):
     try:
+        updateconn()
         cur = conn.cursor()
 
         cur.execute(f"SELECT userId FROM PendingAccountDeletion WHERE userId = {userId}")
@@ -205,6 +231,7 @@ def DeleteAccountNow(userId):
 
 def CheckDeletionMark(userId):
     try:
+        updateconn()
         cur = conn.cursor()
 
         cur.execute(f"SELECT userId FROM PendingAccountDeletion WHERE userId = {userId}")
@@ -219,6 +246,7 @@ def CheckDeletionMark(userId):
 
 def CountDeletionMark():
     try:
+        updateconn()
         cur = conn.cursor()
 
         cur.execute(f"SELECT COUNT(*) FROM PendingAccountDeletion")

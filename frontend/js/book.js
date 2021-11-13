@@ -86,7 +86,7 @@ function SelectQuestions() {
     for (var i = 0; i < bookList.length; i++) {
         if (bookList[i].bookId == bookId) {
             found = true;
-            $(".book-list-div").hide();
+            $(".book-list-content-div").hide();
             $(".book-data-div").show();
 
             bookName = bookList[i].name;
@@ -190,7 +190,7 @@ function SelectQuestions() {
         }
     }
     if (!found) {
-        $(".book-list-div").show();
+        $(".book-list-content-div").show();
         $(".book-data-div").hide();
         UpdateBookDisplay();
     }
@@ -205,12 +205,16 @@ function UpdateTable() {
     l = ["", "Default", "Tagged", "Deleted"];
 
     for (var i = 0; i < selectedQuestionList.length; i++) {
+        btns = '';
+        btns += '<button type="button" class="btn btn-primary btn-sm only-group-editor-if-group-exist" onclick="EditQuestionShow(' + selectedQuestionList[i].questionId + ')">Edit</button>';
+        if (bookId != 0) {
+            btns += '<button type="button" class="btn btn-outline-warning btn-sm only-group-editor-if-group-exist" onclick="RemoveFromBook(' + selectedQuestionList[i].questionId + ')">Remove</button>';
+        }
         table.row.add([
             [selectedQuestionList[i].question],
             [selectedQuestionList[i].answer],
             [l[selectedQuestionList[i].status]],
-            ['<button type="button" class="btn btn-primary btn-sm only-group-editor-if-group-exist" onclick="EditQuestionShow(' + selectedQuestionList[i].questionId + ')">Edit</button>\
-            <button type="button" class="btn btn-outline-danger btn-sm only-group-editor-if-group-exist" onclick="RemoveFromBook(' + selectedQuestionList[i].questionId + ')">Delete</button>']
+            [btns]
         ]).node().id = selectedQuestionList[i].questionId;
     }
     table.draw();
@@ -248,6 +252,11 @@ function UpdateQuestionList() {
 function PageInit() {
     if (bookId == -1) {
         bookId = getUrlParameter("bookId");
+    }
+    if (bookId == -1) {
+        UpdateBookContentList();
+    } else {
+        RefreshQuestionList();
     }
 
     table = $("#questionList").DataTable();
@@ -307,13 +316,11 @@ function PageInit() {
     }
 
     // Use existing questions
-    if (questionList.length != 0) {
+    if (questionList.length != 0 && bookId != -1) {
         MapQuestionList();
         SelectQuestions();
         UpdateTable();
     }
-
-    RefreshQuestionList();
 }
 
 var editQuestionId = -1;
@@ -423,6 +430,7 @@ function BookUpdateStatus(updateTo) {
 }
 
 function ShowQuestionDatabase() {
+    $('#questionList').DataTable().column(3).visible(false);
     $(".manage").hide();
     $("#addExistingQuestion").show();
     $(".book-name").html(bookName);
@@ -459,6 +467,7 @@ function ShowQuestionDatabase() {
 }
 
 function ShowManage() {
+    $('#questionList').DataTable().column(3).visible(true);
     $("#addExistingQuestion").hide();
     $(".manage").show();
     UpdateTable();
@@ -543,7 +552,7 @@ function RemoveFromBook(wid = -1) {
     if (wid == -1) {
         questions = selected;
     } else {
-        questionId = [wid];
+        questions = [wid];
     }
     $.ajax({
         url: '/api/book/deleteQuestion',
@@ -551,14 +560,14 @@ function RemoveFromBook(wid = -1) {
         async: true,
         dataType: "json",
         data: {
-            questions: JSON.stringify(selected),
+            questions: JSON.stringify(questions),
             bookId: bookId,
             userId: localStorage.getItem("userId"),
             token: localStorage.getItem("token")
         },
         success: function (r) {
             if (r.success == true) {
-                NotyNotification('Success! Removed ' + selected.length + ' question(s) from this book!');
+                NotyNotification('Success! Removed ' + questions.length + ' question(s) from this book!');
 
                 UpdateQuestionList();
             } else {
@@ -747,7 +756,7 @@ function BookShare() {
                             break;
                         }
                     }
-                    NotyNotification(r.msg, timeout = 30000);
+                    NotyNotification(r.msg, type = 'info',  timeout = 30000);
                     $("#bookShareCode").html(r.shareCode);
                     $("#shareop").html("Unshare");
                     $(".only-shared").show();
@@ -1002,7 +1011,7 @@ function CreateGroup() {
                         break;
                     }
                 }
-                NotyNotification(r.msg, timeout = 30000);
+                NotyNotification(r.msg, type = 'info', timeout = 30000);
                 $("#createGroupModal").modal("hide");
                 $("#bookShareCode").html(r.shareCode);
                 $("#shareop").html("Unshare");
@@ -1331,8 +1340,8 @@ function deselectAll() {
     });
 }
 
-function UpdateBookDisplay() {
-    $(".book").remove();
+function UpdateBookContentDisplay() {
+    $(".book-content").remove();
     for (var i = 0; i < bookList.length; i++) {
         book = bookList[i];
         wcnt = "";
@@ -1343,7 +1352,7 @@ function UpdateBookDisplay() {
         }
         btn = "";
         if (book.bookId != localStorage.getItem("memo-book-id")) {
-            btn = '<button type="button" class="btn btn-primary " onclick="SelectBook(' + book.bookId + ')">Select</button>';
+            btn = '<button type="button" class="btn btn-primary " onclick="SelectBookContent(' + book.bookId + ')">Select</button>';
         } else {
             btn = '<button type="button" class="btn btn-secondary">Selected</button>'
         }
@@ -1352,7 +1361,7 @@ function UpdateBookDisplay() {
             bname = "[Group] " + bname;
         }
 
-        $(".book-list").append('<div class="book">\
+        $(".book-list-content").append('<div class="book-content">\
         <p>' + bname + '</p>\
         <p>' + wcnt + '</p>\
         <button type="button" class="btn btn-primary " onclick="OpenBook(' + book.bookId + ')">Open</button>\
@@ -1362,16 +1371,18 @@ function UpdateBookDisplay() {
     }
 }
 
-function OpenBook(bookId) {
-    window.location.href = '/book?bookId=' + bookId;
+function SelectBookContent(bookId) {
+    localStorage.setItem("memo-book-id", bookId);
+    UpdateBookContentDisplay();
 }
 
 function SelectBook(bookId) {
     localStorage.setItem("memo-book-id", bookId);
     UpdateBookDisplay();
+    UpdateBookContentDisplay();
 }
 
-function UpdateBookList() {
+function UpdateBookContentList() {
     $("#refresh-btn").html('<i class="fa fa-refresh fa-spin"></i>');
     $.ajax({
         url: "/api/book",
@@ -1385,14 +1396,14 @@ function UpdateBookList() {
         success: function (r) {
             bookList = r;
             localStorage.setItem("book-list", JSON.stringify(bookList));
-            UpdateBookDisplay();
+            UpdateBookContentDisplay();
             $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
         }
     });
 }
 
-function CreateBook() {
-    bookName = $("#create-book-name").val();
+function CreateBook(element) {
+    bookName = $(element).val();
 
     if (bookName == "") {
         NotyNotification('Please enter the name of the book!', type = 'warning');
@@ -1413,6 +1424,8 @@ function CreateBook() {
             if (r.success == true) {
                 UpdateBookList();
                 UpdateBookDisplay();
+                UpdateBookContentList();
+                UpdateBookContentDisplay();
                 NotyNotification('Success! Book created!');
             } else {
                 NotyNotification(r.msg, type = 'error');

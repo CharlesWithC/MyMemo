@@ -15,17 +15,23 @@ import sessions
 import MySQLdb
 import sqlite3
 conn = None
-if config.database == "mysql":
-    conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
-        passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
-elif config.database == "sqlite":
-    conn = sqlite3.connect("database.db", check_same_thread = False)
+
+def updateconn():
+    global conn
+    if config.database == "mysql":
+        conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
+            passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
+    elif config.database == "sqlite":
+        conn = sqlite3.connect("database.db", check_same_thread = False)
+    
+updateconn()
 
 ##########
 # Discovery API
 
 @app.route("/api/discovery", methods = ['GET','POST'])
 def apiDiscovery():
+    updateconn()
     cur = conn.cursor()
     cur.execute(f"SELECT discoveryId, title, description, publisherId, type FROM Discovery")
     d = cur.fetchall()
@@ -35,7 +41,7 @@ def apiDiscovery():
         cur.execute(f"SELECT username FROM UserInfo WHERE userId = {dd[3]}")
         t = cur.fetchall()
         if len(t) != 0:
-            publisher = t[0][0]
+            publisher = decode(t[0][0])
             if publisher == "@deleted":
                 publisher = "Deleted Account"
 
@@ -59,6 +65,7 @@ def apiDiscovery():
 
 @app.route("/api/discovery/<int:discoveryId>", methods = ['GET', 'POST'])
 def apiDiscoveryData(discoveryId):
+    updateconn()
     cur = conn.cursor()
 
     userId = 0
@@ -142,7 +149,7 @@ def apiDiscoveryData(discoveryId):
     cur.execute(f"SELECT username FROM UserInfo WHERE userId = {uid}")
     t = cur.fetchall()
     if len(t) != 0:
-        publisher = t[0][0]
+        publisher = decode(t[0][0])
         if publisher == "@deleted":
             publisher = "Deleted Account"
     
@@ -196,6 +203,7 @@ def apiDiscoveryData(discoveryId):
 
 @app.route("/api/discovery/publish", methods = ['POST'])
 def apiDiscoveryPublish():
+    updateconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -264,6 +272,7 @@ def apiDiscoveryPublish():
 
 @app.route("/api/discovery/unpublish", methods = ['POST'])
 def apiDiscoveryUnpublish():
+    updateconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -298,6 +307,7 @@ def apiDiscoveryUnpublish():
 
 @app.route("/api/discovery/update", methods = ['POST'])
 def apiDiscoveryUpdate():
+    updateconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -333,6 +343,7 @@ def apiDiscoveryUpdate():
 
 @app.route("/api/discovery/like", methods = ['POST'])
 def apiDiscoveryLike():
+    updateconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)

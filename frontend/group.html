@@ -31,6 +31,7 @@
                     [1, 'desc']
                 ]
             });
+            $('#memberList').DataTable().column(2).visible(false);
 
             $("#memberList_length").after('<div id="qf" class="dataTables_filter input-group mb-3">\
                 <span class="input-group-text" id="basic-addon1">Search</span>\
@@ -40,6 +41,7 @@
             $("#memberList_filter").attr("id", "qqf");
             $("#qf").attr("id", "memberList_filter");
             $("#qqf").remove();
+            setInterval(function(){$("#memberList").css("width","");},100);
 
             if (localStorage.getItem("settings-theme") == "dark") {
                 $("body").attr("style", "color:#ffffff;background-color:#333333");
@@ -104,6 +106,11 @@
             $("#content").hover(function () {
                 $("#book-div").fadeOut();
             });
+            $("#create-book-name").on('keypress', function (e) {
+                if (e.which == 13) {
+                    CreateBook();
+                }
+            });
         });
     </script>
 
@@ -153,7 +160,7 @@
             <h2 style="float:left">Books</h2>
             <button type="button" class="btn btn-outline-secondary" style="margin:0.5em" onclick="RefreshBookList()"
                 id="book-list-refresh-btn"><i class="fa fa-refresh"></i></button>
-            <button style="float:right" type="button" class="close" aria-label="Close" onclick="DisplayAnswer()">
+            <button style="float:right" type="button" class="close" aria-label="Close" onclick="$('#book-div').fadeOut()">
                 <span aria-hidden=" true"><i class="fa fa-times"></i></span>
             </button>
 
@@ -173,13 +180,14 @@
     </div>
 
     <div id="content" class="container">
-        <div id="member" class="member" style="position:relative;width:100%;float:left">
+        <div id="member" class="member subcontainer" style="position:relative;width:100%;float:left">
             <p>Description: <br><span id="groupDescription"></span></p>
             <table class="table" id="memberList" style="text-align:center">
                 <thead>
                     <tr>
                         <th id="username">Username</th>
                         <th id="progress">Progress</th>
+                        <th id="operation">Operation</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -187,15 +195,8 @@
             </table>
         </div>
 
-        <div id="manage" class="manage" style="position:relative;width:35%;float:right;display:none">
-            <p>Manage Group Member: </p>
-            <button type="button" class="btn btn-primary" onclick="GroupOperation('kick')"><i class="fa fa-ban"></i>
-                Kick</button>
-            <button type="button" class="btn btn-primary" onclick="GroupOperation('makeEditor')">Make / Undo Make
-                Editor</button>
-            <button type="button" class="btn btn-outline-danger" onclick="TransferOwnershipShow()"><i
-                    class="fa fa-random"></i>
-                Transfer ownership</button>
+        <div id="user-detail" class="user-detai subcontainer" style="position:relative;width:35%;float:right;display:none">
+
         </div>
     </div>
 
@@ -218,8 +219,8 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal"
                         onclick="$('#transferOwnershipModal').modal('hide')">Cancel</button>
-                    <button type="button" class="btn btn-outline-danger" data-dismiss="modal"
-                        onclick="GroupOperation('transferOwnership')">Transfer</button>
+                    <button id="transfer-ownership-btn" type="button" class="btn btn-outline-danger" data-dismiss="modal"
+                        onclick="GroupOperation(3)">Transfer</button>
                 </div>
             </div>
         </div>
@@ -227,7 +228,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.1 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.2 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

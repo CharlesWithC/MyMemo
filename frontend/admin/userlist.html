@@ -8,7 +8,6 @@
     <script src="/js/bootstrap.bundle.min.js"></script>
     <script src="/js/popper.min.js"></script>
     <script src="/js/general.js"></script>
-    <script src="/js/user.js"></script>
 
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/font-awesome.min.css" rel="stylesheet">
@@ -37,6 +36,7 @@
             $("#userList_filter").attr("id", "qqf");
             $("#qf").attr("id", "userList_filter");
             $("#qqf").remove();
+            setInterval(function(){$("#userList").css("width","");},100);
 
             if (localStorage.getItem("settings-theme") == "dark") {
                 $("body").attr("style", "color:#ffffff;background-color:#333333");
@@ -151,6 +151,11 @@
             $("#content").hover(function () {
                 $("#book-div").fadeOut();
             });
+            $("#create-book-name").on('keypress', function (e) {
+                if (e.which == 13) {
+                    CreateBook();
+                }
+            });
         });
     </script>
 </head>
@@ -185,7 +190,7 @@
             <h2 style="float:left">Books</h2>
             <button type="button" class="btn btn-outline-secondary" style="margin:0.5em" onclick="RefreshBookList()"
                 id="book-list-refresh-btn"><i class="fa fa-refresh"></i></button>
-            <button style="float:right" type="button" class="close" aria-label="Close" onclick="DisplayAnswer()">
+            <button style="float:right" type="button" class="close" aria-label="Close" onclick="$('#book-div').fadeOut()">
                 <span aria-hidden=" true"><i class="fa fa-times"></i></span>
             </button>
 
@@ -228,7 +233,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.1 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.2 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

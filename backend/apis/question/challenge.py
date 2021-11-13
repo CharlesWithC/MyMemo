@@ -15,11 +15,16 @@ import sessions
 import MySQLdb
 import sqlite3
 conn = None
-if config.database == "mysql":
-    conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
-        passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
-elif config.database == "sqlite":
-    conn = sqlite3.connect("database.db", check_same_thread = False)
+
+def updateconn():
+    global conn
+    if config.database == "mysql":
+        conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
+            passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
+    elif config.database == "sqlite":
+        conn = sqlite3.connect("database.db", check_same_thread = False)
+    
+updateconn()
 
 ##########
 # Question API
@@ -27,6 +32,7 @@ elif config.database == "sqlite":
 
 rnd=[1,1,1,1,1,1,1,2,2,2,2,2,2,3,3,3,3,3,3,4]
 def getChallengeQuestionId(userId, bookId, nofour = False):
+    updateconn()
     cur = conn.cursor()
     questionId = -1
 
@@ -113,6 +119,7 @@ def getChallengeQuestionId(userId, bookId, nofour = False):
 
 @app.route("/api/question/challenge/next", methods = ['POST'])
 def apiGetNextChallenge():
+    updateconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -140,6 +147,7 @@ def apiGetNextChallenge():
 addtime = [300, 1200, 3600, 10800, 28800, 86401, 172800, 432000, 864010]
 @app.route("/api/question/challenge/update", methods = ['POST'])
 def apiUpdateChallengeRecord():
+    updateconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)

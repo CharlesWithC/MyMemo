@@ -41,21 +41,31 @@ def genCode(length = 8):
     return ret
 
 def encode(s):
-    return base64.b64encode(s.encode()).decode()
+    try:
+        return base64.b64encode(s.encode()).decode()
+    except:
+        print(f"Unable to encode {s}")
+        return ""
 
 def decode(s):
-    return base64.b64decode(s.encode()).decode()
+    try:
+        return base64.b64decode(s.encode()).decode()
+    except:
+        print(f"Unable to decode {s}")
+        return ""
     
 def validateToken(userId, token):
+    updateconn()
     cur = conn.cursor()
     cur.execute(f"SELECT username FROM UserInfo WHERE userId = {userId}")
     d = cur.fetchall()
-    if len(d) == 0 or d[0][0] == "@deleted":
+    if len(d) == 0 or decode(d[0][0]) == "@deleted":
         return False
     
     return sessions.validateToken(userId, token)
 
 def getQuestionsInBook(userId, bookId, statusRequirement):
+    updateconn()
     cur = conn.cursor()
     cur.execute(f"SELECT questionId FROM BookData WHERE bookId = {bookId} AND userId = {userId}")
     book = cur.fetchall()
@@ -71,6 +81,7 @@ def getQuestionsInBook(userId, bookId, statusRequirement):
     return d
     
 def updateQuestionStatus(userId, questionId, status):
+    updateconn()
     cur = conn.cursor()
     cur.execute(f"SELECT COUNT(*) FROM StatusUpdate WHERE questionId = {questionId} AND userId = {userId}")
     d = cur.fetchall()
@@ -81,6 +92,7 @@ def updateQuestionStatus(userId, questionId, status):
     conn.commit()
     
 def getQuestionCount(userId):
+    updateconn()
     cur = conn.cursor()
     q = 0
     cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {userId}")

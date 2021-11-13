@@ -1,5 +1,19 @@
 # Update History
 
+## v5.3.2  
+
+*Date: 2021/11/13*  
+Bug Fixes:  
+1.Fixed the issue that MySQL connection often disconnects (by updating the connection before query)  
+Feature Updates:  
+1.Added function to automatically block logins of default user when a user (uid: 1) is created  
+2.Encoding username in database to allow more characters in username  
+3.Added book button hover for book.html  
+4.Added operation column for question list with operations: edit, delete (from book)  
+5.Added operation column for group member list with operations: kick, (undo) make editor  
+6.Added a loading spinner at top-left cornor of page when there are active (pending) ajax request(s)  
+7.Added session management function where users can view all active sessions  
+
 ## v5.3.1
 
 *Date: 2021/11/13*  
@@ -13,7 +27,7 @@ Bug Fixes:
 2.When showing / hiding modal, no longer using toggle and changed to use show / hide directly to prevent abnormal behaviour.  
 3.Made all ajax requests with async enabled.  
 4.Fixed the bug that tables are having dark background while in light mode.  
-Other Updates:  
+Feature Updates:  
 1.Allowed users to click row to show Discovery post without pressing the Show operation.  
 Hiding operation column for users and only display delete operation for admins.  
 2.Move functions that are used by nearly all pages to a separate general.js and each page will import it.  

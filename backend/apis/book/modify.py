@@ -14,11 +14,16 @@ import sessions
 import MySQLdb
 import sqlite3
 conn = None
-if config.database == "mysql":
-    conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
-        passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
-elif config.database == "sqlite":
-    conn = sqlite3.connect("database.db", check_same_thread = False)
+
+def updateconn():
+    global conn
+    if config.database == "mysql":
+        conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
+            passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
+    elif config.database == "sqlite":
+        conn = sqlite3.connect("database.db", check_same_thread = False)
+    
+updateconn()
 
 ##########
 # Book API
@@ -26,6 +31,7 @@ elif config.database == "sqlite":
 
 @app.route("/api/book/create", methods = ['POST'])
 def apiCreateBook():
+    updateconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -53,7 +59,7 @@ def apiCreateBook():
             cur.execute(f"SELECT username FROM UserInfo WHERE userId = {sharerUserId}")
             tt = cur.fetchall()
             if len(tt) > 0:
-                sharerUsername = tt[0][0]
+                sharerUsername = decode(tt[0][0])
             name = encode(sharerUsername + "'s book")
             if sharerBookId != 0:
                 # create book
@@ -279,6 +285,7 @@ def apiCreateBook():
 
 @app.route("/api/book/clone", methods = ['POST'])
 def apiCloneBook():
+    updateconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -336,6 +343,7 @@ def apiCloneBook():
 
 @app.route("/api/book/delete", methods = ['POST'])
 def apiDeleteBook():
+    updateconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -383,6 +391,7 @@ def apiDeleteBook():
 
 @app.route("/api/book/rename", methods = ['POST'])
 def apiRenameBook():
+    updateconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -419,6 +428,7 @@ def apiRenameBook():
 
 @app.route("/api/book/share", methods = ['POST'])
 def apiShareBook():
+    updateconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)

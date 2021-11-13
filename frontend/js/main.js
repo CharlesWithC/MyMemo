@@ -14,7 +14,7 @@ class MemoClass {
         this.bookName = "";
 
         this.fullQuestionList = [];
-        this.questionListMap = null;
+        this.questionListMap = new Map();
         this.bookList = [];
         this.selectedQuestionList = [];
 
@@ -55,18 +55,18 @@ settings.autoPlay = parseInt(lsGetItem("settings-auto-play", 0));
 settings.apinterval = -1;
 settings.firstuse = parseInt(lsGetItem("first-use", 1));
 
-
-
 function MapQuestionList() {
     memo.questionListMap = new Map();
-    for (var i = 0; i < memo.questionList.length; i++) {
-        memo.questionListMap.set(memo.questionList[i].questionId, {
-            "question": memo.questionList[i].question,
-            "answer": memo.questionList[i].answer,
-            "status": memo.questionList[i].status
+    for (var i = 0; i < memo.fullQuestionList.length; i++) {
+        memo.questionListMap.set(memo.fullQuestionList[i].questionId, {
+            "question": memo.fullQuestionList[i].question,
+            "answer": memo.fullQuestionList[i].answer,
+            "status": memo.fullQuestionList[i].status
         });
     }
 }
+
+MapQuestionList();
 
 function UpdateSelectedQuestionList() {
     for (var i = 0; i < memo.bookList.length; i++) {
@@ -187,8 +187,8 @@ function PageInit() {
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            memo.questionList = r;
-            localStorage.setItem("question-list", JSON.stringify(memo.questionList));
+            memo.fullQuestionList = r;
+            localStorage.setItem("question-list", JSON.stringify(memo.fullQuestionList));
             MapQuestionList();
             $.ajax({
                 url: "/api/book",
@@ -854,40 +854,4 @@ function SelectBook(bookId) {
     localStorage.setItem("memo-book-id", memo.bookId);
     UpdateSelectedQuestionList();
     UpdateBookDisplay();
-}
-
-function CreateBook() {
-    bookName = $("#create-book-name").val();
-
-    if (bookName == "") {
-        NotyNotification('Please enter the book name!', type = 'warning');
-        return;
-    }
-
-    $.ajax({
-        url: '/api/book/create',
-        method: 'POST',
-        async: true,
-        dataType: "json",
-        data: {
-            name: bookName,
-            userId: localStorage.getItem("userId"),
-            token: localStorage.getItem("token")
-        },
-        success: function (r) {
-            if (r.success == true) {
-                UpdateBookList();
-                NotyNotification('Success! Book created!');
-            } else {
-                NotyNotification(r.msg, type = 'error');
-            }
-        },
-        error: function (r, textStatus, errorThrown) {
-            if (r.status == 401) {
-                SessionExpired();
-            } else {
-                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-            }
-        }
-    });
 }

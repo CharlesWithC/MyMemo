@@ -71,10 +71,51 @@ $.ajax({
         }
     },
     error: function (r, textStatus, errorThrown) {
-        $(".user").hide();
-        $(".login").show();
-        $(".title").hide();
-        $("#signout-btn").hide();
+        if (r.status == 401) {
+            $(".user").hide();
+            $(".login").show();
+            $(".title").hide();
+            $("#signout-btn").hide();
+        }
+    }
+});
+
+$.ajax({
+    url: "/api/user/sessions",
+    method: 'POST',
+    async: true,
+    dataType: "json",
+    data: {
+        userId: localStorage.getItem("userId"),
+        token: localStorage.getItem("token")
+    },
+    success: function (r) {
+        sessions = r;
+        for (var i = 0; i < sessions.length; i++) {
+            system = "desktop";
+            if (sessions[i].userAgent.indexOf("Win") != -1) system = "windows";
+            if (sessions[i].userAgent.indexOf("Mac") != -1) system = "apple";
+            if (sessions[i].userAgent.indexOf("Linux") != -1) system = "linux";
+            if (sessions[i].userAgent.indexOf("Android") != -1) system = "android";
+            sysver = sessions[i].userAgent.substr(sessions[i].userAgent.indexOf("(") + 1, sessions[i].userAgent.indexOf(")") - sessions[i].userAgent.indexOf("(") -1);
+            loginTime = new Date(sessions[i].loginTime * 1000).toString();
+            expireTime = new Date(sessions[i].expireTime * 1000).toString();
+            $("#sessions").append("<div class='session'>\
+                <p class='session-title'><i class='fa fa-" + system + "'></i>&nbsp;&nbsp;" + sysver + "\
+                <p class='session-content'>IP: " + sessions[i].ip + "</p>\
+                <p class='session-content'>User Agent: " + sessions[i].userAgent + "</p></p>\
+                <p class='session-content'>Login time: " + loginTime + "</p>\
+                <p class='session-content'>Expire time: " + expireTime + "</p>\
+                </div><br>")
+        }
+    },
+    error: function (r, textStatus, errorThrown) {
+        if (r.status == 401) {
+            $(".user").hide();
+            $(".login").show();
+            $(".title").hide();
+            $("#signout-btn").hide();
+        }
     }
 });
 

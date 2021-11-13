@@ -6,7 +6,7 @@
 
 *All the commits since [c610d51](https://github.com/Charles-1414/MyMemo/commit/c610d51cc357b7f0841de62ff77157f93ed986fa) should be signed with my GPG key and marked as verified. Otherwise it might be committed by an unknown person. Commit [99efec8](https://github.com/Charles-1414/MyMemo/commit/99efec8dc9d3e4976c61f17764869a84df50722e) is unverified because the email was configured incorrectly.*
 
-Current version: v5.3.1  
+Current version: v5.3.2  
 
 ## About v5  
 
@@ -20,6 +20,8 @@ Admins are able to delete / update post to prevent abuse.
 
 MySQL, a popular database for websites, is finally implemented!  
 You can decide whether to use MySQL or continue to use sqlite by changing the config.  
+
+Please note that the first user registered (besides default user) will be given admin permission automatically, and when it's registered, the default user will be disabled.  
 
 ## About My Memo
 

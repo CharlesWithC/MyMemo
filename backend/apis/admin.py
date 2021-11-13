@@ -15,17 +15,23 @@ import sessions
 import MySQLdb
 import sqlite3
 conn = None
-if config.database == "mysql":
-    conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
-        passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
-elif config.database == "sqlite":
-    conn = sqlite3.connect("database.db", check_same_thread = False)
+
+def updateconn():
+    global conn
+    if config.database == "mysql":
+        conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
+            passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
+    elif config.database == "sqlite":
+        conn = sqlite3.connect("database.db", check_same_thread = False)
+    
+updateconn()
 
 ##########
 # Admin API
 
 @app.route("/api/admin/restart", methods = ['POST'])
 def apiAdminRestart():
+    updateconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -67,6 +73,7 @@ def adminRestart():
 
 @app.route("/api/admin/userList", methods = ['POST'])
 def apiAdminUserList():
+    updateconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -87,6 +94,8 @@ def apiAdminUserList():
     d = cur.fetchall()
     users = []
     for dd in d:
+        dd[1] = decode(dd[1])
+
         status = "Active"
         if dd[0] < 0:
             status = "Banned"
@@ -102,7 +111,7 @@ def apiAdminUserList():
         cur.execute(f"SELECT username FROM UserInfo WHERE userId = {dd[3]}")
         t = cur.fetchall()
         if len(t) != 0:
-            inviterUsername = t[0][0]
+            inviterUsername = decode(t[0][0])
 
         regts = 0
         cur.execute(f"SELECT timestamp FROM UserEvent WHERE userId = {dd[0]} AND event = 'register'")
@@ -117,6 +126,7 @@ def apiAdminUserList():
 
 @app.route("/api/admin/command", methods = ['POST'])
 def apiAdminCommand():
+    updateconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -150,12 +160,14 @@ def apiAdminCommand():
             banned = True
         
         d = d[0]
+        d = list(d)
+        d[0] = decode(d[0])
 
         inviter = "Unknown"
         cur.execute(f"SELECT username FROM UserInfo WHERE userId = {d[3]}")
         t = cur.fetchall()
         if len(t) > 0:
-            inviter = t[0][0]
+            inviter = decode(t[0][0])
 
         cnt = 0
         cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {uid}")
@@ -188,8 +200,9 @@ def apiAdminCommand():
         password = command[3]
         inviter = userId # inviter is admin
         
-        if not username.replace("_","").isalnum():
-            return json.dumps({"success": False, "msg": "Username can only contain alphabets, digits and underscore!"})
+        if " " in username:
+            return json.dumps({"success": False, "msg": "Username cannot contain spaces!"})
+        username = encode(username)
         if validators.email(email) != True:
             return json.dumps({"success": False, "msg": "Invalid email!"})
 
@@ -231,7 +244,7 @@ def apiAdminCommand():
             return json.dumps({"success": False, "msg": "Account not marked for deletion!"})
         
         elif ok == 0:
-            cur.execute(f"UPDATE UserInfo SET username = '@deleted' WHERE userId = {uid}")
+            cur.execute(f"UPDATE UserInfo SET username = '{encode('@deleted')}' WHERE userId = {uid}")
             cur.execute(f"UPDATE UserInfo SET email = '' WHERE userId = {uid}")
             cur.execute(f"UPDATE UserInfo SET password = '' WHERE userId = {uid}")
             conn.commit()
@@ -248,7 +261,7 @@ def apiAdminCommand():
         cur.execute(f"SELECT username FROM UserInfo WHERE uid = {uid}")
         t = cur.fetchall()
         if len(t) != 0:
-            username = t[0][0]
+            username = decode(t[0][0])
         
         if username != "@deleted":
             return json.dumps({"success": False, "msg": "Account not deleted yet!"})
@@ -368,7 +381,7 @@ def apiAdminCommand():
         if len(d) != 0:
             cnt = d[0][0]
         
-        cur.execute(f"SELECT COUNT(*) FROM UserInfo WHERE username = '@deleted' AND userId > 0")
+        cur.execute(f"SELECT COUNT(*) FROM UserInfo WHERE username = '{encode('@deleted')}' AND userId > 0")
         deled = 0
         d = cur.fetchall()
         if len(d) != 0:

@@ -21,14 +21,14 @@ functions.updateconn()
 sessions.updateconn()
 
 def PendingAccountDeletion():
-    conn = None
-    if config.database == "mysql":
-        conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
-            passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
-    else:
-        conn = sqlite3.connect("database.db", check_same_thread = False)
-    cur = conn.cursor()
     while 1:
+        conn = None
+        if config.database == "mysql":
+            conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
+                passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
+        else:
+            conn = sqlite3.connect("database.db", check_same_thread = False)
+        cur = conn.cursor()
         cur.execute(f"SELECT userId FROM PendingAccountDeletion WHERE deletionTime <= {int(time.time())}")
         d = cur.fetchall()
         for dd in d:
@@ -36,7 +36,7 @@ def PendingAccountDeletion():
 
             sessions.deleteData(userId)
 
-            cur.execute(f"UPDATE UserInfo SET username = '@deleted' WHERE userId = {uid}")
+            cur.execute(f"UPDATE UserInfo SET username = '{encode('@deleted')}' WHERE userId = {uid}")
             cur.execute(f"UPDATE UserInfo SET email = '' WHERE userId = {uid}")
             cur.execute(f"UPDATE UserInfo SET password = '' WHERE userId = {uid}")
 

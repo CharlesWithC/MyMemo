@@ -7,6 +7,7 @@ var bookId = -1;
 var bookName = "";
 var selected = [];
 var member = [];
+var isOwner = false;
 
 function UpdateGroupMember() {
     $("#refresh-btn").html('<i class="fa fa-refresh fa-spin"></i>');
@@ -14,6 +15,7 @@ function UpdateGroupMember() {
     table = $("#memberList").DataTable();
     table.clear();
     table.row.add([
+        [""],
         ["Loading... <i class='fa fa-spinner fa-spin'></i>"],
         [""],
     ]);
@@ -37,22 +39,40 @@ function UpdateGroupMember() {
             bookName = r.name;
             member = r.member;
 
-            if (r.isOwner) {
-                $(".manage").show();
-                $(".member").attr("style", "position:relative;width:55%;float:left;");
+            isOwner = r.isOwner;
+
+            if (isOwner) {
+                $('#memberList').DataTable().column(2).visible(true);
             } else {
-                $(".manage").hide();
-                $(".member").attr("style", "width:100%");
+                $('#memberList').DataTable().column(2).visible(false);
             }
+
             $("title").html(bookName + " | My Memo");
             $(".title").html(bookName + '&nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="UpdateGroupMember()" id="refresh-btn"><i class="fa fa-refresh"></i></button>');
 
             $("#groupDescription").html(r.description.replaceAll("\n", "<br>"));
 
             for (var i = 0; i < r.member.length; i++) {
+                btns = '';
+                if (isOwner) {
+                    if (r.member[i].username.endsWith("(Editor)")) {
+                        btns += '&nbsp;&nbsp;<button class="btn btn-primary btn-sm" type="button" onclick="GroupOperation(2, ' + r.member[i].userId + ')"><i class="fa fa-edit"></i> Undo make editor</button>';
+                    } else if (!r.member[i].username.endsWith("(Owner)")) {
+                        btns += '&nbsp;&nbsp;<button class="btn btn-primary btn-sm" type="button" onclick="GroupOperation(2, ' + r.member[i].userId + ')"><i class="fa fa-edit"></i> Make editor</button>';
+                    }
+                    if (!r.member[i].username.endsWith("(Owner)")) {
+                        btns += '&nbsp;&nbsp;<button class="btn btn-warning btn-sm" type="button" onclick="GroupOperation(1, ' + r.member[i].userId + ')"><i class="fa fa-ban"></i> Kick</button>';
+                    }
+                    if (!r.member[i].username.endsWith("(Owner)")) {
+                        btns += '&nbsp;&nbsp;<button class="btn btn-danger btn-sm" type="button" onclick="TransferOwnershipShow(' + r.member[i].userId + ')"><i class="fa fa-random"></i> Transfer ownership</button>';
+                    }
+                }
+                r.member[i].username = r.member[i].username.replaceAll("(Owner)", '<i class="fa fa-key"></i>');
+                r.member[i].username = r.member[i].username.replaceAll("(Editor)", '<i class="fa fa-edit"></i>');
                 table.row.add([
                     [r.member[i].username],
-                    [r.member[i].progress]
+                    [r.member[i].progress],
+                    [btns]
                 ]).node().id = r.member[i].userId;
             }
             table.draw();
@@ -64,6 +84,7 @@ function UpdateGroupMember() {
         },
         error: function (r, textStatus, errorThrown) {
             table.row.add([
+                [""],
                 ["Failed to fetch group member list"],
                 [""],
             ]);
@@ -79,19 +100,27 @@ function UpdateGroupMember() {
     selected = [];
 }
 
-function TransferOwnershipShow() {
+function TransferOwnershipShow(uid) {
+    $("#transfer-ownership-btn").attr("onclick", "GroupOperation(3," + uid + ")");
     $("#transferOwnershipModal").modal("show");
+    setTimeout(function(){selected = [];},100);
 }
 
-function GroupOperation(operation) {
-    if (operation == "makeEditor" || operation == "kick" || operation == "transferOwnership") {
-        if (selected.length == 0) {
+function GroupOperation(operation, uid = -1) {
+    if (uid != -1) {
+        list = [uid];
+    } else {
+        list = selected;
+    }
+    if (operation == 2 || operation == 1 || operation == 3) {
+        if (list.length == 0) {
             return;
         }
-        if (operation == "transferOwnership" && selected.length > 1) {
+        if (operation == 3 && list.length > 1) {
             NotyNotification("Please select only one user!", type = 'warning');
             return;
         }
+        l = ["", "kick", "makeEditor", "transferOwnership"]
         $.ajax({
             url: '/api/group/manage',
             method: 'POST',
@@ -99,8 +128,8 @@ function GroupOperation(operation) {
             dataType: "json",
             data: {
                 groupId: groupId,
-                operation: operation,
-                users: JSON.stringify(selected),
+                operation: l[operation],
+                users: JSON.stringify(list),
                 userId: localStorage.getItem("userId"),
                 token: localStorage.getItem("token")
             },
@@ -108,7 +137,7 @@ function GroupOperation(operation) {
                 if (r.success == true) {
                     UpdateGroupMember();
                     NotyNotification(r.msg);
-                    if (operation == "transferOwnership") {
+                    if (operation == 3) {
                         $("#transferOwnershipModal").modal("hide");
                     }
                 } else {

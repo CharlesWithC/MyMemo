@@ -16,17 +16,23 @@ import sessions
 import MySQLdb
 import sqlite3
 conn = None
-if config.database == "mysql":
-    conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
-        passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
-elif config.database == "sqlite":
-    conn = sqlite3.connect("database.db", check_same_thread = False)
+
+def updateconn():
+    global conn
+    if config.database == "mysql":
+        conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
+            passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
+    elif config.database == "sqlite":
+        conn = sqlite3.connect("database.db", check_same_thread = False)
+    
+updateconn()
 
 ##########
 # Group API
 
 @app.route("/api/group", methods = ['POST'])
 def apiGroup():
+    updateconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -75,6 +81,7 @@ def apiGroup():
         cur.execute(f"INSERT INTO GroupInfo VALUES ({groupId}, {userId}, '{name}', '{description}', {lmt}, '{gcode}', 0)")
         cur.execute(f"INSERT INTO GroupMember VALUES ({groupId}, {userId}, 1)")
         cur.execute(f"INSERT INTO GroupBind VALUES ({groupId}, {userId}, {bookId})")
+        
         cur.execute(f"SELECT questionId FROM BookData WHERE userId = {userId} AND bookId = {bookId}")
         questions = cur.fetchall()
         
@@ -130,6 +137,7 @@ def apiGroup():
 
 @app.route("/api/group/quit", methods = ['POST'])
 def apiQuitGroup():
+    updateconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -163,6 +171,7 @@ def apiQuitGroup():
 
 @app.route("/api/group/code/update", methods = ['POST'])
 def apiGroupCodeUpdate():
+    updateconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -197,6 +206,7 @@ def apiGroupCodeUpdate():
 
 @app.route("/api/group/member", methods = ['POST'])
 def apiGroupMember():
+    updateconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -250,7 +260,7 @@ def apiGroupMember():
         if len(t) == 0:
             continue
         
-        username = t[0][0]
+        username = decode(t[0][0])
 
         if owner == uid:
             username = username + " (Owner)"
@@ -281,6 +291,7 @@ def apiGroupMember():
 
 @app.route("/api/group/manage", methods = ['POST'])
 def apiManageGroup():
+    updateconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -318,7 +329,7 @@ def apiManageGroup():
                 cur.execute(f"SELECT username FROM UserInfo WHERE userId = {uid}")
                 t = cur.fetchall()
                 if len(t) != 0:
-                    editorName = t[0][0]
+                    editorName = decode(t[0][0])
                 if editorName == "@deleted":
                     continue
                 
@@ -353,14 +364,14 @@ def apiManageGroup():
         cur.execute(f"SELECT username FROM UserInfo WHERE userId = {uid}")
         t = cur.fetchall()
         if len(t) != 0:
-            newOwner = t[0][0]
+            newOwner = decode(t[0][0])
         if newOwner == "@deleted":
             return json.dumps({"success": False, "msg": f"You cannot transfer ownership to a deleted user!"})
 
         cur.execute(f"UPDATE GroupInfo SET owner = {uid} WHERE groupId = {groupId}")
         cur.execute(f"UPDATE GroupMember SET isEditor = 1 WHERE groupId = {groupId} and userId = {uid}")
         conn.commit()
-        return json.dumps({"success": True, "msg": f"Success! Ownership transferred to UID {uid}"})
+        return json.dumps({"success": True, "msg": f"Success! Ownership transferred to {newOwner} (UID: {uid})"})
 
     elif op == "updateInfo":
         name = encode(request.form["name"])

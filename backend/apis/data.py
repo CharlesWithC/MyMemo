@@ -19,17 +19,23 @@ import sessions
 import MySQLdb
 import sqlite3
 conn = None
-if config.database == "mysql":
-    conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
-        passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
-elif config.database == "sqlite":
-    conn = sqlite3.connect("database.db", check_same_thread = False)
+
+def updateconn():
+    global conn
+    if config.database == "mysql":
+        conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
+            passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
+    elif config.database == "sqlite":
+        conn = sqlite3.connect("database.db", check_same_thread = False)
+    
+updateconn()
 
 ##########
 # Data API
 
 @app.route("/api/data/import", methods = ['POST'])
 def importData():
+    updateconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -172,6 +178,7 @@ def importData():
 
 @app.route("/api/data/export", methods = ['POST'])
 def exportData():
+    updateconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -191,6 +198,7 @@ def exportData():
 queue = []
 @app.route("/download", methods = ['GET'])
 def download():
+    updateconn()
     cur = conn.cursor()
     token = request.args.get("token")
     if not token.replace("-").isalnum():
@@ -217,6 +225,7 @@ def download():
     
     StatusToStatusText = {-3: "Question bound to group", -2: "Added from website", -1: "File imported", 0: "None", 1: "Default", 2: "Tagged", 3: "Removed"}
 
+    updateconn()
     cur = conn.cursor()
 
     if exportType == "xlsx":
@@ -312,8 +321,9 @@ def download():
         return send_file(buf, as_attachment=True, attachment_filename='MyMemo_Export_AllData.xlsx', mimetype='application/octet-stream')
 
 def ClearOutdatedDLToken():
-    cur = conn.cursor()
     while 1:
+        updateconn()
+        cur = conn.cursor()
         cur.execute(f"DELETE FROM DataDownloadToken WHERE ts <= {int(time.time()) - 1800}")
         conn.commit()
         time.sleep(600)

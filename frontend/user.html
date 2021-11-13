@@ -59,6 +59,11 @@
             $("#content").hover(function () {
                 $("#book-div").fadeOut();
             });
+            $("#create-book-name").on('keypress', function (e) {
+                if (e.which == 13) {
+                    CreateBook();
+                }
+            });
         })
     </script>
 
@@ -102,7 +107,7 @@
             <h2 style="float:left">Books</h2>
             <button type="button" class="btn btn-outline-secondary" style="margin:0.5em" onclick="RefreshBookList()"
                 id="book-list-refresh-btn"><i class="fa fa-refresh"></i></button>
-            <button style="float:right" type="button" class="close" aria-label="Close" onclick="DisplayAnswer()">
+            <button style="float:right" type="button" class="close" aria-label="Close" onclick="$('#book-div').fadeOut()">
                 <span aria-hidden=" true"><i class="fa fa-times"></i></span>
             </button>
 
@@ -130,7 +135,6 @@
                 <p style="font-size:0.8em">ID: <span id="userId"></span></p>
                 <p>Age: <span id="age">0</span> days</p>
                 <p>Email: <span id="email"></span></p>
-                <hr>
                 <p>Invitation Code: <span id="inviteCode"></span></p>
                 <p>Invited By: <span id="inviteBy"></span></p>
                 <hr>
@@ -138,6 +142,11 @@
                 <p><span id="cnt">0</span> questions in list</p>
                 <p><span id="tagged">0</span> tagged and <span id="deleted">0</span> deleted</p>
                 <p><span id="chcnt">0</span> challenges done so far</p>
+                <hr>
+                <div id="sessions">
+                    <h2>Sessions</h2>
+                    <p style="font-size:0.8em">*If you find an unknown session, reset your password immediately. Changing your password will log out of all sessions.</p>
+                </div>
             </div>
             <div class="manage-account" style="width: 35%; float:right">
                 <h3>Manage Account</h3>
@@ -147,13 +156,16 @@
                 <button type="button" class="btn btn-primary" onclick="ChangePasswordShow()">Change Password</button>
                 <hr>
                 <h4>Danger Zone</h4>
-                <button type="button" class="btn btn-outline-danger" onclick="DeleteAccountShow()">Delete Account</button>
+                <button type="button" class="btn btn-outline-danger" onclick="DeleteAccountShow()">Delete
+                    Account</button>
                 <hr>
                 <div class="only-admin" style="display:none">
                     <h4>Admin</h4>
-                    <button type="button" class="btn btn-primary" onclick="window.location.href = '/admin/cli'">Command Line
+                    <button type="button" class="btn btn-primary" onclick="window.location.href = '/admin/cli'">Command
+                        Line
                         Interface</button>
-                    <button type="button" class="btn btn-outline-warning" onclick="RestartServer()">Restart Server</button>
+                    <button type="button" class="btn btn-outline-warning" onclick="RestartServer()">Restart
+                        Server</button>
                 </div>
             </div>
         </div>
@@ -172,8 +184,8 @@
                 <a href="#" onclick="$('.login').hide();$('.register').show();" style="float:right">Sign up</a>
             </div>
             <br>
-            <button id="login-btn" type="button" class="btn btn-primary" style="position:relative;width:10em;margin-top:1em"
-                onclick="Login()">Sign in</button>
+            <button id="login-btn" type="button" class="btn btn-primary"
+                style="position:relative;width:10em;margin-top:1em" onclick="Login()">Sign in</button>
         </div>
 
         <div class="register center" style="top:5%;margin-bottom:10em;display:none">
@@ -198,8 +210,8 @@
                 <a href="#" onclick="$('.login').show();$('.register').hide();" style="float:right">Sign in</a>
             </div>
             <br>
-            <button id="login-btn" type="button" class="btn btn-primary" style="position:relative;width:10em;margin-top:1em"
-                onclick="Register()">Sign up</button>
+            <button id="login-btn" type="button" class="btn btn-primary"
+                style="position:relative;width:10em;margin-top:1em" onclick="Register()">Sign up</button>
         </div>
     </div>
 
@@ -323,7 +335,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.1 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.2 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

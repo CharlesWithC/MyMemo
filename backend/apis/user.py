@@ -15,11 +15,16 @@ import sessions
 import MySQLdb
 import sqlite3
 conn = None
-if config.database == "mysql":
-    conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
-        passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
-elif config.database == "sqlite":
-    conn = sqlite3.connect("database.db", check_same_thread = False)
+
+def updateconn():
+    global conn
+    if config.database == "mysql":
+        conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
+            passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
+    elif config.database == "sqlite":
+        conn = sqlite3.connect("database.db", check_same_thread = False)
+    
+updateconn()
 
 ##########
 # User API
@@ -29,6 +34,7 @@ def apiRegister():
     if not config.allow_register:
         return json.dumps({"success": False, "msg": "Public register not enabled!"})
         
+    updateconn()
     cur = conn.cursor()
 
     userCnt = 0
@@ -47,8 +53,10 @@ def apiRegister():
     if username is None or email is None or password is None or invitationCode is None \
         or username.replace(" ","") == "" or email.replace(" ","") == "" or password.replace(" ","") == "" or invitationCode.replace(" ","") == "":
         return json.dumps({"success": False, "msg": "All the fields must be filled!"})
-    if not username.replace("_","").isalnum():
-        return json.dumps({"success": False, "msg": "Username can only contain alphabets, digits and underscore!"})
+    if " " in username or "(" in username or ")" in username or "[" in username or "]" in username or "{" in username or "}" in username \
+        or "!" in username or "@" in username or "'" in username or '"' in usernameor or "/" in username or "\\" in username :
+        return json.dumps({"success": False, "msg": "Username must not contain: spaces, ( ) [ ] { } ! @ ' \" / \\"})
+    username = encode(username)
     if validators.email(email) != True:
         return json.dumps({"success": False, "msg": "Invalid email!"})
     if not invitationCode.isalnum():
@@ -56,7 +64,7 @@ def apiRegister():
 
     cur.execute(f"SELECT username FROM UserInfo WHERE username = '{username}'")
     if len(cur.fetchall()) != 0:
-        return json.dumps({"success": False, "msg": "Username already registered!"})
+        return json.dumps({"success": False, "msg": "Username occupied!"})
 
     password = hashpwd(password)
     
@@ -71,7 +79,7 @@ def apiRegister():
         cur.execute(f"SELECT username FROM UserInfo WHERE userId = {inviter}")
         t = cur.fetchall()
         if len(t) > 0:
-            inviterUsername = t[0][0]
+            inviterUsername = decode(t[0][0])
         if inviterUsername == "@deleted" or inviter < 0: # inviter < 0 => account banned
             return json.dumps({"success": False, "msg": "Invalid invitation code!"})
 
@@ -90,6 +98,11 @@ def apiRegister():
     except:
         sessions.errcnt += 1
         return json.dumps({"success": False, "msg": "Unknown error occured. Try again later..."})
+    
+    if userId == 1: # block default user and add the user to admin list
+        cur.execute(f"UPDATE UserInfo SET email = 'disabled' WHERE userId = 0")
+        cur.execute(f"UPDATE UserInfo SET inviteCode = '' WHERE userId = 0")
+        cur.execute(f"INSERT INTO AdminList VALUES ({userId})")
 
     cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'register', {int(time.time())})")
     conn.commit()
@@ -98,11 +111,10 @@ def apiRegister():
 
 @app.route("/api/user/login", methods = ['POST'])
 def apiLogin():
+    updateconn()
     cur = conn.cursor()
-    username = request.form["username"]
+    username = encode(request.form["username"])
     password = request.form["password"]
-    if not username.replace("_","").isalnum():
-        return json.dumps({"success": False, "msg": "Username can only contain alphabets, digits and underscore!"})
     
     d = [-1]
     try:
@@ -116,6 +128,15 @@ def apiLogin():
         return json.dumps({"success": False, "msg": "Unknown error occured. Try again later..."})
         
     userId = d[0]
+
+    if userId == 0:
+        cur.execute(f"SELECT email FROM UserInfo WHERE userId = 0")
+        t = cur.fetchall()
+        if len(t) > 0:
+            defaultemail = t[0][0]
+            if defaultemail == "disabled":
+                return json.dumps({"success": False, "msg": "Default user has been disabled!"})
+
 
     if sessions.getPasswordTrialCount(userId)[0] >= 5 and int(time.time()) - sessions.getPasswordTrialCount(userId)[1] <= 300:
         return json.dumps({"success": False, "msg": "Too many attempts! Try again later..."})
@@ -146,7 +167,7 @@ def apiLogin():
     if userId < 0:
         return json.dumps({"success": False, "msg": "Account banned. Contact administrator for more information."})
 
-    token = sessions.login(userId)
+    token = sessions.login(userId, encode(request.headers['User-Agent']), encode(request.headers['CF-Connecting-Ip']))
 
     isAdmin = False
     cur.execute(f"SELECT userId FROM AdminList WHERE userId = {userId}")
@@ -169,8 +190,20 @@ def apiLogout():
 
     return json.dumps({"success": ret})
 
+@app.route("/api/user/logoutalAll", methods = ['POST'])
+def apiLogoutAll():
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
+        return json.dumps({"success": True})
+
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    ret = sessions.logoutAll(userId, token)
+
+    return json.dumps({"success": ret})
+
 @app.route("/api/user/delete", methods = ['POST'])
 def apiDeleteAccount():
+    updateconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -209,6 +242,7 @@ def apiValidateToken():
 
 @app.route("/api/user/info", methods = ['POST'])
 def apiGetUserInfo():
+    updateconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -225,12 +259,14 @@ def apiGetUserInfo():
         d = t[0]
     else:
         return json.dumps({"success": False, "msg": "User not found!"})
+    d = list(d)
+    d[0] = decode(d[0])
 
     inviter = 0
     cur.execute(f"SELECT username FROM UserInfo WHERE userId = {d[3]}")
     t = cur.fetchall()
     if len(t) > 0:
-        inviter = t[0][0]
+        inviter = decode(t[0][0])
 
     cnt = 0
     cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {userId}")
@@ -270,8 +306,32 @@ def apiGetUserInfo():
 
     return json.dumps({"username": d[0], "email": d[1], "invitationCode": d[2], "inviter": inviter, "cnt": cnt, "tagcnt": tagcnt, "delcnt": delcnt, "chcnt": chcnt, "age": age, "isAdmin": isAdmin})
 
+@app.route("/api/user/sessions", methods=['POST'])
+def apiUserSessions():
+    updateconn()
+    cur = conn.cursor()
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
+        abort(401)
+        
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    if not validateToken(userId, token):
+        abort(401)
+    
+    ss = []
+    cur.execute(f"SELECT loginTime, expireTime, ua, ip, token FROM ActiveUserLogin WHERE userId = {userId}")
+    d = cur.fetchall()
+    for dd in d:
+        if dd[1] <= int(time.time()):
+            cur.execute(f"DELETE FROM ActiveUserLogin WHERE token = '{dd[4]}' AND userId = {userId}")
+        else:
+            ss.append({"loginTime": dd[0], "expireTime": dd[1], "userAgent": decode(dd[2]), "ip": decode(dd[3])})
+    
+    return json.dumps(ss)
+
 @app.route("/api/user/updateInfo", methods=['POST'])
 def apiUpdateInfo():
+    updateconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -287,8 +347,10 @@ def apiUpdateInfo():
     if username is None or email is None\
         or username.replace(" ","") == "" or email.replace(" ","") == "":
         return json.dumps({"success": False, "msg": "All the fields must be filled!"})
-    if not username.replace("_","").isalnum():
-        return json.dumps({"success": False, "msg": "Username can only contain alphabets, digits and underscore!"})
+    if " " in username or "(" in username or ")" in username or "[" in username or "]" in username or "{" in username or "}" in username \
+        or "!" in username or "@" in username or "'" in username or '"' in usernameor or "/" in username or "\\" in username :
+        return json.dumps({"success": False, "msg": "Username must not contain: spaces, ( ) [ ] { } ! @ ' \" / \\"})
+    username = encode(username)
     if validators.email(email) != True:
         return json.dumps({"success": False, "msg": "Invalid email!"})
     
@@ -304,6 +366,7 @@ def apiUpdateInfo():
 
 @app.route("/api/user/changepassword", methods=['POST'])
 def apiChangePassword():
+    updateconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)

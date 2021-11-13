@@ -173,3 +173,59 @@ function RefreshBookList() {
         }
     });
 }
+
+function CreateBook() {
+    bookName = $("#create-book-name").val();
+
+    if (bookName == "") {
+        NotyNotification('Please enter the book name!', type = 'warning');
+        return;
+    }
+
+    $.ajax({
+        url: '/api/book/create',
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            name: bookName,
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            if (r.success == true) {
+                UpdateBookList();
+                NotyNotification('Success! Book created!');
+            } else {
+                NotyNotification(r.msg, type = 'error');
+            }
+        },
+        error: function (r, textStatus, errorThrown) {
+            if (r.status == 401) {
+                SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
+            }
+        }
+    });
+}
+
+function LoadShow(){
+    $(".footer").before("<div id='general-loader' class='loader' style='display:none'><i class='fa fa-spinner fa-spin'></i></div>");
+    $("#general-loader").fadeIn();
+}
+
+function LoadHide(){
+    $("#general-loader").fadeOut();
+    setTimeout(function(){$("#general-loader").remove()},500);
+}
+
+function LoadDetect(){
+    if($.active > 0){
+        LoadShow();
+    } else {
+        LoadHide();
+    }
+}
+
+setInterval(LoadDetect,10);
