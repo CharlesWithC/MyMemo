@@ -244,12 +244,16 @@ a:hover {
 }
 
 .session {
-    width: 100%;
+    margin: 0.5em;
+    width: 90%;
     border: 0.05em solid #aaaaaa;
+    border-radius: 0.5em;
+    box-shadow: none;
 }
 
 .session:hover {
     border: 0.05em solid skyblue;
+    box-shadow: 0 0 0.5em skyblue;
 }
 
 .session-title {

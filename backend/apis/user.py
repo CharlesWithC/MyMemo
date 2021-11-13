@@ -399,3 +399,54 @@ def apiChangePassword():
     conn.commit()
 
     return json.dumps({"success": True})
+
+@app.route("/api/user/settings", methods = ['POST'])
+def apiUserSettings():
+    updateconn()
+    cur = conn.cursor()
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
+        abort(401)
+        
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    if not validateToken(userId, token):
+        abort(401)
+    
+    op = request.form["operation"]
+
+    if op == "upload":    
+        rnd = int(request.form["random"])
+        swp = int(request.form["swap"])
+        showStatus = int(request.form["showStatus"])
+        mode = int(request.form["mode"])
+        ap = int(request.form["autoPlay"])
+        theme = request.form["theme"]
+        if not theme in ["light","dark"]:
+            return json.dumps({"success": False, "msg": "Theme can only be light or dark"})
+
+        cur.execute(f"DELETE FROM UserSettings WHERE userId = {userId}")
+        cur.execute(f"INSERT INTO UserSettings VALUES ({userId}, {rnd}, {swp}, {showStatus}, {mode}, {ap}, '{theme}')")
+        conn.commit()
+
+        return json.dumps({"success": True, "msg": "Settings synced!"})
+    
+    elif op == "download":
+        rnd = 0
+        swp = 0
+        showStatus = 1
+        mode = 0
+        autoPlay = 0
+        theme = 'light'
+
+        cur.execute(f"SELECT * FROM UserSettings WHERE userId = {userId}")
+        d = cur.fetchall()
+        if len(d) > 0:
+            rnd = d[0][1]
+            swp = d[0][2]
+            showStatus = d[0][3]
+            mode = d[0][4]
+            autoPlay = d[0][5]
+            theme = d[0][6]
+                
+        return json.dumps({"success": True, "msg": "Settings synced!", "random": rnd, "swap": swp, "showStatus": showStatus,\
+            "mode": mode, "autoPlay": autoPlay, "theme": theme})

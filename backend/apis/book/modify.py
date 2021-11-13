@@ -148,7 +148,15 @@ def apiCreateBook():
 
                 questionId += 1
             
-            conn.commit()
+            # update import count
+            cur.execute(f"SELECT count FROM ShareImport WHERE userId = {userId} AND bookId = {sharerBookId}")
+            t = cur.fetchall()
+            if len(t) > 0:
+                cur.execute(f"UPDATE ShareImport SET count = count + 1 WHERE userId = {userId} AND bookId = {sharerBookId}")
+            else:
+                cur.execute(f"INSERT INTO ShareImport VALUES ({userId}, {sharerBookId}, 1)")
+            conn.commit()            
+
             return json.dumps({"success": True})
         
         else:
@@ -385,6 +393,7 @@ def apiDeleteBook():
     cur.execute(f"DELETE FROM Book WHERE userId = {userId} AND bookId = {bookId}")
     cur.execute(f"DELETE FROM BookData WHERE userId = {userId} AND bookId = {bookId}")
     cur.execute(f"DELETE FROM BookProgress WHERE userId = {userId} AND bookId = {bookId}")
+    cur.execute(f"DELETE FROM ShareImport WHERE userId = {userId} AND bookId = {bookId}")
     conn.commit()
 
     return json.dumps({"success": True})

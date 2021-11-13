@@ -1,10 +1,26 @@
 # Update History
 
+## v5.3.3  
+
+*Date: 2021/11/13*  
+Bug Fixes:  
+1.Fixed the bug that some Noty Notifications are not displaying correctly  
+2.Fixed the bug that admins / publishers cannot delete discovery post at /discovery (redirecting too fast)  
+3.Fixed a bug that sessions don't expire when users sign out manually  
+
+Feature Updates:  
+1.Added Ctrl+Enter as shortcut to submit modal with textarea  
+2.Added function to show discovery post with import count / member count  
+3.Added function for admins to pin discovery posts  
+4.Added settings sync, user can decide when to upload / download settings  
+  When user logins using a new device, the settings will be downloaded automatically  
+
 ## v5.3.2  
 
 *Date: 2021/11/13*  
 Bug Fixes:  
 1.Fixed the issue that MySQL connection often disconnects (by updating the connection before query)  
+
 Feature Updates:  
 1.Added function to automatically block logins of default user when a user (uid: 1) is created  
 2.Encoding username in database to allow more characters in username  
@@ -27,6 +43,7 @@ Bug Fixes:
 2.When showing / hiding modal, no longer using toggle and changed to use show / hide directly to prevent abnormal behaviour.  
 3.Made all ajax requests with async enabled.  
 4.Fixed the bug that tables are having dark background while in light mode.  
+
 Feature Updates:  
 1.Allowed users to click row to show Discovery post without pressing the Show operation.  
 Hiding operation column for users and only display delete operation for admins.  

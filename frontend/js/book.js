@@ -208,7 +208,7 @@ function UpdateTable() {
         btns = '';
         btns += '<button type="button" class="btn btn-primary btn-sm only-group-editor-if-group-exist" onclick="EditQuestionShow(' + selectedQuestionList[i].questionId + ')">Edit</button>';
         if (bookId != 0) {
-            btns += '<button type="button" class="btn btn-outline-warning btn-sm only-group-editor-if-group-exist" onclick="RemoveFromBook(' + selectedQuestionList[i].questionId + ')">Remove</button>';
+            btns += '<button type="button" class="btn btn-warning btn-sm only-group-editor-if-group-exist" onclick="RemoveFromBook(' + selectedQuestionList[i].questionId + ')">Remove</button>';
         }
         table.row.add([
             [selectedQuestionList[i].question],
@@ -444,7 +444,7 @@ function ShowQuestionDatabase() {
             [questionList[i].answer],
             [l[questionList[i].status]],
             ['<button type="button" class="btn btn-primary btn-sm only-group-editor-if-group-exist" onclick="EditQuestionShow(' + questionList[i].questionId + ')">Edit</button>\
-            <button type="button" class="btn btn-outline-danger btn-sm only-group-editor-if-group-exist" onclick="RemoveFromBook(' + questionList[i].questionId + ')">Delete</button>']
+            <button type="button" class="btn btn-danger btn-sm only-group-editor-if-group-exist" onclick="RemoveFromBook(' + questionList[i].questionId + ')">Delete</button>']
         ]).node().id = questionList[i].questionId;
     }
     table.draw();
@@ -803,7 +803,7 @@ function BookShare() {
                             break;
                         }
                     }
-                    NotyNotification(r.msg, timeout = 30000);
+                    NotyNotification(r.msg, type = 'success', timeout = 30000);
                     $("#bookShareCode").html("(Private)");
                     $("#shareop").html("Share");
                     $(".only-shared").hide();
@@ -908,7 +908,7 @@ function GroupPublishToDiscovery() {
                 $(".group-published-to-discovery").show();
                 $("#group-go-to-discovery-btn").attr("onclick", "window.location.href='/discovery?discoveryId=" + discoveryId + "'");
 
-                NotyNotification(r.msg, timeout = 30000);
+                NotyNotification(r.msg, type = 'success', timeout = 30000);
 
                 $('#groupPublishToDiscoveryModal').modal('hide');
             } else {

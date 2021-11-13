@@ -177,3 +177,73 @@ function ClearDeletedQuestion() {
         }
     });
 }
+
+function SettingsSync(operation) {
+    if (operation == "upload") {
+        $.ajax({
+            url: '/api/user/settings',
+            method: 'POST',
+            async: true,
+            dataType: "json",
+            data: {
+                operation: "upload",
+                random: localStorage.getItem("settings-random"),
+                swap: localStorage.getItem("settings-swap"),
+                showStatus: localStorage.getItem("settings-show-status"),
+                mode: localStorage.getItem("settings-mode"),
+                autoPlay: localStorage.getItem("settings-auto-play"),
+                theme: localStorage.getItem("settings-theme"),
+                userId: localStorage.getItem("userId"),
+                token: localStorage.getItem("token")
+            },
+            success: function (r) {
+                if (r.success) {
+                    NotyNotification(r.msg);
+                } else {
+                    NotyNotification(r.msg, type = 'error');
+                }
+            },
+            error: function (r, textStatus, errorThrown) {
+                if (r.status == 401) {
+                    SessionExpired();
+                } else {
+                    NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
+                }
+            }
+        });
+    } else if (operation == "download") {
+        $.ajax({
+            url: '/api/user/settings',
+            method: 'POST',
+            async: true,
+            dataType: "json",
+            data: {
+                operation: "download",
+                userId: localStorage.getItem("userId"),
+                token: localStorage.getItem("token")
+            },
+            success: function (r) {
+                if (r.success) {
+                    NotyNotification(r.msg);
+                    localStorage.setItem("settings-random", r.swap);
+                    localStorage.setItem("settings-swap", r.swap);
+                    localStorage.setItem("settings-show-status", r.showStatus);
+                    localStorage.setItem("settings-mode", r.mode);
+                    localStorage.setItem("settings-auto-play", r.autoPlay);
+                    localStorage.setItem("settings-theme", r.theme);
+                    UpdateTheme(r.theme);
+                    UpdateSettingsButtons();
+                } else {
+                    NotyNotification(r.msg, type = 'error');
+                }
+            },
+            error: function (r, textStatus, errorThrown) {
+                if (r.status == 401) {
+                    SessionExpired();
+                } else {
+                    NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
+                }
+            }
+        });
+    }
+}

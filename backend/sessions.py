@@ -43,10 +43,14 @@ def validateToken(userId, token):
 
         if expireTime <= int(time.time()):
             ip = ""
-            cur.execute(f"SELECT ip FROM ActiveUserLogin WHERE userId = {userId} AND token = '{token}'")
+            loginTime = 0
+            expireTime = 0
+            cur.execute(f"SELECT loginTime, expireTime, ip FROM ActiveUserLogin WHERE userId = {userId} AND token = '{token}'")
             t = cur.fetchall()
             if len(t) > 0:
-                ip = t[0][0]
+                loginTime = t[0][0]
+                expireTime = t[0][1]
+                ip = t[0][2]
             cur.execute(f"INSERT INTO UserSessionHistory VALUES ({userId}, {loginTime}, {expireTime}, 1, '{ip}')")
             cur.execute(f"DELETE FROM ActiveUserLogin WHERE userId = {userId} AND token = '{token}'")
             conn.commit()
@@ -78,19 +82,22 @@ def login(userId, ua, ip):
 
 def logout(userId, token):
     try:
-        updateconn()
-        cur = conn.cursor()
         if not validateToken(userId, token):
             return True
+            
+        updateconn()
+        cur = conn.cursor()
         
-        cur.execute(f"SELECT loginTime FROM ActiveUserLogin WHERE userId = {userId} AND token = '{token}'")
-        d = cur.fetchall()
-        loginTime = d[0][0]
         ip = ""
-        cur.execute(f"SELECT ip FROM ActiveUserLogin WHERE userId = {userId} AND token = '{token}'")
+        loginTime = 0
+        expireTime = 0
+        cur.execute(f"SELECT loginTime, expireTime, ip FROM ActiveUserLogin WHERE userId = {userId} AND token = '{token}'")
         t = cur.fetchall()
         if len(t) > 0:
-            ip = t[0][0]
+            loginTime = t[0][0]
+            expireTime = t[0][1]
+            ip = t[0][2]
+
         cur.execute(f"INSERT INTO UserSessionHistory VALUES ({userId}, {loginTime}, {expireTime}, 1, '{ip}')")
         cur.execute(f"DELETE FROM ActiveUserLogin WHERE userId = {userId} AND token = '{token}'")
         conn.commit()
@@ -98,6 +105,8 @@ def logout(userId, token):
         return True
 
     except:
+        import traceback
+        traceback.print_exc()
         global errcnt
         errcnt += 1
 
@@ -105,14 +114,12 @@ def logoutAll(userId):
     try: 
         updateconn()
         cur = conn.cursor()
-        cur.execute(f"SELECT * FROM ActiveUserLogin WHERE userId = {userId}")
+        cur.execute(f"SELECT loginTime, expireTime, ip FROM ActiveUserLogin WHERE userId = {userId}")
         d = cur.fetchall()
         for dd in d:
-            ip = ""
-            cur.execute(f"SELECT ip FROM ActiveUserLogin WHERE userId = {userId} AND token = '{token}'")
-            t = cur.fetchall()
-            if len(t) > 0:
-                ip = t[0][0]
+            loginTime = dd[0]
+            expireTime = dd[1]
+            ip = dd[2]
             cur.execute(f"INSERT INTO UserSessionHistory VALUES ({userId}, {loginTime}, {expireTime}, 1, '{ip}')")
         cur.execute(f"DELETE FROM ActiveUserLogin WHERE userId = {userId}")
         conn.commit()

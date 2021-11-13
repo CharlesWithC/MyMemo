@@ -16,6 +16,7 @@
 
     <link rel="stylesheet" href="/dataTables/jquery.dataTables.min.css">
     <script src="/dataTables/jquery.dataTables.min.js"></script>
+    <script src="/dataTables/absolute.js"></script>
 
     <link href="/noty/noty.css" rel="stylesheet">
     <script src="/noty/noty.min.js" type="text/javascript"></script>
@@ -29,13 +30,16 @@
                 pagingType: "full_numbers",
                 iDisplayLength: 25,
                 aaSorting: [
-                    [5, 'desc'],
-                    [4, 'desc']
+                    [0, 'desc'],
+                    [6, 'desc'],
+                    [5, 'desc']
                 ]
             });
             if (localStorage.getItem("isAdmin") != "1") {
                 $('#discoveryList').DataTable().column(6).visible(false);
             }
+            $("#th-pin").before("<th width='0.2em'></th>")
+            $("#th-pin").remove();
 
             $("#discoveryList_length").after('<div id="qf" class="dataTables_filter input-group mb-3">\
                 <span class="input-group-text" id="basic-addon1">Search</span>\
@@ -45,7 +49,9 @@
             $("#discoveryList_filter").attr("id", "qqf");
             $("#qf").attr("id", "discoveryList_filter");
             $("#qqf").remove();
-            setInterval(function(){$("#discoveryList").css("width","");},100);
+            setInterval(function () {
+                $("#discoveryList").css("width", "");
+            }, 100);
 
             $('#questionList').DataTable({
                 pagingType: "full_numbers"
@@ -59,7 +65,9 @@
             $("#questionList_filter").attr("id", "qqf");
             $("#qf").attr("id", "questionList_filter");
             $("#qqf").remove();
-            setInterval(function(){$("#questionList").css("width","");},100);
+            setInterval(function () {
+                $("#questionList").css("width", "");
+            }, 100);
 
             if (localStorage.getItem("settings-theme") == "dark") {
                 $("body").attr("style", "color:#ffffff;background-color:#333333");
@@ -88,9 +96,14 @@
                 $("textarea").attr("style", "z-index:100;color:#000000;background-color:#ffffff");
             }
 
+            pressedbtn = [];
             $('#discoveryList tbody').on('click', 'tr', function () {
                 discoveryId = parseInt($(this).attr("id"));
-                window.location.href = "/discovery?discoveryId=" + discoveryId;
+                setTimeout(function () {
+                    if (pressedbtn.indexOf(discoveryId) == -1) {
+                        window.location.href = "/discovery?discoveryId=" + discoveryId;
+                    }
+                }, 100);
             });
             $("#book-btn").hover(function () {
                 ShowBook();
@@ -99,8 +112,13 @@
                 $("#book-div").fadeOut();
             });
             $("#create-book-name").on('keypress', function (e) {
-                if (e.which == 13) {
+                if (e.which == 13 || e.which == 13 && e.ctrlKey) {
                     CreateBook();
+                }
+            });
+            $("#discovery-title,#discovery-description").on('keypress', function (e) {
+                if (e.which == 13 && e.ctrlKey) {
+                    UpdateInformation();
                 }
             });
 
@@ -139,7 +157,8 @@
             <h2 style="float:left">Books</h2>
             <button type="button" class="btn btn-outline-secondary" style="margin:0.5em" onclick="RefreshBookList()"
                 id="book-list-refresh-btn"><i class="fa fa-refresh"></i></button>
-            <button style="float:right" type="button" class="close" aria-label="Close" onclick="$('#book-div').fadeOut()">
+            <button style="float:right" type="button" class="close" aria-label="Close"
+                onclick="$('#book-div').fadeOut()">
                 <span aria-hidden=" true"><i class="fa fa-times"></i></span>
             </button>
 
@@ -164,13 +183,15 @@
                 <table class="table" id="discoveryList" style="text-align:center">
                     <thead>
                         <tr>
-                            <th id="title">Title</th>
-                            <th id="description">Description</th>
-                            <th id="type">Type</th>
-                            <th id="publisher">Publisher</th>
-                            <th id="views">Views</th>
-                            <th id="likes">Likes</th>
-                            <th id="operation">Operation</th>
+                            <th id="th-pin"></th>
+                            <th id="th-title">Title</th>
+                            <th id="th-description">Description</th>
+                            <th id="th-type">Type</th>
+                            <th id="th-publisher">Publisher</th>
+                            <th id="th-views">Views</th>
+                            <th id="th-likes">Likes</th>
+                            <th id="th-imports">Imports / Members</th>
+                            <th id="th-operation">Operation</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -197,6 +218,8 @@
                 <div id="basic-info">
                     <p>Description: <span id="detail-description"></span></p>
                     <p>Published by @<span id="detail-publisher"></span></p>
+                    <p style="font-size:0.8em"><span id="detail-views">0</span> Views | <span id="detail-likes">0</span>
+                        Likes | <span id="detail-imports"></span> <span id="detail-imports-name"></span></p>
                     <p>*The publisher reserves all rights of this post.</p>
                 </div>
                 <div class="user-only book-only" style="display:none">
@@ -261,7 +284,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.2 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.3 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

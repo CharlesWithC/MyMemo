@@ -19,7 +19,9 @@ function RefreshDiscovery() {
         [""],
         [""],
         [""],
+        [""],
         ["Loading <i class='fa fa-spinner fa-spin'></i>"],
+        [""],
         [""],
         [""],
         [""]
@@ -47,15 +49,26 @@ function RefreshDiscovery() {
             for (var i = 0; i < discoveryList.length; i++) {
                 btns = '';
                 if (localStorage.getItem("isAdmin") == "1" || discoveryList[i].publisher == localStorage.getItem("username")) {
-                    btns += '&nbsp;&nbsp;<button id="admin-delete-' + discoveryList[i].discoveryId + '" class="btn btn-outline-danger btn-sm" type="button" onclick="AdminUnpublishDiscoveryConfirm(' + discoveryList[i].discoveryId + ')">Delete</button>';
+                    if (!discoveryList[i].pinned) {
+                        btns += '&nbsp;&nbsp;<button id="admin-pin-' + discoveryList[i].discoveryId + '" class="btn btn-primary btn-sm" type="button" onclick="AdminPin(' + discoveryList[i].discoveryId + ',1)"><i class="fa fa-thumb-tack"></i> Pin</button>';
+                    } else {
+                        btns += '&nbsp;&nbsp;<button id="admin-pin-' + discoveryList[i].discoveryId + '" class="btn btn-primary btn-sm" type="button" onclick="AdminPin(' + discoveryList[i].discoveryId + ',0)"><i class="fa fa-thumb-tack fa-rotate-180"></i> Unpin</button>';
+                    }
+                    btns += '&nbsp;&nbsp;<button id="admin-delete-' + discoveryList[i].discoveryId + '" class="btn btn-danger btn-sm" type="button" onclick="AdminUnpublishDiscoveryConfirm(' + discoveryList[i].discoveryId + ')"><i class="fa fa-trash"></i> Delete</button>';
+                }
+                pin = '';
+                if(discoveryList[i].pinned){
+                    pin = '<i class="fa fa-thumb-tack"></i> ';
                 }
                 table.row.add([
+                    [pin],
                     [discoveryList[i].title],
                     [discoveryList[i].description],
                     [l[discoveryList[i].type]],
                     [discoveryList[i].publisher],
                     [discoveryList[i].views],
                     [discoveryList[i].likes],
+                    [discoveryList[i].imports],
                     //[discoveryList[i].views + " <i class='fa fa-eye'></i>&nbsp;&nbsp;" + discoveryList[i].likes + "<i class='fa fa-heart' style='color:red'></i>"],
                     [btns]
                 ]).node().id = discoveryList[i].discoveryId;
@@ -74,7 +87,43 @@ function RefreshDiscovery() {
     });
 }
 
+function AdminPin(disid, op){
+    pressedbtn.push(disid);
+    setTimeout(function(){pressedbtn.splice(pressedbtn.indexOf(disid),1);},500);
+    l = ["unpin","pin"];
+    $.ajax({
+        url: '/api/discovery/pin',
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            discoveryId: disid,
+            operation: l[op],
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            if (r.success == true) {
+                RefreshDiscovery();
+
+                NotyNotification(r.msg);
+            } else {
+                NotyNotification(r.msg, type = 'error');
+            }
+        },
+        error: function (r, textStatus, errorThrown) {
+            if (r.status == 401) {
+                SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
+            }
+        }
+    });
+}
+
 function AdminUnpublishDiscoveryConfirm(disid) {
+    pressedbtn.push(disid);
+    setTimeout(function(){pressedbtn.splice(pressedbtn.indexOf(disid),1);},500);
     $("#admin-delete-" + disid).html("Confirm?");
     $("#admin-delete-" + disid).attr("onclick", "AdminUnpublishDiscovery(" + disid + ");");
 }
@@ -150,6 +199,14 @@ function UpdateDiscoveryQuestionList() {
             }
             $("#detail-publisher").html(r.publisher);
             $("#detail-description").html(r.description);
+            $("#detail-views").html(r.views);
+            $("#detail-likes").html(r.likes);
+            $("#detail-imports").html(r.imports);
+            if (r.type == 1) {
+                $("#detail-imports-name").html("Imports");
+            } else if (r.type == 2) {
+                $("#detail-imports-name").html("Members");
+            }
 
             shareCode = r.shareCode;
             $("#shareCode").html(shareCode);

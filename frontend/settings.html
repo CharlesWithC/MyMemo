@@ -37,7 +37,7 @@
                 $("#book-div").fadeOut();
             });
             $("#create-book-name").on('keypress', function (e) {
-                if (e.which == 13) {
+                if (e.which == 13 || e.which == 13 && e.ctrlKey) {
                     CreateBook();
                 }
             });
@@ -139,7 +139,7 @@
         <hr>
         <h2>Question Management</h2>
         <br>
-        <button id="home-btn" type="button" class="btn btn-outline-danger control-btn control-btn-top"
+        <button id="home-btn" type="button" class="btn btn-danger control-btn control-btn-top"
             style="width:15em" onclick="$('#clearDeletedModal').modal('hide')"><i class="fa fa-trash"></i> Clear Deleted
             Questions</button>
         <br>
@@ -153,6 +153,13 @@
             onclick="UpdateTheme('light')">Light</button>
         <button id="theme-dark-btn" type="button" class="btn theme-btn btn-secondary" style="margin:0"
             onclick="UpdateTheme('dark')">Dark</button>
+        <hr>
+        <h2>Settings Sync</h2>
+        <button id="sync-upload-btn" type="button" class="btn btn-primary" style="margin:0"
+            onclick="SettingsSync('upload')"><i class="fa fa-server"></i> Sync to server</button>
+        <button id="sync-download-btn" type="button" class="btn btn-primary" style="margin:0"
+            onclick="SettingsSync('download')"><i class="fa fa-cloud-download"></i> Sync to local</button>
+        <hr>
     </div>
 
     <div class="modal fade" id="clearDeletedModal" tabindex="-1" role="dialog" aria-labelledby="clearDeletedModalLabel"
@@ -175,7 +182,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal"
                         onclick="$('#clearDeletedModal').modal('hide')">Cancel</button>
-                    <button type="button" class="btn btn-outline-danger" data-dismiss="modal"
+                    <button type="button" class="btn btn-danger" data-dismiss="modal"
                         onclick="ClearDeletedQuestion()">Remove</button>
                 </div>
             </div>
@@ -184,7 +191,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.2 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.3 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

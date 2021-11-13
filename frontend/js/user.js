@@ -97,7 +97,7 @@ $.ajax({
             if (sessions[i].userAgent.indexOf("Mac") != -1) system = "apple";
             if (sessions[i].userAgent.indexOf("Linux") != -1) system = "linux";
             if (sessions[i].userAgent.indexOf("Android") != -1) system = "android";
-            sysver = sessions[i].userAgent.substr(sessions[i].userAgent.indexOf("(") + 1, sessions[i].userAgent.indexOf(")") - sessions[i].userAgent.indexOf("(") -1);
+            sysver = sessions[i].userAgent.substr(sessions[i].userAgent.indexOf("(") + 1, sessions[i].userAgent.indexOf(")") - sessions[i].userAgent.indexOf("(") - 1);
             loginTime = new Date(sessions[i].loginTime * 1000).toString();
             expireTime = new Date(sessions[i].expireTime * 1000).toString();
             $("#sessions").append("<div class='session'>\
@@ -173,12 +173,42 @@ function Login() {
                             localStorage.removeItem("isAdmin");
                         }
                         $("title").html(user.username + " | My Memo");
+
+                        if (localStorage.getItem("first-use") != "0") {
+                            $.ajax({
+                                url: '/api/user/settings',
+                                method: 'POST',
+                                async: false,
+                                dataType: "json",
+                                data: {
+                                    operation: "download",
+                                    userId: localStorage.getItem("userId"),
+                                    token: localStorage.getItem("token")
+                                },
+                                success: function (r) {
+                                    if (r.success) {
+                                        localStorage.setItem("settings-random", r.swap);
+                                        localStorage.setItem("settings-swap", r.swap);
+                                        localStorage.setItem("settings-show-status", r.showStatus);
+                                        localStorage.setItem("settings-mode", r.mode);
+                                        localStorage.setItem("settings-auto-play", r.autoPlay);
+                                        localStorage.setItem("settings-theme", r.theme);
+                                    }
+                                },
+                                error: function (r, textStatus, errorThrown) {
+                                    if (r.status == 401) {
+                                        SessionExpired();
+                                    }
+                                }
+                            });
+                        }
+
+                        $("#input-username").val("");
+                        $("#input-password").val("");
+
+                        window.location.reload();
                     }
                 });
-                $("#input-username").val("");
-                $("#input-password").val("");
-
-                window.location.reload();
             } else {
                 NotyNotification(r.msg, type = 'error');
             }
@@ -384,7 +414,7 @@ function RestartServer() {
             if (r.success == false) {
                 NotyNotification(r.msg, type = 'error');
             } else {
-                NotyNotification('Server is being restarted!', timeout = 3000);
+                NotyNotification('Server is being restarted!', type = 'success', timeout = 3000);
             }
         },
         error: function (r, textStatus, errorThrown) {

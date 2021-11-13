@@ -54,7 +54,7 @@ elif config["database"] == "mysql":
     conn = MySQLdb.connect(host = host, user = user, passwd = passwd, db = dbname)
     cur = conn.cursor()
     cur.execute(f"SHOW TABLES")
-    if len(cur.fetchall()) != 28:
+    if len(cur.fetchall()) != 31:
         doinit = True
     
     app.config['MYSQL_HOST'] = host
@@ -88,6 +88,7 @@ if doinit:
     cur.execute(f"CREATE TABLE UserInfo (userId INT, username VARCHAR(512), email VARCHAR(128), password VARCHAR(256), inviter INT, inviteCode CHAR(8))")
     # encode username
     # Allow only inviting registration mode to prevent abuse
+    cur.execute(f"CREATE TABLE UserSettings (userId INT, sRandom INT, sSwap INT, sShowStatus INT, sMode INT, sAutoPlay INT, sTheme VARCHAR(16))")
     cur.execute(f"CREATE TABLE UserEvent (userId INT, event VARCHAR(32), timestamp INT)")
     # Available event: register, login, change_password, delete_account
 
@@ -128,6 +129,7 @@ if doinit:
     # When a new question is added, it belongs to no book
     # A question can belong to many books
     cur.execute(f"CREATE TABLE BookShare (userId INT, bookId INT, shareCode VARCHAR(8))")
+    cur.execute(f"CREATE TABLE ShareImport (userId INT, bookId INT, count INT)")
     cur.execute(f"CREATE TABLE BookProgress (userId INT, bookId INT, progress INT)")
 
     cur.execute(f"CREATE TABLE GroupInfo (groupId INT, owner INT, name VARCHAR(256), description VARCHAR(1024), memberLimit INT, groupCode VARCHAR(8), anonymous INT)")
@@ -178,6 +180,7 @@ if doinit:
     # type: 1: share | 2: group
     cur.execute(f"CREATE TABLE DiscoveryClick (discoveryId INT, count INT)")
     cur.execute(f"CREATE TABLE DiscoveryLike (discoveryId INT, userId INT, likes INT)")
+    cur.execute(f"CREATE TABLE DiscoveryPin (discoveryId INT)")
     # User Id is the user who engaged in this discovery item
     # It could be empty is discovery is public to everyone
 

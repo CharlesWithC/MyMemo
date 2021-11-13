@@ -24,22 +24,22 @@
         $(document).ready(function () {
             function onkeypress() {
                 $("#input-password").on('keypress', function (e) {
-                    if (e.which == 13) {
+                    if (e.which == 13 || e.which == 13 && e.ctrlKey) {
                         Login();
                     }
                 });
                 $("#update-username,#update-email").on('keypress', function (e) {
-                    if (e.which == 13) {
+                    if (e.which == 13 || e.which == 13 && e.ctrlKey) {
                         UpdateUserProfile();
                     }
                 });
                 $("#oldpwd,#newpwd,#cfmpwd").on('keypress', function (e) {
-                    if (e.which == 13) {
+                    if (e.which == 13 || e.which == 13 && e.ctrlKey) {
                         ChangePassword();
                     }
                 });
                 $("#acknowledge-confirm,#delete-password").on('keypress', function (e) {
-                    if (e.which == 13) {
+                    if (e.which == 13 || e.which == 13 && e.ctrlKey) {
                         DeleteAccount();
                     }
                 });
@@ -60,7 +60,7 @@
                 $("#book-div").fadeOut();
             });
             $("#create-book-name").on('keypress', function (e) {
-                if (e.which == 13) {
+                if (e.which == 13 || e.which == 13 && e.ctrlKey) {
                     CreateBook();
                 }
             });
@@ -156,7 +156,7 @@
                 <button type="button" class="btn btn-primary" onclick="ChangePasswordShow()">Change Password</button>
                 <hr>
                 <h4>Danger Zone</h4>
-                <button type="button" class="btn btn-outline-danger" onclick="DeleteAccountShow()">Delete
+                <button type="button" class="btn btn-danger" onclick="DeleteAccountShow()">Delete
                     Account</button>
                 <hr>
                 <div class="only-admin" style="display:none">
@@ -164,7 +164,7 @@
                     <button type="button" class="btn btn-primary" onclick="window.location.href = '/admin/cli'">Command
                         Line
                         Interface</button>
-                    <button type="button" class="btn btn-outline-warning" onclick="RestartServer()">Restart
+                    <button type="button" class="btn btn-warning" onclick="RestartServer()">Restart
                         Server</button>
                 </div>
             </div>
@@ -335,7 +335,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.2 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.3 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

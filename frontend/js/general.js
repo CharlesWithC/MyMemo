@@ -2,7 +2,7 @@
 // Author: @Charles-1414
 // License: GNU General Public License v3.0
 
-function NotyNotification(text, type = 'success', layout = 'bottomRight', timeout = 3000) {
+function NotyNotification(text, type = 'success', timeout = 3000, layout = 'bottomRight') {
     new Noty({
         theme: 'mint',
         text: text,

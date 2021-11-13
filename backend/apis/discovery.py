@@ -33,7 +33,7 @@ updateconn()
 def apiDiscovery():
     updateconn()
     cur = conn.cursor()
-    cur.execute(f"SELECT discoveryId, title, description, publisherId, type FROM Discovery")
+    cur.execute(f"SELECT discoveryId, title, description, publisherId, type, bookId FROM Discovery")
     d = cur.fetchall()
     dis = []
     for dd in d:
@@ -59,7 +59,27 @@ def apiDiscovery():
         if len(t) > 0:
             likes = t[0][0]
 
-        dis.append({"discoveryId": dd[0], "title": decode(dd[1]), "description": decode(dd[2]), "publisher": publisher, "type": dd[4], "views": views, "likes": likes})
+        # get imports / members
+        imports = 0
+        if dd[4] == 1:
+            print(dd[5])
+            cur.execute(f"SELECT count FROM ShareImport WHERE userId = {dd[3]} AND bookId = {dd[5]}")
+            t = cur.fetchall()
+            if len(t) > 0:
+                imports = t[0][0]
+        elif dd[4] == 2:
+            cur.execute(f"SELECT COUNT(*) FROM GroupMember WHERE groupId = {dd[5]}")
+            t = cur.fetchall()
+            if len(t) > 0:
+                imports = t[0][0]
+        # check pin
+        pinned = False
+        cur.execute(f"SELECT discoveryId FROM DiscoveryPin WHERE discoveryId = {dd[0]}")
+        if len(cur.fetchall()) > 0:
+            pinned = True
+
+        dis.append({"discoveryId": dd[0], "title": decode(dd[1]), "description": decode(dd[2]), \
+            "publisher": publisher, "type": dd[4], "views": views, "likes": likes, "imports": imports, "pinned": pinned})
     
     return json.dumps(dis)
 
@@ -199,7 +219,28 @@ def apiDiscoveryData(discoveryId):
     if len(t) > 0:
         liked = True
     
-    return json.dumps({"title": title, "description": description, "questions": questions, "publisher": publisher, "shareCode": shareCode, "type": distype, "isPublisher": isPublisher, "views": views, "likes": likes, "liked": liked})
+    # get imports / members
+    imports = 0
+    if distype == 1:
+        cur.execute(f"SELECT count FROM ShareImport WHERE userId = {uid} AND bookId = {bookId}")
+        t = cur.fetchall()
+        if len(t) > 0:
+            imports = t[0][0]
+    elif distype == 2:
+        cur.execute(f"SELECT COUNT(*) FROM GroupMember WHERE groupId = {bookId}")
+        t = cur.fetchall()
+        if len(t) > 0:
+            imports = t[0][0]
+    
+    # check pin
+    pinned = False
+    cur.execute(f"SELECT discoveryId FROM DiscoveryPin WHERE discoveryId = {discoveryId}")
+    if len(cur.fetchall()) > 0:
+        pinned = True
+
+    return json.dumps({"title": title, "description": description, "questions": questions, \
+        "shareCode": shareCode, "type": distype, "publisher": publisher, "isPublisher": isPublisher, \
+            "views": views, "likes": likes, "liked": liked, "imports": imports, "pinned": pinned})
 
 @app.route("/api/discovery/publish", methods = ['POST'])
 def apiDiscoveryPublish():
@@ -299,7 +340,6 @@ def apiDiscoveryUnpublish():
         if publisherId != userId:
             return json.dumps({"success": False, "msg": "You are not the publisher of this post!"})
 
-
     cur.execute(f"DELETE FROM Discovery WHERE discoveryId = {discoveryId}")
     conn.commit()
 
@@ -341,6 +381,44 @@ def apiDiscoveryUpdate():
     
     return json.dumps({"success": True, "msg": "Success! Discovery post updated!"})
 
+@app.route("/api/discovery/pin", methods = ['POST'])
+def apiDiscoveryPin():
+    updateconn()
+    cur = conn.cursor()
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
+        abort(401)
+
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    if not validateToken(userId, token):
+        abort(401)
+
+    # only admin can pin
+    cur.execute(f"SELECT userId FROM AdminList WHERE userId = {userId}")
+    if len(cur.fetchall()) == 0:
+        return json.dumps({"success": False, "msg": "Only admins are allowed to pin / unpin discovery posts!"})
+    
+    op = request.form["operation"]
+    discoveryId = int(request.form["discoveryId"])
+
+    if op == "pin":
+        cur.execute(f"SELECT discoveryId FROM DiscoveryPin WHERE discoveryId = {discoveryId}")
+        if len(cur.fetchall()) == 0:
+            cur.execute(f"INSERT INTO DiscoveryPin VALUES ({discoveryId})")
+            conn.commit()
+            return json.dumps({"success": True, "msg": "Pinned!"})
+        else:
+            return json.dumps({"success": False, "msg": "Post already pinned!"})
+
+    elif op == "unpin":
+        cur.execute(f"SELECT discoveryId FROM DiscoveryPin WHERE discoveryId = {discoveryId}")
+        if len(cur.fetchall()) == 0:
+            return json.dumps({"success": False, "msg": "Post not pinned!"})
+        else:
+            cur.execute(f"DELETE FROM DiscoveryPin WHERE discoveryId = {discoveryId}")
+            conn.commit()
+            return json.dumps({"success": True, "msg": "Unpinned!"})
+
 @app.route("/api/discovery/like", methods = ['POST'])
 def apiDiscoveryLike():
     updateconn()
@@ -360,9 +438,9 @@ def apiDiscoveryLike():
     if len(d) == 0:
         return json.dumps({"success": False, "msg": "Book not found!"})
     
-    cur.execute(f"SELECT * FROM DiscoveryLike WHERE discoveryId = {discoveryId} AND userId = {userId} AND like = 1")
+    cur.execute(f"SELECT * FROM DiscoveryLike WHERE discoveryId = {discoveryId} AND userId = {userId} AND likes = 1")
     if len(cur.fetchall()) != 0:
-        cur.execute(f"DELETE FROM DiscoveryLike WHERE discoveryId = {discoveryId} AND userId = {userId} AND like = 1")
+        cur.execute(f"DELETE FROM DiscoveryLike WHERE discoveryId = {discoveryId} AND userId = {userId} AND likes = 1")
         conn.commit()
         return json.dumps({"success": True, "msg": "Unliked!", "liked": False})
     else:

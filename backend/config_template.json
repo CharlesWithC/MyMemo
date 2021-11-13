@@ -6,7 +6,7 @@
     "default_user_password": "123456",
 
     "database": "mysql", // alternative: sqlite
-    // if you use sqlite as database, the script will automatically create a database.db and sessions.db
+    // if you use sqlite as database, the script will automatically create a database.db
     // you don't need to do anything else
     // if you use mysql as database, fill the following data
     // you should create a dedicate user for mymemo, and create a database called mymemo to store data
