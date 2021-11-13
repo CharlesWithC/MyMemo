@@ -385,11 +385,7 @@ function PageInit() {
     // Update username
     if (localStorage.getItem("username") != null && localStorage.getItem("username") != "") {
         username = localStorage.getItem("username");
-        if (username.length <= 16) {
-            $("#navusername").html(username);
-        } else {
-            $("#navusername").html("Account");
-        }
+        $("#navusername").html(username);
     } else {
         $.ajax({
             url: "/api/user/info",

@@ -77,6 +77,11 @@ def apiDiscovery():
         cur.execute(f"SELECT discoveryId FROM DiscoveryPin WHERE discoveryId = {dd[0]}")
         if len(cur.fetchall()) > 0:
             pinned = True
+        
+        cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {dd[3]}")
+        t = cur.fetchall()
+        if len(t) > 0:
+            publisher = f"<a href='/user?userId={dd[3]}'>{publisher}<span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span></a>"
 
         dis.append({"discoveryId": dd[0], "title": decode(dd[1]), "description": decode(dd[2]), \
             "publisher": publisher, "type": dd[4], "views": views, "likes": likes, "imports": imports, "pinned": pinned})
@@ -237,6 +242,11 @@ def apiDiscoveryData(discoveryId):
     cur.execute(f"SELECT discoveryId FROM DiscoveryPin WHERE discoveryId = {discoveryId}")
     if len(cur.fetchall()) > 0:
         pinned = True
+
+    cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {uid}")
+    t = cur.fetchall()
+    if len(t) > 0:
+        publisher = f"<a href='/user?userId={uid}'>{publisher} <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span></a>"
 
     return json.dumps({"title": title, "description": description, "questions": questions, \
         "shareCode": shareCode, "type": distype, "publisher": publisher, "isPublisher": isPublisher, \

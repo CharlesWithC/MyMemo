@@ -25,7 +25,7 @@
             UpdateSettingsButtons();
 
             if (localStorage.getItem("settings-theme") == "dark") {
-                $("body").attr("style", "color:#ffffff;background-color:#333333");
+                $("body").attr("style", "color:#ffffff;background-color:#333333");setInterval(function(){$("#content a,.container a").css("color","#dddddd");},500);
                 $("hr").attr("style", "background-color:#cccccc;");
                 $(".modal-content").attr("style", "background-color:#333333");
                 $(".fa-times").attr("style", "color:white");
@@ -194,7 +194,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.4 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.5 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

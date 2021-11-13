@@ -285,11 +285,7 @@ function PageInit() {
     // Update username
     if (localStorage.getItem("username") != null && localStorage.getItem("username") != "") {
         username = localStorage.getItem("username");
-        if (username.length <= 16) {
-            $("#navusername").html(username);
-        } else {
-            $("#navusername").html("Account");
-        }
+        $("#navusername").html(username);
     } else {
         $.ajax({
             url: "/api/user/info",
@@ -408,7 +404,6 @@ function BookUpdateStatus(updateTo) {
             for (var i = 0; i < selectedQuestionList.length; i++) {
                 for (var j = 0; j < selected.length; j++) {
                     if (selectedQuestionList[i].questionId == selected[j]) {
-                        console.log(selectedQuestionList[i].questionId);
                         selectedQuestionList[i].status = updateTo;
                         break;
                     }

@@ -222,7 +222,7 @@ def apiAdminCommand():
                 uid = t[0][0]
             cur.execute(f"UPDATE IDInfo SET nextId = {uid + 1} WHERE type = 1")
 
-            cur.execute(f"INSERT INTO UserInfo VALUES ({uid}, '{username}', '{email}', '{encode(password)}', {inviter}, '{inviteCode}')")
+            cur.execute(f"INSERT INTO UserInfo VALUES ({uid}, '{username}', '', '{email}', '{encode(password)}', {inviter}, '{inviteCode}')")
             conn.commit()
         except:
             sessions.errcnt += 1
@@ -320,6 +320,45 @@ def apiAdminCommand():
             return json.dumps({"success": True, "msg": "Privilege removed for this user"})
         else:
             return json.dumps({"success": False, "msg": "This user doesn't have this privilege!"})
+
+    elif command[0] == "set_name_tag":
+        if len(command) != 4:
+            return json.dumps({"success": False, "msg": "Usage: set_name_tag [userId] [tag] [tag type]"})
+
+        uid = int(command[1])
+        tag = encode(command[2])
+        tagtype = command[3]
+
+        if not tagtype.isalnum():
+            return json.dumps({"success": False, "msg": "Invalid tag type!"})
+        
+        cur.execute(f"SELECT * FROM UserNameTag WHERE userId = {uid}")
+        t = cur.fetchall()
+        if len(t) == 0:
+            cur.execute(f"INSERT INTO UserNameTag VALUES ({uid}, '{tag}', '{tagtype}')")
+        else:
+            cur.execute(f"UPDATE UserNameTag SET tag = '{tag}' WHERE userId = {uid}")
+            cur.execute(f"UPDATE UserNameTag SET tagtype = '{tagtype}' WHERE userId = {uid}")
+        conn.commit()
+
+        return json.dumps({"success": True, "msg": f"Added {tagtype} nametag for user {uid}"})
+
+    elif command[0] == "remove_name_tag":
+        if len(command) != 2:
+            return json.dumps({"success": False, "msg": "Usage: remove_name_tag [userId]"})
+
+        uid = int(command[1])
+
+        cur.execute(f"SELECT * FROM UserNameTag WHERE userId = {uid}")
+        t = cur.fetchall()
+        if len(t) == 0:
+            return json.dumps({"success": False, "msg": "User does not have a name tag!"})
+        else:
+            cur.execute(f"DELETE FROM UserNameTag WHERE userId = {uid}")
+        conn.commit()
+
+        return json.dumps({"success": True, "msg": f"Removed nametag from user {uid}"})
+
 
     elif command[0] == "ban_account":
         if len(command) != 2:

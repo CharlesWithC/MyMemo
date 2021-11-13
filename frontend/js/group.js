@@ -55,15 +55,15 @@ function UpdateGroupMember() {
             for (var i = 0; i < r.member.length; i++) {
                 btns = '';
                 if (isOwner) {
-                    if (r.member[i].username.endsWith("(Editor)")) {
+                    if (r.member[i].username.indexOf("(Editor)") != -1) {
                         btns += '&nbsp;&nbsp;<button class="btn btn-primary btn-sm" type="button" onclick="GroupOperation(2, ' + r.member[i].userId + ')"><i class="fa fa-edit"></i> Undo make editor</button>';
-                    } else if (!r.member[i].username.endsWith("(Owner)")) {
+                    } else if (r.member[i].username.indexOf("(Owner)") == -1) {
                         btns += '&nbsp;&nbsp;<button class="btn btn-primary btn-sm" type="button" onclick="GroupOperation(2, ' + r.member[i].userId + ')"><i class="fa fa-edit"></i> Make editor</button>';
                     }
-                    if (!r.member[i].username.endsWith("(Owner)")) {
+                    if (r.member[i].username.indexOf("(Owner)") == -1) {
                         btns += '&nbsp;&nbsp;<button class="btn btn-warning btn-sm" type="button" onclick="GroupOperation(1, ' + r.member[i].userId + ')"><i class="fa fa-ban"></i> Kick</button>';
                     }
-                    if (!r.member[i].username.endsWith("(Owner)")) {
+                    if (r.member[i].username.indexOf("(Owner)") == -1) {
                         btns += '&nbsp;&nbsp;<button class="btn btn-danger btn-sm" type="button" onclick="TransferOwnershipShow(' + r.member[i].userId + ')"><i class="fa fa-random"></i> Transfer ownership</button>';
                     }
                 }
@@ -159,11 +159,7 @@ function PageInit() {
     // Update username
     if (localStorage.getItem("username") != null && localStorage.getItem("username") != "") {
         username = localStorage.getItem("username");
-        if (username.length <= 16) {
-            $("#navusername").html(username);
-        } else {
-            $("#navusername").html("Account");
-        }
+        $("#navusername").html(username);
     } else {
         $.ajax({
             url: "/api/user/info",

@@ -6,6 +6,7 @@ class UserClass {
     constructor() {
         this.userId = -1;
         this.username = "";
+        this.bio = "";
         this.email = "";
         this.invitationCode = "";
         this.cnt = 0;
@@ -19,7 +20,43 @@ class UserClass {
 }
 user = new UserClass();
 
-$("#signout-btn").hide();
+uid = getUrlParameter("userId");
+if (uid != -1 && uid != localStorage.getItem("userId")) {
+    $.ajax({
+        url: "/api/user/publicInfo/" + uid,
+        method: 'GET',
+        async: true,
+        dataType: "json",
+        success: function (r) {
+            user.username = r.username;
+            user.bio = r.bio;
+            user.cnt = r.cnt;
+            user.tagcnt = r.tagcnt;
+            user.delcnt = r.delcnt;
+            user.chcnt = r.chcnt;
+            user.age = r.age;
+            user.isAdmin = r.isAdmin;
+
+            $(".user-public").show();
+            $(".user").hide();
+            $(".title").show();
+            $("#signout-btn").show();
+            l = user.username.indexOf('>');
+            r = user.username.indexOf('<', 1);
+            $("title").html(user.username.substr(l + 1, r - l - 1) + " | My Memo");
+
+            $("#username-public").html(user.username);
+            $("#bio-public").html(user.bio);
+            $("#userId-public").html(uid);
+            $("#age-public").html(user.age);
+            $("#cnt-public").html(user.cnt);
+            $("#tagged-public").html(user.tagcnt);
+            $("#deleted-public").html(user.delcnt);
+            $("#chcnt-public").html(user.chcnt);
+        }
+    });
+}
+
 $.ajax({
     url: "/api/user/info",
     method: 'POST',
@@ -30,94 +67,117 @@ $.ajax({
         token: localStorage.getItem("token")
     },
     success: function (r) {
-        user.userId = localStorage.getItem("userId");
         user.username = r.username;
-        user.email = r.email;
-        user.invitationCode = r.invitationCode;
-        user.cnt = r.cnt;
-        user.tagcnt = r.tagcnt;
-        user.delcnt = r.delcnt;
-        user.chcnt = r.chcnt;
-        user.inviter = r.inviter;
-        user.age = r.age;
-        user.isAdmin = r.isAdmin;
-        if (user.isAdmin) {
-            localStorage.setItem("isAdmin", 1);
-        } else {
-            localStorage.removeItem("isAdmin");
-        }
-
-        $(".user").show();
-        $(".title").show();
-        $("#signout-btn").show();
-        $("title").html(user.username + " | My Memo");
-
         $("#navusername").html(user.username);
-        $("#username").html(user.username);
-        $("#userId").html(user.userId);
-        $("#age").html(user.age);
-        $("#email").html(user.email);
-        $("#inviteCode").html(user.invitationCode);
-        $("#inviteBy").html(user.inviter);
-        $("#cnt").html(user.cnt);
-        $("#tagged").html(user.tagcnt);
-        $("#deleted").html(user.delcnt);
-        $("#chcnt").html(user.chcnt);
-
-        if (user.isAdmin) {
-            $(".only-admin").show();
-        } else {
-            $(".only-admin").hide();
-        }
-    },
-    error: function (r, textStatus, errorThrown) {
-        if (r.status == 401) {
-            $(".user").hide();
-            $(".login").show();
-            $(".title").hide();
-            $("#signout-btn").hide();
-        }
     }
 });
 
-$.ajax({
-    url: "/api/user/sessions",
-    method: 'POST',
-    async: true,
-    dataType: "json",
-    data: {
-        userId: localStorage.getItem("userId"),
-        token: localStorage.getItem("token")
-    },
-    success: function (r) {
-        sessions = r;
-        for (var i = 0; i < sessions.length; i++) {
-            system = "desktop";
-            if (sessions[i].userAgent.indexOf("Win") != -1) system = "windows";
-            if (sessions[i].userAgent.indexOf("Mac") != -1) system = "apple";
-            if (sessions[i].userAgent.indexOf("Linux") != -1) system = "linux";
-            if (sessions[i].userAgent.indexOf("Android") != -1) system = "android";
-            sysver = sessions[i].userAgent.substr(sessions[i].userAgent.indexOf("(") + 1, sessions[i].userAgent.indexOf(")") - sessions[i].userAgent.indexOf("(") - 1);
-            loginTime = new Date(sessions[i].loginTime * 1000).toString();
-            expireTime = new Date(sessions[i].expireTime * 1000).toString();
-            $("#sessions").append("<div class='session'>\
-                <p class='session-title'><i class='fa fa-" + system + "'></i>&nbsp;&nbsp;" + sysver + "\
-                <p class='session-content'>IP: " + sessions[i].ip + "</p>\
-                <p class='session-content'>User Agent: " + sessions[i].userAgent + "</p></p>\
-                <p class='session-content'>Login time: " + loginTime + "</p>\
-                <p class='session-content'>Expire time: " + expireTime + "</p>\
-                </div><br>")
+if (uid == -1 || uid == localStorage.getItem("userId")) {
+    $("#signout-btn").hide();
+    $.ajax({
+        url: "/api/user/info",
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            user.userId = localStorage.getItem("userId");
+            user.username = r.username;
+            user.bio = r.bio;
+            user.email = r.email;
+            user.invitationCode = r.invitationCode;
+            user.cnt = r.cnt;
+            user.tagcnt = r.tagcnt;
+            user.delcnt = r.delcnt;
+            user.chcnt = r.chcnt;
+            user.inviter = r.inviter;
+            user.age = r.age;
+            user.isAdmin = r.isAdmin;
+            if (user.isAdmin) {
+                localStorage.setItem("isAdmin", 1);
+            } else {
+                localStorage.removeItem("isAdmin");
+            }
+
+            $(".user").show();
+            $(".title").show();
+            $("#signout-btn").show();
+            l = user.username.indexOf('>');
+            r = user.username.indexOf('<', 1);
+            $("title").html(user.username.substr(l + 1, r - l - 1) + " | My Memo");
+
+            $("#navusername").html(user.username);
+            $("#username").html(user.username);
+            $("#bio").html(user.bio);
+            $("#userId").html(user.userId);
+            $("#age").html(user.age);
+            $("#email").html(user.email);
+            $("#inviteCode").html(user.invitationCode);
+            $("#inviteBy").html(user.inviter);
+            $("#cnt").html(user.cnt);
+            $("#tagged").html(user.tagcnt);
+            $("#deleted").html(user.delcnt);
+            $("#chcnt").html(user.chcnt);
+
+            if (user.isAdmin) {
+                $(".only-admin").show();
+            } else {
+                $(".only-admin").hide();
+            }
+        },
+        error: function (r, textStatus, errorThrown) {
+            if (r.status == 401) {
+                $(".user").hide();
+                $(".login").show();
+                $(".title").hide();
+                $("#signout-btn").hide();
+            }
         }
-    },
-    error: function (r, textStatus, errorThrown) {
-        if (r.status == 401) {
-            $(".user").hide();
-            $(".login").show();
-            $(".title").hide();
-            $("#signout-btn").hide();
+    });
+
+    $.ajax({
+        url: "/api/user/sessions",
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            sessions = r;
+            for (var i = 0; i < sessions.length; i++) {
+                system = "desktop";
+                if (sessions[i].userAgent.indexOf("Win") != -1) system = "windows";
+                if (sessions[i].userAgent.indexOf("Mac") != -1) system = "apple";
+                if (sessions[i].userAgent.indexOf("Linux") != -1) system = "linux";
+                if (sessions[i].userAgent.indexOf("Android") != -1) system = "android";
+                sysver = sessions[i].userAgent.substr(sessions[i].userAgent.indexOf("(") + 1, sessions[i].userAgent.indexOf(")") - sessions[i].userAgent.indexOf("(") - 1);
+                loginTime = new Date(sessions[i].loginTime * 1000).toString();
+                expireTime = new Date(sessions[i].expireTime * 1000).toString();
+                $("#sessions").append("<div class='session'>\
+                    <p class='session-title'><i class='fa fa-" + system + "'></i>&nbsp;&nbsp;" + sysver + "\
+                    <p class='session-content'>IP: " + sessions[i].ip + "</p>\
+                    <p class='session-content'>User Agent: " + sessions[i].userAgent + "</p></p>\
+                    <p class='session-content'>Login time: " + loginTime + "</p>\
+                    <p class='session-content'>Expire time: " + expireTime + "</p>\
+                    </div><br>")
+            }
+        },
+        error: function (r, textStatus, errorThrown) {
+            if (r.status == 401) {
+                $(".user").hide();
+                $(".login").show();
+                $(".title").hide();
+                $("#signout-btn").hide();
+            }
         }
-    }
-});
+    });
+}
+
 
 function Login() {
     username = $("#input-username").val();
@@ -158,6 +218,7 @@ function Login() {
                     success: function (r) {
                         user.userId = localStorage.getItem("userId");
                         user.username = r.username;
+                        user.bio = r.bio;
                         user.email = r.email;
                         user.invitationCode = r.invitationCode;
                         user.cnt = r.cnt;
@@ -172,7 +233,9 @@ function Login() {
                         } else {
                             localStorage.removeItem("isAdmin");
                         }
-                        $("title").html(user.username + " | My Memo");
+                        l = user.username.indexOf('>');
+                        r = user.username.indexOf('<', 1);
+                        $("title").html(user.username.substr(l + 1, r - l - 1) + " | My Memo");
 
                         if (localStorage.getItem("first-use") != "0") {
                             $.ajax({
@@ -254,13 +317,18 @@ function Register() {
 
 function UpdateProfileShow() {
     $("#updateProfileModal").modal("show");
-    $("#update-username").val(user.username);
+    username = user.username;
+    if (user.username.indexOf("<") != -1) {
+        username = user.username.substr(0, user.username.indexOf("<") - 1);
+    }
+    $("#update-username").val(username);
     $("#update-email").val(user.email);
 }
 
 function UpdateUserProfile() {
     username = $("#update-username").val();
     email = $("#update-email").val();
+    bio = $("#update-bio").val();
 
     if (username == "" || email == "") {
         NotyNotification('Both fields must be filled', type = 'warning');
@@ -275,6 +343,7 @@ function UpdateUserProfile() {
         data: {
             username: username,
             email: email,
+            bio: bio,
             userId: localStorage.getItem("userId"),
             token: localStorage.getItem("token")
         },
@@ -285,6 +354,7 @@ function UpdateUserProfile() {
 
                 $("#navusername").html(user.username);
                 $("#username").html(user.username);
+                $("#bio").html(user.bio);
                 $("#email").html(user.email);
                 $("#updateProfileModal").modal("hide");
 

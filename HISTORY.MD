@@ -1,5 +1,12 @@
 # Update History
 
+## v5.3.5  
+
+*Date: 2021/11/14*  
+1.Added name tag, which will be shown beside the user's username, as a representative of the user  
+  Name tag can only be added by admins  
+2.Added hyberlink to user profile for all username displayed on the page  
+
 ## v5.3.4  
 
 *Date: 2021/11/14*  

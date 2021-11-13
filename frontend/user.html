@@ -28,7 +28,7 @@
                         Login();
                     }
                 });
-                $("#update-username,#update-email").on('keypress', function (e) {
+                $("#update-username,#update-email,#update-bio").on('keypress', function (e) {
                     if (e.which == 13 || e.which == 13 && e.ctrlKey) {
                         UpdateUserProfile();
                     }
@@ -48,7 +48,7 @@
             setTimeout(onkeypress, 500);
 
             if (localStorage.getItem("settings-theme") == "dark") {
-                $("body").attr("style", "color:#ffffff;background-color:#333333");
+                $("body").attr("style", "color:#ffffff;background-color:#333333");setInterval(function(){$("#content a,.container a").css("color","#dddddd");},500);
                 $("hr").attr("style", "background-color:#cccccc;");
                 $(".modal-content").attr("style", "background-color:#333333");
                 $(".fa-times").attr("style", "color:white");
@@ -129,10 +129,22 @@
     <h1 class="title" style="padding-bottom: 0;">My Memo</h1>
 
     <div id="content" class="container">
+        <div class="user-public container" style="display:none">
+            <h2><span id="username-public"></span></h2>
+            <p style="font-size:0.8em">ID: <span id="userId-public"></span></p>
+            <p><span id="bio-public"></span></p>
+            <p>Age: <span id="age-public">0</span> days</p>
+            <hr>
+            <h2>Statistics</h2>
+            <p><span id="cnt-public">0</span> questions in list</p>
+            <p><span id="tagged-public">0</span> tagged and <span id="deleted">0</span> deleted</p>
+            <p><span id="chcnt-public">0</span> challenges done so far</p>
+        </div>
         <div class="user container">
             <div class="basic-info" style="width: 55%; float:left">
                 <h2><span id="username"></span></h2>
                 <p style="font-size:0.8em">ID: <span id="userId"></span></p>
+                <p><span id="bio"></span></p>
                 <p>Age: <span id="age">0</span> days</p>
                 <p>Email: <span id="email"></span></p>
                 <p>Invitation Code: <span id="inviteCode"></span></p>
@@ -238,6 +250,10 @@
                             <input type="text" class="form-control" id="update-email" aria-describedby="basic-addon1"
                                 style="z-index:100">
                         </div>
+                        <div class="form-group">
+                            <label for="update-bio" class="col-form-label">Bio (You can use HTML tags to make your bio more beautiful):</label>
+                            <textarea class="form-control" id="update-bio"></textarea>
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -335,7 +351,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.4 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.5 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

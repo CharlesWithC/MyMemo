@@ -151,11 +151,7 @@ function PageInit() {
 
     if (localStorage.getItem("username") != null) {
         username = localStorage.getItem("username");
-        if (username.length <= 16) {
-            $("#navusername").html(username);
-        } else {
-            $("#navusername").html("Account");
-        }
+        $("#navusername").html(username);
     }
     $.ajax({
         url: "/api/user/info",
@@ -167,11 +163,7 @@ function PageInit() {
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            if (r.username.length <= 16) {
-                $("#navusername").html(r.username);
-            } else {
-                $("#navusername").html("Account");
-            }
+            $("#navusername").html(r.username);
             localStorage.setItem("username", r.username);
         },
         error: function (r, textStatus, errorThrown) {

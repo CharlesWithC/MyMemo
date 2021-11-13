@@ -24,18 +24,14 @@
     <script>
         $(document).ready(function () {
             if (localStorage.getItem("settings-theme") == "dark") {
-                $("body").attr("style", "color:#ffffff;background-color:#333333");
+                $("body").attr("style", "color:#ffffff;background-color:#333333");setInterval(function(){$("#content a,.container a").css("color","#dddddd");},500);
                 $("hr").attr("style", "background-color:#cccccc;");
             }
 
             // Update username
             if (localStorage.getItem("username") != null && localStorage.getItem("username") != "") {
                 username = localStorage.getItem("username");
-                if (username.length <= 16) {
-                    $("#navusername").html(username);
-                } else {
-                    $("#navusername").html("Account");
-                }
+                $("#navusername").html(username);
             } else {
                 $.ajax({
                     url: "/api/user/info",
@@ -47,11 +43,7 @@
                         token: localStorage.getItem("token")
                     },
                     success: function (r) {
-                        if (r.username.length <= 16) {
-                            $("#navusername").html(r.username);
-                        } else {
-                            $("#navusername").html("Account");
-                        }
+                        $("#navusername").html(username);
                         localStorage.setItem("username", r.username);
                     },
                     error: function (r, textStatus, errorThrown) {
@@ -155,7 +147,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.4 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.5 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

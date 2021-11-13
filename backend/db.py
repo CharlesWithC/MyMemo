@@ -54,7 +54,7 @@ elif config["database"] == "mysql":
     conn = MySQLdb.connect(host = host, user = user, passwd = passwd, db = dbname)
     cur = conn.cursor()
     cur.execute(f"SHOW TABLES")
-    if len(cur.fetchall()) != 31:
+    if len(cur.fetchall()) != 32:
         doinit = True
     
     app.config['MYSQL_HOST'] = host
@@ -85,9 +85,12 @@ if doinit:
         config = Dict2Obj(json.loads(config_txt))
 
     cur = conn.cursor()
-    cur.execute(f"CREATE TABLE UserInfo (userId INT, username VARCHAR(512), email VARCHAR(128), password VARCHAR(256), inviter INT, inviteCode CHAR(8))")
+    cur.execute(f"CREATE TABLE UserInfo (userId INT, username VARCHAR(512), bio VARCHAR(1024), email VARCHAR(128), password VARCHAR(256), inviter INT, inviteCode CHAR(8))")
     # encode username
     # Allow only inviting registration mode to prevent abuse
+    cur.execute(f"CREATE TABLE UserNameTag (userId INT, tag VARCHAR(32), tagtype VARCHAR(32))")
+    # tag: encoded text, like 'Owner'
+    # tagtype: tag color
     cur.execute(f"CREATE TABLE UserSettings (userId INT, sRandom INT, sSwap INT, sShowStatus INT, sMode INT, sAutoPlay INT, sTheme VARCHAR(16))")
     cur.execute(f"CREATE TABLE UserEvent (userId INT, event VARCHAR(32), timestamp INT)")
     # Available event: register, login, change_password, delete_account
@@ -105,7 +108,7 @@ if doinit:
 
     inviteCode = genCode(8)
     print(f"Created default user with invitation code: {inviteCode}")
-    cur.execute(f"INSERT INTO UserInfo VALUES (0,'{encode('default')}','None','{encode(defaultpwd)}',0,'{inviteCode}')")
+    cur.execute(f"INSERT INTO UserInfo VALUES (0,'{encode('default')}','','None','{encode(defaultpwd)}',0,'{inviteCode}')")
     cur.execute(f"INSERT INTO UserEvent VALUES (0, 'register', 0)")
     # Default user system's password is 123456
     # Clear default account's password after setup (so it cannot be logged in)

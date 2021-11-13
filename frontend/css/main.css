@@ -16,10 +16,6 @@ div {
     overflow: hidden
 }
 
-textarea {
-    margin: 0.5em;
-}
-
 .top-left {
     position: absolute;
     top: 1em;
@@ -72,12 +68,12 @@ h1 {
 
 a {
     text-decoration: none;
-    color: #aaaaaa;
+    color: #222222;
 }
 
 a:hover {
     text-decoration: none;
-    color: #888888;
+    color: #777777;
 }
 
 .center {
@@ -116,6 +112,10 @@ a:hover {
 }
 
 .userctrl>a {
+    color: #333333;
+}
+
+.userctrl>a>span>a {
     color: #333333;
 }
 
@@ -196,6 +196,10 @@ a:hover {
     border-top-width: 0.5em;
 }
 
+.footer a {
+    color: #ffffff;
+}
+
 .book-side {
     position: fixed;
     z-index: 1000;
@@ -266,4 +270,13 @@ a:hover {
 
 .session-content {
     font-size: 0.8em;
+}
+
+.nametag {
+    color: white;
+    font-size: 0.8em;
+    text-shadow: 0.1em 0.1em 0.1em black;
+    padding: 0.2em;
+    border-radius: 0.25em;
+    box-shadow: 0.05em 0.05em 0.05em black;
 }

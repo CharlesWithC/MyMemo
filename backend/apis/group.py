@@ -281,6 +281,10 @@ def apiGroupMember():
         pgs = f"{pgs} / {questioncnt}"
 
         if info[2] == 0:
+            cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {uid}")
+            t = cur.fetchall()
+            if len(t) > 0:
+                username = f"<a href='/user?userId={uid}'>{username} <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span></a>"
             ret.append({"userId": uid, "username": username, "progress": pgs})
         elif info[2] == 1:
             ret.append({"userId": 0, "username": "Anonymous", "progress": pgs})

@@ -54,8 +54,9 @@ def apiRegister():
         or username.replace(" ","") == "" or email.replace(" ","") == "" or password.replace(" ","") == "" or invitationCode.replace(" ","") == "":
         return json.dumps({"success": False, "msg": "All the fields must be filled!"})
     if " " in username or "(" in username or ")" in username or "[" in username or "]" in username or "{" in username or "}" in username \
-        or "!" in username or "@" in username or "'" in username or '"' in usernameor or "/" in username or "\\" in username :
-        return json.dumps({"success": False, "msg": "Username must not contain: spaces, ( ) [ ] { } ! @ ' \" / \\"})
+        or "<" in username or ">" in username \
+            or "!" in username or "@" in username or "'" in username or '"' in username or "/" in username or "\\" in username :
+        return json.dumps({"success": False, "msg": "Username must not contain: spaces, ( ) [ ] { } < > ! @ ' \" / \\"})
     username = encode(username)
     if validators.email(email) != True:
         return json.dumps({"success": False, "msg": "Invalid email!"})
@@ -93,7 +94,7 @@ def apiRegister():
             userId = t[0][0]
         cur.execute(f"UPDATE IDInfo SET nextId = {userId + 1} WHERE type = 1")
 
-        cur.execute(f"INSERT INTO UserInfo VALUES ({userId}, '{username}', '{email}', '{encode(password)}', {inviter}, '{inviteCode}')")
+        cur.execute(f"INSERT INTO UserInfo VALUES ({userId}, '{username}', '', '{email}', '{encode(password)}', {inviter}, '{inviteCode}')")
         conn.commit()
     except:
         sessions.errcnt += 1
@@ -103,6 +104,7 @@ def apiRegister():
         cur.execute(f"UPDATE UserInfo SET email = 'disabled' WHERE userId = 0")
         cur.execute(f"UPDATE UserInfo SET inviteCode = '' WHERE userId = 0")
         cur.execute(f"INSERT INTO AdminList VALUES ({userId})")
+        cur.execute(f"INSERT INTO UserNameTag VALUES ({userId}, '{encode('root')}', 'admin')")
 
     cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'register', {int(time.time())})")
     conn.commit()
@@ -253,7 +255,7 @@ def apiGetUserInfo():
         abort(401)
     
     d = None
-    cur.execute(f"SELECT username, email, inviteCode, inviter FROM UserInfo WHERE userId = {userId}")
+    cur.execute(f"SELECT username, email, inviteCode, inviter, bio FROM UserInfo WHERE userId = {userId}")
     t = cur.fetchall()
     if len(t) > 0:
         d = t[0]
@@ -261,6 +263,7 @@ def apiGetUserInfo():
         return json.dumps({"success": False, "msg": "User not found!"})
     d = list(d)
     d[0] = decode(d[0])
+    d[4] = decode(d[4])
 
     inviter = 0
     cur.execute(f"SELECT username FROM UserInfo WHERE userId = {d[3]}")
@@ -303,8 +306,69 @@ def apiGetUserInfo():
     cur.execute(f"SELECT * FROM AdminList WHERE userId = {userId}")
     if len(cur.fetchall()) != 0:
         isAdmin = True
+        
+    username = d[0]
+    cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {userId}")
+    t = cur.fetchall()
+    if len(t) > 0:
+        username = f"<a href='/user?userId={userId}'>{username} <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span></a>"
 
-    return json.dumps({"username": d[0], "email": d[1], "invitationCode": d[2], "inviter": inviter, "cnt": cnt, "tagcnt": tagcnt, "delcnt": delcnt, "chcnt": chcnt, "age": age, "isAdmin": isAdmin})
+    return json.dumps({"username": username, "bio": d[4], "email": d[1], "invitationCode": d[2], "inviter": inviter, "cnt": cnt, "tagcnt": tagcnt, "delcnt": delcnt, "chcnt": chcnt, "age": age, "isAdmin": isAdmin})
+
+@app.route("/api/user/publicInfo/<int:uid>", methods = ['GET'])
+def apiGetUserPublicInfo(uid):
+    updateconn()
+    cur = conn.cursor()
+    
+    cur.execute(f"SELECT username, bio FROM UserInfo WHERE userId = {uid}")
+    t = cur.fetchall()
+    if len(t) == 0:
+        return json.dumps({"success": False, "msg": "User not found!"})
+    username = decode(t[0][0])
+    bio = decode(t[0][1])
+    
+    cnt = 0
+    cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {uid}")
+    t = cur.fetchall()
+    if len(t) > 0:
+        cnt = t[0][0]
+
+    tagcnt = 0
+    cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {uid} AND status = 2")
+    t = cur.fetchall()
+    if len(t) > 0:
+        tagcnt = t[0][0]
+
+    delcnt = 0
+    cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {uid} AND status = 3")
+    t = cur.fetchall()
+    if len(t) > 0:
+        delcnt = t[0][0]
+
+    chcnt = 0
+    cur.execute(f"SELECT COUNT(*) FROM ChallengeRecord WHERE userId = {uid}")
+    t = cur.fetchall()
+    if len(t) > 0:
+        chcnt = t[0][0]
+
+    regts = 0
+    cur.execute(f"SELECT timestamp FROM UserEvent WHERE userId = {uid} AND event = 'register'")
+    t = cur.fetchall()
+    if len(t) > 0:
+        regts = t[0][0]
+    age = math.ceil((time.time() - regts) / 86400)
+
+    isAdmin = False
+    cur.execute(f"SELECT * FROM AdminList WHERE userId = {uid}")
+    if len(cur.fetchall()) != 0:
+        isAdmin = True
+
+    cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {uid}")
+    t = cur.fetchall()
+    if len(t) > 0:
+        username = f"<a href='/user?userId={uid}'>{username} <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span></a>"
+
+    return json.dumps({"username": username, "bio": bio, "cnt": cnt, "tagcnt": tagcnt, "delcnt": delcnt, "chcnt": chcnt, "age": age, "isAdmin": isAdmin})   
 
 @app.route("/api/user/sessions", methods=['POST'])
 def apiUserSessions():
@@ -343,22 +407,26 @@ def apiUpdateInfo():
     
     username = request.form["username"]
     email = request.form["email"]
+    bio = request.form["bio"]
 
     if username is None or email is None\
         or username.replace(" ","") == "" or email.replace(" ","") == "":
         return json.dumps({"success": False, "msg": "All the fields must be filled!"})
     if " " in username or "(" in username or ")" in username or "[" in username or "]" in username or "{" in username or "}" in username \
-        or "!" in username or "@" in username or "'" in username or '"' in usernameor or "/" in username or "\\" in username :
-        return json.dumps({"success": False, "msg": "Username must not contain: spaces, ( ) [ ] { } ! @ ' \" / \\"})
+        or "<" in username or ">" in username \
+            or "!" in username or "@" in username or "'" in username or '"' in username or "/" in username or "\\" in username :
+        return json.dumps({"success": False, "msg": "Username must not contain: spaces, ( ) [ ] { } < > ! @ ' \" / \\"})
     username = encode(username)
     if validators.email(email) != True:
         return json.dumps({"success": False, "msg": "Invalid email!"})
+    bio = encode(bio)
     
     cur.execute(f"SELECT * FROM UserInfo WHERE username = '{username}' AND userId != {userId}")
     if len(cur.fetchall()) != 0:
         return json.dumps({"success": False, "msg": "Username occupied!"})
     
     cur.execute(f"UPDATE UserInfo SET username = '{username}' WHERE userId = {userId}")
+    cur.execute(f"UPDATE UserInfo SET bio = '{bio}' WHERE userId = {userId}")
     cur.execute(f"UPDATE UserInfo SET email = '{email}' WHERE userId = {userId}")
     conn.commit()
 

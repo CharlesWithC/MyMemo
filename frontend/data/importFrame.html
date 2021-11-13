@@ -20,7 +20,7 @@
     <script>
         $(document).ready(function () {
             if (localStorage.getItem("settings-theme") == "dark") {
-                $("body").attr("style", "color:#ffffff;background-color:#333333");
+                $("body").attr("style", "color:#ffffff;background-color:#333333");setInterval(function(){$("#content a,.container a").css("color","#dddddd");},500);
                 $("hr").attr("style", "background-color:#cccccc;");
             }
 
