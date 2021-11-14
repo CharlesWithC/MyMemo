@@ -507,3 +507,31 @@ function RestartServer() {
         }
     });
 }
+
+function SignOut() {
+    $.ajax({
+        url: "/api/user/logout",
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        }
+    });
+    localStorage.removeItem("userId");
+    localStorage.removeItem("username");
+    localStorage.removeItem("token");
+    localStorage.removeItem("memo-question-id");
+    localStorage.removeItem("memo-book-id");
+    localStorage.removeItem("book-list");
+    localStorage.removeItem("question-list");
+
+    $("#navusername").html("Sign in");
+
+    $(".user").hide();
+    $(".login").show();
+    $(".title").hide();
+
+    NotyNotification('You are now signed out!');
+}

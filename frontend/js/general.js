@@ -48,11 +48,7 @@ function SignOut() {
     localStorage.removeItem("question-list");
 
     $("#navusername").html("Sign in");
-
-    $(".user").hide();
-    $(".login").show();
-    $(".title").hide();
-
+    
     NotyNotification('You are now signed out!');
 }
 
