@@ -89,7 +89,6 @@ function RefreshDiscovery() {
 
 function AdminPin(disid, op){
     pressedbtn.push(disid);
-    setTimeout(function(){pressedbtn.splice(pressedbtn.indexOf(disid),1);},500);
     l = ["unpin","pin"];
     $.ajax({
         url: '/api/discovery/pin',
@@ -110,8 +109,10 @@ function AdminPin(disid, op){
             } else {
                 NotyNotification(r.msg, type = 'error');
             }
+            setTimeout(function(){pressedbtn.splice(pressedbtn.indexOf(disid),1);},200);
         },
         error: function (r, textStatus, errorThrown) {
+            setTimeout(function(){pressedbtn.splice(pressedbtn.indexOf(disid),1);},200);
             if (r.status == 401) {
                 SessionExpired();
             } else {
@@ -123,7 +124,6 @@ function AdminPin(disid, op){
 
 function AdminUnpublishDiscoveryConfirm(disid) {
     pressedbtn.push(disid);
-    setTimeout(function(){pressedbtn.splice(pressedbtn.indexOf(disid),1);},500);
     $("#admin-delete-" + disid).html("Confirm?");
     $("#admin-delete-" + disid).attr("onclick", "AdminUnpublishDiscovery(" + disid + ");");
 }
@@ -157,8 +157,10 @@ function AdminUnpublishDiscovery(disid) {
             } else {
                 NotyNotification(r.msg, type = 'error');
             }
+            setTimeout(function(){pressedbtn.splice(pressedbtn.indexOf(disid),1);},200);
         },
         error: function (r, textStatus, errorThrown) {
+            setTimeout(function(){pressedbtn.splice(pressedbtn.indexOf(disid),1);},200);
             if (r.status == 401) {
                 SessionExpired();
             } else {

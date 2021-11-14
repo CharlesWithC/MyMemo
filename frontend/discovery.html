@@ -99,7 +99,7 @@
             $('#discoveryList tbody').on('click', 'tr', function () {
                 discoveryId = parseInt($(this).attr("id"));
                 setTimeout(function () {
-                    if (pressedbtn.indexOf(discoveryId) == -1) {
+                    if (pressedbtn.indexOf(discoveryId) == -1 && window.location.href.indexOf("user") == -1) {
                         window.location.href = "/discovery?discoveryId=" + discoveryId;
                     }
                 }, 500);

@@ -43,7 +43,7 @@ if (uid != -1 && uid != localStorage.getItem("userId")) {
             $("#signout-btn").show();
             l = user.username.indexOf('>');
             r = user.username.indexOf('<', 1);
-            $("title").html(user.username.substr(l + 1, r - l - 1) + " | My Memo");
+            $("title").html(user.username.substr(l + 1, r - l - 2) + " | My Memo");
 
             $("#username-public").html(user.username);
             $("#bio-public").html(user.bio);
@@ -107,7 +107,7 @@ if (uid == -1 || uid == localStorage.getItem("userId")) {
             $("#signout-btn").show();
             l = user.username.indexOf('>');
             r = user.username.indexOf('<', 1);
-            $("title").html(user.username.substr(l + 1, r - l - 1) + " | My Memo");
+            $("title").html(user.username.substr(l + 1, r - l - 2) + " | My Memo");
 
             $("#navusername").html(user.username);
             $("#username").html(user.username);
@@ -235,7 +235,7 @@ function Login() {
                         }
                         l = user.username.indexOf('>');
                         r = user.username.indexOf('<', 1);
-                        $("title").html(user.username.substr(l + 1, r - l - 1) + " | My Memo");
+                        $("title").html(user.username.substr(l + 1, r - l - 2) + " | My Memo");
 
                         if (localStorage.getItem("first-use") != "0") {
                             $.ajax({
@@ -317,12 +317,11 @@ function Register() {
 
 function UpdateProfileShow() {
     $("#updateProfileModal").modal("show");
-    username = user.username;
-    if (user.username.indexOf("<") != -1) {
-        username = user.username.substr(0, user.username.indexOf("<") - 1);
-    }
-    $("#update-username").val(username);
+    l = user.username.indexOf('>');
+    r = user.username.indexOf('<', 1);
+    $("#update-username").val(user.username.substr(l + 1, r - l - 2));
     $("#update-email").val(user.email);
+    $("#update-bio").val(user.bio);
 }
 
 function UpdateUserProfile() {
@@ -349,13 +348,25 @@ function UpdateUserProfile() {
         },
         success: function (r) {
             if (r.success == true) {
-                user.username = username;
-                user.email = email;
-
-                $("#navusername").html(user.username);
-                $("#username").html(user.username);
-                $("#bio").html(user.bio);
-                $("#email").html(user.email);
+                $.ajax({
+                    url: "/api/user/info",
+                    method: 'POST',
+                    async: true,
+                    dataType: "json",
+                    data: {
+                        userId: localStorage.getItem("userId"),
+                        token: localStorage.getItem("token")
+                    },
+                    success: function (r) {
+                        user.username = r.username;
+                        user.email = r.email
+                        user.bio = r.bio
+                        $("#navusername").html(user.username);
+                        $("#username").html(user.username);
+                        $("#bio").html(user.bio);
+                        $("#email").html(user.email);
+                    }
+                });
                 $("#updateProfileModal").modal("hide");
 
                 NotyNotification(r.msg);
