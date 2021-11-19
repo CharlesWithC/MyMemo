@@ -1,5 +1,15 @@
 # Update History
 
+## v5.3.6-2
+
+*Date: 2021/11/19*  
+Bug Fixes:
+1.Fixed the bug that username on title cannot be displayed  
+
+Feature Updates:  
+1.Moved admin page entry to left-side navigation bar  
+2.Replaced admin restart server button for an admin command  
+
 ## v5.3.6
 
 *Date: 2021/11/19*  

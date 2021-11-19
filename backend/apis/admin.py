@@ -29,48 +29,6 @@ updateconn()
 ##########
 # Admin API
 
-@app.route("/api/admin/restart", methods = ['POST'])
-def apiAdminRestart():
-    updateconn()
-    cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
-
-    userId = int(request.form["userId"])
-    token = request.form["token"]
-    if not validateToken(userId, token):
-        abort(401)
-    
-    cur.execute(f"SELECT userId FROM AdminList WHERE userId = {userId}")
-    if len(cur.fetchall()) == 0:
-        abort(401)
-    
-    if os.path.exists("/tmp/MyMemoLastManualRestart"):
-        lst = int(open("/tmp/MyMemoLastManualRestart","r").read())
-        if int(time.time()) - lst <= 1800:
-            return json.dumps({"success": False, "msg": "Only one restart in each 30 minutes is allowed!"})
-    
-    open("/tmp/MyMemoLastManualRestart","w").write(str(int(time.time())))
-
-    os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
-    sys.exit(0)
-
-
-# Make sure this route is protected by reverse proxy (nginx / apache) authentication
-# Otherwise remove the route to prevent your server from being attacked
-
-@app.route("/admin/restart", methods = ['GET'])
-def adminRestart():
-    if os.path.exists("/tmp/MyMemoLastManualRestart"):
-        lst = int(open("/tmp/MyMemoLastManualRestart","r").read())
-        if int(time.time()) - lst <= 1800:
-            return "Only one restart in each 30 minutes is allowed!"
-    
-    open("/tmp/MyMemoLastManualRestart","w").write(str(int(time.time())))
-
-    os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
-    sys.exit(0)
-
 @app.route("/api/admin/userList", methods = ['POST'])
 def apiAdminUserList():
     updateconn()
@@ -442,6 +400,17 @@ def apiAdminCommand():
         cnt -= marked_deletion
         
         return json.dumps({"success": True, "msg": f"Total user: {tot}\nActive user: {cnt - deled}\nBanned / Banned & Deleted user: {banned}\nDisabled (Pending deletion) user: {marked_deletion}\nDeleted user: {deled}"})
+
+    elif command[0] == "restart":
+        if os.path.exists("/tmp/MyMemoLastManualRestart"):
+            lst = int(open("/tmp/MyMemoLastManualRestart","r").read())
+            if int(time.time()) - lst <= 1800:
+                return json.dumps({"success": False, "msg": "Only one restart in each 30 minutes is allowed!"})
+        
+        open("/tmp/MyMemoLastManualRestart","w").write(str(int(time.time())))
+
+        os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
+        sys.exit(0)
 
     else:
         return json.dumps({"success": False, "msg": "Unknown command"})

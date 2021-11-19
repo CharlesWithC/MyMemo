@@ -41,9 +41,9 @@ if (uid != -1 && uid != localStorage.getItem("userId")) {
             $(".user").hide();
             $(".title").show();
             $("#signout-btn").show();
-            l = user.username.indexOf('>');
-            r = user.username.indexOf('<', 1);
-            $("title").html(user.username.substr(l + 1, r - l - 2) + " | My Memo");
+            l = user.username.indexOf('>', user.username.indexOf('>') + 1);
+            r = user.username.indexOf('<', user.username.indexOf('<', user.username.indexOf('<') + 1) + 1);
+            $("title").html(user.username.substr(l + 1, r - l - 1) + " | My Memo");
 
             $("#username-public").html(user.username);
             $("#bio-public").html(user.bio);
@@ -87,14 +87,14 @@ if (uid == -1 || uid == localStorage.getItem("userId")) {
                 localStorage.removeItem("isAdmin");
             }
 
-            localStorage.setItem("username",user.username);
+            localStorage.setItem("username", user.username);
 
             $(".user").show();
             $(".title").show();
             $("#signout-btn").show();
-            l = user.username.indexOf('>');
-            r = user.username.indexOf('<', 1);
-            $("title").html(user.username.substr(l + 1, r - l - 2) + " | My Memo");
+            l = user.username.indexOf('>', user.username.indexOf('>') + 1);
+            r = user.username.indexOf('<', user.username.indexOf('<', user.username.indexOf('<') + 1) + 1);
+            $("title").html(user.username.substr(l + 1, r - l - 1) + " | My Memo");
 
             $("#navusername").html(user.username);
             $("#username").html(user.username);
@@ -109,10 +109,8 @@ if (uid == -1 || uid == localStorage.getItem("userId")) {
             $("#deleted").html(user.delcnt);
             $("#chcnt").html(user.chcnt);
 
-            if (user.isAdmin) {
-                $(".only-admin").show();
-            } else {
-                $(".only-admin").hide();
+            if (r.isAdmin) {
+                $("#danger-zone").hide();
             }
         },
         error: function (r, textStatus, errorThrown) {
@@ -220,9 +218,9 @@ function Login() {
                         } else {
                             localStorage.removeItem("isAdmin");
                         }
-                        l = user.username.indexOf('>');
-                        r = user.username.indexOf('<', 1);
-                        $("title").html(user.username.substr(l + 1, r - l - 2) + " | My Memo");
+                        l = user.username.indexOf('>', user.username.indexOf('>') + 1);
+                        r = user.username.indexOf('<', user.username.indexOf('<', user.username.indexOf('<') + 1) + 1);
+                        $("title").html(user.username.substr(l + 1, r - l - 1) + " | My Memo");
 
                         if (localStorage.getItem("first-use") != "0") {
                             $.ajax({
@@ -304,8 +302,8 @@ function Register() {
 
 function UpdateProfileShow() {
     $("#updateProfileModal").modal("show");
-    l = user.username.indexOf('>');
-    r = user.username.indexOf('<', 1);
+    l = user.username.indexOf('>', user.username.indexOf('>') + 1);
+    r = user.username.indexOf('<', user.username.indexOf('<', user.username.indexOf('<') + 1) + 1);
     $("#update-username").val(user.username.substr(l + 1, r - l - 2));
     $("#update-email").val(user.email);
     $("#update-bio").val(user.bio);

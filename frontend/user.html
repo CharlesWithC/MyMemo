@@ -145,15 +145,15 @@
                 <h2><span id="username"></span></h2>
                 <p style="font-size:0.8em">ID: <span id="userId"></span></p>
                 <p><span id="bio"></span></p>
+                <hr>
+                <p><span id="cnt">0</span> questions in list</p>
+                <p><span id="tagged">0</span> tagged and <span id="deleted">0</span> deleted</p>
+                <p><span id="chcnt">0</span> challenges done so far</p>
+                <hr>
                 <p>Age: <span id="age">0</span> days</p>
                 <p>Email: <span id="email"></span></p>
                 <p>Invitation Code: <span id="inviteCode"></span></p>
                 <p>Invited By: <span id="inviteBy"></span></p>
-                <hr>
-                <h2>Statistics</h2>
-                <p><span id="cnt">0</span> questions in list</p>
-                <p><span id="tagged">0</span> tagged and <span id="deleted">0</span> deleted</p>
-                <p><span id="chcnt">0</span> challenges done so far</p>
                 <hr>
                 <div id="sessions">
                     <h2>Sessions</h2>
@@ -167,17 +167,10 @@
                 <button type="button" class="btn btn-primary" onclick="UpdateProfileShow()">Update Profile</button>
                 <button type="button" class="btn btn-primary" onclick="ChangePasswordShow()">Change Password</button>
                 <hr>
-                <h4>Danger Zone</h4>
-                <button type="button" class="btn btn-danger" onclick="DeleteAccountShow()">Delete
-                    Account</button>
-                <hr>
-                <div class="only-admin" style="display:none">
-                    <h4>Admin</h4>
-                    <button type="button" class="btn btn-primary" onclick="window.location.href = '/admin/cli'">Command
-                        Line
-                        Interface</button>
-                    <button type="button" class="btn btn-warning" onclick="RestartServer()">Restart
-                        Server</button>
+                <div id="danger-zone">
+                    <h4>Danger Zone</h4>
+                    <button type="button" class="btn btn-danger" onclick="DeleteAccountShow()">Delete
+                        Account</button>
                 </div>
             </div>
         </div>
@@ -351,7 +344,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.6 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.6-2 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>
