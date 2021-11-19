@@ -277,30 +277,6 @@ def apiGetUserInfo():
     if len(t) > 0:
         inviter = decode(t[0][0])
 
-    cnt = 0
-    cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {userId}")
-    t = cur.fetchall()
-    if len(t) > 0:
-        cnt = t[0][0]
-
-    tagcnt = 0
-    cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {userId} AND status = 2")
-    t = cur.fetchall()
-    if len(t) > 0:
-        tagcnt = t[0][0]
-
-    delcnt = 0
-    cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {userId} AND status = 3")
-    t = cur.fetchall()
-    if len(t) > 0:
-        delcnt = t[0][0]
-
-    chcnt = 0
-    cur.execute(f"SELECT COUNT(*) FROM ChallengeRecord WHERE userId = {userId}")
-    t = cur.fetchall()
-    if len(t) > 0:
-        chcnt = t[0][0]
-
     regts = 0
     cur.execute(f"SELECT timestamp FROM UserEvent WHERE userId = {userId} AND event = 'register'")
     t = cur.fetchall()
@@ -319,7 +295,64 @@ def apiGetUserInfo():
     if len(t) > 0:
         username = f"<a href='/user?userId={userId}'><span style='color:{t[0][1]}'>{username}</span> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span></a>"
 
-    return json.dumps({"username": username, "bio": d[4], "email": d[1], "invitationCode": d[2], "inviter": inviter, "cnt": cnt, "tagcnt": tagcnt, "delcnt": delcnt, "chcnt": chcnt, "age": age, "isAdmin": isAdmin})
+    return json.dumps({"username": username, "bio": d[4], "email": d[1], "invitationCode": d[2], "inviter": inviter, "age": age, "isAdmin": isAdmin})
+
+@app.route("/api/user/chart/<int:uid>", methods = ['GET'])
+def apiGetUserChart(uid):
+    updateconn()
+    cur = conn.cursor()
+    
+    cur.execute(f"SELECT * FROM UserInfo WHERE userId = {uid}")
+    t = cur.fetchall()
+    if len(t) == 0:
+        return json.dumps({"success": False, "msg": "User not found!"})
+    
+    d1 = []
+    for i in range(14):
+        cur.execute(f"SELECT COUNT(*) FROM ChallengeRecord WHERE userId = {uid} AND memorized = 1 AND timestamp >= {int(time.time()) - 86400*(i+1)} AND timestamp <= {int(time.time()) - 86400*i}")
+        t = cur.fetchall()
+        memorized = 0
+        if len(t) > 0:
+            memorized = t[0][0]
+
+        cur.execute(f"SELECT COUNT(*) FROM ChallengeRecord WHERE userId = {uid} AND memorized = 0 AND timestamp >= {int(time.time()) - 86400*(i+1)} AND timestamp <= {int(time.time()) - 86400*i}")
+        t = cur.fetchall()
+        forgotten = 0
+        if len(t) > 0:
+            forgotten = t[0][0]
+        
+        d1.append({"index": 14 - i, "memorized": memorized, "forgotten": forgotten})
+    
+    d2 = []
+    total_memorized = 0
+    for i in range(14):
+        cur.execute(f"SELECT COUNT(*) FROM MyMemorized WHERE userId = {uid} AND timestamp <= {int(time.time()) - 86400*i}")
+        t = cur.fetchall()
+        total = 0
+        if len(t) > 0:
+            total = t[0][0]
+        total_memorized = total
+        d2.append({"index": 14 - i, "total": total})
+    
+    cnt = 0
+    cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {uid}")
+    t = cur.fetchall()
+    if len(t) > 0:
+        cnt = t[0][0]
+
+    tagcnt = 0
+    cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {uid} AND status = 2")
+    t = cur.fetchall()
+    if len(t) > 0:
+        tagcnt = t[0][0]
+
+    delcnt = 0
+    cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {uid} AND status = 3")
+    t = cur.fetchall()
+    if len(t) > 0:
+        delcnt = t[0][0]
+
+    return json.dumps({"challenge_history": d1, "total_memorized_history": d2, "tag_cnt": tagcnt, "del_cnt": delcnt, "total_memorized": total_memorized, "total": cnt})
 
 @app.route("/api/user/publicInfo/<int:uid>", methods = ['GET'])
 def apiGetUserPublicInfo(uid):

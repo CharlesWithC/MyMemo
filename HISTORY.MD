@@ -1,6 +1,12 @@
 # Update History
 
-## v5.3.6-2
+## v5.3.7
+
+*Date: 2021/11/20*  
+Feature Update:  
+Visualized user data  
+
+## v5.3.7
 
 *Date: 2021/11/19*  
 Bug Fixes:

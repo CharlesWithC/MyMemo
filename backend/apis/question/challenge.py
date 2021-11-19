@@ -205,7 +205,7 @@ def apiUpdateChallengeRecord():
         if s[i] >= 2:
             cur.execute(f"SELECT * FROM MyMemorized WHERE userId = {userId} AND questionId = {questionId}")
             if len(cur.fetchall()) == 0:
-                cur.execute(f"INSERT INTO MyMemorized VALUES ({userId}, {questionId})")
+                cur.execute(f"INSERT INTO MyMemorized VALUES ({userId}, {questionId}, {int(time.time())})")
 
                 cur.execute(f"SELECT bookId FROM BookData WHERE userId = {userId} AND questionId = {questionId}")
                 books = cur.fetchall()

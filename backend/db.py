@@ -125,7 +125,7 @@ if doinit:
     # EXAMPLE: Book 1 has questionId 1,2 and Book 2 has questionId 3
     # question and answer are encoded with base64 to prevent datalose
     # status is a status code while 1 refers to Default, 2 refers to Tagged and 3 refers to removed
-    cur.execute(f"CREATE TABLE MyMemorized (userId INT, questionId INT)")
+    cur.execute(f"CREATE TABLE MyMemorized (userId INT, questionId INT, timestamp INT)")
 
     cur.execute(f"CREATE TABLE Book (userId INT, bookId INT, name VARCHAR(1024))")
     cur.execute(f"CREATE TABLE BookData (userId INT, bookId INT, questionId INT)")

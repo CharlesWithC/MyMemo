@@ -9,10 +9,6 @@ class UserClass {
         this.bio = "";
         this.email = "";
         this.invitationCode = "";
-        this.cnt = 0;
-        this.tagcnt = 0;
-        this.delcnt = 0;
-        this.chcnt = 0;
         this.inviter = -1;
         this.age = 0;
         this.isAdmin = false;
@@ -30,10 +26,6 @@ if (uid != -1 && uid != localStorage.getItem("userId")) {
         success: function (r) {
             user.username = r.username;
             user.bio = r.bio;
-            user.cnt = r.cnt;
-            user.tagcnt = r.tagcnt;
-            user.delcnt = r.delcnt;
-            user.chcnt = r.chcnt;
             user.age = r.age;
             user.isAdmin = r.isAdmin;
 
@@ -49,10 +41,6 @@ if (uid != -1 && uid != localStorage.getItem("userId")) {
             $("#bio-public").html(user.bio);
             $("#userId-public").html(uid);
             $("#age-public").html(user.age);
-            $("#cnt-public").html(user.cnt);
-            $("#tagged-public").html(user.tagcnt);
-            $("#deleted-public").html(user.delcnt);
-            $("#chcnt-public").html(user.chcnt);
         }
     });
 }
@@ -74,10 +62,6 @@ if (uid == -1 || uid == localStorage.getItem("userId")) {
             user.bio = r.bio;
             user.email = r.email;
             user.invitationCode = r.invitationCode;
-            user.cnt = r.cnt;
-            user.tagcnt = r.tagcnt;
-            user.delcnt = r.delcnt;
-            user.chcnt = r.chcnt;
             user.inviter = r.inviter;
             user.age = r.age;
             user.isAdmin = r.isAdmin;
@@ -104,10 +88,6 @@ if (uid == -1 || uid == localStorage.getItem("userId")) {
             $("#email").html(user.email);
             $("#inviteCode").html(user.invitationCode);
             $("#inviteBy").html(user.inviter);
-            $("#cnt").html(user.cnt);
-            $("#tagged").html(user.tagcnt);
-            $("#deleted").html(user.delcnt);
-            $("#chcnt").html(user.chcnt);
 
             if (r.isAdmin) {
                 $("#danger-zone").hide();
@@ -163,6 +143,160 @@ if (uid == -1 || uid == localStorage.getItem("userId")) {
     });
 }
 
+tuid = uid;
+if (tuid == -1) {
+    tuid = localStorage.getItem("userId");
+}
+if (tuid != -1 && tuid != null) {
+    $.ajax({
+        url: "/api/user/chart/" + tuid,
+        method: 'GET',
+        async: true,
+        dataType: "json",
+        success: function (r) {
+            x = ['x'];
+            Memorized = ['Memorized'];
+            Forgotten = ['Forgotten'];
+            for (var i = r.challenge_history.length - 1; i >= 0; i--) {
+                Memorized.push(r.challenge_history[i].memorized);
+                Forgotten.push(r.challenge_history[i].forgotten);
+                var date = new Date(Date.now() - 86400 * i * 1000);
+                x.push((date.getMonth() + 1) + "-" + date.getDate());
+            }
+            c3.generate({
+                bindto: "#chart1",
+                data: {
+                    x: 'x',
+                    columns: [x, Memorized, Forgotten],
+                    groups: [
+                        ['Memorized', 'Forgotten']
+                    ],
+                    colors: {
+                        Memorized: 'green',
+                        Forgotten: 'red'
+                    },
+                    types: {
+                        Memorized: 'bar',
+                        Forgotten: 'bar'
+                    }
+                },
+                bar: {
+                    width: {
+                        ratio: 0.3
+                    }
+                },
+                axis: {
+                    x: {
+                        type: 'category',
+                        tick: {
+                            rotate: -45,
+                            multiline: false
+                        },
+                        height: 50
+                    },
+                    y: {
+                        label: {
+                            text: 'Daily Challenge Record',
+                            position: 'outer-middle'
+                        }
+                    }
+                }
+            });
+
+            Total = ['Total'];
+            for (var i = r.total_memorized_history.length - 1; i >= 0; i--) {
+                Total.push(r.total_memorized_history[i].total);
+            }
+            c3.generate({
+                bindto: "#chart2",
+                data: {
+                    x: 'x',
+                    columns: [x, Total],
+                    colors: {
+                        Total: 'blue',
+                    },
+                    types: {
+                        Total: 'area',
+                    }
+                },
+                axis: {
+                    x: {
+                        type: 'category',
+                        tick: {
+                            rotate: -45,
+                            multiline: false
+                        },
+                        height: 50
+                    },
+                    y: {
+                        label: {
+                            text: 'Total Memorized',
+                            position: 'outer-middle'
+                        }
+                    }
+                }
+            });
+            
+            c3.generate({
+                bindto: "#chart3",
+                data: {
+                    columns: [
+                        ['Memorized', r.total_memorized / r.total],
+                        ['Not Memorized', (r.total - r.total_memorized) / r.total]
+                    ],
+                    type: 'pie',
+                    colors: {
+                        'Memorized': 'green',
+                        'Not Memorized': 'red',
+                    },
+                    onclick: function (d, i) {
+                        console.log("onclick", d, i);
+                    },
+                    onmouseover: function (d, i) {
+                        console.log("onmouseover", d, i);
+                    },
+                    onmouseout: function (d, i) {
+                        console.log("onmouseout", d, i);
+                    }
+                }
+            });
+            
+            c3.generate({
+                bindto: "#chart4",
+                data: {
+                    columns: [
+                        ['Default', (r.total - r.tag_cnt - r.del_cnt) / r.total],
+                        ['Tagged', r.tag_cnt / r.total],
+                        ['Deleted', r.del_cnt / r.total],
+                    ],
+                    type: 'pie',
+                    colors: {
+                        Default: 'blue',
+                        Tagged: 'yellow',
+                        Deleted: 'gray',
+                    },
+                    onclick: function (d, i) {
+                        console.log("onclick", d, i);
+                    },
+                    onmouseover: function (d, i) {
+                        console.log("onmouseover", d, i);
+                    },
+                    onmouseout: function (d, i) {
+                        console.log("onmouseout", d, i);
+                    }
+                }
+            });
+
+            $("text").css("font-family", "Comic Sans MS");
+            if (localStorage.getItem("settings-theme") == "dark") {
+                $("#charts").css("background-color", "#cccccc");
+            }
+        },
+        error: function (r, textStatus, errorThrown) {
+            $(".chart").hide();
+        }
+    });
+}
 
 function Login() {
     username = $("#input-username").val();
@@ -206,10 +340,6 @@ function Login() {
                         user.bio = r.bio;
                         user.email = r.email;
                         user.invitationCode = r.invitationCode;
-                        user.cnt = r.cnt;
-                        user.tagcnt = r.tagcnt;
-                        user.delcnt = r.delcnt;
-                        user.chcnt = r.chcnt;
                         user.inviter = r.inviter;
                         user.age = r.age;
                         user.isAdmin = r.isAdmin;
