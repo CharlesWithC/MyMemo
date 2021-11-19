@@ -94,6 +94,11 @@ def apiRegister():
             userId = t[0][0]
         cur.execute(f"UPDATE IDInfo SET nextId = {userId + 1} WHERE type = 1")
 
+        if len(username) > 500:
+            return json.dumps({"success": False, "msg": "Username too long!"})
+        if len(email) > 128:
+            return json.dumps({"success": False, "msg": "Email too long!"})
+
         cur.execute(f"INSERT INTO UserInfo VALUES ({userId}, '{username}', '', '{email}', '{encode(password)}', {inviter}, '{inviteCode}')")
         conn.commit()
     except:
@@ -139,19 +144,20 @@ def apiLogin():
             if defaultemail == "disabled":
                 return json.dumps({"success": False, "msg": "Default user has been disabled!"})
 
+    ip = encode(request.headers['CF-Connecting-Ip'])
 
-    if sessions.getPasswordTrialCount(userId)[0] >= 5 and int(time.time()) - sessions.getPasswordTrialCount(userId)[1] <= 300:
+    if sessions.getPasswordTrialCount(userId, ip)[0] >= 5 and int(time.time()) - sessions.getPasswordTrialCount(userId, ip)[1] <= 600:
         return json.dumps({"success": False, "msg": "Too many attempts! Try again later..."})
 
     if not checkpwd(password,decode(d[1])):
-        if sessions.getPasswordTrialCount(userId)[0] >= 5:
-            sessions.updatePasswordTrialCount(userId, 3, time.time())
+        if sessions.getPasswordTrialCount(userId, ip)[0] >= 5:
+            sessions.updatePasswordTrialCount(userId, 3, time.time(), ip)
         else:
-            sessions.updatePasswordTrialCount(userId, sessions.getPasswordTrialCount(userId)[0] + 1, time.time())
+            sessions.updatePasswordTrialCount(userId, sessions.getPasswordTrialCount(userId, ip)[0] + 1, time.time(), ip)
             
         return json.dumps({"success": False, "msg": "Invalid password!"})
     
-    sessions.updatePasswordTrialCount(userId, 0, 0)
+    sessions.updatePasswordTrialCount(userId, 0, 0, ip)
 
     cur.execute(f"SELECT * FROM RequestRecoverAccount WHERE userId = {userId}")
     t = cur.fetchall()
@@ -311,7 +317,7 @@ def apiGetUserInfo():
     cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {userId}")
     t = cur.fetchall()
     if len(t) > 0:
-        username = f"<a href='/user?userId={userId}'>{username} <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span></a>"
+        username = f"<a href='/user?userId={userId}'><span style='color:{t[0][1]}'>{username}</span> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span></a>"
 
     return json.dumps({"username": username, "bio": d[4], "email": d[1], "invitationCode": d[2], "inviter": inviter, "cnt": cnt, "tagcnt": tagcnt, "delcnt": delcnt, "chcnt": chcnt, "age": age, "isAdmin": isAdmin})
 
@@ -366,7 +372,7 @@ def apiGetUserPublicInfo(uid):
     cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {uid}")
     t = cur.fetchall()
     if len(t) > 0:
-        username = f"<a href='/user?userId={uid}'>{username} <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span></a>"
+        username = f"<a href='/user?userId={uid}'><span style='color:{t[0][1]}'>{username}</span> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span></a>"
 
     return json.dumps({"username": username, "bio": bio, "cnt": cnt, "tagcnt": tagcnt, "delcnt": delcnt, "chcnt": chcnt, "age": age, "isAdmin": isAdmin})   
 
@@ -425,6 +431,13 @@ def apiUpdateInfo():
     if len(cur.fetchall()) != 0:
         return json.dumps({"success": False, "msg": "Username occupied!"})
     
+    if len(encode(username)) > 500:
+        return json.dumps({"success": False, "msg": "Username too long!"})
+    if len(encode(bio)) > 1000:
+        return json.dumps({"success": False, "msg": "Bio too long!"})
+    if len(encode(email)) > 100:
+        return json.dumps({"success": False, "msg": "Email too long!"})
+
     cur.execute(f"UPDATE UserInfo SET username = '{username}' WHERE userId = {userId}")
     cur.execute(f"UPDATE UserInfo SET bio = '{bio}' WHERE userId = {userId}")
     cur.execute(f"UPDATE UserInfo SET email = '{email}' WHERE userId = {userId}")

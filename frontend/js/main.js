@@ -41,8 +41,6 @@ class SettingsClass {
 }
 
 var ccCorrect = -1;
-var ccDisplayAnswer = false;
-var ccSelected = -1;
 memo = new MemoClass();
 memo.questionId = parseInt(lsGetItem("memo-question-id", 0));
 memo.bookId = parseInt(lsGetItem("memo-book-id", 0));
@@ -57,6 +55,9 @@ settings.mode = parseInt(lsGetItem("settings-mode", 0));
 settings.autoPlay = parseInt(lsGetItem("settings-auto-play", 0));
 settings.apinterval = -1;
 settings.firstuse = parseInt(lsGetItem("first-use", 1));
+
+var ccCorrectAudio = new Audio('/audio/correct.mp3');
+var ccWrongAudio = new Audio('/audio/wrong.mp3');
 
 function MapQuestionList() {
     memo.questionListMap = new Map();
@@ -148,29 +149,6 @@ function PageInit() {
         UpdateSelectedQuestionList();
         $("#book-name").html(memo.bookName);
     }
-
-    if (localStorage.getItem("username") != null) {
-        username = localStorage.getItem("username");
-        $("#navusername").html(username);
-    }
-    $.ajax({
-        url: "/api/user/info",
-        method: 'POST',
-        async: true,
-        dataType: "json",
-        data: {
-            userId: localStorage.getItem("userId"),
-            token: localStorage.getItem("token")
-        },
-        success: function (r) {
-            $("#navusername").html(r.username);
-            localStorage.setItem("username", r.username);
-        },
-        error: function (r, textStatus, errorThrown) {
-            $("#navusername").html("Sign in");
-            localStorage.setItem("username", "");
-        }
-    });
 
     $.ajax({
         url: "/api/book/questionList",
@@ -527,7 +505,6 @@ function MemoStart() {
         $("#qa2").show();
         $("#qa1").hide();
         $(".challenge-choice-continue").hide();
-        $("#challenge-choice-msg").html('');
         $.ajax({
             url: '/api/question/challenge/next',
             method: 'POST',
@@ -572,20 +549,13 @@ function MemoStart() {
                     $("#cc-question").val(memo.answer);
                 }
 
-                table = $("#choiceList").DataTable();
-                table.clear();
-                l = ['A', 'B', 'C', 'D']
                 for (var i = 0; i < choices.length; i++) {
                     r = choices[i].answer;
                     if (settings.swap == 1) {
                         r = choices[i].question;
                     }
-                    table.row.add([
-                        [l[i]],
-                        [r]
-                    ]).node().id = "choice-" + i;
+                    $("#choice-" + i).html(r);
                 }
-                table.draw();
 
                 ShowQuestion();
             },
@@ -816,11 +786,15 @@ function MemoChallenge(res) {
     }
 }
 
+var ccAnswered = false;
+
 function ChallengeChoice(choiceid) {
-    ccDisplayAnswer = true;
-    ccSelected = choiceid;
-    if (choiceid == -1) {
-        $("#challenge-choice-msg").html('');
+    $(".choice").css("background", "red");
+    $("#div-choice-" + ccCorrect).css("background", "green");
+    $("#choice-circle-" + choiceid).css("background", "#333333");
+
+    if (choiceid == -1 || ccAnswered) {
+        ccAnswered = false;
         $(".challenge-choice-continue").hide();
         $.ajax({
             url: '/api/question/challenge/next',
@@ -834,8 +808,6 @@ function ChallengeChoice(choiceid) {
                 token: localStorage.getItem("token")
             },
             success: function (r) {
-                ccDisplayAnswer = false;
-
                 memo.questionId = r.questionId;
                 memo.question = r.question;
                 memo.answer = r.answer;
@@ -868,20 +840,16 @@ function ChallengeChoice(choiceid) {
                     $("#cc-question").val(memo.answer);
                 }
 
-                table = $("#choiceList").DataTable();
-                table.clear();
-                l = ['A', 'B', 'C', 'D']
                 for (var i = 0; i < choices.length; i++) {
                     r = choices[i].answer;
                     if (settings.swap == 1) {
                         r = choices[i].question;
                     }
-                    table.row.add([
-                        [l[i]],
-                        [r]
-                    ]).node().id = "choice-" + i;
+                    $("#choice-" + i).html(r);
                 }
-                table.draw();
+
+                $(".choice").css("background", "transparent");
+                $(".choice-circle").css("background", "#dddddd");
 
                 ShowQuestion();
             },
@@ -893,28 +861,33 @@ function ChallengeChoice(choiceid) {
                 }
             }
         });
-    } else if (choiceid == ccCorrect) {
-        $("#challenge-choice-msg").html('Correct! <i class="fa fa-check"></i>');
-        $("#challenge-choice-msg").css('color','green');
-        $(".challenge-choice-continue").hide();
-        setTimeout(function () {
-            $.ajax({
-                url: '/api/question/challenge/update',
-                method: 'POST',
-                async: true,
-                dataType: "json",
-                data: {
-                    questionId: memo.questionId,
-                    memorized: 1,
-                    getNext: 1,
-                    mixcnt: 3,
-                    bookId: memo.bookId,
-                    userId: localStorage.getItem("userId"),
-                    token: localStorage.getItem("token")
-                },
-                success: function (r) {
-                    ccDisplayAnswer = false;
+        return;
+    }
 
+    ccAnswered = true;
+
+    if (choiceid == ccCorrect) {
+        ccCorrectAudio.pause();
+        ccCorrectAudio.currentTime = 0;
+        ccCorrectAudio.play();
+        $(".challenge-choice-continue").hide();
+        $.ajax({
+            url: '/api/question/challenge/update',
+            method: 'POST',
+            async: true,
+            dataType: "json",
+            data: {
+                questionId: memo.questionId,
+                memorized: 1,
+                getNext: 1,
+                mixcnt: 3,
+                bookId: memo.bookId,
+                userId: localStorage.getItem("userId"),
+                token: localStorage.getItem("token")
+            },
+            success: function (r) {
+                setTimeout(function () {
+                    ccAnswered = false;
                     memo.questionId = r.questionId;
                     memo.question = r.question;
                     memo.answer = r.answer;
@@ -947,36 +920,31 @@ function ChallengeChoice(choiceid) {
                         $("#cc-question").val(memo.answer);
                     }
 
-                    table = $("#choiceList").DataTable();
-                    table.clear();
-                    l = ['A', 'B', 'C', 'D']
                     for (var i = 0; i < choices.length; i++) {
                         r = choices[i].answer;
                         if (settings.swap == 1) {
                             r = choices[i].question;
                         }
-                        table.row.add([
-                            [l[i]],
-                            [r]
-                        ]).node().id = "choice-" + i;
+                        $("#choice-" + i).html(r);
                     }
-                    table.draw();
 
-                    $("#challenge-choice-msg").html('');
+                    $(".choice").css("background", "transparent");
+                    $(".choice-circle").css("background", "#dddddd");
                     ShowQuestion();
-                },
-                error: function (r, textStatus, errorThrown) {
-                    if (r.status == 401) {
-                        SessionExpired();
-                    } else {
-                        NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-                    }
+                }, 500);
+            },
+            error: function (r, textStatus, errorThrown) {
+                if (r.status == 401) {
+                    SessionExpired();
+                } else {
+                    NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
                 }
-            });
-        }, 500);
+            }
+        });
     } else {
-        $("#challenge-choice-msg").html('Wrong! <i class="fa fa-times"></i>');
-        $("#challenge-choice-msg").css('color','red');
+        ccWrongAudio.pause();
+        ccWrongAudio.currentTime = 0;
+        ccWrongAudio.play();
         $(".challenge-choice-continue").show();
         $.ajax({
             url: '/api/question/challenge/update',

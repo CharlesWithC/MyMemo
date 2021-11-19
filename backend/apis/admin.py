@@ -94,6 +94,7 @@ def apiAdminUserList():
     d = cur.fetchall()
     users = []
     for dd in d:
+        dd = list(dd)
         dd[1] = decode(dd[1])
 
         status = "Active"
@@ -222,6 +223,9 @@ def apiAdminCommand():
                 uid = t[0][0]
             cur.execute(f"UPDATE IDInfo SET nextId = {uid + 1} WHERE type = 1")
 
+            if len(username) > 500:
+                return json.dumps({"success": False, "msg": "Username too long!"})
+
             cur.execute(f"INSERT INTO UserInfo VALUES ({uid}, '{username}', '', '{email}', '{encode(password)}', {inviter}, '{inviteCode}')")
             conn.commit()
         except:
@@ -335,6 +339,8 @@ def apiAdminCommand():
         cur.execute(f"SELECT * FROM UserNameTag WHERE userId = {uid}")
         t = cur.fetchall()
         if len(t) == 0:
+            if len(tag) > 45:
+                return json.dumps({"success": False, "msg": "Tag too long!"})
             cur.execute(f"INSERT INTO UserNameTag VALUES ({uid}, '{tag}', '{tagtype}')")
         else:
             cur.execute(f"UPDATE UserNameTag SET tag = '{tag}' WHERE userId = {uid}")

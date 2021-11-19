@@ -38,10 +38,15 @@
             $("#questionList_filter").attr("id", "qqf");
             $("#qf").attr("id", "questionList_filter");
             $("#qqf").remove();
-            setInterval(function(){$("#questionList").css("width","");},100);
+            setInterval(function () {
+                $("#questionList").css("width", "");
+            }, 100);
 
             if (localStorage.getItem("settings-theme") == "dark") {
-                $("body").attr("style", "color:#ffffff;background-color:#333333");setInterval(function(){$("#content a,.container a").css("color","#dddddd");},500);
+                $("body").attr("style", "color:#ffffff;background-color:#333333");
+                setInterval(function () {
+                    $("#content a,.container a").css("color", "#dddddd");
+                }, 500);
                 $("hr").attr("style", "background-color:#cccccc;");
                 $("textarea").attr("style", "color:#ffffff;background-color:#333333");
                 $(".modal-content").attr("style", "background-color:#333333");
@@ -94,8 +99,8 @@
                 $("#manage").css("background-color", "#eeeeee");
                 $("#manage").css("border", "0.05em solid #222222");
 
-                $("tr").css("backgroun-color","#eeeeee");
-                
+                $("tr").css("backgroun-color", "#eeeeee");
+
                 setInterval(function () {
                     $("#questionList tr").each(function () {
                         found = false;
@@ -216,8 +221,8 @@
 
 <body>
     <h1 class="title" style="padding-bottom: 0;">My Memo&nbsp;&nbsp;<button type="button"
-            class="btn btn-outline-secondary" onclick="UpdateBookContentList()"><i
-                class="fa fa-refresh"></i></button></h1>
+            class="btn btn-outline-secondary" onclick="UpdateBookContentList()"><i class="fa fa-refresh"></i></button>
+    </h1>
 
     <div id="navigate" style="z-index:100">
         <div class="leftside">
@@ -235,7 +240,7 @@
         <div class="userctrl">
             <a href='/user'><i class="fa fa-user"></i> <span id="navusername">Sign in</span></a>
             <a href='#' onclick="window.location.href='/settings'"><i class="fa fa-cogs"></i></a>
-            <a href='#' onclick="SignOut()"><i class="fa fa-sign-out"></i></a>
+            <a id="sign-out-btn" href='#' onclick="SignOut()" style="display:none"><i class="fa fa-sign-out"></i></a>
         </div>
     </div>
 
@@ -257,7 +262,8 @@
                     <span class="input-group-text" id="basic-addon1">Name</span>
                     <input type="text" class="form-control" id="create-book-name" aria-describedby="basic-addon1">
                     <div class="input-group-append">
-                        <button class="btn btn-outline-primary" type="button" onclick="CreateBook('#create-book-name')">Create</button>
+                        <button class="btn btn-outline-primary" type="button"
+                            onclick="CreateBook('#create-book-name')">Create</button>
                     </div>
                 </div>
             </div>
@@ -271,9 +277,11 @@
                     <p>Create Book: </p>
                     <div class="input-group mb-3 w-75">
                         <span class="input-group-text" id="basic-addon1">Name</span>
-                        <input type="text" class="form-control" id="create-book-name-content" aria-describedby="basic-addon1">
+                        <input type="text" class="form-control" id="create-book-name-content"
+                            aria-describedby="basic-addon1">
                         <div class="input-group-append">
-                            <button class="btn btn-outline-primary" type="button" onclick="CreateBook('#create-book-name-content')">Create</button>
+                            <button class="btn btn-outline-primary" type="button"
+                                onclick="CreateBook('#create-book-name-content')">Create</button>
                         </div>
                     </div>
                 </div>
@@ -320,8 +328,8 @@
                             question</button>
                         <br>
                         <h5><i class="fa fa-minus"></i> Remove Question</h5>
-                        <button type="button" class="btn btn-warning not-for-all-questions"
-                            onclick="RemoveFromBook()" style="display:none">Remove
+                        <button type="button" class="btn btn-warning not-for-all-questions" onclick="RemoveFromBook()"
+                            style="display:none">Remove
                             from book</button>
                         <button type="button" class="btn btn-danger" onclick="RemoveQuestionShow()">Remove from
                             database</button>
@@ -338,8 +346,8 @@
                             class="fa fa-copy"></i></button>
                     <button type="button" class="btn btn-primary not-for-all-questions only-group-owner-if-group-exist"
                         onclick="BookRenameShow()">Rename <i class="fa fa-edit"></i></button>
-                    <button type="button" class="btn btn-danger not-for-all-questions"
-                        onclick="BookDeleteShow()">Delete <i class="fa fa-trash"></i></button>
+                    <button type="button" class="btn btn-danger not-for-all-questions" onclick="BookDeleteShow()">Delete
+                        <i class="fa fa-trash"></i></button>
                     <hr>
                 </div>
                 <div>
@@ -364,8 +372,8 @@
 
                     <button type="button" class="btn btn-primary only-group-exist" onclick="GroupMember()">Member <i
                             class="fa fa-list"></i></button>
-                    <button type="button" class="btn btn-warning only-group-exist"
-                        onclick="QuitGroupShow()">Quit <i class="fa fa-sign-out"></i></button>
+                    <button type="button" class="btn btn-warning only-group-exist" onclick="QuitGroupShow()">Quit <i
+                            class="fa fa-sign-out"></i></button>
                     <br>
                     <button type="button" class="btn btn-primary group-published-to-discovery" onclick=""
                         id="group-go-to-discovery-btn" style="display:none">Check on Discovery <i
@@ -724,6 +732,30 @@
         </div>
     </div>
 
+    <div class="modal fade" id="statisticsModal" tabindex="-1" role="dialog" aria-labelledby="statisticsModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="statisticsModalLabel">Statistics of <span
+                            id="statisticsQuestion"></span>
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                        onclick="$('#statisticsModal').modal('hide')">
+                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p><span id="statisticsDetail"></span></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                        onclick="$('#statisticsModal').modal('hide')">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="quitGroupModal" tabindex="-1" role="dialog" aria-labelledby="quitGroupModalLabel"
         aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -791,7 +823,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.5 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.6 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

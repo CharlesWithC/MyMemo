@@ -28,50 +28,6 @@
             PageInit();
             UpdateBookDisplay();
 
-            ccDisplayAnswer = false;
-            $('#choiceList').DataTable();
-            $("#choiceList > thead").hide();
-            $("#choiceList_length").remove();
-            $("#choiceList_filter").remove();
-            $("#choiceList_info").remove();
-            $("#choiceList_paginate").remove();
-            var tableUpdated = false;
-            setInterval(function () {
-                $("#choiceList").css("width", "");
-                if (ccDisplayAnswer) {
-                    for (var i = 0; i < 4; i++) {
-                        if (i != ccCorrect) {
-                            if (!tableUpdated) {
-                                $("#choice-" + i + " > td:last-child").append(
-                                    "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class='fa fa-times'></i>");
-                                if (i == ccSelected) {
-                                    $("#choice-" + i + " > td:last-child").append(" (Selected)");
-                                }
-                            }
-                            $("#choice-" + i).css("background-color", "red");
-                        } else {
-                            if (!tableUpdated) {
-                                $("#choice-" + i + " > td:last-child").append(
-                                    "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class='fa fa-check'></i>");
-                                if (i == ccSelected) {
-                                    $("#choice-" + i + " > td:last-child").append(" (Selected)");
-                                }
-                            }
-                            $("#choice-" + ccCorrect).css("background-color", "green");
-                        }
-                    }
-                    tableUpdated = true;
-                } else {
-                    tableUpdated = false;
-                    if (localStorage.getItem("settings-theme") == "dark") {
-                        $("tr").attr("style", "color:#ffffff;background-color:#333333");
-                    } else if (localStorage.getItem("settings-theme") == "light") {
-                        $("tr").attr("style", "color:#000000;background-color:#ffffff");
-                    }
-                }
-            }, 10);
-
-
             $("#content,#answer").click(function () {
                 DisplayAnswer();
             });
@@ -100,17 +56,13 @@
                 $("#content").hover(function () {
                     $("#book-div").fadeOut();
                 });
-                $('#choiceList tbody').on('click', 'tr', function () {
-                    if (ccDisplayAnswer) {
-                        return;
-                    }
-                    wid = $(this).attr("id")[$(this).attr("id").indexOf('-') + 1];
-                    ChallengeChoice(wid);
-                });
             }
 
             if (localStorage.getItem("settings-theme") == "dark") {
-                $("body").attr("style", "color:#ffffff;background-color:#333333");setInterval(function(){$("#content a,.container a").css("color","#dddddd");},500);
+                $("body").attr("style", "color:#ffffff;background-color:#333333");
+                setInterval(function () {
+                    $("#content a,.container a").css("color", "#dddddd");
+                }, 500);
                 $("hr").attr("style", "background-color:#cccccc;");
                 $(".modal-content").attr("style", "background-color:#333333");
                 $(".fa-times").attr("style", "color:white");
@@ -149,7 +101,7 @@
         <div class="userctrl">
             <a href='/user'><i class="fa fa-user"></i> <span id="navusername">Sign in</span></a>
             <a href='#' onclick="window.location.href='/settings'"><i class="fa fa-cogs"></i></a>
-            <a href='#' onclick="SignOut()"><i class="fa fa-sign-out"></i></a>
+            <a id="sign-out-btn" href='#' onclick="SignOut()" style="display:none"><i class="fa fa-sign-out"></i></a>
         </div>
     </div>
 
@@ -221,20 +173,28 @@
                 <textarea class="form-control answer center" id="answer" style="z-index:100" readonly=true></textarea>
             </div>
 
-            <div class="center" id="qa2" style="display:none;margin-bottom:1em">
+            <div class="center" id="qa2" style="display:none">
                 <textarea class="form-control question center" id="cc-question"
-                    style="z-index:100;height:4em;margin-bottom:1em" readonly=true></textarea>
-                <table class="table" id="choiceList" style="text-align:center">
-                    <thead>
-                        <th id="choice-key"></th>
-                        <th id="choice-description"></th>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
+                    style="z-index:100;height:3em;margin-bottom:0.5em" readonly=true></textarea>
+                <div id="div-choice-0" class="choice" onclick="ChallengeChoice(0);">
+                    <div id="choice-circle-0" class="choice-circle"></div>
+                    <span id="choice-0"></span>
+                </div>
+                <div id="div-choice-1" class="choice" onclick="ChallengeChoice(1);">
+                    <div id="choice-circle-1" class="choice-circle"></div>
+                    <span id="choice-1"></span>
+                </div>
+                <div id="div-choice-2" class="choice" onclick="ChallengeChoice(2);">
+                    <div id="choice-circle-2" class="choice-circle"></div>
+                    <span id="choice-2"></span>
+                </div>
+                <div id="div-choice-3" class="choice" onclick="ChallengeChoice(3);">
+                    <div id="choice-circle-3" class="choice-circle"></div>
+                    <span id="choice-3"></span>
+                </div>
             </div>
 
-            <div id="practice-control" class="control center" style="display:none;padding-top:2em;z-index:100">
+            <div id="practice-control" class="control center" style="display:none;z-index:100">
                 <button type="button" class="btn btn-primary control-btn control-btn-left control-btn-top memo-tag"
                     onclick="MemoTag()">Tag <i class='fa fa-star'></i></button>
                 <button type="button" class="btn btn-primary control-btn control-btn-right control-btn-top memo-delete"
@@ -247,7 +207,7 @@
                     onclick="MemoMove('next')">Next <i class="fa fa-arrow-circle-right"></i></button>
             </div>
 
-            <div id="challenge-yesno-control" class="control center" style="display:none;padding-top:1em;z-index:100">
+            <div id="challenge-yesno-control" class="control center" style="display:none;z-index:100">
                 <p style="padding-bottom:1em"><span id="challenge-msg">Do you remember it?</span></p>
                 <button type="button"
                     class="btn btn-primary control-btn control-btn-left control-btn-top memo-challenge-yes"
@@ -263,7 +223,6 @@
             </div>
 
             <div id="challenge-choice-control" class="control center" style="display:none;padding-top:1em;z-index:100">
-                <p style="padding-bottom:1em"><span id="challenge-choice-msg"></span></p>
                 <button type="button" id="challenge-choice-continue"
                     class="btn btn-primary control-btn control-btn-left control-btn-top challenge-choice-continue"
                     onclick="ChallengeChoice(-1)">Continue <i class='fa fa-arrow-circle-right'></i></button>
@@ -346,7 +305,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.5 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.6 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

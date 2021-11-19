@@ -102,7 +102,7 @@
                     if (pressedbtn.indexOf(discoveryId) == -1 && window.location.href.indexOf("user") == -1) {
                         window.location.href = "/discovery?discoveryId=" + discoveryId;
                     }
-                }, 500);
+                }, 100);
             });
             $("#book-btn").hover(function () {
                 ShowBook();
@@ -147,7 +147,7 @@
         <div class="userctrl">
             <a href='/user'><i class="fa fa-user"></i> <span id="navusername">Sign in</span></a>
             <a href='#' onclick="window.location.href='/settings'"><i class="fa fa-cogs"></i></a>
-            <a href='#' onclick="SignOut()"><i class="fa fa-sign-out"></i></a>
+            <a id="sign-out-btn" href='#' onclick="SignOut()" style="display:none"><i class="fa fa-sign-out"></i></a>
         </div>
     </div>
 
@@ -178,7 +178,10 @@
 
     <div id="content" class="container">
         <div class="discovery-list container">
-            <div style="position:relative;width:100%">
+            <div id="top-post" style="position:relative;display:none;z-index:100">
+                <h2 id="top-post-h2">Top Post</h2>
+            </div>
+            <div style="position:relative">
                 <table class="table" id="discoveryList" style="text-align:center">
                     <thead>
                         <tr>
@@ -216,7 +219,7 @@
             <div id="manage" class="manage" style="position:relative;width:35%;float:right">
                 <div id="basic-info">
                     <p>Description: <span id="detail-description"></span></p>
-                    <p>Published by @<span id="detail-publisher"></span></p>
+                    <p>Published by <span id="detail-publisher"></span></p>
                     <p style="font-size:0.8em"><span id="detail-views">0</span> Views | <span id="detail-likes">0</span>
                         Likes | <span id="detail-imports"></span> <span id="detail-imports-name"></span></p>
                     <p>*The publisher reserves all rights of this post.</p>
@@ -283,7 +286,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.5 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.6 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

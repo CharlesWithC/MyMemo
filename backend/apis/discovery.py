@@ -37,6 +37,19 @@ def apiDiscovery():
     d = cur.fetchall()
     dis = []
     for dd in d:
+        if dd[4] == 1:
+            cur.execute(f"SELECT shareCode FROM BookShare WHERE bookId = {dd[5]}")
+            if len(cur.fetchall()) == 0:
+                continue
+        elif dd[4] == 2:
+            cur.execute(f"SELECT groupCode FROM GroupInfo WHERE groupId = {dd[5]}")
+            p = cur.fetchall()
+            if len(p) > 0:
+                if p[0][0] == '' or p[0][0] == '@pvtgroup':
+                    continue
+            else:
+                continue
+
         publisher = "Unknown User"
         cur.execute(f"SELECT username FROM UserInfo WHERE userId = {dd[3]}")
         t = cur.fetchall()
@@ -81,7 +94,7 @@ def apiDiscovery():
         cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {dd[3]}")
         t = cur.fetchall()
         if len(t) > 0:
-            publisher = f"<a href='/user?userId={dd[3]}'>{publisher}<span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span></a>"
+            publisher = f"<a href='/user?userId={dd[3]}'><span style='color:{t[0][1]}'>{publisher}</span> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span></a>"
 
         dis.append({"discoveryId": dd[0], "title": decode(dd[1]), "description": decode(dd[2]), \
             "publisher": publisher, "type": dd[4], "views": views, "likes": likes, "imports": imports, "pinned": pinned})
@@ -246,7 +259,7 @@ def apiDiscoveryData(discoveryId):
     cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {uid}")
     t = cur.fetchall()
     if len(t) > 0:
-        publisher = f"<a href='/user?userId={uid}'>{publisher} <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span></a>"
+        publisher = f"<a href='/user?userId={uid}'><span style='color:{t[0][1]}'>{publisher}</span> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span></a>"
 
     return json.dumps({"title": title, "description": description, "questions": questions, \
         "shareCode": shareCode, "type": distype, "publisher": publisher, "isPublisher": isPublisher, \
@@ -312,6 +325,11 @@ def apiDiscoveryPublish():
         discoveryId = t[0][0]
     cur.execute(f"UPDATE IDInfo SET nextId = {discoveryId + 1} WHERE type = 6")
     
+    if len(title) > 1000:
+        return json.dumps({"success": False, "msg": "Title too long!"})
+    if len(description) > 1000:
+        return json.dumps({"success": False, "msg": "Description too long!"})
+
     cur.execute(f"INSERT INTO Discovery VALUES ({discoveryId}, {userId}, {bookId}, '{title}', '{description}', {distype})")
     conn.commit()
 
@@ -384,6 +402,11 @@ def apiDiscoveryUpdate():
             publisherId = t[0][0]
         if publisherId != userId:
             return json.dumps({"success": False, "msg": "You are not the publisher of this post!"})
+
+    if len(title) > 1000:
+        return json.dumps({"success": False, "msg": "Title too long!"})
+    if len(description) > 1000:
+        return json.dumps({"success": False, "msg": "Description too long!"})
 
     cur.execute(f"UPDATE Discovery SET title = '{title}' WHERE discoveryId = {discoveryId}")
     cur.execute(f"UPDATE Discovery SET description = '{description}' WHERE discoveryId = {discoveryId}")

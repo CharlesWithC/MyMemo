@@ -130,11 +130,11 @@ def logoutAll(userId):
         global errcnt
         errcnt += 1
 
-def getPasswordTrialCount(userId):
+def getPasswordTrialCount(userId, ip):
     try:
         updateconn()
         cur = conn.cursor()
-        cur.execute(f"SELECT count, lastts FROM PasswordTrial WHERE userId = {userId}")
+        cur.execute(f"SELECT count, lastts FROM PasswordTrial WHERE userId = {userId} AND ip = '{ip}'")
         t = cur.fetchall()
         if len(t) == 0:
             return (0, 0)

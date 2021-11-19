@@ -12,10 +12,6 @@ body {
     font-size: 1.1em;
 }
 
-div {
-    overflow: hidden
-}
-
 .top-left {
     position: absolute;
     top: 1em;
@@ -51,6 +47,7 @@ div {
     margin-top: 1em;
     margin-bottom: 2em;
     padding: 2em;
+    padding-top: 0.5em;
     min-height: 105%;
     width: 120%;
     z-index: 200;
@@ -143,14 +140,14 @@ a:hover {
 
 .question {
     font-size: 1.875em;
-    height: 1.875em;
+    height: 2em;
     border: none;
     resize: none;
 }
 
 .answer {
     font-size: 1.25em;
-    height: 10em;
+    height: 8em;
     border: none;
     resize: none;
 }
@@ -251,7 +248,7 @@ a:hover {
     border-bottom-right-radius: 0.5em;
 }
 
-.session {
+.rect {
     margin: 0.5em;
     width: 90%;
     border: 0.05em solid #aaaaaa;
@@ -259,24 +256,43 @@ a:hover {
     box-shadow: none;
 }
 
-.session:hover {
+.rect:hover {
     border: 0.05em solid skyblue;
     box-shadow: 0 0 0.5em skyblue;
 }
 
-.session-title {
+.rect-title {
     font-size: 1.2em;
 }
 
-.session-content {
+.rect-content {
     font-size: 0.8em;
 }
 
 .nametag {
     color: white;
-    font-size: 0.8em;
-    text-shadow: 0.1em 0.1em 0.1em black;
-    padding: 0.2em;
+    font-size: 0.6em;
+    text-shadow: 0.05em 0.05em 0.05em black;
+    padding: 0.3em;
     border-radius: 0.25em;
-    box-shadow: 0.05em 0.05em 0.05em black;
+}
+
+.choice {
+    margin: auto;
+    margin-bottom: 0.5em;
+    padding: 0.4em;
+    text-align: center;
+    width: 60%;
+    border: #aaaaaa solid;
+    border-radius: 0.5em;
+}
+
+.choice-circle {
+    float: left;
+    width: 1em;
+    height: 1em;
+    margin: 0.25em;
+    border: #aaaaaa solid;
+    background: #dddddd solid;
+    border-radius: 100%;
 }

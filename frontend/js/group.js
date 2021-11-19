@@ -156,35 +156,6 @@ function GroupOperation(operation, uid = -1) {
 }
 
 function PageInit() {
-    // Update username
-    if (localStorage.getItem("username") != null && localStorage.getItem("username") != "") {
-        username = localStorage.getItem("username");
-        $("#navusername").html(username);
-    } else {
-        $.ajax({
-            url: "/api/user/info",
-            method: 'POST',
-            async: true,
-            dataType: "json",
-            data: {
-                userId: localStorage.getItem("userId"),
-                token: localStorage.getItem("token")
-            },
-            success: function (r) {
-                if (r.username.length <= 16) {
-                    $("#navusername").html(r.username);
-                } else {
-                    $("#navusername").html("Account");
-                }
-                localStorage.setItem("username", r.username);
-            },
-            error: function (r, textStatus, errorThrown) {
-                $("#navusername").html("Sign in");
-                localStorage.setItem("username", "");
-            }
-        });
-    }
-
     groupId = getUrlParameter("groupId");
     UpdateGroupMember();
 }

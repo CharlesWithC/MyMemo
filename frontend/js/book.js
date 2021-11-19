@@ -205,7 +205,7 @@ function UpdateTable() {
     l = ["", "Default", "Tagged", "Deleted"];
 
     for (var i = 0; i < selectedQuestionList.length; i++) {
-        btns = '';
+        btns = '<button type="button" class="btn btn-primary btn-sm only-group-editor-if-group-exist" onclick="ShowStatistics(' + selectedQuestionList[i].questionId + ')">Statistics</button>';
         btns += '<button type="button" class="btn btn-primary btn-sm only-group-editor-if-group-exist" onclick="EditQuestionShow(' + selectedQuestionList[i].questionId + ')">Edit</button>';
         if (bookId != 0) {
             btns += '<button type="button" class="btn btn-warning btn-sm only-group-editor-if-group-exist" onclick="RemoveFromBook(' + selectedQuestionList[i].questionId + ')">Remove</button>';
@@ -282,41 +282,55 @@ function PageInit() {
     }
     $(".group").hide();
 
-    // Update username
-    if (localStorage.getItem("username") != null && localStorage.getItem("username") != "") {
-        username = localStorage.getItem("username");
-        $("#navusername").html(username);
-    } else {
-        $.ajax({
-            url: "/api/user/info",
-            method: 'POST',
-            async: true,
-            dataType: "json",
-            data: {
-                userId: localStorage.getItem("userId"),
-                token: localStorage.getItem("token")
-            },
-            success: function (r) {
-                if (r.username.length <= 16) {
-                    $("#navusername").html(r.username);
-                } else {
-                    $("#navusername").html("Account");
-                }
-                localStorage.setItem("username", r.username);
-            },
-            error: function (r, textStatus, errorThrown) {
-                $("#navusername").html("Sign in");
-                localStorage.setItem("username", "");
-            }
-        });
-    }
-
     // Use existing questions
     if (questionList.length != 0 && bookId != -1) {
         MapQuestionList();
         SelectQuestions();
         UpdateTable();
     }
+}
+
+function ShowStatistics(wid) {
+    question = "";
+    answer = "";
+    for (var i = 0; i < selectedQuestionList.length; i++) {
+        if (selectedQuestionList[i].questionId == wid) {
+            question = selectedQuestionList[i].question;
+            answer = selectedQuestionList[i].answer;
+            break;
+        }
+    }
+
+    if ($("#statisticsQuestion").text() == question) {
+        $('#statisticsModal').modal('show');
+        return;
+    }
+    $.ajax({
+        url: '/api/question/stat',
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            questionId: questionId,
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            statistics = r.msg.replaceAll("\n", "<br>");
+
+            $("#statisticsQuestion").html(question);
+            $("#statisticsDetail").html(statistics);
+
+            $('#statisticsModal').modal('show');
+        },
+        error: function (r, textStatus, errorThrown) {
+            if (r.status == 401) {
+                SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
+            }
+        }
+    });
 }
 
 var editQuestionId = -1;
@@ -1345,23 +1359,14 @@ function UpdateBookContentDisplay() {
         } else {
             wcnt = book.progress + ' memorized / ' + book.questions.length + ' questions';
         }
-        btn = "";
-        if (book.bookId != localStorage.getItem("memo-book-id")) {
-            btn = '<button type="button" class="btn btn-primary " onclick="SelectBookContent(' + book.bookId + ')">Select</button>';
-        } else {
-            btn = '<button type="button" class="btn btn-secondary">Selected</button>'
-        }
         bname = book.name;
         if (book.groupId != -1) {
             bname = "[Group] " + bname;
         }
 
-        $(".book-list-content").append('<div class="book-content">\
-        <p>' + bname + '</p>\
-        <p>' + wcnt + '</p>\
-        <button type="button" class="btn btn-primary " onclick="OpenBook(' + book.bookId + ')">Open</button>\
-        ' + btn + '\
-        <hr>\
+        $(".book-list-content").append('<div class="rect book-content" style="padding:1em" onclick="OpenBook(' + book.bookId + ')">\
+        <p class="rect-title">' + bname + '</p>\
+        <p class="rect-content">&nbsp;&nbsp;' + wcnt + '</p>\
         </div>');
     }
 }

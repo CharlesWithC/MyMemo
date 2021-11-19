@@ -91,6 +91,11 @@ def apiAddQuestion():
         questionId = d[0][0]
         cur.execute(f"UPDATE IDInfo SET nextId = {questionId + 1} WHERE type = 2 AND userId = {userId}")
 
+    if len(question) > 1000:
+        return json.dumps({"success": False, "msg": "Question too long!"})
+    if len(answer) > 1000:
+        return json.dumps({"success": False, "msg": "Answer too long!"})
+
     cur.execute(f"INSERT INTO QuestionList VALUES ({userId},{questionId},'{question}','{answer}',1)")
     cur.execute(f"INSERT INTO ChallengeData VALUES ({userId},{questionId},0,-1)")
     updateQuestionStatus(userId, questionId, -2) # -2 is website added question
@@ -130,6 +135,11 @@ def apiAddQuestion():
             else:
                 wid = d[0][0]
                 cur.execute(f"UPDATE IDInfo SET nextId = {wid + 1} WHERE type = 2 AND userId = {uid}")
+
+            if len(question) > 1000:
+                return json.dumps({"success": False, "msg": "Question too long!"})
+            if len(answer) > 1000:
+                return json.dumps({"success": False, "msg": "Answer too long!"})
 
             cur.execute(f"INSERT INTO QuestionList VALUES ({uid}, {wid}, '{question}', '{answer}', 1)")
             cur.execute(f"INSERT INTO BookData VALUES ({uid}, {wbid}, {wid})")
@@ -176,6 +186,11 @@ def apiEditQuestion():
     if len(cur.fetchall()) == 0:
         return json.dumps({"success": False, "msg": "Question does not exist!"})
     
+    if len(question) > 1000:
+        return json.dumps({"success": False, "msg": "Question too long!"})
+    if len(answer) > 1000:
+        return json.dumps({"success": False, "msg": "Answer too long!"})
+
     cur.execute(f"UPDATE QuestionList SET question = '{question}' WHERE questionId = {questionId} AND userId = {userId}")
     cur.execute(f"UPDATE QuestionList SET answer = '{answer}' WHERE questionId = {questionId} AND userId = {userId}")
 
@@ -193,6 +208,12 @@ def apiEditQuestion():
                 if uid == userId or uid < 0:
                     continue
                 wid = tt[1]
+                
+                if len(question) > 1000:
+                    return json.dumps({"success": False, "msg": "Question too long!"})
+                if len(answer) > 1000:
+                    return json.dumps({"success": False, "msg": "Answer too long!"})
+
                 cur.execute(f"UPDATE QuestionList SET question = '{question}' WHERE userId = {uid} AND questionId = {wid}")
                 cur.execute(f"UPDATE QuestionList SET answer = '{answer}' WHERE userId = {uid} AND questionId = {wid}")
 
@@ -233,7 +254,6 @@ def apiDeleteQuestion():
         if len(d) > 0: # make sure question not deleted
             ts = int(time.time())
             dd = d[0]
-            # cur.execute(f"INSERT INTO DeletedQuestionList VALUES ({userId},{dd[0]}, '{dd[1]}', '{dd[2]}', {dd[3]}, {ts})")
             cur.execute(f"DELETE FROM QuestionList WHERE userId = {userId} AND questionId = {questionId}")
             cur.execute(f"DELETE FROM BookData WHERE userId = {userId} AND questionId = {questionId}")
             
@@ -276,8 +296,6 @@ def apiClearDeleted():
     d = cur.fetchall()
     ts = int(time.time())
     cur.execute(f"DELETE FROM QuestionList WHERE userId = {userId} AND status = 3")
-    # for dd in d:
-    #     cur.execute(f"INSERT INTO DeletedQuestionList VALUES ({userId},{dd[0]}, '{dd[1]}', '{dd[2]}', {dd[3]}, {ts})")
     for dd in d:
         cur.execute(f"DELETE FROM BookData WHERE userId = {userId} AND questionId = {dd[0]}")
     conn.commit()

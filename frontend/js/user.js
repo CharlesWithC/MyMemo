@@ -57,21 +57,6 @@ if (uid != -1 && uid != localStorage.getItem("userId")) {
     });
 }
 
-$.ajax({
-    url: "/api/user/info",
-    method: 'POST',
-    async: true,
-    dataType: "json",
-    data: {
-        userId: localStorage.getItem("userId"),
-        token: localStorage.getItem("token")
-    },
-    success: function (r) {
-        user.username = r.username;
-        $("#navusername").html(user.username);
-    }
-});
-
 if (uid == -1 || uid == localStorage.getItem("userId")) {
     $("#signout-btn").hide();
     $.ajax({
@@ -101,6 +86,8 @@ if (uid == -1 || uid == localStorage.getItem("userId")) {
             } else {
                 localStorage.removeItem("isAdmin");
             }
+
+            localStorage.setItem("username",user.username);
 
             $(".user").show();
             $(".title").show();
@@ -158,12 +145,12 @@ if (uid == -1 || uid == localStorage.getItem("userId")) {
                 sysver = sessions[i].userAgent.substr(sessions[i].userAgent.indexOf("(") + 1, sessions[i].userAgent.indexOf(")") - sessions[i].userAgent.indexOf("(") - 1);
                 loginTime = new Date(sessions[i].loginTime * 1000).toString();
                 expireTime = new Date(sessions[i].expireTime * 1000).toString();
-                $("#sessions").append("<div class='session'>\
-                    <p class='session-title'><i class='fa fa-" + system + "'></i>&nbsp;&nbsp;" + sysver + "\
-                    <p class='session-content'>IP: " + sessions[i].ip + "</p>\
-                    <p class='session-content'>User Agent: " + sessions[i].userAgent + "</p></p>\
-                    <p class='session-content'>Login time: " + loginTime + "</p>\
-                    <p class='session-content'>Expire time: " + expireTime + "</p>\
+                $("#sessions").append("<div class='rect'>\
+                    <p class='rect-title'><i class='fa fa-" + system + "'></i>&nbsp;&nbsp;" + sysver + "\
+                    <p class='rect-content'>IP: " + sessions[i].ip + "</p>\
+                    <p class='rect-content'>User Agent: " + sessions[i].userAgent + "</p></p>\
+                    <p class='rect-content'>Login time: " + loginTime + "</p>\
+                    <p class='rect-content'>Expire time: " + expireTime + "</p>\
                     </div><br>")
             }
         },

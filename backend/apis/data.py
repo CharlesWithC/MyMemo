@@ -113,8 +113,6 @@ def importData():
         d = cur.fetchall()
         if len(d) > 0:
             ts = int(time.time())
-            # for dd in d:
-            #     cur.execute(f"INSERT INTO DeletedQuestionList VALUES ({userId},{dd[0]}, '{dd[1]}', '{dd[2]}', {dd[3]}, {ts})")
             cur.execute(f"DELETE FROM BookData WHERE userId = {userId}")
             cur.execute(f"DELETE FROM QuestionList WHERE userId = {userId}")
     conn.commit()
@@ -141,6 +139,10 @@ def importData():
             t = cur.fetchall()
             if len(t) > 0:
                 wid = t[0][0]
+            
+            if len(encode(answer)) > 1000:
+                return json.dumps({"success": False, "msg": "Answer too long!"})
+
             cur.execute(f"UPDATE QuestionList SET answer = '{encode(answer)}' WHERE questionId = {wid} AND userId = {userId}")
             if list(newlist.keys()).count("Status") == 1 and newlist["Status"][i] in ["Default", "Tagged", "Removed"]:
                 status = StatusTextToStatus[newlist["Status"][i]]
@@ -164,6 +166,11 @@ def importData():
         else:
             status = 1
             updateQuestionStatus(userId, questionId, status)
+            
+        if len(encode(question)) > 1000:
+            return json.dumps({"success": False, "msg": "Question too long!"})
+        if len(encode(description)) > 1000:
+            return json.dumps({"success": False, "msg": "Description too long!"})
             
         cur.execute(f"INSERT INTO QuestionList VALUES ({userId},{questionId}, '{encode(question)}', '{encode(answer)}', {status})")
         cur.execute(f"INSERT INTO ChallengeData VALUES ({userId},{questionId}, 0, -1)")

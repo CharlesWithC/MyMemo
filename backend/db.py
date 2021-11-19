@@ -169,9 +169,6 @@ if doinit:
     cur.execute(f"CREATE TABLE ChallengeRecord (userId INT, questionId INT, memorized INT, timestamp INT)")
     # This is the record of historical challenges
 
-    # cur.execute(f"CREATE TABLE DeletedQuestionList (userId INT, questionId INT, question VARCHAR(1024), answer VARCHAR(1024), status INT, deleteTimestamp INT)")
-    # This is the list of all permanently deleted questions (which will never be shown on user side)
-
     cur.execute(f"CREATE TABLE StatusUpdate (userId INT, questionId INT, questionUpdateId INT, updateTo INT, timestamp INT)")
     # questionUpdateId is the Id for the specific question
     # updateTo is the status the question is updated to
@@ -207,7 +204,7 @@ if doinit:
 
     cur.execute(f"CREATE TABLE PendingAccountDeletion (userId INT, deletionTime INT)")
 
-    cur.execute(f"CREATE TABLE PasswordTrial (userId INT, count INT, lastts INT)")
+    cur.execute(f"CREATE TABLE PasswordTrial (userId INT, count INT, lastts INT, ip VARCHAR(128))")
 
     # Temp
     cur.execute(f"CREATE TABLE DataDownloadToken (userId INT, exportType VARCHAR(10), ts INT, token VARCHAR(32))")

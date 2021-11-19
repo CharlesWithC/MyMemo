@@ -45,6 +45,7 @@ function RefreshDiscovery() {
         },
         success: function (r) {
             discoveryList = r;
+            toplist = {};
             l = ["", "Book", "Group"];
             for (var i = 0; i < discoveryList.length; i++) {
                 btns = '';
@@ -57,9 +58,10 @@ function RefreshDiscovery() {
                     btns += '&nbsp;&nbsp;<button id="admin-delete-' + discoveryList[i].discoveryId + '" class="btn btn-danger btn-sm" type="button" onclick="AdminUnpublishDiscoveryConfirm(' + discoveryList[i].discoveryId + ')"><i class="fa fa-trash"></i> Delete</button>';
                 }
                 pin = '';
-                if(discoveryList[i].pinned){
+                if (discoveryList[i].pinned) {
                     pin = '<i class="fa fa-thumb-tack"></i> ';
                 }
+                toplist[discoveryList[i].discoveryId] = discoveryList.likes;
                 table.row.add([
                     [pin],
                     [discoveryList[i].title],
@@ -76,6 +78,38 @@ function RefreshDiscovery() {
 
             table.draw();
 
+            sort_object(toplist);
+
+            $(".discovery-top").remove();
+            i = 1;
+            $.each(toplist, function (discoveryId, index) {
+                if (i <= 3) {
+                    if (i == 1) {
+                        $("#top-post").show();
+                    }
+                    if (i == 2) {
+                        $("#top-post-h2").html("Top Posts");
+                    }
+                    i++;
+                    title = "";
+                    description = "";
+                    info = "";
+                    for (var j = 0; j < discoveryList.length; j++) {
+                        if (discoveryList[j].discoveryId == discoveryId) {
+                            title = discoveryList[j].title;
+                            description = discoveryList[j].description;
+                            info = discoveryList[j].views + " <i class='fa fa-eye'></i>&nbsp;&nbsp;" + discoveryList[j].likes + " <i class='fa fa-heart'></i>";
+                            break;
+                        }
+                    }
+                    $("#top-post").append('<div class="rect discovery-top" style="float:left;padding:1em;width:30%" onclick="window.location.href=\'/discovery?discoveryId=' + discoveryId + '\';">\
+                    <p class="rect-title">' + title + '</p>\
+                    <p class="rect-content">&nbsp;&nbsp;' + description + '</p>\
+                    <p class="rect-content">&nbsp;&nbsp;' + info + '</p>\
+                    </div>');
+                }
+            });
+
             if (localStorage.getItem("settings-theme") == "dark") {
                 $("td").attr("style", "background-color:#333333");
             } else {
@@ -87,9 +121,9 @@ function RefreshDiscovery() {
     });
 }
 
-function AdminPin(disid, op){
+function AdminPin(disid, op) {
     pressedbtn.push(disid);
-    l = ["unpin","pin"];
+    l = ["unpin", "pin"];
     $.ajax({
         url: '/api/discovery/pin',
         method: 'POST',
@@ -109,10 +143,14 @@ function AdminPin(disid, op){
             } else {
                 NotyNotification(r.msg, type = 'error');
             }
-            setTimeout(function(){pressedbtn.splice(pressedbtn.indexOf(disid),1);},200);
+            setTimeout(function () {
+                pressedbtn.splice(pressedbtn.indexOf(disid), 1);
+            }, 200);
         },
         error: function (r, textStatus, errorThrown) {
-            setTimeout(function(){pressedbtn.splice(pressedbtn.indexOf(disid),1);},200);
+            setTimeout(function () {
+                pressedbtn.splice(pressedbtn.indexOf(disid), 1);
+            }, 200);
             if (r.status == 401) {
                 SessionExpired();
             } else {
@@ -157,10 +195,14 @@ function AdminUnpublishDiscovery(disid) {
             } else {
                 NotyNotification(r.msg, type = 'error');
             }
-            setTimeout(function(){pressedbtn.splice(pressedbtn.indexOf(disid),1);},200);
+            setTimeout(function () {
+                pressedbtn.splice(pressedbtn.indexOf(disid), 1);
+            }, 200);
         },
         error: function (r, textStatus, errorThrown) {
-            setTimeout(function(){pressedbtn.splice(pressedbtn.indexOf(disid),1);},200);
+            setTimeout(function () {
+                pressedbtn.splice(pressedbtn.indexOf(disid), 1);
+            }, 200);
             if (r.status == 401) {
                 SessionExpired();
             } else {
@@ -191,6 +233,12 @@ function UpdateDiscoveryQuestionList() {
             token: localStorage.getItem("token")
         },
         success: function (r) {
+            if (r.success == false) {
+                NotyNotification(r.msg, type = 'error');
+                $(".discovery-list").show();
+                $(".discovery-detail").hide();
+                return;
+            }
             title = r.title;
             description = r.description;
             liked = r.liked;
@@ -382,34 +430,5 @@ function PageInit() {
         $(".discovery-list").hide();
         $(".discovery-detail").show();
         UpdateDiscoveryQuestionList();
-    }
-
-    // Update username
-    if (localStorage.getItem("username") != null && localStorage.getItem("username") != "") {
-        username = localStorage.getItem("username");
-        $("#navusername").html(username);
-    } else {
-        $.ajax({
-            url: "/api/user/info",
-            method: 'POST',
-            async: true,
-            dataType: "json",
-            data: {
-                userId: localStorage.getItem("userId"),
-                token: localStorage.getItem("token")
-            },
-            success: function (r) {
-                if (r.username.length <= 16) {
-                    $("#navusername").html(r.username);
-                } else {
-                    $("#navusername").html("Account");
-                }
-                localStorage.setItem("username", r.username);
-            },
-            error: function (r, textStatus, errorThrown) {
-                $("#navusername").html("Sign in");
-                localStorage.setItem("username", "");
-            }
-        });
     }
 }

@@ -77,6 +77,11 @@ def apiGroup():
         if len(pr) != 0:
             lmt = pr[0][0]
 
+        if len(name) > 200:
+            return json.dumps({"success": False, "msg": "Group name too long!"})
+        if len(description) > 1000:
+            return json.dumps({"success": False, "msg": "Description too long!"})
+
         gcode = genCode(8)
         cur.execute(f"INSERT INTO GroupInfo VALUES ({groupId}, {userId}, '{name}', '{description}', {lmt}, '{gcode}', 0)")
         cur.execute(f"INSERT INTO GroupMember VALUES ({groupId}, {userId}, 1)")
@@ -284,7 +289,7 @@ def apiGroupMember():
             cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {uid}")
             t = cur.fetchall()
             if len(t) > 0:
-                username = f"<a href='/user?userId={uid}'>{username} <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span></a>"
+                username = f"<a href='/user?userId={uid}'><span style='color:{t[0][1]}'>{username}</span> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span></a>"
             ret.append({"userId": uid, "username": username, "progress": pgs})
         elif info[2] == 1:
             ret.append({"userId": 0, "username": "Anonymous", "progress": pgs})
@@ -380,6 +385,12 @@ def apiManageGroup():
     elif op == "updateInfo":
         name = encode(request.form["name"])
         description = encode(request.form["description"])
+
+        if len(name) > 200:
+            return json.dumps({"success": False, "msg": "Group name too long!"})
+        if len(description) > 1000:
+            return json.dumps({"success": False, "msg": "Description too long!"})
+
         cur.execute(f"UPDATE GroupInfo SET name = '{name}' WHERE groupId = {groupId}")
         cur.execute(f"UPDATE GroupInfo SET description = '{description}' WHERE groupId = {groupId}")
         cur.execute(f"SELECT userId, bookId FROM GroupBind WHERE groupId = {groupId}")
@@ -387,6 +398,10 @@ def apiManageGroup():
         for bind in binds:
             uid = bind[0]
             wbid = bind[1]
+
+            if len(name) > 1000:
+                return json.dumps({"success": False, "msg": "Book name too long!"})
+
             cur.execute(f"UPDATE Book SET name = '{name}' WHERE bookId = {wbid} AND userId = {uid}")
         conn.commit()
 

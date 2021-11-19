@@ -116,6 +116,11 @@ def apiAddToBook():
                         wid = d[0][0]
                         cur.execute(f"UPDATE IDInfo SET nextId = {wid + 1} WHERE type = 2 AND userId = {uid}")
                    
+                    if len(question) > 1000:
+                        return json.dumps({"success": False, "msg": "Question too long!"})
+                    if len(answer) > 1000:
+                        return json.dumps({"success": False, "msg": "Answer too long!"})
+
                     cur.execute(f"INSERT INTO QuestionList VALUES ({uid}, {wid}, '{question}', '{answer}', 1)")
                     cur.execute(f"INSERT INTO BookData VALUES ({uid}, {wbid}, {wid})")
                     cur.execute(f"INSERT INTO ChallengeData VALUES ({uid},{wid},0,-1)")

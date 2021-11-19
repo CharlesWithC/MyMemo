@@ -285,6 +285,9 @@ def apiCreateBook():
         bookId = d[0][0]
         cur.execute(f"UPDATE IDInfo SET nextId = {bookId + 1} WHERE type = 3 AND userId = {userId}")
     
+    if len(name) > 1000:
+        return json.dumps({"success": False, "msg": "Book name too long!"})
+
     cur.execute(f"INSERT INTO Book VALUES ({userId}, {bookId}, '{name}')")
     cur.execute(f"INSERT INTO BookProgress VALUES ({userId}, {bookId}, 0)")
     conn.commit()
@@ -423,6 +426,10 @@ def apiRenameBook():
         tt = cur.fetchall()
         if len(tt) > 0:
             gname = tt[0][0]
+        
+        if len(gname) > 1000:
+            return json.dumps({"success": False, "msg": "Book name too long!"})
+
         cur.execute(f"UPDATE Book SET name = '{gname}' WHERE userId = {userId} AND bookId = {bookId}")
         conn.commit()
         return json.dumps({"success": False, "msg": "You are not allowed to rename a book that is bound to a group!"})
@@ -430,6 +437,9 @@ def apiRenameBook():
     cur.execute(f"SELECT * FROM Book WHERE userId = {userId} AND bookId = {bookId}")
     if len(cur.fetchall()) == 0:
         return json.dumps({"success": False, "msg": "Book does not exist!"})
+
+    if len(encode(newName)) > 1000:
+        return json.dumps({"success": False, "msg": "Book name too long!"})
 
     cur.execute(f"UPDATE Book SET name = '{encode(newName)}' WHERE userId = {userId} AND bookId = {bookId}")
     conn.commit()
@@ -483,4 +493,4 @@ def apiShareBook():
         else:
             cur.execute(f"DELETE FROM BookShare WHERE userId = {userId} AND bookId = {bookId}")
             conn.commit()
-            return json.dumps({"success": True, "msg": "Book unshared!" + notice})
+            return json.dumps({"success": True, "msg": "Book unshared! " + notice})

@@ -48,7 +48,7 @@ function SignOut() {
     localStorage.removeItem("question-list");
 
     $("#navusername").html("Sign in");
-    
+
     NotyNotification('You are now signed out!');
 }
 
@@ -206,22 +206,95 @@ function CreateBook() {
     });
 }
 
-function LoadShow(){
+function LoadShow() {
     $(".footer").before("<div id='general-loader' class='loader' style='display:none'><i class='fa fa-spinner fa-spin'></i></div>");
     $("#general-loader").fadeIn();
 }
 
-function LoadHide(){
+function LoadHide() {
     $("#general-loader").fadeOut();
-    setTimeout(function(){$("#general-loader").remove()},500);
+    setTimeout(function () {
+        $("#general-loader").remove()
+    }, 500);
 }
 
-function LoadDetect(){
-    if($.active > 0){
+function LoadDetect() {
+    if ($.active > 0) {
         LoadShow();
     } else {
         LoadHide();
     }
 }
 
-setInterval(LoadDetect,10);
+setInterval(LoadDetect, 10);
+
+var updnu_interval = -1;
+
+function UpdateNavUsername(){
+    $.ajax({
+        url: "/api/user/info",
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            $("#navusername").html(r.username);
+            $("#sign-out-btn").show();
+            localStorage.setItem("username", r.username);
+        },
+        error: function (r, textStatus, errorThrown) {
+            $("#navusername").html("Sign in");
+            localStorage.setItem("username", "");
+            clearInterval(updnu_interval);
+        }
+    });
+}
+
+$(document).ready(function () {
+    if (localStorage.getItem("username") != null && localStorage.getItem("username") != "") {
+        username = localStorage.getItem("username");
+        $("#navusername").html(username);
+        $("#sign-out-btn").show();
+        setInterval(UpdateNavUsername, 60000);
+    } else {
+        $.ajax({
+            url: "/api/user/info",
+            method: 'POST',
+            async: true,
+            dataType: "json",
+            data: {
+                userId: localStorage.getItem("userId"),
+                token: localStorage.getItem("token")
+            },
+            success: function (r) {
+                $("#navusername").html(r.username);
+                $("#sign-out-btn").show();
+                localStorage.setItem("username", r.username);
+                setInterval(UpdateNavUsername, 60000);
+            },
+            error: function (r, textStatus, errorThrown) {
+                $("#navusername").html("Sign in");
+                localStorage.setItem("username", "");
+            }
+        });
+    }
+});
+
+function sort_object(obj) {
+    items = Object.keys(obj).map(function(key) {
+        return [key, obj[key]];
+    });
+    items.sort(function(first, second) {
+        return second[1] - first[1];
+    });
+    sorted_obj={}
+    $.each(items, function(k, v) {
+        use_key = v[0]
+        use_value = v[1]
+        sorted_obj[use_key] = use_value
+    })
+    return(sorted_obj)
+} 

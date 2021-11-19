@@ -1,5 +1,25 @@
 # Update History
 
+## v5.3.6
+
+*Date: 2021/11/19*  
+Bug Fixes:  
+1.Added function to check input length before updating database  
+2.Discovery requests will show r.msg when r.success = False  
+3.Fixed the bug that admin user list cannot be shown (500)  
+4.Fixed the bug that #navusername does not display sometimes  
+5.Fixed the bug that showing unavailable discovery posts in discovery list  
+
+Feature Updates:
+1.Made username the same color as name tag  
+2.Added statistics display operation in question list  
+3.Improved Challenge CHOICE UI  
+4.Added sound response for Challenge CHOICE  
+5.Updated password trial limit to limit login attempts per ip  
+6.Added custom 4xx 5xx error pages  
+7.Improved book list UI  
+8.Added top post for Discovery  
+
 ## v5.3.5  
 
 *Date: 2021/11/14*  

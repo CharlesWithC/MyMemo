@@ -7,13 +7,15 @@
     <script src="/js/jquery-3.6.0.min.js"></script>
     <script src="/js/bootstrap.bundle.min.js"></script>
     <script src="/js/popper.min.js"></script>
-    <script src="/js/main.js"></script>
     <script src="/js/general.js"></script>
-    <script src="/js/settings.js"></script>
+    <script src="/js/main.js"></script>
 
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/font-awesome.min.css" rel="stylesheet">
     <link href="/css/main.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="/dataTables/jquery.dataTables.min.css">
+    <script src="/dataTables/jquery.dataTables.min.js"></script>
 
     <link href="/noty/noty.css" rel="stylesheet">
     <script src="/noty/noty.min.js" type="text/javascript"></script>
@@ -23,35 +25,40 @@
 
     <script>
         $(document).ready(function () {
+            function onkeypress() {
+                $("#create-book-name").on('keypress', function (e) {
+                    if (e.which == 13 || e.which == 13 && e.ctrlKey) {
+                        CreateBook();
+                    }
+                });
+                $("#book-btn").hover(function () {
+                    ShowBook();
+                });
+                $("#content").hover(function () {
+                    $("#book-div").fadeOut();
+                });
+            }
+
             if (localStorage.getItem("settings-theme") == "dark") {
-                $("body").attr("style", "color:#ffffff;background-color:#333333");setInterval(function(){$("#content a,.container a").css("color","#dddddd");},500);
+                $("body").attr("style", "color:#ffffff;background-color:#333333");
+                setInterval(function () {
+                    $("#content a,.container a").css("color", "#dddddd");
+                }, 500);
                 $("hr").attr("style", "background-color:#cccccc;");
             }
-            
-            $("#book-btn").hover(function () {
-                ShowBook();
-            });
-            $("#content").hover(function () {
-                $("#book-div").fadeOut();
-            });
-            $("#create-book-name").on('keypress', function (e) {
-                if (e.which == 13 || e.which == 13 && e.ctrlKey) {
-                    CreateBook();
-                }
-            });
+            setTimeout(onkeypress, 500);
         });
     </script>
 </head>
 
 <body>
-    <h1 class="title" style="padding-bottom: 0;">Import Data</h1>
     <div id="navigate" style="z-index:100">
         <div class="leftside">
             <div class="sqbtn">
                 <a href="/"><img src="/img/icon.png" style="width:4em;height:4em"></a>
             </div>
             <div class="sqbtn">
-                <a id="book-btn" href="#" onclick="window.location.href='/book'"><i class="fa fa-book"></i><br>Books</a>
+                <a href="#" onclick="window.location.href='/book'" id="book-btn"><i class="fa fa-book"></i><br>Books</a>
             </div>
             <div class="sqbtn">
                 <a href="#" onclick="window.location.href='/discovery'"><i
@@ -70,7 +77,8 @@
             <h2 style="float:left">Books</h2>
             <button type="button" class="btn btn-outline-secondary" style="margin:0.5em" onclick="RefreshBookList()"
                 id="book-list-refresh-btn"><i class="fa fa-refresh"></i></button>
-            <button style="float:right" type="button" class="close" aria-label="Close" onclick="$('#book-div').fadeOut()">
+            <button style="float:right" type="button" class="close" aria-label="Close"
+                onclick="$('#book-div').fadeOut()">
                 <span aria-hidden=" true"><i class="fa fa-times"></i></span>
             </button>
 
@@ -90,35 +98,10 @@
     </div>
 
     <div id="content" class="container">
-        <p>You can upload a new question list here, the file must be a .xlsx table.</p>
-        <p>The columns must contain 'Question','Answer'. (It can also contain other columns but Question and Answer
-            are
-            required)</p>
-        <p>'Status' is an optional column. If you set it, the script will decide the status of the question.</p>
-        <br>
-        <p>There are three types of upload you can choose: Append, Overwrite and Clear & Overwrite</p>
-        <p>If you choose Append, the uploaded questions will be appended to existing database. Duplicate questions may
-            exist and
-            you
-            will be warned.</p>
-        <p>If you choose Overwrite, when duplicated questions are found, they will be replaced by uploaded ones. Other
-            questions
-            will be appended to existing database.</p>
-        <p>If you choose Clear & Overwrite, all the existing questions will be deleted and only the uploaded ones will
-            be
-            kept.
-        </p>
-        <p>Please note that if you search for a question which is duplicated, only the first-imported one will be shown.
-        </p>
-        <br>
-        <p>And, by the way, Excel doesn't support multiple lines in one cell, so if you want to write question / answer
-            with multiple lines, use \n as line break.</p>
-        <br>
-        <p id="msg" style="color:red"></p>
-        <iframe id="importFrame" src="/data/importFrame" width=100% height=65% frameBorder="0"></iframe>
-        <button id="submit" type="submit" class="btn btn-primary"
-            onclick="var iframe = document.getElementById('importFrame');iframe.src = iframe.src;"><i
-                class="fa fa-undo"></i> Clear</button>
+        <div id="home" class="center">
+            <h1>503 Service Unavailable</h1>
+            <h2>Aliens are attacking the server! Such issues should not persist long. Please try again later!</h2>
+        </div>
     </div>
 
     <div class="footer">
@@ -129,8 +112,8 @@
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>
                 GitHub</a>
         </p>
-        <p>Your privacy is valued. No 3rd party script is used. No cookie is used. All your local data is stored in
-            Local Storage.</p>
+        <p>Your privacy is valued. No 3rd party script is used. No cookie is used. All your local data
+            is stored in Local Storage.</p>
     </div>
 </body>
 
