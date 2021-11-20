@@ -121,7 +121,7 @@
             setInterval(function () {
                 for (var i = 0; i < selectedQuestionList.length; i++) {
                     if (selectedQuestionList[i].status == 2) {
-                        $("#" + selectedQuestionList[i].questionId).css("color", "red");
+                        $("#" + selectedQuestionList[i].questionId).css("color", "#ff5555");
                     } else if (selectedQuestionList[i].status == 3) {
                         if (localStorage.getItem("settings-theme") == "dark") {
                             $("#" + selectedQuestionList[i].questionId).css("color", "gray");
@@ -823,7 +823,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.7 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.9 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

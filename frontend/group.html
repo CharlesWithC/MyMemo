@@ -80,7 +80,7 @@
             setInterval(function () {
                 for (var i = 0; i < member.length; i++) {
                     if (member[i].username.indexOf("(Owner)") != -1) {
-                        $("#" + member[i].userId).css("color", "red");
+                        $("#" + member[i].userId).css("color", "#ff5555");
                     } else if (member[i].username.indexOf("(Editor)") != -1) {
                         $("#" + member[i].userId).css("color", "yellow");
                     }
@@ -228,7 +228,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.7 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.9 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

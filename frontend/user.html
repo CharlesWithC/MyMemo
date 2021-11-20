@@ -133,28 +133,24 @@
     <h1 class="title" style="padding-bottom: 0;">My Memo</h1>
 
     <div id="content" class="container">
-        <div class="user-public container" style="display:none">
+        <div id="charts" style="border-radius:0.5em;display:none">
+            <div class="chart" id="chart1"></div>
+            <div class="chart" id="chart2"></div>
+            <div class="chart" id="chart3" style="width:49%;display:inline-block;"></div>
+            <div class="chart" id="chart4" style="width:49%;display:inline-block;"></div>
+        </div>
+        <div id="user-public" class="user-public container" style="display:none">
             <h2><span id="username-public"></span></h2>
             <p style="font-size:0.8em">ID: <span id="userId-public"></span></p>
             <p><span id="bio-public"></span></p>
             <p>Age: <span id="age-public">0</span> days</p>
-            <hr>
-            <h2>Statistics</h2>
-            <p><span id="cnt-public">0</span> questions in list</p>
-            <p><span id="tagged-public">0</span> tagged and <span id="deleted">0</span> deleted</p>
-            <p><span id="chcnt-public">0</span> challenges done so far</p>
         </div>
         <div class="user container">
             <div class="basic-info" style="width: 55%; float:left">
                 <h2><span id="username"></span></h2>
                 <p style="font-size:0.8em">ID: <span id="userId"></span></p>
                 <p><span id="bio"></span></p>
-                <div id="charts" style="border-radius:1em;">
-                    <div class="chart" id="chart1"></div>
-                    <div class="chart" id="chart2"></div>
-                    <div class="chart" id="chart3" style="width:49%;display:inline-block;"></div>
-                    <div class="chart" id="chart4" style="width:49%;display:inline-block;"></div>
-                </div>
+                <div id="private-chart"></div>
                 <hr>
                 <p>Age: <span id="age">0</span> days</p>
                 <p>Email: <span id="email"></span></p>
@@ -350,7 +346,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.7 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.9 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

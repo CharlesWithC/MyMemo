@@ -145,7 +145,7 @@ def getPasswordTrialCount(userId, ip):
         global errcnt
         errcnt += 1
 
-def updatePasswordTrialCount(userId, to, ts):
+def updatePasswordTrialCount(userId, to, ts, ip):
     try:
         updateconn()
         cur = conn.cursor()
@@ -154,7 +154,7 @@ def updatePasswordTrialCount(userId, to, ts):
         if len(t) == 0:
             if to == 0:
                 return
-            cur.execute(f"INSERT INTO PasswordTrial VALUES ({userId}, {to}, {ts})")
+            cur.execute(f"INSERT INTO PasswordTrial VALUES ({userId}, {to}, {ts}, '{ip}')")
             conn.commit()
         else:
             if to == 0:

@@ -58,11 +58,11 @@ server {
 		limit_req zone=admin burst=5 nodelay;
 	}
 
-	error_page 401 /error/401.html;
-	error_page 403 /error/403.html;
-	error_page 404 /error/404.html;
-	error_page 500 /error/500.html;
-	error_page 502 /error/502.html;
-	error_page 503 /error/503.html;
-	error_page 504 /error/504.html;
+	error_page 401 error.html?code=401;
+	error_page 403 error.html?code=403;
+	error_page 404 error.html?code=404;
+	error_page 500 error.html?code=500;
+	error_page 502 error.html?code=502;
+	error_page 503 error.html?code=503;
+	error_page 504 error.html?code=504;
 }

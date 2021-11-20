@@ -39,17 +39,14 @@ function SignOut() {
             token: localStorage.getItem("token")
         }
     });
-    localStorage.removeItem("userId");
-    localStorage.removeItem("username");
-    localStorage.removeItem("token");
-    localStorage.removeItem("memo-question-id");
-    localStorage.removeItem("memo-book-id");
-    localStorage.removeItem("book-list");
-    localStorage.removeItem("question-list");
+    localStorage.clear();
+    localStorage.setItem("first-use","0");
 
     $("#navusername").html("Sign in");
 
     NotyNotification('You are now signed out!');
+    
+    setTimeout(function(){window.location.reload();},1000);
 }
 
 function SessionExpired() {

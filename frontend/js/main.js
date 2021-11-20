@@ -789,8 +789,8 @@ function MemoChallenge(res) {
 var ccAnswered = false;
 
 function ChallengeChoice(choiceid) {
-    $(".choice").css("background", "red");
-    $("#div-choice-" + ccCorrect).css("background", "green");
+    $(".choice").css("background", "#ff5555");
+    $("#div-choice-" + ccCorrect).css("background", "#55ff55");
     $("#choice-circle-" + choiceid).css("background", "#333333");
 
     if (choiceid == -1 || ccAnswered) {

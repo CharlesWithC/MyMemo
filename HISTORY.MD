@@ -1,6 +1,17 @@
 # Update History
 
-## v5.3.7
+## v5.3.9
+
+*Date: 2021/11/20*  
+Bug Fixes:  
+1.Fixed a bug with user login  
+2.Fixed the bug that public user profile cannot be shown correctly  
+
+Feature Updates:  
+1.Combined error pages to one page  
+2.Updated ICON
+
+## v5.3.8
 
 *Date: 2021/11/20*  
 Feature Update:  

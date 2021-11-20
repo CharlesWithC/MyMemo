@@ -30,7 +30,7 @@ if (uid != -1 && uid != localStorage.getItem("userId")) {
             user.isAdmin = r.isAdmin;
 
             $(".user-public").show();
-            $(".user").hide();
+            $(".user").remove();
             $(".title").show();
             $("#signout-btn").show();
             l = user.username.indexOf('>', user.username.indexOf('>') + 1);
@@ -90,12 +90,12 @@ if (uid == -1 || uid == localStorage.getItem("userId")) {
             $("#inviteBy").html(user.inviter);
 
             if (r.isAdmin) {
-                $("#danger-zone").hide();
+                $("#danger-zone").remove();
             }
         },
         error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
-                $(".user").hide();
+                $(".user").remove();
                 $(".login").show();
                 $(".title").hide();
                 $("#signout-btn").hide();
@@ -134,7 +134,7 @@ if (uid == -1 || uid == localStorage.getItem("userId")) {
         },
         error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
-                $(".user").hide();
+                $(".user").remove();
                 $(".login").show();
                 $(".title").hide();
                 $("#signout-btn").hide();
@@ -154,13 +154,20 @@ if (tuid != -1 && tuid != null) {
         async: true,
         dataType: "json",
         success: function (r) {
+            if (uid != -1 && uid != localStorage.getItem("userId")) {
+                $("#charts").appendTo("#user-public");
+            } else {
+                $("#charts").appendTo("#private-chart");
+            }
+            $("#charts").show();
+
             x = ['x'];
             Memorized = ['Memorized'];
             Forgotten = ['Forgotten'];
             for (var i = r.challenge_history.length - 1; i >= 0; i--) {
                 Memorized.push(r.challenge_history[i].memorized);
                 Forgotten.push(r.challenge_history[i].forgotten);
-                var date = new Date(Date.now() - 86400 * i * 1000);
+                var date = new Date(Date.now() - 86400 * 7 * i * 1000);
                 x.push((date.getMonth() + 1) + "-" + date.getDate());
             }
             c3.generate({
@@ -172,8 +179,8 @@ if (tuid != -1 && tuid != null) {
                         ['Memorized', 'Forgotten']
                     ],
                     colors: {
-                        Memorized: 'green',
-                        Forgotten: 'red'
+                        Memorized: '#55ff55',
+                        Forgotten: '#ff5555'
                     },
                     types: {
                         Memorized: 'bar',
@@ -196,10 +203,13 @@ if (tuid != -1 && tuid != null) {
                     },
                     y: {
                         label: {
-                            text: 'Daily Challenge Record',
+                            text: 'Weekly Challenge Record',
                             position: 'outer-middle'
                         }
                     }
+                },
+                zoom: {
+                    enabled: true
                 }
             });
 
@@ -213,7 +223,7 @@ if (tuid != -1 && tuid != null) {
                     x: 'x',
                     columns: [x, Total],
                     colors: {
-                        Total: 'blue',
+                        Total: '#5555ff',
                     },
                     types: {
                         Total: 'area',
@@ -230,13 +240,16 @@ if (tuid != -1 && tuid != null) {
                     },
                     y: {
                         label: {
-                            text: 'Total Memorized',
+                            text: 'Weekly Total Memorized',
                             position: 'outer-middle'
                         }
                     }
+                },
+                zoom: {
+                    enabled: true
                 }
             });
-            
+
             c3.generate({
                 bindto: "#chart3",
                 data: {
@@ -246,8 +259,8 @@ if (tuid != -1 && tuid != null) {
                     ],
                     type: 'pie',
                     colors: {
-                        'Memorized': 'green',
-                        'Not Memorized': 'red',
+                        'Memorized': '#55ff55',
+                        'Not Memorized': '#ff5555',
                     },
                     onclick: function (d, i) {
                         console.log("onclick", d, i);
@@ -260,7 +273,7 @@ if (tuid != -1 && tuid != null) {
                     }
                 }
             });
-            
+
             c3.generate({
                 bindto: "#chart4",
                 data: {
@@ -271,7 +284,7 @@ if (tuid != -1 && tuid != null) {
                     ],
                     type: 'pie',
                     colors: {
-                        Default: 'blue',
+                        Default: '#5555ff',
                         Tagged: 'yellow',
                         Deleted: 'gray',
                     },
@@ -289,7 +302,10 @@ if (tuid != -1 && tuid != null) {
 
             $("text").css("font-family", "Comic Sans MS");
             if (localStorage.getItem("settings-theme") == "dark") {
-                $("#charts").css("background-color", "#cccccc");
+                setInterval(function () {
+                    $("text").css("fill", "#ffffff");
+                    $(".c3-tooltip tr").css("color", "black")
+                }, 1);
             }
         },
         error: function (r, textStatus, errorThrown) {
@@ -621,32 +637,4 @@ function RestartServer() {
             }
         }
     });
-}
-
-function SignOut() {
-    $.ajax({
-        url: "/api/user/logout",
-        method: 'POST',
-        async: true,
-        dataType: "json",
-        data: {
-            userId: localStorage.getItem("userId"),
-            token: localStorage.getItem("token")
-        }
-    });
-    localStorage.removeItem("userId");
-    localStorage.removeItem("username");
-    localStorage.removeItem("token");
-    localStorage.removeItem("memo-question-id");
-    localStorage.removeItem("memo-book-id");
-    localStorage.removeItem("book-list");
-    localStorage.removeItem("question-list");
-
-    $("#navusername").html("Sign in");
-
-    $(".user").hide();
-    $(".login").show();
-    $(".title").hide();
-
-    NotyNotification('You are now signed out!');
 }

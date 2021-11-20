@@ -25,6 +25,30 @@
 
     <script>
         $(document).ready(function () {
+            errorCode = parseInt(getUrlParameter("code"));
+            if(errorCode == 401){
+                $("#title").html("401 Unauthorized");
+                $("#description").html("That's a gate with an access control panel. Uncover it and enter your password to continue!");
+            } else if(errorCode == 403){
+                $("#title").html("403 Forbidden");
+                $("#description").html("You are accessing something that doesn't belong to you, go back!");
+            } else if(errorCode == 404){
+                $("#title").html("404 Not Found");
+                $("#description").html("The page has been taken away by aliens!");
+            } else if(errorCode == 500){
+                $("#title").html("500 Internal Server Error");
+                $("#description").html("Aliens sabotaged the server. Hope it will just be a temporary issue. Please try again later!");
+            } else if(errorCode == 502){
+                $("#title").html("502 Bad Gateway");
+                $("#description").html("Aliens broke your connection to the server. Try again later!");
+            } else if(errorCode == 503){
+                $("#title").html("503 Service Unavailable");
+                $("#description").html("Aliens are attacking the server! Such issues should not persist long. Please try again later!");
+            } else if(errorCode == 504){
+                $("#title").html("504 Gateway Timeout");
+                $("#description").html("The server is responding too slowly! This should be a temporary issue. Please try again later!");
+            }
+
             function onkeypress() {
                 $("#create-book-name").on('keypress', function (e) {
                     if (e.which == 13 || e.which == 13 && e.ctrlKey) {
@@ -99,14 +123,14 @@
 
     <div id="content" class="container">
         <div id="home" class="center">
-            <h1>401 Unauthorized</h1>
-            <h2>That's a gate with an access control panel. Uncover it and enter your password to continue!</h2>
+            <h1 id="title"></h1>
+            <h2 id="description"></h2>
         </div>
     </div>
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.7 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.9 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

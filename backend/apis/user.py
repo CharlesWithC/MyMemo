@@ -308,14 +308,15 @@ def apiGetUserChart(uid):
         return json.dumps({"success": False, "msg": "User not found!"})
     
     d1 = []
-    for i in range(14):
-        cur.execute(f"SELECT COUNT(*) FROM ChallengeRecord WHERE userId = {uid} AND memorized = 1 AND timestamp >= {int(time.time()) - 86400*(i+1)} AND timestamp <= {int(time.time()) - 86400*i}")
+    batch = 7
+    for i in range(16):
+        cur.execute(f"SELECT COUNT(*) FROM ChallengeRecord WHERE userId = {uid} AND memorized = 1 AND timestamp >= {int(time.time()) - 86400*batch*(i+1)} AND timestamp <= {int(time.time()) - 86400*batch*i}")
         t = cur.fetchall()
         memorized = 0
         if len(t) > 0:
             memorized = t[0][0]
 
-        cur.execute(f"SELECT COUNT(*) FROM ChallengeRecord WHERE userId = {uid} AND memorized = 0 AND timestamp >= {int(time.time()) - 86400*(i+1)} AND timestamp <= {int(time.time()) - 86400*i}")
+        cur.execute(f"SELECT COUNT(*) FROM ChallengeRecord WHERE userId = {uid} AND memorized = 0 AND timestamp >= {int(time.time()) - 86400*batch*(i+1)} AND timestamp <= {int(time.time()) - 86400*batch*i}")
         t = cur.fetchall()
         forgotten = 0
         if len(t) > 0:
@@ -325,8 +326,9 @@ def apiGetUserChart(uid):
     
     d2 = []
     total_memorized = 0
-    for i in range(14):
-        cur.execute(f"SELECT COUNT(*) FROM MyMemorized WHERE userId = {uid} AND timestamp <= {int(time.time()) - 86400*i}")
+    batch = 7
+    for i in range(16):
+        cur.execute(f"SELECT COUNT(*) FROM MyMemorized WHERE userId = {uid} AND timestamp <= {int(time.time()) - 86400*batch*i}")
         t = cur.fetchall()
         total = 0
         if len(t) > 0:
