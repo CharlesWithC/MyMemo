@@ -8,7 +8,7 @@
     <script src="/js/bootstrap.bundle.min.js"></script>
     <script src="/js/popper.min.js"></script>
     <script src="/js/general.js"></script>
-    <script src="/js/main.js"></script>
+    <script src="/js/notifications.js"></script>
 
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/font-awesome.min.css" rel="stylesheet">
@@ -25,44 +25,6 @@
 
     <script>
         $(document).ready(function () {
-            errorCode = parseInt(getUrlParameter("code"));
-            if(errorCode == 401){
-                $("#title").html("401 Unauthorized");
-                $("#description").html("That's a gate with an access control panel. Uncover it and enter your password to continue!");
-            } else if(errorCode == 403){
-                $("#title").html("403 Forbidden");
-                $("#description").html("You are accessing something that doesn't belong to you, go back!");
-            } else if(errorCode == 404){
-                $("#title").html("404 Not Found");
-                $("#description").html("The page has been taken away by aliens!");
-            } else if(errorCode == 500){
-                $("#title").html("500 Internal Server Error");
-                $("#description").html("Aliens sabotaged the server. Hope it will just be a temporary issue. Please try again later!");
-            } else if(errorCode == 502){
-                $("#title").html("502 Bad Gateway");
-                $("#description").html("Aliens broke your connection to the server. Try again later!");
-            } else if(errorCode == 503){
-                $("#title").html("503 Service Unavailable");
-                $("#description").html("Aliens are attacking the server! Such issues should not persist long. Please try again later!");
-            } else if(errorCode == 504){
-                $("#title").html("504 Gateway Timeout");
-                $("#description").html("The server is responding too slowly! This should be a temporary issue. Please try again later!");
-            }
-
-            function onkeypress() {
-                $("#create-book-name").on('keypress', function (e) {
-                    if (e.which == 13 || e.which == 13 && e.ctrlKey) {
-                        CreateBook();
-                    }
-                });
-                $("#book-btn").hover(function () {
-                    ShowBook();
-                });
-                $("#content").hover(function () {
-                    $("#book-div").fadeOut();
-                });
-            }
-
             if (localStorage.getItem("settings-theme") == "dark") {
                 $("body").attr("style", "color:#ffffff;background-color:#333333");
                 setInterval(function () {
@@ -70,19 +32,49 @@
                 }, 500);
                 $("hr").attr("style", "background-color:#cccccc;");
             }
-            setTimeout(onkeypress, 500);
+
+            PageInit();
+
+            $("#book-btn").hover(function () {
+                ShowBook();
+            });
+            $("#content").hover(function () {
+                $("#book-div").fadeOut();
+            });
+            $("#create-book-name").on('keypress', function (e) {
+                if (e.which == 13 || e.which == 13 && e.ctrlKey) {
+                    CreateBook();
+                }
+            });
         });
     </script>
+
+    <style>
+        button {
+            margin: 0.1em;
+            margin-bottom: 0.3em;
+        }
+
+        h4,
+        h5,
+        p {
+            margin: 0.5em;
+        }
+    </style>
 </head>
 
 <body>
+    <h1 class="title" style="padding-bottom: 0;">Notifications
+        <button id="refresh-btn-noti" type="button" class="btn btn-outline-secondary" onclick="PageInit()"><i
+                class="fa fa-refresh"></i></button></h1>
+
     <div id="navigate" style="z-index:100">
         <div class="leftside">
             <div class="sqbtn">
                 <a href="/"><img src="/img/icon.png" style="width:4em;height:4em"></a>
             </div>
             <div class="sqbtn">
-                <a href="#" onclick="window.location.href='/book'" id="book-btn"><i class="fa fa-book"></i><br>Books</a>
+                <a id="book-btn" href="#" onclick="window.location.href='/book'"><i class="fa fa-book"></i><br>Books</a>
             </div>
             <div class="sqbtn">
                 <a href="#" onclick="window.location.href='/discovery'"><i
@@ -91,9 +83,11 @@
         </div>
         <div class="userctrl">
             <a href='/user'><i class="fa fa-user"></i> <span id="navusername">Sign in</span></a>
-            <a class="only-signed-in" href='#' onclick="UserEvents()" style="display:none"><i class="fa fa-bell"></i></a>
+            <a class="only-signed-in" href='#' onclick="UserEvents()" style="display:none"><i
+                    class="fa fa-bell"></i></a>
             <a href='#' onclick="window.location.href='/settings'"><i class="fa fa-cogs"></i></a>
-            <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i class="fa fa-sign-out"></i></a>
+            <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i
+                    class="fa fa-sign-out"></i></a>
         </div>
     </div>
 
@@ -102,8 +96,7 @@
             <h2 style="float:left">Books</h2>
             <button type="button" class="btn btn-outline-secondary" style="margin:0.5em" onclick="RefreshBookList()"
                 id="book-list-refresh-btn"><i class="fa fa-refresh"></i></button>
-            <button style="float:right" type="button" class="close" aria-label="Close"
-                onclick="$('#book-div').fadeOut()">
+            <button style="float:right" type="button" class="close" aria-label="Close" onclick="$('#book-div').fadeOut()">
                 <span aria-hidden=" true"><i class="fa fa-times"></i></span>
             </button>
 
@@ -123,10 +116,7 @@
     </div>
 
     <div id="content" class="container">
-        <div id="home" class="center">
-            <h1 id="title"></h1>
-            <h2 id="description"></h2>
-        </div>
+
     </div>
 
     <div class="footer">
@@ -137,8 +127,8 @@
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>
                 GitHub</a>
         </p>
-        <p>Your privacy is valued. No 3rd party script is used. No cookie is used. All your local data
-            is stored in Local Storage.</p>
+        <p>Your privacy is valued. No 3rd party script is used. No cookie is used. All your local data is stored in
+            Local Storage.</p>
     </div>
 </body>
 

@@ -111,7 +111,7 @@ def apiRegister():
         cur.execute(f"INSERT INTO AdminList VALUES ({userId})")
         cur.execute(f"INSERT INTO UserNameTag VALUES ({userId}, '{encode('root')}', 'admin')")
 
-    cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'register', {int(time.time())})")
+    cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'register', {int(time.time())}, '{encode('Birth of account')}')")
     conn.commit()
 
     return json.dumps({"success": True, "msg": "You are registered! Now you can login!"})
@@ -182,7 +182,8 @@ def apiLogin():
     if len(cur.fetchall()) != 0:
         isAdmin = True
 
-    cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'login', {int(time.time())})")
+    ip = request.headers["CF-Connecting-Ip"]
+    cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'login', {int(time.time())}, '{encode(f'New login from {ip}')}')")
     conn.commit()
 
     return json.dumps({"success": True, "userId": userId, "token": token, "isAdmin": isAdmin})
@@ -234,7 +235,8 @@ def apiDeleteAccount():
     
     sessions.markDeletion(userId)
 
-    cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'delete_account', {int(time.time())})")
+    ip = request.headers["CF-Connecting-Ip"]
+    cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'delete_account', {int(time.time())}, '{encode(f'Account marked for deletion by {ip}')})")
     sessions.logout(userId, token)
     conn.commit()
 
@@ -293,7 +295,7 @@ def apiGetUserInfo():
     cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {userId}")
     t = cur.fetchall()
     if len(t) > 0:
-        username = f"<a href='/user?userId={userId}'><span style='color:{t[0][1]}'>{username}</span> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span></a>"
+        username = f"<a href='/user?userId={userId}'><span style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
 
     return json.dumps({"username": username, "bio": d[4], "email": d[1], "invitationCode": d[2], "inviter": inviter, "age": age, "isAdmin": isAdmin})
 
@@ -308,8 +310,8 @@ def apiGetUserChart(uid):
         return json.dumps({"success": False, "msg": "User not found!"})
     
     d1 = []
-    batch = 7
-    for i in range(16):
+    batch = 3
+    for i in range(30):
         cur.execute(f"SELECT COUNT(*) FROM ChallengeRecord WHERE userId = {uid} AND memorized = 1 AND timestamp >= {int(time.time()) - 86400*batch*(i+1)} AND timestamp <= {int(time.time()) - 86400*batch*i}")
         t = cur.fetchall()
         memorized = 0
@@ -322,19 +324,19 @@ def apiGetUserChart(uid):
         if len(t) > 0:
             forgotten = t[0][0]
         
-        d1.append({"index": 14 - i, "memorized": memorized, "forgotten": forgotten})
+        d1.append({"index": 30 - i, "memorized": memorized, "forgotten": forgotten})
     
     d2 = []
     total_memorized = 0
-    batch = 7
-    for i in range(16):
+    batch = 3
+    for i in range(30):
         cur.execute(f"SELECT COUNT(*) FROM MyMemorized WHERE userId = {uid} AND timestamp <= {int(time.time()) - 86400*batch*i}")
         t = cur.fetchall()
         total = 0
         if len(t) > 0:
             total = t[0][0]
         total_memorized = total
-        d2.append({"index": 14 - i, "total": total})
+        d2.append({"index": 30 - i, "total": total})
     
     cnt = 0
     cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {uid}")
@@ -407,9 +409,29 @@ def apiGetUserPublicInfo(uid):
     cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {uid}")
     t = cur.fetchall()
     if len(t) > 0:
-        username = f"<a href='/user?userId={uid}'><span style='color:{t[0][1]}'>{username}</span> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span></a>"
+        username = f"<a href='/user?userId={uid}'><span style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
 
     return json.dumps({"username": username, "bio": bio, "cnt": cnt, "tagcnt": tagcnt, "delcnt": delcnt, "chcnt": chcnt, "age": age, "isAdmin": isAdmin})   
+
+@app.route("/api/user/events", methods = ['POST'])
+def apiUserEvents():
+    updateconn()
+    cur = conn.cursor()
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
+        abort(401)
+        
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    if not validateToken(userId, token):
+        abort(401)
+    
+    cur.execute(f"SELECT timestamp, msg FROM UserEvent ORDER BY timestamp DESC")
+    d = cur.fetchall()
+    ret = []
+    for dd in d:
+        ret.append({"timestamp": dd[0], "msg": decode(dd[1])})
+    
+    return json.dumps(ret)
 
 @app.route("/api/user/sessions", methods=['POST'])
 def apiUserSessions():
@@ -510,7 +532,8 @@ def apiChangePassword():
     newhashed = hashpwd(newpwd)
     cur.execute(f"UPDATE UserInfo SET password = '{encode(newhashed)}' WHERE userId = {userId}")
     
-    cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'change_password', {int(time.time())})")
+    ip = request.headers["CF-Connecting-Ip"]
+    cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'change_password', {int(time.time())}, '{encode(f'Password changed by {ip}')}')")
     sessions.logoutAll(userId)
     conn.commit()
 

@@ -1,5 +1,13 @@
 # Update History
 
+## v5.3.10
+
+*Date: 2021/11/21*  
+Feature Updates:  
+1.Added visualized statistics for books  
+2.Improved chart animation  
+3.Added Notification function to display user events  
+
 ## v5.3.9
 
 *Date: 2021/11/20*  
@@ -9,7 +17,7 @@ Bug Fixes:
 
 Feature Updates:  
 1.Combined error pages to one page  
-2.Updated ICON
+2.Updated ICON  
 
 ## v5.3.8
 

@@ -190,7 +190,7 @@ def apiAdminCommand():
             sessions.errcnt += 1
             return json.dumps({"success": False, "msg": "Unknown error occured. Try again later..."})
 
-        cur.execute(f"INSERT INTO UserEvent VALUES ({uid}, 'register', {int(time.time())})")
+        cur.execute(f"INSERT INTO UserEvent VALUES ({uid}, 'register', {int(time.time())}, '{encode('Birth of account')}')")
         conn.commit()
 
         return json.dumps({"success": True, "msg": f"User registered (UID: {uid})"})

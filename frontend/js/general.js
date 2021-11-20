@@ -21,11 +21,15 @@ function BackToHome() {
 }
 
 function Import() {
-    window.location.href = '/data/import'
+    window.location.href = '/data/import';
 }
 
 function Export() {
-    window.location.href = '/data/export'
+    window.location.href = '/data/export';
+}
+
+function UserEvents() {
+    window.location.href = '/notifications';
 }
 
 function SignOut() {
@@ -40,13 +44,15 @@ function SignOut() {
         }
     });
     localStorage.clear();
-    localStorage.setItem("first-use","0");
+    localStorage.setItem("first-use", "0");
 
     $("#navusername").html("Sign in");
 
     NotyNotification('You are now signed out!');
-    
-    setTimeout(function(){window.location.reload();},1000);
+
+    setTimeout(function () {
+        window.location.reload();
+    }, 1000);
 }
 
 function SessionExpired() {
@@ -227,7 +233,7 @@ setInterval(LoadDetect, 10);
 
 var updnu_interval = -1;
 
-function UpdateNavUsername(){
+function UpdateNavUsername() {
     $.ajax({
         url: "/api/user/info",
         method: 'POST',
@@ -239,7 +245,7 @@ function UpdateNavUsername(){
         },
         success: function (r) {
             $("#navusername").html(r.username);
-            $("#sign-out-btn").show();
+            $(".only-signed-in").show();
             localStorage.setItem("username", r.username);
         },
         error: function (r, textStatus, errorThrown) {
@@ -254,7 +260,7 @@ $(document).ready(function () {
     if (localStorage.getItem("username") != null && localStorage.getItem("username") != "") {
         username = localStorage.getItem("username");
         $("#navusername").html(username);
-        $("#sign-out-btn").show();
+        $(".only-signed-in").show();
         setInterval(UpdateNavUsername, 60000);
     } else {
         $.ajax({
@@ -268,7 +274,7 @@ $(document).ready(function () {
             },
             success: function (r) {
                 $("#navusername").html(r.username);
-                $("#sign-out-btn").show();
+                $(".only-signed-in").show();
                 localStorage.setItem("username", r.username);
                 setInterval(UpdateNavUsername, 60000);
             },
@@ -279,7 +285,7 @@ $(document).ready(function () {
         });
     }
 
-    if(localStorage.getItem("isAdmin") == true){
+    if (localStorage.getItem("isAdmin") == true) {
         $(".leftside").append("<hr>");
         $(".leftside").append('<div class="sqbtn">\
             <a href="#" onclick="window.location.href=\'/admin/cli\'" id="book-btn"><i class="fa fa-terminal"></i><br>Terminal</a>\
@@ -291,17 +297,21 @@ $(document).ready(function () {
 });
 
 function sort_object(obj) {
-    items = Object.keys(obj).map(function(key) {
+    items = Object.keys(obj).map(function (key) {
         return [key, obj[key]];
     });
-    items.sort(function(first, second) {
+    items.sort(function (first, second) {
         return second[1] - first[1];
     });
-    sorted_obj={}
-    $.each(items, function(k, v) {
+    sorted_obj = {}
+    $.each(items, function (k, v) {
         use_key = v[0]
         use_value = v[1]
         sorted_obj[use_key] = use_value
     })
-    return(sorted_obj)
-} 
+    return (sorted_obj)
+}
+
+function sleep(time) {
+    return new Promise((resolve) => setTimeout(resolve, time));
+}

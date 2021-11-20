@@ -157,3 +157,80 @@ def apiGetQuestionList():
         ret.append({"questionId": dd[0], "question": decode(dd[1]), "answer": decode(dd[2]), "status": dd[3]})
     
     return json.dumps(ret)
+
+@app.route("/api/book/chart", methods = ['POST'])
+def apiGetBookChart():
+    updateconn()
+    cur = conn.cursor()
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
+        abort(401)
+
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    if not validateToken(userId, token):
+        abort(401)
+    
+    bookId = int(request.form["bookId"])
+
+    book = []
+    if bookId > 0:
+        cur.execute(f"SELECT questionId FROM BookData WHERE bookId = {bookId}")
+        book = cur.fetchall()
+    else:
+        cur.execute(f"SELECT questionId FROM BookData")
+        book = cur.fetchall()
+    
+    d1 = []
+    batch = 3
+    for i in range(30):
+        cur.execute(f"SELECT questionId FROM ChallengeRecord WHERE userId = {userId} AND memorized = 1 AND timestamp >= {int(time.time()) - 86400*batch*(i+1)} AND timestamp <= {int(time.time()) - 86400*batch*i}")
+        t = cur.fetchall()
+        memorized = 0
+        if len(t) > 0:
+            for tt in t:
+                if (tt[0],) in book:
+                    memorized += 1
+
+        cur.execute(f"SELECT questionId FROM ChallengeRecord WHERE userId = {userId} AND memorized = 0 AND timestamp >= {int(time.time()) - 86400*batch*(i+1)} AND timestamp <= {int(time.time()) - 86400*batch*i}")
+        t = cur.fetchall()
+        forgotten = 0
+        if len(t) > 0:
+            for tt in t:
+                if (tt[0],) in book:
+                    forgotten += 1
+        
+        d1.append({"index": 30 - i, "memorized": memorized, "forgotten": forgotten})
+    
+    d2 = []
+    total_memorized = 0
+    batch = 3
+    for i in range(30):
+        cur.execute(f"SELECT questionId FROM MyMemorized WHERE userId = {userId} AND timestamp <= {int(time.time()) - 86400*batch*i}")
+        t = cur.fetchall()
+        total = 0
+        if len(t) > 0:
+            for tt in t:
+                if (tt[0],) in book:
+                    total += 1
+        total_memorized = total
+        d2.append({"index": 30 - i, "total": total})
+    
+    cnt = len(book)
+
+    tagcnt = 0
+    cur.execute(f"SELECT questionId FROM QuestionList WHERE userId = {userId} AND status = 2")
+    t = cur.fetchall()
+    if len(t) > 0:
+        for tt in t:
+            if (tt[0],) in book:
+                tagcnt += 1
+
+    delcnt = 0
+    cur.execute(f"SELECT questionId FROM QuestionList WHERE userId = {userId} AND status = 3")
+    t = cur.fetchall()
+    if len(t) > 0:
+        for tt in t:
+            if (tt[0],) in book:
+                delcnt += 1
+
+    return json.dumps({"challenge_history": d1, "total_memorized_history": d2, "tag_cnt": tagcnt, "del_cnt": delcnt, "total_memorized": total_memorized, "total": cnt})

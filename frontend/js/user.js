@@ -167,14 +167,18 @@ if (tuid != -1 && tuid != null) {
             for (var i = r.challenge_history.length - 1; i >= 0; i--) {
                 Memorized.push(r.challenge_history[i].memorized);
                 Forgotten.push(r.challenge_history[i].forgotten);
-                var date = new Date(Date.now() - 86400 * 7 * i * 1000);
+                var date = new Date(Date.now() - 86400 * 3 * i * 1000);
                 x.push((date.getMonth() + 1) + "-" + date.getDate());
             }
-            c3.generate({
+            chart1 = c3.generate({
                 bindto: "#chart1",
                 data: {
                     x: 'x',
-                    columns: [x, Memorized, Forgotten],
+                    columns: [
+                        ['x'],
+                        ['Memorized'],
+                        ['Forgotten']
+                    ],
                     groups: [
                         ['Memorized', 'Forgotten']
                     ],
@@ -212,16 +216,27 @@ if (tuid != -1 && tuid != null) {
                     enabled: true
                 }
             });
+            setTimeout(function () {
+                chart1.load({
+                    columns: [x, Memorized, Forgotten]
+                });
+                setTimeout(function () {
+                    chart1.flush();
+                }, 500);
+            }, 500);
 
             Total = ['Total'];
             for (var i = r.total_memorized_history.length - 1; i >= 0; i--) {
                 Total.push(r.total_memorized_history[i].total);
             }
-            c3.generate({
+            chart2 = c3.generate({
                 bindto: "#chart2",
                 data: {
                     x: 'x',
-                    columns: [x, Total],
+                    columns: [
+                        ['x'],
+                        ['Total']
+                    ],
                     colors: {
                         Total: '#5555ff',
                     },
@@ -249,13 +264,19 @@ if (tuid != -1 && tuid != null) {
                     enabled: true
                 }
             });
+            setTimeout(function () {
+                chart2.load({
+                    columns: [x, Total]
+                });
+                setTimeout(chart2.flush, 500);
+            }, 1000);
 
-            c3.generate({
+            chart3 = c3.generate({
                 bindto: "#chart3",
                 data: {
                     columns: [
-                        ['Memorized', r.total_memorized / r.total],
-                        ['Not Memorized', (r.total - r.total_memorized) / r.total]
+                        ['Memorized'],
+                        ['Not Memorized']
                     ],
                     type: 'pie',
                     colors: {
@@ -273,14 +294,23 @@ if (tuid != -1 && tuid != null) {
                     }
                 }
             });
+            setTimeout(function () {
+                chart3.load({
+                    columns: [
+                        ['Memorized', r.total_memorized / r.total],
+                        ['Not Memorized', (r.total - r.total_memorized) / r.total]
+                    ]
+                });
+                setTimeout(chart3.flush, 500);
+            }, 1500);
 
-            c3.generate({
+            chart4 = c3.generate({
                 bindto: "#chart4",
                 data: {
                     columns: [
-                        ['Default', (r.total - r.tag_cnt - r.del_cnt) / r.total],
-                        ['Tagged', r.tag_cnt / r.total],
-                        ['Deleted', r.del_cnt / r.total],
+                        ['Default'],
+                        ['Tagged'],
+                        ['Deleted']
                     ],
                     type: 'pie',
                     colors: {
@@ -299,6 +329,16 @@ if (tuid != -1 && tuid != null) {
                     }
                 }
             });
+            setTimeout(function () {
+                chart4.load({
+                    columns: [
+                        ['Default', (r.total - r.tag_cnt - r.del_cnt) / r.total],
+                        ['Tagged', r.tag_cnt / r.total],
+                        ['Deleted', r.del_cnt / r.total],
+                    ]
+                });
+                setTimeout(chart4.flush, 500);
+            }, 2000);
 
             $("text").css("font-family", "Comic Sans MS");
             if (localStorage.getItem("settings-theme") == "dark") {

@@ -113,6 +113,7 @@ def apiCreateBook():
                 
             # do import
             cur.execute(f"INSERT INTO Book VALUES ({userId}, {bookId}, '{name}')")
+            cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'create_book', {int(time.time())}, '{encode(f'Imported book {decode(name)}')}')")
             cur.execute(f"INSERT INTO BookProgress VALUES ({userId}, {bookId}, 0)")
 
             questionId = 1
@@ -235,6 +236,7 @@ def apiCreateBook():
             cur.execute(f"INSERT INTO BookProgress VALUES ({userId}, {bookId}, 0)")
             cur.execute(f"INSERT INTO GroupMember VALUES ({groupId}, {userId}, 0)")
             cur.execute(f"INSERT INTO GroupBind VALUES ({groupId}, {userId}, {bookId})")
+            cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'join_group', {int(time.time())}, '{encode(f'Joined group {decode(name)}')}')")
 
             questionId = 1
             for tt in t:
@@ -289,6 +291,7 @@ def apiCreateBook():
         return json.dumps({"success": False, "msg": "Book name too long!"})
 
     cur.execute(f"INSERT INTO Book VALUES ({userId}, {bookId}, '{name}')")
+    cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'create_book', {int(time.time())}, '{encode(f'Created book {decode(name)}')}')")
     cur.execute(f"INSERT INTO BookProgress VALUES ({userId}, {bookId}, 0)")
     conn.commit()
     
@@ -334,6 +337,7 @@ def apiCloneBook():
         cur.execute(f"UPDATE IDInfo SET nextId = {bookId + 1} WHERE type = 3 AND userId = {userId}")
     
     cur.execute(f"INSERT INTO Book VALUES ({userId}, {bookId}, '{name}')")
+    cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'create_book', {int(time.time())}, '{encode(f'Created book {decode(name)}')}')")
     cur.execute(f"SELECT questionId FROM BookData WHERE userId = {userId} AND bookId = {cloneFrom}")
     d = cur.fetchall()
     for dd in d:
@@ -366,8 +370,10 @@ def apiDeleteBook():
     
     bookId = int(request.form["bookId"])
     cur.execute(f"SELECT name FROM Book WHERE userId = {userId} AND bookId = {bookId}")
-    if len(cur.fetchall()) == 0:
+    t = cur.fetchall()
+    if len(t) == 0:
         return json.dumps({"success": False, "msg": "Book does not exist!"})
+    name = t[0][0]
 
     cur.execute(f"SELECT * FROM Discovery WHERE publisherId = {userId} AND bookId = {bookId}")
     notice = ""
@@ -381,19 +387,22 @@ def apiDeleteBook():
         groupId = d[0][0]
     
     if groupId != -1:
-        cur.execute(f"SELECT owner FROM GroupInfo WHERE groupId = {groupId}")
+        cur.execute(f"SELECT owner, name FROM GroupInfo WHERE groupId = {groupId}")
         d = cur.fetchall()
         if len(d) == 0:
             return json.dumps({"success": False, "msg": "Group does not exist!"})
         owner = d[0][0]
         if userId == owner:
             return json.dumps({"success": False, "msg": "You are the owner of the group. You have to transfer group ownership or dismiss the group before deleting the book."})
-
+        name = d[0][1]
+        
         cur.execute(f"DELETE FROM GroupSync WHERE groupId = {groupId} AND userId = {userId}")
         cur.execute(f"DELETE FROM GroupMember WHERE groupId = {groupId} AND userId = {userId}")
         cur.execute(f"DELETE FROM GroupBind WHERE groupId = {groupId} AND userId = {userId}")
+        cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'quit_group', {int(time.time())}, '{encode(f'Quit group {decode(name)}')}')")
         
     cur.execute(f"DELETE FROM Book WHERE userId = {userId} AND bookId = {bookId}")
+    cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'delete_book', {int(time.time())}, '{encode(f'Deleted book {decode(name)}')}')")
     cur.execute(f"DELETE FROM BookData WHERE userId = {userId} AND bookId = {bookId}")
     cur.execute(f"DELETE FROM BookProgress WHERE userId = {userId} AND bookId = {bookId}")
     cur.execute(f"DELETE FROM ShareImport WHERE userId = {userId} AND bookId = {bookId}")

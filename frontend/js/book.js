@@ -90,7 +90,7 @@ function SelectQuestions() {
             $(".book-data-div").show();
 
             bookName = bookList[i].name;
-            $(".title").html(bookName + '&nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-refresh"></i></button>');
+            $(".title").html(bookName + '&nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-refresh"></i></button>&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="BookChart(' + bookId + ');"><i class="fa fa-bar-chart"></i></button>');
             $("title").html(bookName + " | My Memo");
             bookShareCode = bookList[i].shareCode;
             if (bookShareCode == "") {
@@ -205,10 +205,10 @@ function UpdateTable() {
     l = ["", "Default", "Tagged", "Deleted"];
 
     for (var i = 0; i < selectedQuestionList.length; i++) {
-        btns = '<button type="button" class="btn btn-primary btn-sm only-group-editor-if-group-exist" onclick="ShowStatistics(' + selectedQuestionList[i].questionId + ')">Statistics</button>';
-        btns += '<button type="button" class="btn btn-primary btn-sm only-group-editor-if-group-exist" onclick="EditQuestionShow(' + selectedQuestionList[i].questionId + ')">Edit</button>';
+        btns = '<button type="button" class="btn btn-primary btn-sm only-group-editor-if-group-exist" onclick="ShowStatistics(' + selectedQuestionList[i].questionId + ')"><i class="fa fa-bar-chart"></i></button>';
+        btns += '<button type="button" class="btn btn-primary btn-sm only-group-editor-if-group-exist" onclick="EditQuestionShow(' + selectedQuestionList[i].questionId + ')"><i class="fa fa-edit"></i></button>';
         if (bookId != 0) {
-            btns += '<button type="button" class="btn btn-warning btn-sm only-group-editor-if-group-exist" onclick="RemoveFromBook(' + selectedQuestionList[i].questionId + ')">Remove</button>';
+            btns += '<button type="button" class="btn btn-warning btn-sm only-group-editor-if-group-exist" onclick="RemoveFromBook(' + selectedQuestionList[i].questionId + ')"><i class="fa fa-trash"></i></button>';
         }
         table.row.add([
             [selectedQuestionList[i].question],
@@ -448,12 +448,16 @@ function ShowQuestionDatabase() {
     table = $("#questionList").DataTable();
     table.clear();
     for (var i = 0; i < questionList.length; i++) {
+        btns = '<button type="button" class="btn btn-primary btn-sm only-group-editor-if-group-exist" onclick="ShowStatistics(' + questionList[i].questionId + ')"><i class="fa fa-bar-chart"></i></button>';
+        btns += '<button type="button" class="btn btn-primary btn-sm only-group-editor-if-group-exist" onclick="EditQuestionShow(' + questionList[i].questionId + ')"><i class="fa fa-edit"></i></button>';
+        if (bookId != 0) {
+            btns += '<button type="button" class="btn btn-warning btn-sm only-group-editor-if-group-exist" onclick="RemoveFromBook(' + questionList[i].questionId + ')"><i class="fa fa-trash"></i></button>';
+        }
         table.row.add([
             [questionList[i].question],
             [questionList[i].answer],
             [l[questionList[i].status]],
-            ['<button type="button" class="btn btn-primary btn-sm only-group-editor-if-group-exist" onclick="EditQuestionShow(' + questionList[i].questionId + ')">Edit</button>\
-            <button type="button" class="btn btn-danger btn-sm only-group-editor-if-group-exist" onclick="RemoveFromBook(' + questionList[i].questionId + ')">Delete</button>']
+            [btns]
         ]).node().id = questionList[i].questionId;
     }
     table.draw();
@@ -684,7 +688,7 @@ function BookRename() {
             if (r.success == true) {
                 bookName = newName;
                 $(".book-name").html(bookName);
-                $(".title").html(bookName + '&nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-refresh"></i></button>');
+                $(".title").html(bookName + '&nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-refresh"></i></button>&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="BookChart(' + bookId + ');"><i class="fa fa-bar-chart"></i></button>');
                 $("title").html(bookName + " | My Memo");
                 NotyNotification('Success! Book renamed!');
                 $("#renameModal").modal("hide");
@@ -765,7 +769,7 @@ function BookShare() {
                             break;
                         }
                     }
-                    NotyNotification(r.msg, type = 'info',  timeout = 30000);
+                    NotyNotification(r.msg, type = 'info', timeout = 30000);
                     $("#bookShareCode").html(r.shareCode);
                     $("#shareop").html("Unshare");
                     $(".only-shared").show();
@@ -1195,7 +1199,7 @@ function GroupInfoUpdate() {
                         bookName = gname;
 
                         $(".book-name").html(bookName);
-                        $(".title").html(bookName + '&nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-refresh"></i></button>');
+                        $(".title").html(bookName + '&nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-refresh"></i></button>&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="BookChart(' + bookId + ');"><i class="fa fa-bar-chart"></i></button>');
                         $("title").html(bookName + " | My Memo");
                         $("#groupCode").html(groupCode);
                         $(".only-group-exist").show();
@@ -1430,6 +1434,217 @@ function CreateBook(element) {
             } else {
                 NotyNotification(r.msg, type = 'error');
             }
+        },
+        error: function (r, textStatus, errorThrown) {
+            if (r.status == 401) {
+                SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
+            }
+        }
+    });
+}
+
+function BookChart(bid) {
+    $.ajax({
+        url: '/api/book/chart',
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            bookId: bid,
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            x = ['x'];
+            Memorized = ['Memorized'];
+            Forgotten = ['Forgotten'];
+            for (var i = r.challenge_history.length - 1; i >= 0; i--) {
+                Memorized.push(r.challenge_history[i].memorized);
+                Forgotten.push(r.challenge_history[i].forgotten);
+                var date = new Date(Date.now() - 86400 * 3 * i * 1000);
+                x.push((date.getMonth() + 1) + "-" + date.getDate());
+            }
+            chart1 = c3.generate({
+                bindto: "#chart1",
+                data: {
+                    x: 'x',
+                    columns: [
+                        ['x'],
+                        ['Memorized'],
+                        ['Forgotten']
+                    ],
+                    groups: [
+                        ['Memorized', 'Forgotten']
+                    ],
+                    colors: {
+                        Memorized: '#55ff55',
+                        Forgotten: '#ff5555'
+                    },
+                    types: {
+                        Memorized: 'bar',
+                        Forgotten: 'bar'
+                    }
+                },
+                bar: {
+                    width: {
+                        ratio: 0.3
+                    }
+                },
+                axis: {
+                    x: {
+                        type: 'category',
+                        tick: {
+                            rotate: -45,
+                            multiline: false
+                        },
+                        height: 50
+                    },
+                    y: {
+                        label: {
+                            text: 'Weekly Challenge Record',
+                            position: 'outer-middle'
+                        }
+                    }
+                },
+                zoom: {
+                    enabled: true
+                }
+            });
+            setTimeout(function () {
+                chart1.load({
+                    columns: [x, Memorized, Forgotten]
+                });
+                setTimeout(function () {
+                    chart1.flush();
+                }, 500);
+            }, 500);
+
+            Total = ['Total'];
+            for (var i = r.total_memorized_history.length - 1; i >= 0; i--) {
+                Total.push(r.total_memorized_history[i].total);
+            }
+            chart2 = c3.generate({
+                bindto: "#chart2",
+                data: {
+                    x: 'x',
+                    columns: [
+                        ['x'],
+                        ['Total']
+                    ],
+                    colors: {
+                        Total: '#5555ff',
+                    },
+                    types: {
+                        Total: 'area',
+                    }
+                },
+                axis: {
+                    x: {
+                        type: 'category',
+                        tick: {
+                            rotate: -45,
+                            multiline: false
+                        },
+                        height: 50
+                    },
+                    y: {
+                        label: {
+                            text: 'Weekly Total Memorized',
+                            position: 'outer-middle'
+                        }
+                    }
+                },
+                zoom: {
+                    enabled: true
+                }
+            });
+            setTimeout(function () {
+                chart2.load({
+                    columns: [x, Total]
+                });
+                setTimeout(chart2.flush, 500);
+            }, 1000);
+
+            chart3 = c3.generate({
+                bindto: "#chart3",
+                data: {
+                    columns: [
+                        ['Memorized'],
+                        ['Not Memorized']
+                    ],
+                    type: 'pie',
+                    colors: {
+                        'Memorized': '#55ff55',
+                        'Not Memorized': '#ff5555',
+                    },
+                    onclick: function (d, i) {
+                        console.log("onclick", d, i);
+                    },
+                    onmouseover: function (d, i) {
+                        console.log("onmouseover", d, i);
+                    },
+                    onmouseout: function (d, i) {
+                        console.log("onmouseout", d, i);
+                    }
+                }
+            });
+            setTimeout(function () {
+                chart3.load({
+                    columns: [
+                        ['Memorized', r.total_memorized / r.total],
+                        ['Not Memorized', (r.total - r.total_memorized) / r.total]
+                    ]
+                });
+                setTimeout(chart3.flush, 500);
+            }, 1500);
+
+            chart4 = c3.generate({
+                bindto: "#chart4",
+                data: {
+                    columns: [
+                        ['Default'],
+                        ['Tagged'],
+                        ['Deleted']
+                    ],
+                    type: 'pie',
+                    colors: {
+                        Default: '#5555ff',
+                        Tagged: 'yellow',
+                        Deleted: 'gray',
+                    },
+                    onclick: function (d, i) {
+                        console.log("onclick", d, i);
+                    },
+                    onmouseover: function (d, i) {
+                        console.log("onmouseover", d, i);
+                    },
+                    onmouseout: function (d, i) {
+                        console.log("onmouseout", d, i);
+                    }
+                }
+            });
+            setTimeout(function () {
+                chart4.load({
+                    columns: [
+                        ['Default', (r.total - r.tag_cnt - r.del_cnt) / r.total],
+                        ['Tagged', r.tag_cnt / r.total],
+                        ['Deleted', r.del_cnt / r.total],
+                    ]
+                });
+                setTimeout(chart4.flush, 500);
+            }, 2000);
+
+            $("text").css("font-family", "Comic Sans MS");
+            if (localStorage.getItem("settings-theme") == "dark") {
+                setInterval(function () {
+                    $("text").css("fill", "#ffffff");
+                    $(".c3-tooltip tr").css("color", "black")
+                }, 1);
+            }
+
+            $("#chartModal").modal("show");
         },
         error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {

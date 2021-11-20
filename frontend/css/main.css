@@ -64,12 +64,10 @@ h1 {
 }
 
 a {
-    text-decoration: none;
     color: #222222;
 }
 
 a:hover {
-    text-decoration: none;
     color: #777777;
 }
 
@@ -90,7 +88,13 @@ a:hover {
     padding-bottom: 1em;
 }
 
+.title button {
+    margin: 0.1em;
+}
+
 .userctrl {
+    text-decoration: none;
+
     position: absolute;
     top: 0;
     margin-top: 0;
@@ -108,15 +112,14 @@ a:hover {
     border-bottom-right-radius: 0.5em;
 }
 
-.userctrl>a {
+.userctrl a {
     color: #333333;
-}
-
-.userctrl>a>span>a {
-    color: #333333;
+    text-decoration: none;
 }
 
 .leftside {
+    text-decoration: none;
+    
     position: absolute;
     top: 4em;
     margin-top: 0;
@@ -134,8 +137,9 @@ a:hover {
     border-bottom-right-radius: 0.5em;
 }
 
-.leftside>.sqbtn>a {
+.leftside a {
     color: #333333;
+    text-decoration: none;
 }
 
 .question {
@@ -201,11 +205,12 @@ a:hover {
     position: fixed;
     z-index: 1000;
     top: 0;
-    left: 0;
+    left: 4em;
     width: 30em;
     height: 100%;
     background-color: #aaaaaa;
     opacity: 0.95;
+    border-radius:0.5em;
 }
 
 .book-side-content {
@@ -254,6 +259,7 @@ a:hover {
     border: 0.05em solid #aaaaaa;
     border-radius: 0.5em;
     box-shadow: none;
+    cursor: pointer;
 }
 
 .rect:hover {

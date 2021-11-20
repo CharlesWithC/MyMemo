@@ -92,8 +92,9 @@ if doinit:
     # tag: encoded text, like 'Owner'
     # tagtype: tag color
     cur.execute(f"CREATE TABLE UserSettings (userId INT, sRandom INT, sSwap INT, sShowStatus INT, sMode INT, sAutoPlay INT, sTheme VARCHAR(16))")
-    cur.execute(f"CREATE TABLE UserEvent (userId INT, event VARCHAR(32), timestamp INT)")
-    # Available event: register, login, change_password, delete_account
+    cur.execute(f"CREATE TABLE UserEvent (userId INT, event VARCHAR(32), timestamp INT, msg VARCHAR(2048))")
+    # Available event: register, login, change_password, delete_account, create_book, delete_book, create_group, 
+    # delete_group, join_group, quit_group
 
     # User should be allowed to delete their accounts
     # When a user request to delete his account, his account will be marked as "Pending for deletion",
@@ -109,7 +110,7 @@ if doinit:
     inviteCode = genCode(8)
     print(f"Created default user with invitation code: {inviteCode}")
     cur.execute(f"INSERT INTO UserInfo VALUES (0,'{encode('default')}','','None','{encode(defaultpwd)}',0,'{inviteCode}')")
-    cur.execute(f"INSERT INTO UserEvent VALUES (0, 'register', 0)")
+    cur.execute(f"INSERT INTO UserEvent VALUES (0, 'register', 0, '{encode('Birth of account')}')")
     # Default user system's password is 123456
     # Clear default account's password after setup (so it cannot be logged in)
     # NOTE DO NOT DELETE THE DEFAULT ACCOUNT, keep it in the database record

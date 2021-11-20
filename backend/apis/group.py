@@ -85,6 +85,8 @@ def apiGroup():
         gcode = genCode(8)
         cur.execute(f"INSERT INTO GroupInfo VALUES ({groupId}, {userId}, '{name}', '{description}', {lmt}, '{gcode}', 0)")
         cur.execute(f"INSERT INTO GroupMember VALUES ({groupId}, {userId}, 1)")
+        cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'create_group', {int(time.time())}, '{encode(f'Created group {decode(name)}')}')")
+        cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'join_group', {int(time.time()+1)}, '{encode(f'Joined group {decode(name)}')}')")
         cur.execute(f"INSERT INTO GroupBind VALUES ({groupId}, {userId}, {bookId})")
         
         cur.execute(f"SELECT questionId FROM BookData WHERE userId = {userId} AND bookId = {bookId}")
@@ -118,11 +120,12 @@ def apiGroup():
 
     elif op == "dismiss":
         groupId = int(request.form["groupId"])
-        cur.execute(f"SELECT owner FROM GroupInfo WHERE groupId = {groupId}")
-        owner = cur.fetchall()
-        if len(owner) == 0:
+        cur.execute(f"SELECT owner, name FROM GroupInfo WHERE groupId = {groupId}")
+        t = cur.fetchall()
+        if len(t) == 0:
             return json.dumps({"success": False, "msg": f"Group not found!"})
-        owner = owner[0][0]
+        owner = t[0][0]
+        name = t[0][1]
 
         if owner != userId:
             return json.dumps({"success": False, "msg": f"You are not the owner of the group!"})
@@ -136,6 +139,8 @@ def apiGroup():
         cur.execute(f"DELETE FROM GroupQuestion WHERE groupId = {groupId}")
         cur.execute(f"DELETE FROM GroupSync WHERE groupId = {groupId}")
         cur.execute(f"DELETE FROM GroupBind WHERE groupId = {groupId}")
+        cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'quit_group', {int(time.time())}, '{encode(f'Quit group {decode(name)}')}')")
+        cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'delete_group', {int(time.time()+1)}, '{encode(f'Deleted group {decode(name)}')}')")
         conn.commit()
 
         return json.dumps({"success": True, "msg": f"Group dismissed! Book sync stopped and members are not able to see others' progress."})
@@ -158,17 +163,19 @@ def apiQuitGroup():
     if len(cur.fetchall()) == 0:
         return json.dumps({"success": False, "msg": "You are not in the group!"})
     
-    cur.execute(f"SELECT owner FROM GroupInfo WHERE groupId = {groupId}")
+    cur.execute(f"SELECT owner, name FROM GroupInfo WHERE groupId = {groupId}")
     d = cur.fetchall()
     if len(d) == 0:
         return json.dumps({"success": False, "msg": "Group does not exist!"})
     owner = d[0][0]
     if userId == owner:
         return json.dumps({"success": False, "msg": "You are the owner of the group. You have to transfer group ownership before quiting the group."})
+    name = d[0][1]
 
     cur.execute(f"DELETE FROM GroupSync WHERE groupId = {groupId} AND userId = {userId}")
     cur.execute(f"DELETE FROM GroupMember WHERE groupId = {groupId} AND userId = {userId}")
     cur.execute(f"DELETE FROM GroupBind WHERE groupId = {groupId} AND userId = {userId}")
+    cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'quit_group', {int(time.time())}, '{encode(f'Quit group {decode(name)}')}')")
 
     conn.commit()
 
@@ -289,7 +296,7 @@ def apiGroupMember():
             cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {uid}")
             t = cur.fetchall()
             if len(t) > 0:
-                username = f"<a href='/user?userId={uid}'><span style='color:{t[0][1]}'>{username}</span> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span></a>"
+                username = f"<a href='/user?userId={uid}'><span style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
             ret.append({"userId": uid, "username": username, "progress": pgs})
         elif info[2] == 1:
             ret.append({"userId": 0, "username": "Anonymous", "progress": pgs})
@@ -347,6 +354,11 @@ def apiManageGroup():
         return json.dumps({"success": True, "msg": "Success!"})
 
     elif op == "kick":
+        cur.execute(f"SELECT name FROM GroupInfo WHERE groupId = {groupId}")
+        t = cur.fetchall()
+        name = ''
+        if len(t) > 0:
+            name = t[0][0]
         users = json.loads(request.form["users"])
         for uid in users:
             if uid == userId:
@@ -354,6 +366,7 @@ def apiManageGroup():
             cur.execute(f"DELETE FROM GroupSync WHERE groupId = {groupId} AND userId = {uid}")
             cur.execute(f"DELETE FROM GroupMember WHERE groupId = {groupId} AND userId = {uid}")
             cur.execute(f"DELETE FROM GroupBind WHERE groupId = {groupId} AND userId = {uid}")
+            cur.execute(f"INSERT INTO UserEvent VALUES ({uid}, 'quit_group', {int(time.time())}, '{encode(f'You have been kicked from group {decode(name)}')}')")
         conn.commit()
         return json.dumps({"success": True, "msg": "Success!"})
     

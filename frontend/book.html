@@ -13,6 +13,10 @@
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/font-awesome.min.css" rel="stylesheet">
     <link href="/css/main.css" rel="stylesheet">
+    
+    <link href="/css/c3.min.css" rel="stylesheet">
+    <script src="/js/d3.v5.min.js" charset="utf-8"></script>
+    <script src="/js/c3.min.js"></script>
 
     <link rel="stylesheet" href="/dataTables/jquery.dataTables.min.css">
     <script src="/dataTables/jquery.dataTables.min.js"></script>
@@ -221,7 +225,8 @@
 
 <body>
     <h1 class="title" style="padding-bottom: 0;">My Memo&nbsp;&nbsp;<button type="button"
-            class="btn btn-outline-secondary" onclick="UpdateBookContentList()"><i class="fa fa-refresh"></i></button>
+            class="btn btn-outline-secondary" onclick="UpdateBookContentList()"><i
+                class="fa fa-refresh"></i></button>
     </h1>
 
     <div id="navigate" style="z-index:100">
@@ -239,12 +244,13 @@
         </div>
         <div class="userctrl">
             <a href='/user'><i class="fa fa-user"></i> <span id="navusername">Sign in</span></a>
+            <a class="only-signed-in" href='#' onclick="UserEvents()" style="display:none"><i class="fa fa-bell"></i></a>
             <a href='#' onclick="window.location.href='/settings'"><i class="fa fa-cogs"></i></a>
-            <a id="sign-out-btn" href='#' onclick="SignOut()" style="display:none"><i class="fa fa-sign-out"></i></a>
+            <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i class="fa fa-sign-out"></i></a>
         </div>
     </div>
 
-    <div id="book-div" class="book-side" style="left:4em;display:none;border-radius:1em">
+    <div id="book-div" class="book-side" style="display:none">
         <div class="book-side-content">
             <h2 style="float:left">Books</h2>
             <button type="button" class="btn btn-outline-secondary" style="margin:0.5em" onclick="RefreshBookList()"
@@ -821,9 +827,32 @@
         </div>
     </div>
 
+    <div class="modal fade" id="chartModal" tabindex="-1" role="dialog"
+        aria-labelledby="chartModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="chartModalLabel"><i class="fa fa-bar-chart"></i> Book Statistics</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                        onclick="$('#chartModal').modal('hide')">
+                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="charts" style="border-radius:0.5em">
+                        <div class="chart" id="chart1"></div>
+                        <div class="chart" id="chart2"></div>
+                        <div class="chart" id="chart3" style="width:49%;display:inline-block;"></div>
+                        <div class="chart" id="chart4" style="width:49%;display:inline-block;"></div>
+                    </div>                    
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.9 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.10 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>
