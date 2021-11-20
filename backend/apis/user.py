@@ -236,7 +236,7 @@ def apiDeleteAccount():
     sessions.markDeletion(userId)
 
     ip = request.headers["CF-Connecting-Ip"]
-    cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'delete_account', {int(time.time())}, '{encode(f'Account marked for deletion by {ip}')})")
+    cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'delete_account', {int(time.time())}, '{encode(f'Account marked for deletion by {ip}')}')")
     sessions.logout(userId, token)
     conn.commit()
 

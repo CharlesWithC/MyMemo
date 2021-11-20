@@ -522,7 +522,7 @@ function UpdateProfileShow() {
     $("#updateProfileModal").modal("show");
     l = user.username.indexOf('>', user.username.indexOf('>') + 1);
     r = user.username.indexOf('<', user.username.indexOf('<', user.username.indexOf('<') + 1) + 1);
-    $("#update-username").val(user.username.substr(l + 1, r - l - 2));
+    $("#update-username").val(user.username.substr(l + 1, r - l - 1));
     $("#update-email").val(user.email);
     $("#update-bio").val(user.bio);
 }

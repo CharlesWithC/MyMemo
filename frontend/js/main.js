@@ -248,13 +248,13 @@ function ShowQuestion() {
         settings.firstuse = false;
     }
     if (settings.mode != 2) { // spj
-        if (settings.swap == 0 || settings.swap == 2 && settings.mode == 1) {
+        if (settings.swap == 0) {
             $("#question").val(memo.question);
             $("#answer").val("");
         } else if (settings.swap == 1) {
             $("#question").val("");
             $("#answer").val(memo.answer);
-        } else if (settings.swap == 2 && settings.mode != 1 && settings.mode != 2) {
+        } else if (settings.swap == 2 && settings.mode != 1) {
             $("#question").val(memo.question);
             $("#answer").val(memo.answer);
         }
@@ -435,7 +435,7 @@ function MemoMove(direction) {
             memo.questionStatus = requiredList[index].status;
         }
 
-        ShowQuestion();
+        setTimeout(ShowQuestion,100);
     }
 }
 

@@ -3,9 +3,10 @@
 # License: GNU General Public License v3.0
 
 from flask import request, abort
-import os, sys, time, math
+import os, sys, time, datetime, math
 import json
 import validators
+import threading
 
 from app import app, config
 import db
@@ -47,6 +48,9 @@ def apiAdminUserList():
 
     cur.execute(f"SELECT userId FROM AdminList")
     admins = cur.fetchall()
+        
+    cur.execute(f"SELECT userId, value FROM Privilege WHERE item = 'mute'")
+    muted = cur.fetchall()
     
     cur.execute(f"SELECT userId, username, email, inviter, inviteCode FROM UserInfo")
     d = cur.fetchall()
@@ -62,9 +66,16 @@ def apiAdminUserList():
             status = "Deleted"
         if sessions.checkDeletionMark(dd[0]):
             status = "Deactivated"
-        
+
+        for mm in muted:
+            if mm[0] == dd[0]:
+                if int(mm[1]) == -1:
+                    status += " , Muted forever"
+                else:
+                    status += " , Muted until " + str(datetime.datetime.fromtimestamp(int(mm[1])))
+
         if (dd[0],) in admins:
-            status = "Admin"
+            status += " , Admin"
         
         inviterUsername = "Unknown"
         cur.execute(f"SELECT username FROM UserInfo WHERE userId = {dd[3]}")
@@ -82,6 +93,11 @@ def apiAdminUserList():
         users.append({"userId": dd[0], "username": dd[1], "email": dd[2], "inviter": f"{inviterUsername} (UID: {dd[3]})", "inviteCode": dd[4], "age": age, "status": status})
 
     return json.dumps(users)
+
+def restart():
+    time.sleep(5)
+    os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
+    sys.exit(0)
 
 @app.route("/api/admin/command", methods = ['POST'])
 def apiAdminCommand():
@@ -220,7 +236,7 @@ def apiAdminCommand():
         uid = int(command[1])
         
         username = ""
-        cur.execute(f"SELECT username FROM UserInfo WHERE uid = {uid}")
+        cur.execute(f"SELECT username FROM UserInfo WHERE userId = {uid}")
         t = cur.fetchall()
         if len(t) != 0:
             username = decode(t[0][0])
@@ -246,7 +262,7 @@ def apiAdminCommand():
             cur.execute(f"DELETE FROM GroupMember WHERE userId = {uid}")
             cur.execute(f"DELETE FROM GroupSync WHERE userId = {uid}")
             cur.execute(f"DELETE FROM GroupBind WHERE userId = {uid}")
-            cur.execute(f"DELETE FROM Discovery WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM Discovery WHERE publisherId = {uid}")
             cur.execute(f"DELETE FROM IDInfo WHERE userId = {uid}")
             cur.execute(f"DELETE FROM UserSessionHistory WHERE userId = {uid}")
             conn.commit()
@@ -260,13 +276,17 @@ def apiAdminCommand():
         uid = int(command[1])
         value = int(command[2])
 
+        if uid == userId:
+            return json.dumps({"success": False, "msg": "You cannot mute yourself!"})
+
+        if value != -1:
+            value = int(time.time()) + 86400 * value
+
         cur.execute(f"SELECT * FROM Privilege WHERE userId = {uid} AND item = 'mute'")
         if len(cur.fetchall()) == 0:
-            if value != -1:
-                value = int(time.time()) + 86400 * value
-            cur.execute(f"INSERT INTO Privilege VALUES ({uid}, 'mute', {value})")
+            cur.execute(f"INSERT INTO Privilege VALUES ({uid}, 'mute', '{value}')")
         else:
-            cur.execute(f"UPDATE Privilege SET value = {value} WHERE userId = {uid} AND item = 'mute'")
+            cur.execute(f"UPDATE Privilege SET value = '{value}' WHERE userId = {uid} AND item = 'mute'")
         conn.commit()
 
         return json.dumps({"success": True, "msg": "User muted"})
@@ -363,9 +383,9 @@ def apiAdminCommand():
         return json.dumps({"success": True, "msg": f"Removed nametag from user {uid}"})
 
 
-    elif command[0] == "ban_account":
+    elif command[0] == "ban":
         if len(command) != 2:
-            return json.dumps({"success": False, "msg": "Usage: ban_account [userId]\nBan account"})
+            return json.dumps({"success": False, "msg": "Usage: ban [userId]\nBan account"})
         
         uid = int(command[1])
 
@@ -388,9 +408,9 @@ def apiAdminCommand():
 
         return json.dumps({"success": False, "msg": f"Banned user {uid}"})
 
-    elif command[0] == "unban_account":
+    elif command[0] == "unban":
         if len(command) != 2:
-            return json.dumps({"success": False, "msg": "Usage: unban_account [userId]\nUnban account"})
+            return json.dumps({"success": False, "msg": "Usage: unban [userId]\nUnban account"})
         
         uid = int(command[1])
 
@@ -443,13 +463,13 @@ def apiAdminCommand():
     elif command[0] == "restart":
         if os.path.exists("/tmp/MyMemoLastManualRestart"):
             lst = int(open("/tmp/MyMemoLastManualRestart","r").read())
-            if int(time.time()) - lst <= 1800:
-                return json.dumps({"success": False, "msg": "Only one restart in each 30 minutes is allowed!"})
+            if int(time.time()) - lst <= 300:
+                return json.dumps({"success": False, "msg": "Only one restart in each 5 minutes is allowed!"})
         
         open("/tmp/MyMemoLastManualRestart","w").write(str(int(time.time())))
 
-        os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
-        sys.exit(0)
+        threading.Thread(target=restart).start()
+        return json.dumps({"success": True, "msg": "Server restarting..."})
 
     else:
         return json.dumps({"success": False, "msg": "Unknown command"})

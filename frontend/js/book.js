@@ -317,7 +317,7 @@ function ShowStatistics(wid) {
         async: true,
         dataType: "json",
         data: {
-            questionId: questionId,
+            questionId: wid,
             userId: localStorage.getItem("userId"),
             token: localStorage.getItem("token")
         },

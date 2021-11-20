@@ -280,7 +280,7 @@ def apiDiscoveryPublish():
     cur.execute(f"SELECT value FROM Privilege WHERE userId = {userId} AND item = 'mute'")
     t = cur.fetchall()
     if len(t) > 0:
-        mute = t[0][0]
+        mute = int(t[0][0])
         if mute == -1 or mute >= int(time.time()):
             return json.dumps({"success": False, "msg": "You have been muted!"})
         else:
