@@ -6,16 +6,17 @@
 
 *All the commits since [c610d51](https://github.com/Charles-1414/MyMemo/commit/c610d51cc357b7f0841de62ff77157f93ed986fa) should be signed with my GPG key and marked as verified. Otherwise it might be committed by an unknown person. Commit [99efec8](https://github.com/Charles-1414/MyMemo/commit/99efec8dc9d3e4976c61f17764869a84df50722e) is unverified because the email was configured incorrectly.*
 
-Current version: v5.3.10  
+Current version: v5.3.11  
 
 ## About v5  
 
 My Memo v5 is built with python flask + html5 bootstrap.  
 We have a brand new UI comparing to the older versions using canvas.  
-Dark Mode is supported in v5 btw, you can enable it in Settings.  
 
-Challenge mode has been separated to Challenge YESNO and Challenge CHOICE.  
-Challenge YESNO is the old mode and Challenge CHOICE allows you to do quiz.  
+Switch? Practice? Challenge?  
+The old Challenge CHOICE has been renamed to Challenge and it's the only challenge mode that will update challenge record.  
+The old Challenge YESNO has been renamed to Practice. It will display specific questions & answers based on an algorithm that is the same as challenge mode.  
+The old Practice has been renamed to Switch, as users just switch between questions & answers.  
 
 Discovery, the first community function, has been introduced!  
 You can post your shared books and public groups to Discovery!  
@@ -28,10 +29,11 @@ Please note that the first user registered (besides default user) will be given 
 
 ## About My Memo
 
-You have three modes to start the site: Practice Mode, Challenge Mode and Offline Mode.  
-Practice Mode is for you to memorize new things, while Challenge Mode is for you to test whether you memorized them.  
-Offline Mode can be enabled when you or the server is offline, CloudFlare will show a snapshot of the website and the questions & answers are fetched from local question list.  
-There are multiple settings for you to decide how you will memorize new things.  
+You have four modes to start the site: Switch, Practice, Challenge, Offline.  
+You can use Switch to switch between questions easily and it should be used for first-time memorizing.  
+You need to answer whether you remember the answer in Practice so it should be used for second-time memorizing.  
+To test whether you have memorized the answers, use Challenge mode to do some quizzes.  
+Offline Mode? It isn't completely offline. But your device will not communicate with the server as the words are backed up locally.  
 
 Books are supported! You can create unlimited books (this can be limited in config.json at backend) and add any questions to it! Select a book before starting memorizing or the default (All questions) will be applied.
 

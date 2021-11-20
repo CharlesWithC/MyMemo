@@ -90,7 +90,13 @@ function SelectQuestions() {
             $(".book-data-div").show();
 
             bookName = bookList[i].name;
-            $(".title").html(bookName + '&nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-refresh"></i></button>&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="BookChart(' + bookId + ');"><i class="fa fa-bar-chart"></i></button>');
+            btns = '<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-refresh"></i></button>';
+            btns += '<button type="button" class="btn btn-outline-secondary" onclick="BookChart(' + bookId + ');"><i class="fa fa-bar-chart"></i></button>';
+            if (bookId == localStorage.getItem("memo-book-id"))
+                btns += '<button type="button" class="btn btn-outline-secondary" id="select-book-btn"><i class="fa fa-check-square"></i></button>';
+            else
+                btns += '<button type="button" class="btn btn-outline-secondary" onclick="SelectBook(' + bookId + ')" id="select-book-btn"><i class="fa fa-check-square-o"></i></button>';
+            $(".title").html(bookName + '&nbsp;&nbsp;' + btns);
             $("title").html(bookName + " | My Memo");
             bookShareCode = bookList[i].shareCode;
             if (bookShareCode == "") {
@@ -688,7 +694,14 @@ function BookRename() {
             if (r.success == true) {
                 bookName = newName;
                 $(".book-name").html(bookName);
-                $(".title").html(bookName + '&nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-refresh"></i></button>&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="BookChart(' + bookId + ');"><i class="fa fa-bar-chart"></i></button>');
+                btns = '<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-refresh"></i></button>';
+                btns += '<button type="button" class="btn btn-outline-secondary" onclick="BookChart(' + bookId + ');"><i class="fa fa-bar-chart"></i></button>';
+                if (bookId == localStorage.getItem("memo-book-id"))
+                    btns += '<button type="button" class="btn btn-outline-secondary" id="select-book-btn"><i class="fa fa-check-square"></i></button>';
+                else
+                    btns += '<button type="button" class="btn btn-outline-secondary" onclick="SelectBook(' + bookId + ')" id="select-book-btn"><i class="fa fa-check-square-o"></i></button>';
+                $(".title").html(bookName + '&nbsp;&nbsp;' + btns);
+                $("title").html(bookName + " | My Memo");
                 $("title").html(bookName + " | My Memo");
                 NotyNotification('Success! Book renamed!');
                 $("#renameModal").modal("hide");
@@ -1199,7 +1212,14 @@ function GroupInfoUpdate() {
                         bookName = gname;
 
                         $(".book-name").html(bookName);
-                        $(".title").html(bookName + '&nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-refresh"></i></button>&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="BookChart(' + bookId + ');"><i class="fa fa-bar-chart"></i></button>');
+                        btns = '<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-refresh"></i></button>';
+                        btns += '<button type="button" class="btn btn-outline-secondary" onclick="BookChart(' + bookId + ');"><i class="fa fa-bar-chart"></i></button>';
+                        if (bookId == localStorage.getItem("memo-book-id"))
+                            btns += '<button type="button" class="btn btn-outline-secondary" id="select-book-btn"><i class="fa fa-check-square"></i></button>';
+                        else
+                            btns += '<button type="button" class="btn btn-outline-secondary" onclick="SelectBook(' + bookId + ')" id="select-book-btn"><i class="fa fa-check-square-o"></i></button>';
+                        $(".title").html(bookName + '&nbsp;&nbsp;' + btns);
+                        $("title").html(bookName + " | My Memo");
                         $("title").html(bookName + " | My Memo");
                         $("#groupCode").html(groupCode);
                         $(".only-group-exist").show();
@@ -1384,6 +1404,15 @@ function SelectBook(bookId) {
     localStorage.setItem("memo-book-id", bookId);
     UpdateBookDisplay();
     UpdateBookContentDisplay();
+
+    btns = '<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-refresh"></i></button>';
+    btns += '<button type="button" class="btn btn-outline-secondary" onclick="BookChart(' + bookId + ');"><i class="fa fa-bar-chart"></i></button>';
+    if (bookId == localStorage.getItem("memo-book-id"))
+        btns += '<button type="button" class="btn btn-outline-secondary" id="select-book-btn"><i class="fa fa-check-square"></i></button>';
+    else
+        btns += '<button type="button" class="btn btn-outline-secondary" onclick="SelectBook()" id="select-book-btn"><i class="fa fa-check-square-o"></i></button>';
+    $(".title").html(bookName + '&nbsp;&nbsp;' + btns);
+    $("title").html(bookName + " | My Memo");
 }
 
 function UpdateBookContentList() {
@@ -1503,7 +1532,7 @@ function BookChart(bid) {
                     },
                     y: {
                         label: {
-                            text: 'Weekly Challenge Record',
+                            text: '3-Day Challenge Record',
                             position: 'outer-middle'
                         }
                     }
@@ -1551,7 +1580,7 @@ function BookChart(bid) {
                     },
                     y: {
                         label: {
-                            text: 'Weekly Total Memorized',
+                            text: '3-Day Total Memorized',
                             position: 'outer-middle'
                         }
                     }

@@ -13,7 +13,7 @@
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/font-awesome.min.css" rel="stylesheet">
     <link href="/css/main.css" rel="stylesheet">
-    
+
     <link href="/css/c3.min.css" rel="stylesheet">
     <script src="/js/d3.v5.min.js" charset="utf-8"></script>
     <script src="/js/c3.min.js"></script>
@@ -52,7 +52,10 @@
             setTimeout(onkeypress, 500);
 
             if (localStorage.getItem("settings-theme") == "dark") {
-                $("body").attr("style", "color:#ffffff;background-color:#333333");setInterval(function(){$("#content a,.container a").css("color","#dddddd");},500);
+                $("body").attr("style", "color:#ffffff;background-color:#333333");
+                setInterval(function () {
+                    $("#content a,.container a").css("color", "#dddddd");
+                }, 500);
                 $("hr").attr("style", "background-color:#cccccc;");
                 $(".modal-content").attr("style", "background-color:#333333");
                 $(".fa-times").attr("style", "color:white");
@@ -66,6 +69,11 @@
             $("#create-book-name").on('keypress', function (e) {
                 if (e.which == 13 || e.which == 13 && e.ctrlKey) {
                     CreateBook();
+                }
+            });
+            $("#new-goal").on('keypress', function (e) {
+                if (e.which == 13 || e.which == 13 && e.ctrlKey) {
+                    UpdateGoal();
                 }
             });
         })
@@ -100,10 +108,12 @@
             </div>
         </div>
         <div class="userctrl">
-            <a href='/user'><i class="fa fa-user"></i> <span id="navusername">Sign in</span></a>
-            <a class="only-signed-in" href='#' onclick="UserEvents()" style="display:none"><i class="fa fa-bell"></i></a>
+            <a href='/user'><i class="fa fa-user"></i> <span id="navusername">Sign in&nbsp;&nbsp;  </span></a>
+            <a class="only-signed-in" href='#' onclick="UserEvents()" style="display:none"><i
+                    class="fa fa-bell"></i></a>
             <a href='#' onclick="window.location.href='/settings'"><i class="fa fa-cogs"></i></a>
-            <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i class="fa fa-sign-out"></i></a>
+            <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i
+                    class="fa fa-sign-out"></i></a>
         </div>
     </div>
 
@@ -112,7 +122,8 @@
             <h2 style="float:left">Books</h2>
             <button type="button" class="btn btn-outline-secondary" style="margin:0.5em" onclick="RefreshBookList()"
                 id="book-list-refresh-btn"><i class="fa fa-refresh"></i></button>
-            <button style="float:right" type="button" class="close" aria-label="Close" onclick="$('#book-div').fadeOut()">
+            <button style="float:right" type="button" class="close" aria-label="Close"
+                onclick="$('#book-div').fadeOut()">
                 <span aria-hidden=" true"><i class="fa fa-times"></i></span>
             </button>
 
@@ -153,19 +164,41 @@
                 <p><span id="bio"></span></p>
                 <div id="private-chart"></div>
                 <hr>
-                <p>Age: <span id="age">0</span> days</p>
-                <p>Email: <span id="email"></span></p>
-                <p>Invitation Code: <span id="inviteCode"></span></p>
-                <p>Invited By: <span id="inviteBy"></span></p>
-                <hr>
                 <div id="sessions">
                     <h2>Sessions</h2>
-                    <p style="font-size:0.8em">*If you find an unknown session, reset your password immediately. Changing your password will log out of all sessions.</p>
+                    <p style="font-size:0.8em">*If you find an unknown session, reset your password immediately.
+                        Changing your password will log out of all sessions.</p>
                 </div>
             </div>
             <div class="manage-account" style="width: 35%; float:right">
+                <div id="goal">
+                    <p>Age: <span id="age">0</span> days</p>
+                    <p>Email: <span id="email"></span></p>
+                    <p>Invitation Code: <span id="inviteCode"></span></p>
+                    <p>Invited By: <span id="inviteBy"></span></p>
+                    <hr>
+                    <h2>Goal</h2>
+                    <div class="progress">
+                        <div id="goal-progress" class="progress-bar progress-bar-striped progress-bar-animated"
+                            role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"
+                            style="width: 0%">
+                            <span id="today-goal">0 / 0</span>
+                        </div>
+                    </div>
+                    <p>You have checked in continuously for <span id="checkin-continuous">0</span> days</p>
+                    <button id="checkin-btn" class="btn btn-primary" type="button" onclick="CheckIn()" disabled>Check
+                        In</button>
+                    <p id="checkin-hint" style="font-size:0.7em">Accomplish today's goal to check in!</p>
+                    <div class="input-group mb-3 w-75">
+                        <span class="input-group-text" id="basic-addon1">Update Goal</span>
+                        <input type="text" class="form-control" id="new-goal" aria-describedby="basic-addon1">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-primary" type="button" onclick="UpdateGoal()">Submit</button>
+                        </div>
+                    </div>
+                </div>
+                <hr>
                 <h3>Manage Account</h3>
-                <br>
                 <h4>Basic</h4>
                 <button type="button" class="btn btn-primary" onclick="UpdateProfileShow()">Update Profile</button>
                 <button type="button" class="btn btn-primary" onclick="ChangePasswordShow()">Change Password</button>
@@ -193,7 +226,7 @@
             </div>
             <br>
             <button id="login-btn" type="button" class="btn btn-primary"
-                style="position:relative;width:10em;margin-top:1em" onclick="Login()">Sign in</button>
+                style="position:relative;width:10em;margin-top:1em" onclick="Login()">  Sign in  </button>
         </div>
 
         <div class="register center" style="margin-top:4em;margin-bottom:10em;display:none">
@@ -215,7 +248,7 @@
                 <input type="text" class="form-control" id="register-inviteCode" aria-describedby="basic-addon1">
             </div>
             <div class="center" style="width:30%">
-                <a href="#" onclick="$('.login').show();$('.register').hide();" style="float:right">Sign in</a>
+                <a href="#" onclick="$('.login').show();$('.register').hide();" style="float:right">  Sign in  </a>
             </div>
             <br>
             <button id="login-btn" type="button" class="btn btn-primary"
@@ -247,7 +280,8 @@
                                 style="z-index:100">
                         </div>
                         <div class="form-group">
-                            <label for="update-bio" class="col-form-label">Bio (You can use HTML tags to make your bio more beautiful):</label>
+                            <label for="update-bio" class="col-form-label">Bio (You can use HTML tags to make your bio
+                                more beautiful):</label>
                             <textarea class="form-control" id="update-bio"></textarea>
                         </div>
                     </form>
@@ -347,7 +381,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.10 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.11 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

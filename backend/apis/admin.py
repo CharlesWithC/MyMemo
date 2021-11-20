@@ -228,8 +228,13 @@ def apiAdminCommand():
         if username != "@deleted":
             return json.dumps({"success": False, "msg": "Account not deleted yet!"})
         
-        elif username == "@deleted":        
+        elif username == "@deleted":
+            cur.execute(f"DELETE FROM UserGoal WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM CheckIn WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM UserSettings WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM UserNameTag WHERE userId = {uid}")
             cur.execute(f"DELETE FROM QuestionList WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM Privilege WHERE userId = {uid}")
             cur.execute(f"DELETE FROM Book WHERE userId = {uid}")
             cur.execute(f"DELETE FROM BookData WHERE userId = {uid}")
             cur.execute(f"DELETE FROM BookShare WHERE userId = {uid}")
@@ -241,10 +246,44 @@ def apiAdminCommand():
             cur.execute(f"DELETE FROM GroupMember WHERE userId = {uid}")
             cur.execute(f"DELETE FROM GroupSync WHERE userId = {uid}")
             cur.execute(f"DELETE FROM GroupBind WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM Discovery WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM IDInfo WHERE userId = {uid}")
+            cur.execute(f"DELETE FROM UserSessionHistory WHERE userId = {uid}")
             conn.commit()
 
             return json.dumps({"success": False, "msg": "Account data wiped!"})
     
+    elif command[0] == 'mute':
+        if len(command) != 3:
+            return json.dumps({"success": False, "msg": "Usage: mute [userId] [duration]\nMute [userId] for [duration] days\nTo mute forever, set [duration] to -1"})
+
+        uid = int(command[1])
+        value = int(command[2])
+
+        cur.execute(f"SELECT * FROM Privilege WHERE userId = {uid} AND item = 'mute'")
+        if len(cur.fetchall()) == 0:
+            if value != -1:
+                value = int(time.time()) + 86400 * value
+            cur.execute(f"INSERT INTO Privilege VALUES ({uid}, 'mute', {value})")
+        else:
+            cur.execute(f"UPDATE Privilege SET value = {value} WHERE userId = {uid} AND item = 'mute'")
+        conn.commit()
+
+        return json.dumps({"success": True, "msg": "User muted"})
+    
+    elif command[0] == "unmute":
+        if len(command) != 2:
+            return json.dumps({"success": False, "msg": "Usage: unmute [userId]\nUnmute [userId]"})
+        
+        uid = int(command[1])
+        cur.execute(f"SELECT * FROM Privilege WHERE userId = {uid} AND item = 'mute'")
+        if len(cur.fetchall()) != 0:
+            cur.execute(f"DELETE FROM Privilege WHERE userId = {uid} AND item = 'mute'")
+            conn.commit()
+            return json.dumps({"success": True, "msg": "User unmuted!"})
+        else:
+            return json.dumps({"success": False, "msg": "User not muted!"})
+
     elif command[0] == "set_privilege":
         if len(command) != 4:
             return json.dumps({"success": False, "msg": "Usage: set_privilege [userId] [item] [value]\nAdd [item] privilege for user [userId] ([item] can be question_limit)\nIf privilege exists, then update it"})

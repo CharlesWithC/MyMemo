@@ -70,7 +70,7 @@ def apiGetNext():
                 d = cur.fetchall()
 
         elif moveType == 0:
-            cur.execute(f"SELECT questionId, question, answer, status FROM QuestionList WHERE ({statusRequirement}) AND userId = {userId} ORDER BY RANDOM() LIMIT 1")
+            cur.execute(f"SELECT questionId, question, answer, status FROM QuestionList WHERE ({statusRequirement}) AND userId = {userId} ORDER BY RAND() LIMIT 1")
             d = cur.fetchall()
     
     else:

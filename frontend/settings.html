@@ -62,7 +62,7 @@
             </div>
         </div>
         <div class="userctrl">
-            <a href='/user'><i class="fa fa-user"></i> <span id="navusername">Sign in</span></a>
+            <a href='/user'><i class="fa fa-user"></i> <span id="navusername">Sign in&nbsp;&nbsp;  </span></a>
             <a class="only-signed-in" href='#' onclick="UserEvents()" style="display:none"><i class="fa fa-bell"></i></a>
             <a href='#' onclick="window.location.href='/settings'"><i class="fa fa-cogs"></i></a>
             <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i class="fa fa-sign-out"></i></a>
@@ -99,11 +99,11 @@
         <br>
         <p>Mode:
             <button id="mode-practice-btn" type="button" class="btn mode-btn btn-secondary" style="margin:0"
-                onclick="UpdateMode(0)">Practice</button>
+                onclick="UpdateMode(0)">Switch</button>
             <button id="mode-challenge-yesno-btn" type="button" class="btn mode-btn btn-secondary" style="margin:0"
-                onclick="UpdateMode(1)">Challenge YESNO</button>
+                onclick="UpdateMode(1)">Practice</button>
             <button id="mode-challenge-choice-btn" type="button" class="btn mode-btn btn-secondary" style="margin:0"
-                onclick="UpdateMode(2)">Challenge CHOICE</button>
+                onclick="UpdateMode(2)">Challenge</button>
             <button id="mode-offline-btn" type="button" class="btn mode-btn btn-secondary" style="margin:0"
                 onclick="UpdateMode(3)">Offline</button>
         </p>
@@ -160,7 +160,7 @@
         <hr>
         <h2>Settings Sync</h2>
         <button id="sync-upload-btn" type="button" class="btn btn-primary" style="margin:0"
-            onclick="SettingsSync('upload')"><i class="fa fa-server"></i> Sync to server</button>
+            onclick="SettingsSync('upload')"><i class="fa fa-server"></i> Sync to cloud</button>
         <button id="sync-download-btn" type="button" class="btn btn-primary" style="margin:0"
             onclick="SettingsSync('download')"><i class="fa fa-cloud-download"></i> Sync to local</button>
         <hr>
@@ -195,7 +195,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.10 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.11 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

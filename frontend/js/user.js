@@ -12,6 +12,10 @@ class UserClass {
         this.inviter = -1;
         this.age = 0;
         this.isAdmin = false;
+        this.goal = 0;
+        this.chtoday = 0;
+        this.checkin_today = 0;
+        this.checkin_continuous = 0;
     }
 }
 user = new UserClass();
@@ -71,6 +75,11 @@ if (uid == -1 || uid == localStorage.getItem("userId")) {
                 localStorage.removeItem("isAdmin");
             }
 
+            user.goal = r.goal;
+            user.chtoday = r.chtoday;
+            user.checkin_today = r.checkin_today;
+            user.checkin_continuous = r.checkin_continuous;
+
             localStorage.setItem("username", user.username);
 
             $(".user").show();
@@ -88,6 +97,29 @@ if (uid == -1 || uid == localStorage.getItem("userId")) {
             $("#email").html(user.email);
             $("#inviteCode").html(user.invitationCode);
             $("#inviteBy").html(user.inviter);
+
+            $("#goal-progress").css("width", Math.min(user.chtoday / user.goal * 100, 100) + "%");
+            $("#today-goal").html(user.chtoday + " / " + user.goal);
+            $("#checkin-continuous").html(user.checkin_continuous);
+
+            if (user.checkin_today || user.chtoday < user.goal) {
+                $("#checkin-btn").attr("disabled", "disabled");
+                if (user.checkin_today) {
+                    $("#checkin-btn").html("Checked in");
+                    $("#checkin-hint").html("You have already checked in today!");
+                } else {
+                    $("#checkin-hint").html("Accomplish today's goal to check in!");
+                }
+            } else {
+                $("#checkin-btn").removeAttr("disabled");
+                $("#checkin-hint").html("Goal accomplished! You can check in now!");
+            }
+
+            if (user.goal == 0) {
+                $("#checkin-btn").attr("disabled", "disabled");
+                $("#checkin-btn").html("Check in");
+                $("#checkin-hint").html("Let's set a goal first!");
+            }
 
             if (r.isAdmin) {
                 $("#danger-zone").remove();
@@ -207,7 +239,7 @@ if (tuid != -1 && tuid != null) {
                     },
                     y: {
                         label: {
-                            text: 'Weekly Challenge Record',
+                            text: '3-Day Challenge Record',
                             position: 'outer-middle'
                         }
                     }
@@ -255,7 +287,7 @@ if (tuid != -1 && tuid != null) {
                     },
                     y: {
                         label: {
-                            text: 'Weekly Total Memorized',
+                            text: '3-Day Total Memorized',
                             position: 'outer-middle'
                         }
                     }
@@ -672,6 +704,109 @@ function RestartServer() {
         error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 NotyNotification('Access control by NGINX: You have to enter that password to authorize!', type = 'warning', timeout = 10000);
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
+            }
+        }
+    });
+}
+
+function CheckIn() {
+    if (user.chtoday < user.goal) {
+        NotyNotification("Accomplish today's goal before checking in!", type = 'warning');
+        return;
+    }
+    if (user.checkin_today) {
+        NotyNotification("You have already checked in today!", type = 'warning');
+        return;
+    }
+
+    $.ajax({
+        url: "/api/user/checkin",
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            if (r.success == true) {
+                NotyNotification(r.msg, type = 'success');
+
+                user.checkin_today = true;
+                user.checkin_continuous += 1;
+
+                if (user.checkin_today || user.chtoday < user.goal) {
+                    $("#checkin-btn").attr("disabled", "disabled");
+                    if (user.checkin_today) {
+                        $("#checkin-btn").html("Checked in");
+                        $("#checkin-hint").html("You have already checked in today!");
+                    }
+                } else {
+                    $("#checkin-btn").removeAttr("disabled");
+                    $("#checkin-hint").html("Goal accomplished! You can check in now!")
+                }
+            } else {
+                NotyNotification(r.msg, type = 'error');
+            }
+        },
+        error: function (r, textStatus, errorThrown) {
+            if (r.status == 401) {
+                SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
+            }
+        }
+    });
+}
+
+function UpdateGoal() {
+    if ($("#new-goal").val() == undefined || $("#new-goal").val() == "" || $("#new-goal").val() == null) {
+        NotyNotification("Please enter your new goal!", type = 'warning');
+        return;
+    }
+    goal = parseInt($("#new-goal").val());
+    if (goal == user.goal) {
+        NotyNotification("New goal cannot be the same as the old one!", type = 'warning');
+        return;
+    }
+
+    $.ajax({
+        url: "/api/user/updateGoal",
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            goal: goal,
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            if (r.success == true) {
+                NotyNotification(r.msg, type = 'success');
+                user.goal = goal;
+                $("#goal-progress").css("width", Math.min(user.chtoday / user.goal * 100, 100) + "%");
+                $("#today-goal").html(user.chtoday + " / " + user.goal);
+                $("#checkin-continuous").html(user.checkin_continuous);
+                if (user.checkin_today || user.chtoday < user.goal) {
+                    $("#checkin-btn").attr("disabled", "disabled");
+                    if (user.checkin_today) {
+                        $("#checkin-hint").html("You have already checked in today!");
+                    } else {
+                        $("#checkin-hint").html("Accomplish today's goal to check in!");
+                    }
+                } else {
+                    $("#checkin-btn").removeAttr("disabled");
+                    $("#checkin-hint").html("Goal accomplished! You can check in now!")
+                }
+            } else {
+                NotyNotification(r.msg, type = 'error');
+            }
+        },
+        error: function (r, textStatus, errorThrown) {
+            if (r.status == 401) {
+                SessionExpired();
             } else {
                 NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }

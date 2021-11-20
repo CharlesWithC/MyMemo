@@ -54,7 +54,7 @@ elif config["database"] == "mysql":
     conn = MySQLdb.connect(host = host, user = user, passwd = passwd, db = dbname)
     cur = conn.cursor()
     cur.execute(f"SHOW TABLES")
-    if len(cur.fetchall()) != 32:
+    if len(cur.fetchall()) != 34:
         doinit = True
     
     app.config['MYSQL_HOST'] = host
@@ -95,6 +95,11 @@ if doinit:
     cur.execute(f"CREATE TABLE UserEvent (userId INT, event VARCHAR(32), timestamp INT, msg VARCHAR(2048))")
     # Available event: register, login, change_password, delete_account, create_book, delete_book, create_group, 
     # delete_group, join_group, quit_group
+
+    cur.execute(f"CREATE TABLE UserGoal (userId INT, count INT)")
+    cur.execute(f"CREATE TABLE CheckIn (userId INT, timestamp INT)")
+    # Everyday Goal of passing how many challenges
+    # CheckIn can be done after goal is accomplished
 
     # User should be allowed to delete their accounts
     # When a user request to delete his account, his account will be marked as "Pending for deletion",

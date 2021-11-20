@@ -65,6 +65,8 @@ def validateToken(userId, token):
     return sessions.validateToken(userId, token)
 
 def getQuestionsInBook(userId, bookId, statusRequirement):
+    if statusRequirement == "":
+        statusRequirement = "status >= 1"
     updateconn()
     cur = conn.cursor()
     cur.execute(f"SELECT questionId FROM BookData WHERE bookId = {bookId} AND userId = {userId}")

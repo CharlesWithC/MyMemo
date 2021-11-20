@@ -4,21 +4,21 @@
   <filter id="svg_1_blur">
    <feGaussianBlur stdDeviation="0"/>
   </filter>
-  <filter id="svg_2_blur" x="-50%" y="-50%" width="200%" height="200%">
+  <filter height="200%" width="200%" y="-50%" x="-50%" id="svg_2_blur">
    <feGaussianBlur stdDeviation="10"/>
   </filter>
  </defs>
  <g>
   <title>background</title>
-  <rect x="-1" y="-1" width="514" height="514" id="canvas_background" fill="#fff"/>
-  <g id="canvasGrid" display="none">
-   <rect id="svg_3" width="100%" height="100%" x="0" y="0" stroke-width="0" fill="url(#gridpattern)"/>
+  <rect fill="#fff" id="canvas_background" height="514" width="514" y="-1" x="-1"/>
+  <g display="none" id="canvasGrid">
+   <rect fill="url(#gridpattern)" stroke-width="0" y="0" x="0" height="100%" width="100%" id="svg_3"/>
   </g>
  </g>
  <g>
   <title>Layer 1</title>
-  <rect fill="#56ff56" stroke="#00bf00" stroke-width="1.5" x="5" y="4.52496" width="502" height="502" id="svg_1" rx="100" filter="url(#svg_1_blur)"/>
-  <rect fill="#00ff00" stroke-width="1.5" x="40" y="39.52496" width="432" height="432" id="svg_2" filter="url(#svg_2_blur)" rx="100"/>
-  <text fill="#007f3f" stroke="#007fff" stroke-width="0" stroke-opacity="null" x="97.536197" y="208.161376" id="svg_15" font-size="250" font-family="'Palatino Linotype', 'Book Antiqua', Palatino, serif" text-anchor="start" xml:space="preserve" transform="matrix(1.65106, 0, 0, 1.82109, -83.3479, -23.4314)">m</text>
+  <rect filter="url(#svg_1_blur)" rx="100" id="svg_1" height="502" width="502" y="4.52496" x="5" stroke-width="1.5" stroke="#003f7f" fill="#56aaff"/>
+  <rect rx="100" filter="url(#svg_2_blur)" id="svg_2" height="432" width="432" y="39.52496" x="40" stroke-width="1.5" fill="#007fff"/>
+  <text transform="matrix(1.65106, 0, 0, 1.82109, -83.3479, -23.4314)" xml:space="preserve" text-anchor="start" font-family="'Palatino Linotype', 'Book Antiqua', Palatino, serif" font-size="250" id="svg_15" y="208.161376" x="97.536197" stroke-opacity="null" stroke-width="0" stroke="#007fff" fill="#00007f">m</text>
  </g>
 </svg>

@@ -110,7 +110,7 @@ function UpdateSettingsButtons() {
                 localStorage.setItem("username", r.username);
             },
             error: function (r, textStatus, errorThrown) {
-                $("#navusername").html("Sign in");
+                $("#navusername").html("Sign in&nbsp;&nbsp;  ");
                 localStorage.setItem("username", "");
             }
         });

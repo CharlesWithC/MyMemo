@@ -276,10 +276,20 @@ def apiDiscoveryPublish():
     token = request.form["token"]
     if not validateToken(userId, token):
         abort(401)
+    
+    cur.execute(f"SELECT value FROM Privilege WHERE userId = {userId} AND item = 'mute'")
+    t = cur.fetchall()
+    if len(t) > 0:
+        mute = t[0][0]
+        if mute == -1 or mute >= int(time.time()):
+            return json.dumps({"success": False, "msg": "You have been muted!"})
+        else:
+            cur.execute(f"DELETE FROM Privilege WHERE userId = {userId} AND item = 'mute'")
+            conn.commit()
 
     if request.form["title"] == "" or request.form["description"] == "":
         return json.dumps({"success": False, "msg": "Both fields must be filled!"})
-    
+
     bookId = int(request.form["bookId"])
     title = encode(request.form["title"])
     description = encode(request.form["description"])

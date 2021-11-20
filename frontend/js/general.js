@@ -46,7 +46,7 @@ function SignOut() {
     localStorage.clear();
     localStorage.setItem("first-use", "0");
 
-    $("#navusername").html("Sign in");
+    $("#navusername").html("Sign in&nbsp;&nbsp;  ");
 
     NotyNotification('You are now signed out!');
 
@@ -249,7 +249,7 @@ function UpdateNavUsername() {
             localStorage.setItem("username", r.username);
         },
         error: function (r, textStatus, errorThrown) {
-            $("#navusername").html("Sign in");
+            $("#navusername").html("Sign in&nbsp;&nbsp;  ");
             localStorage.setItem("username", "");
             clearInterval(updnu_interval);
         }
@@ -279,7 +279,7 @@ $(document).ready(function () {
                 setInterval(UpdateNavUsername, 60000);
             },
             error: function (r, textStatus, errorThrown) {
-                $("#navusername").html("Sign in");
+                $("#navusername").html("Sign in&nbsp;&nbsp;  ");
                 localStorage.setItem("username", "");
             }
         });

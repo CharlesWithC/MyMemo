@@ -148,7 +148,7 @@
             </div>
         </div>
         <div class="userctrl">
-            <a href='/user'><i class="fa fa-user"></i> <span id="navusername">Sign in</span></a>
+            <a href='/user'><i class="fa fa-user"></i> <span id="navusername">Sign in&nbsp;&nbsp;  </span></a>
             <a class="only-signed-in" href='#' onclick="UserEvents()" style="display:none"><i class="fa fa-bell"></i></a>
             <a href='#' onclick="window.location.href='/settings'"><i class="fa fa-cogs"></i></a>
             <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i class="fa fa-sign-out"></i></a>
@@ -203,21 +203,23 @@
             admin</p>
         <p>3. delete_user [userId] - The account must be marked as deletion first, and admin will be able to bring the
             deletion schedule forward</p>
-        <p>4. set_privilege [userId] [item] [value] - Add [item] privilege for user [userId] ([item] can be
+        <p>4. mute [userId] [duration] - Mute [userId] for [duration] days | To mute forever, set [duration] to -1</p>
+        <p>5. unmute [userId] - Unmute [userId]</p>
+        <p>6. set_privilege [userId] [item] [value] - Add [item] privilege for user [userId] ([item] can be
             question_limit, book_limit, allow_group_creation, group_member_limit) | If privilege exists, then update it
         </p>
-        <p>5. remove_privilege [userId] [item] - Delete [item] privilege from user [userId]</p>
-        <p>6. set_name_tag [userId] [tag] [tag type] - Add name tag [tag] for user [userId] ([tag type] is the color of tag)</p>
-        <p>7. remove_name_tag [userId] - Remove nametag from [userId]</p>
-        <p>8. ban_account [userId] - Ban account</p>
-        <p>9. unban_account [userId] - Unban account</p>
-        <p>10. get_user_count - Get user count</p>
-        <p>11. restart - Restart backend server</p>
+        <p>7. remove_privilege [userId] [item] - Delete [item] privilege from user [userId]</p>
+        <p>8. set_name_tag [userId] [tag] [tag type] - Add name tag [tag] for user [userId] ([tag type] is the color of tag)</p>
+        <p>9. remove_name_tag [userId] - Remove nametag from [userId]</p>
+        <p>10. ban_account [userId] - Ban account</p>
+        <p>11. unban_account [userId] - Unban account</p>
+        <p>12. get_user_count - Get user count</p>
+        <p>13. restart - Restart backend server</p>
     </div>
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.10 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.11 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

@@ -1,5 +1,16 @@
 # Update History
 
+## v5.3.11  
+
+*Date: 2021/11/21*  
+Feature Updates:  
+1.Added mute / unmute functions for admins to manage whether a user is allowed to post in Discovery  
+2.Added Goal & CheckIn function to stimulate users to continue memorizing  
+3.Challenge YESNO is no longer considered as a Challenge Mode.  
+  Challenge YESNO is renamed to Practice, the old Practice Mode is renamed to Switch (users are switching the question & answer only).  
+  Challenge CHOICE is the only Challenge Mode and it is renamed to Challenge.  
+  Please note that the backend mechanism (different question & answer display rate) of the new Practice Mode is the same as the original Challenge YESNO. But it will not update challenge record.  
+
 ## v5.3.10
 
 *Date: 2021/11/21*  

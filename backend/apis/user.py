@@ -297,7 +297,143 @@ def apiGetUserInfo():
     if len(t) > 0:
         username = f"<a href='/user?userId={userId}'><span style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
 
-    return json.dumps({"username": username, "bio": d[4], "email": d[1], "invitationCode": d[2], "inviter": inviter, "age": age, "isAdmin": isAdmin})
+    goal = 0
+    cur.execute(f"SELECT count FROM UserGoal WHERE userId = {userId}")
+    t = cur.fetchall()
+    if len(t) > 0:
+        goal = t[0][0]
+    
+    chtoday = 0
+    cur.execute(f"SELECT COUNT(*) FROM ChallengeRecord WHERE userId = {userId} AND memorized = 1 AND timestamp >= {int(time.time()) - 86400}")
+    t = cur.fetchall()
+    if len(t) > 0:
+        chtoday = t[0][0]
+    
+    checkin_today = False
+    cur.execute(f"SELECT * FROM CheckIn WHERE userId = {userId} AND timestamp >= {int(int(time.time())/86400)*86400}") # utc 0:00
+    t = cur.fetchall()
+    if len(t) > 0:
+        checkin_today = True
+    
+    checkin_continuous = 0
+    cur.execute(f"SELECT timestamp FROM CheckIn WHERE userId = {userId} ORDER BY timestamp DESC")
+    t = cur.fetchall()
+    if len(t) > 0:
+        lst = t[0][0]+86400
+        for tt in t:
+            if int(lst/86400) - int(tt[0]/86400) == 1:
+                checkin_continuous += 1
+                lst = tt[0]
+            elif int(lst/86400) - int(tt[0]/86400) > 1:
+                break
+
+    return json.dumps({"username": username, "bio": d[4], "email": d[1], "invitationCode": d[2], "inviter": inviter, "age": age, "isAdmin": isAdmin, \
+        "goal": goal, "chtoday": chtoday, "checkin_today": checkin_today, "checkin_continuous": checkin_continuous})
+
+@app.route("/api/user/goal", methods = ['POST'])
+def apiGetUserGoal():
+    updateconn()
+    cur = conn.cursor()
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
+        abort(401)
+
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    if not validateToken(userId, token):
+        abort(401)
+    
+    goal = 0
+    cur.execute(f"SELECT count FROM UserGoal WHERE userId = {userId}")
+    t = cur.fetchall()
+    if len(t) > 0:
+        goal = t[0][0]
+    
+    chtoday = 0
+    cur.execute(f"SELECT COUNT(*) FROM ChallengeRecord WHERE userId = {userId} AND memorized = 1 AND timestamp >= {int(time.time()) - 86400}")
+    t = cur.fetchall()
+    if len(t) > 0:
+        chtoday = t[0][0]
+    
+    checkin_today = False
+    cur.execute(f"SELECT * FROM CheckIn WHERE userId = {userId} AND timestamp >= {int(int(time.time())/86400)*86400}") # utc 0:00
+    t = cur.fetchall()
+    if len(t) > 0:
+        checkin_today = True
+    
+    checkin_continuous = 0
+    cur.execute(f"SELECT timestamp FROM CheckIn WHERE userId = {userId} ORDER BY timestamp DESC")
+    t = cur.fetchall()
+    if len(t) > 0:
+        lst = t[0][0]+86400
+        for tt in t:
+            if int(lst/86400) - int(tt[0]/86400) == 1:
+                checkin_continuous += 1
+                lst = tt[0]
+            elif int(lst/86400) - int(tt[0]/86400) > 1:
+                break
+    
+    return json.dumps({"goal": goal, "chtoday": chtoday, "checkin_today": checkin_today, "checkin_continuous": checkin_continuous})
+
+@app.route("/api/user/updateGoal", methods = ['POST'])
+def apiUserUpdateGoal():
+    updateconn()
+    cur = conn.cursor()
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
+        abort(401)
+
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    if not validateToken(userId, token):
+        abort(401)
+    
+    goal = int(request.form["goal"])
+    cur.execute(f"SELECT * FROM UserGoal WHERE userId = {userId}")
+    if len(cur.fetchall()) == 0:
+        cur.execute(f"INSERT INTO UserGoal VALUES ({userId}, {goal})")
+    else:
+        cur.execute(f"UPDATE UserGoal SET count = {goal} WHERE userId = {userId}")
+    conn.commit()
+
+    return json.dumps({"success": True, "msg": "Goal updated!"})
+
+@app.route("/api/user/checkin", methods = ['POST'])
+def apiUserCheckin():
+    updateconn()
+    cur = conn.cursor()
+    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
+        abort(401)
+
+    userId = int(request.form["userId"])
+    token = request.form["token"]
+    if not validateToken(userId, token):
+        abort(401)
+    
+    cur.execute(f"SELECT * FROM CheckIn WHERE userId = {userId} AND timestamp >= {int(time.time()/86400)*86400}")
+    if len(cur.fetchall()) > 0:
+        return json.dumps({"success": False, "msg": "You have already checked in today!"})
+    
+    goal = 0
+    cur.execute(f"SELECT count FROM UserGoal WHERE userId = {userId}")
+    t = cur.fetchall()
+    if len(t) > 0:
+        goal = t[0][0]
+
+    if goal == 0:
+        return json.dumps({"success": False, "msg": "Have a goal first!"})
+    
+    chtoday = 0
+    cur.execute(f"SELECT COUNT(*) FROM ChallengeRecord WHERE userId = {userId} AND memorized = 1 AND timestamp >= {int(time.time()) - 86400}")
+    t = cur.fetchall()
+    if len(t) > 0:
+        chtoday = t[0][0]
+
+    if chtoday < goal:
+        return json.dumps({"success": False, "msg": "You haven't accomplished today's goal!"})
+        
+    cur.execute(f"INSERT INTO CheckIn VALUES ({userId}, {int(time.time())})")
+    conn.commit()
+
+    return json.dumps({"success": True, "msg": "Checked in successfully!"})
 
 @app.route("/api/user/chart/<int:uid>", methods = ['GET'])
 def apiGetUserChart(uid):
@@ -425,7 +561,7 @@ def apiUserEvents():
     if not validateToken(userId, token):
         abort(401)
     
-    cur.execute(f"SELECT timestamp, msg FROM UserEvent ORDER BY timestamp DESC")
+    cur.execute(f"SELECT timestamp, msg FROM UserEvent WHERE userId = {userId} ORDER BY timestamp DESC")
     d = cur.fetchall()
     ret = []
     for dd in d:
