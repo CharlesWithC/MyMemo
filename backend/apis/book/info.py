@@ -183,7 +183,7 @@ def apiGetBookChart():
     d1 = []
     batch = 3
     for i in range(30):
-        cur.execute(f"SELECT questionId FROM ChallengeRecord WHERE userId = {userId} AND memorized = 1 AND timestamp >= {int(time.time()/86400+86400) - 86400*batch*(i+1)} AND timestamp <= {int(time.time()/86400+86400) - 86400*batch*i}")
+        cur.execute(f"SELECT questionId FROM ChallengeRecord WHERE userId = {userId} AND memorized = 1 AND timestamp >= {int(time.time()/86400+1)*86400 - 86400*batch*(i+1)} AND timestamp <= {int(time.time()/86400+1)*86400 - 86400*batch*i}")
         t = cur.fetchall()
         memorized = 0
         if len(t) > 0:
@@ -191,7 +191,7 @@ def apiGetBookChart():
                 if (tt[0],) in book:
                     memorized += 1
 
-        cur.execute(f"SELECT questionId FROM ChallengeRecord WHERE userId = {userId} AND memorized = 0 AND timestamp >= {int(time.time()/86400+86400) - 86400*batch*(i+1)} AND timestamp <= {int(time.time()/86400+86400) - 86400*batch*i}")
+        cur.execute(f"SELECT questionId FROM ChallengeRecord WHERE userId = {userId} AND memorized = 0 AND timestamp >= {int(time.time()/86400+1)*86400 - 86400*batch*(i+1)} AND timestamp <= {int(time.time()/86400+1)*86400 - 86400*batch*i}")
         t = cur.fetchall()
         forgotten = 0
         if len(t) > 0:
@@ -205,14 +205,14 @@ def apiGetBookChart():
     total_memorized = 0
     batch = 3
     for i in range(30):
-        cur.execute(f"SELECT questionId FROM MyMemorized WHERE userId = {userId} AND timestamp <= {int(time.time()/86400+86400) - 86400*batch*i}")
+        cur.execute(f"SELECT questionId FROM MyMemorized WHERE userId = {userId} AND timestamp <= {int(time.time()/86400+1)*86400 - 86400*batch*i}")
         t = cur.fetchall()
         total = 0
         if len(t) > 0:
             for tt in t:
                 if (tt[0],) in book:
                     total += 1
-        total_memorized = total
+        total_memorized = max(total_memorized, total)
         d2.append({"index": 30 - i, "total": total})
     
     cnt = len(book)

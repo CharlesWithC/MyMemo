@@ -448,13 +448,13 @@ def apiGetUserChart(uid):
     d1 = []
     batch = 3
     for i in range(30):
-        cur.execute(f"SELECT COUNT(*) FROM ChallengeRecord WHERE userId = {uid} AND memorized = 1 AND timestamp >= {int(time.time()/86400+86400) - 86400*batch*(i+1)} AND timestamp <= {int(time.time()/86400+86400) - 86400*batch*i}")
+        cur.execute(f"SELECT COUNT(*) FROM ChallengeRecord WHERE userId = {uid} AND memorized = 1 AND timestamp >= {int(time.time()/86400+1)*86400 - 86400*batch*(i+1)} AND timestamp <= {int(time.time()/86400+1)*86400 - 86400*batch*i}")
         t = cur.fetchall()
         memorized = 0
         if len(t) > 0:
             memorized = t[0][0]
 
-        cur.execute(f"SELECT COUNT(*) FROM ChallengeRecord WHERE userId = {uid} AND memorized = 0 AND timestamp >= {int(time.time()/86400+86400) - 86400*batch*(i+1)} AND timestamp <= {int(time.time()/86400+86400) - 86400*batch*i}")
+        cur.execute(f"SELECT COUNT(*) FROM ChallengeRecord WHERE userId = {uid} AND memorized = 0 AND timestamp >= {int(time.time()/86400+1)*86400 - 86400*batch*(i+1)} AND timestamp <= {int(time.time()/86400+1)*86400 - 86400*batch*i}")
         t = cur.fetchall()
         forgotten = 0
         if len(t) > 0:
@@ -466,12 +466,12 @@ def apiGetUserChart(uid):
     total_memorized = 0
     batch = 3
     for i in range(30):
-        cur.execute(f"SELECT COUNT(*) FROM MyMemorized WHERE userId = {uid} AND timestamp <= {int(time.time()/86400+86400) - 86400*batch*i}")
+        cur.execute(f"SELECT COUNT(*) FROM MyMemorized WHERE userId = {uid} AND timestamp <= {int(time.time()/86400+1)*86400 - 86400*batch*i}")
         t = cur.fetchall()
         total = 0
         if len(t) > 0:
             total = t[0][0]
-        total_memorized = total
+        total_memorized = max(total_memorized, total)
         d2.append({"index": 30 - i, "total": total})
     
     cnt = 0

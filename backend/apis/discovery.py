@@ -75,7 +75,6 @@ def apiDiscovery():
         # get imports / members
         imports = 0
         if dd[4] == 1:
-            print(dd[5])
             cur.execute(f"SELECT count FROM ShareImport WHERE userId = {dd[3]} AND bookId = {dd[5]}")
             t = cur.fetchall()
             if len(t) > 0:
