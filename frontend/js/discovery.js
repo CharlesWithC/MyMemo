@@ -102,13 +102,14 @@ function RefreshDiscovery() {
                             break;
                         }
                     }
-                    $("#top-post").append('<div class="rect discovery-top" style="float:left;padding:1em;width:30%" onclick="window.location.href=\'/discovery?discoveryId=' + discoveryId + '\';">\
+                    $("#top-post").append('<div class="rect discovery-top" style="display:inline-block;padding:1em;width:30%" onclick="window.location.href=\'/discovery?discoveryId=' + discoveryId + '\';">\
                     <p class="rect-title">' + title + '</p>\
                     <p class="rect-content">&nbsp;&nbsp;' + description + '</p>\
                     <p class="rect-content">&nbsp;&nbsp;' + info + '</p>\
                     </div>');
                 }
             });
+            $("#top-post").append("<hr class='discovery-top'>");
 
             if (localStorage.getItem("settings-theme") == "dark") {
                 $("td").attr("style", "background-color:#333333");

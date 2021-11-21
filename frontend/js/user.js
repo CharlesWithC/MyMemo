@@ -440,7 +440,7 @@ function Login() {
                         r = user.username.indexOf('<', user.username.indexOf('<', user.username.indexOf('<') + 1) + 1);
                         $("title").html(user.username.substr(l + 1, r - l - 1) + " | My Memo");
 
-                        if (localStorage.getItem("first-use") != "0") {
+                        if (localStorage.getItem("first-use") != "0" || localStorage.getItem("sign-out") == "1") {
                             $.ajax({
                                 url: '/api/user/settings',
                                 method: 'POST',

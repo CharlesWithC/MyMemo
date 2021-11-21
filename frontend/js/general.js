@@ -45,6 +45,7 @@ function SignOut() {
     });
     localStorage.clear();
     localStorage.setItem("first-use", "0");
+    localStorage.setItem("sign-out", "1");
 
     $("#navusername").html("Sign in&nbsp;&nbsp;  ");
 
