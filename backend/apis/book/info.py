@@ -183,7 +183,7 @@ def apiGetBookChart():
     d1 = []
     batch = 3
     for i in range(30):
-        cur.execute(f"SELECT questionId FROM ChallengeRecord WHERE userId = {userId} AND memorized = 1 AND timestamp >= {int(time.time()) - 86400*batch*(i+1)} AND timestamp <= {int(time.time()) - 86400*batch*i}")
+        cur.execute(f"SELECT questionId FROM ChallengeRecord WHERE userId = {userId} AND memorized = 1 AND timestamp >= {int(time.time()/86400+86400) - 86400*batch*(i+1)} AND timestamp <= {int(time.time()/86400+86400) - 86400*batch*i}")
         t = cur.fetchall()
         memorized = 0
         if len(t) > 0:
@@ -191,7 +191,7 @@ def apiGetBookChart():
                 if (tt[0],) in book:
                     memorized += 1
 
-        cur.execute(f"SELECT questionId FROM ChallengeRecord WHERE userId = {userId} AND memorized = 0 AND timestamp >= {int(time.time()) - 86400*batch*(i+1)} AND timestamp <= {int(time.time()) - 86400*batch*i}")
+        cur.execute(f"SELECT questionId FROM ChallengeRecord WHERE userId = {userId} AND memorized = 0 AND timestamp >= {int(time.time()/86400+86400) - 86400*batch*(i+1)} AND timestamp <= {int(time.time()/86400+86400) - 86400*batch*i}")
         t = cur.fetchall()
         forgotten = 0
         if len(t) > 0:
@@ -205,7 +205,7 @@ def apiGetBookChart():
     total_memorized = 0
     batch = 3
     for i in range(30):
-        cur.execute(f"SELECT questionId FROM MyMemorized WHERE userId = {userId} AND timestamp <= {int(time.time()) - 86400*batch*i}")
+        cur.execute(f"SELECT questionId FROM MyMemorized WHERE userId = {userId} AND timestamp <= {int(time.time()/86400+86400) - 86400*batch*i}")
         t = cur.fetchall()
         total = 0
         if len(t) > 0:
