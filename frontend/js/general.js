@@ -58,8 +58,9 @@ function SignOut() {
 
 function SessionExpired() {
     NotyNotification('Login session expired! Please login again!', type = 'error');
-    localStorage.removeItem("userId");
-    localStorage.removeItem("token");
+    localStorage.clear();
+    localStorage.setItem("first-use", "0");
+    localStorage.setItem("sign-out", "1");
     setTimeout(GoToUser, 3000);
 }
 
@@ -262,7 +263,7 @@ $(document).ready(function () {
         username = localStorage.getItem("username");
         $("#navusername").html(username);
         $(".only-signed-in").show();
-        setInterval(UpdateNavUsername, 60000);
+        setInterval(UpdateNavUsername, 600000);
     } else {
         $.ajax({
             url: "/api/user/info",
@@ -280,8 +281,10 @@ $(document).ready(function () {
                 setInterval(UpdateNavUsername, 60000);
             },
             error: function (r, textStatus, errorThrown) {
-                $("#navusername").html("Sign in&nbsp;&nbsp;  ");
-                localStorage.setItem("username", "");
+                if (r.status == 401) {
+                    $("#navusername").html("Sign in&nbsp;&nbsp;  ");
+                    localStorage.setItem("username", "");
+                }
             }
         });
     }
@@ -295,6 +298,10 @@ $(document).ready(function () {
             <a href="#" onclick="window.location.href=\'/admin/userlist\'" id="book-btn"><i class="fa fa-users"></i><br>Users</a>\
         </div>');
     }
+    
+    $('.modal').on('hidden.bs.modal', function () {
+        $(".modal").remove();
+    })
 });
 
 function sort_object(obj) {
@@ -316,3 +323,17 @@ function sort_object(obj) {
 function sleep(time) {
     return new Promise((resolve) => setTimeout(resolve, time));
 }
+
+function UpdateTheme(){
+    if (localStorage.getItem("settings-theme") == "dark") {
+        $("body").attr("style", "color:#ffffff;background-color:#333333");
+        setInterval(function () {
+            $("#content a,.container a").css("color", "#dddddd");
+        }, 500);
+        $("hr").attr("style", "background-color:#cccccc;");
+        $(".modal-content").attr("style", "background-color:#333333");
+        $(".fa-times").attr("style", "color:white");
+        $("textarea").attr("style", "color:#ffffff;background-color:#333333");
+    }
+}
+setInterval(UpdateTheme, 100);

@@ -54,7 +54,7 @@ elif config["database"] == "mysql":
     conn = MySQLdb.connect(host = host, user = user, passwd = passwd, db = dbname)
     cur = conn.cursor()
     cur.execute(f"SHOW TABLES")
-    if len(cur.fetchall()) != 34:
+    if len(cur.fetchall()) != 26:
         doinit = True
     
     app.config['MYSQL_HOST'] = host
@@ -85,18 +85,17 @@ if doinit:
         config = Dict2Obj(json.loads(config_txt))
 
     cur = conn.cursor()
-    cur.execute(f"CREATE TABLE UserInfo (userId INT, username VARCHAR(512), bio VARCHAR(1024), email VARCHAR(128), password VARCHAR(256), inviter INT, inviteCode CHAR(8))")
+    cur.execute(f"CREATE TABLE UserInfo (userId INT, username VARCHAR(256), bio TEXT, email VARCHAR(128), password VARCHAR(256), inviter INT, inviteCode CHAR(8), goal INT)")
     # encode username
     # Allow only inviting registration mode to prevent abuse
     cur.execute(f"CREATE TABLE UserNameTag (userId INT, tag VARCHAR(32), tagtype VARCHAR(32))")
     # tag: encoded text, like 'Owner'
     # tagtype: tag color
     cur.execute(f"CREATE TABLE UserSettings (userId INT, sRandom INT, sSwap INT, sShowStatus INT, sMode INT, sAutoPlay INT, sTheme VARCHAR(16))")
-    cur.execute(f"CREATE TABLE UserEvent (userId INT, event VARCHAR(32), timestamp INT, msg VARCHAR(2048))")
+    cur.execute(f"CREATE TABLE UserEvent (userId INT, event VARCHAR(32), timestamp INT, msg TEXT)")
     # Available event: register, login, change_password, delete_account, create_book, delete_book, create_group, 
     # delete_group, join_group, quit_group
 
-    cur.execute(f"CREATE TABLE UserGoal (userId INT, count INT)")
     cur.execute(f"CREATE TABLE CheckIn (userId INT, timestamp INT)")
     # Everyday Goal of passing how many challenges
     # CheckIn can be done after goal is accomplished
@@ -114,7 +113,7 @@ if doinit:
 
     inviteCode = genCode(8)
     print(f"Created default user with invitation code: {inviteCode}")
-    cur.execute(f"INSERT INTO UserInfo VALUES (0,'{encode('default')}','','None','{encode(defaultpwd)}',0,'{inviteCode}')")
+    cur.execute(f"INSERT INTO UserInfo VALUES (0,'{encode('default')}','','None','{encode(defaultpwd)}',0,'{inviteCode}',99999)")
     cur.execute(f"INSERT INTO UserEvent VALUES (0, 'register', 0, '{encode('Birth of account')}')")
     # Default user system's password is 123456
     # Clear default account's password after setup (so it cannot be logged in)
@@ -126,26 +125,21 @@ if doinit:
     cur.execute(f"CREATE TABLE AdminList (userId INT)")
     # Currently this admin list can only be edited from backend using database operations
 
-    cur.execute(f"CREATE TABLE QuestionList (userId INT, questionId INT, question VARCHAR(1024), answer VARCHAR(1024), status INT)")
+    cur.execute(f"CREATE TABLE QuestionList (userId INT, questionId INT, question TEXT, answer TEXT, status INT, memorizedTimestamp INT)")
     # questionId is unique for each question, when the question is removed, its questionId will refer to null
     # EXAMPLE: Book 1 has questionId 1,2 and Book 2 has questionId 3
     # question and answer are encoded with base64 to prevent datalose
     # status is a status code while 1 refers to Default, 2 refers to Tagged and 3 refers to removed
-    cur.execute(f"CREATE TABLE MyMemorized (userId INT, questionId INT, timestamp INT)")
 
-    cur.execute(f"CREATE TABLE Book (userId INT, bookId INT, name VARCHAR(1024))")
-    cur.execute(f"CREATE TABLE BookData (userId INT, bookId INT, questionId INT)")
+    cur.execute(f"CREATE TABLE Book (userId INT, bookId INT, name VARCHAR(256), progress INT, shareCode VARCHAR(8), importCount INT)")
+    cur.execute(f"CREATE TABLE BookData (userId INT, bookId INT, questions TEXT, page INT)")
     # When a new question is added, it belongs to no book
     # A question can belong to many books
-    cur.execute(f"CREATE TABLE BookShare (userId INT, bookId INT, shareCode VARCHAR(8))")
-    cur.execute(f"CREATE TABLE ShareImport (userId INT, bookId INT, count INT)")
-    cur.execute(f"CREATE TABLE BookProgress (userId INT, bookId INT, progress INT)")
 
-    cur.execute(f"CREATE TABLE GroupInfo (groupId INT, owner INT, name VARCHAR(256), description VARCHAR(1024), memberLimit INT, groupCode VARCHAR(8), anonymous INT)")
-    cur.execute(f"CREATE TABLE GroupMember (groupId INT, userId INT, isEditor INT)")
-    cur.execute(f"CREATE TABLE GroupQuestion (groupId INT, groupQuestionId INT, question VARCHAR(1024), answer VARCHAR(1024))")
+    cur.execute(f"CREATE TABLE GroupInfo (groupId INT, owner INT, name VARCHAR(256), description TEXT, memberLimit INT, groupCode VARCHAR(8), anonymous INT)")
+    cur.execute(f"CREATE TABLE GroupMember (groupId INT, userId INT, isEditor INT, bookId INT)")
+    cur.execute(f"CREATE TABLE GroupQuestion (groupId INT, groupQuestionId INT, question TEXT, answer TEXT)")
     cur.execute(f"CREATE TABLE GroupSync (groupId INT, userId INT, questionIdOfUser INT, questionIdOfGroup INT)") # book id of user
-    cur.execute(f"CREATE TABLE GroupBind (groupId INT, userId INT, bookId INT)") # book id of user
     # Group is used for multiple users to memorize questions together
     # One user will make the share, other users join the group with the code and sync the sharer's book
     # The sharer will become the owner and he / she will be able to select some users to be editors
@@ -180,13 +174,11 @@ if doinit:
     # updateTo is the status the question is updated to
     # NOTE: When a new question is added, there should be a StatusUpdate record, with questionUpdateId = 0 and updateTo = 0
 
-    cur.execute(f"CREATE TABLE Discovery (discoveryId INT, publisherId INT, bookId INT, title VARCHAR(1024), description VARCHAR(1024), type INT)")
+    cur.execute(f"CREATE TABLE Discovery (discoveryId INT, publisherId INT, bookId INT, title VARCHAR(256), description TEXT, type INT, click INT, pin INT)")
     # title is discovery title
     # description is discovery description
     # type: 1: share | 2: group
-    cur.execute(f"CREATE TABLE DiscoveryClick (discoveryId INT, count INT)")
     cur.execute(f"CREATE TABLE DiscoveryLike (discoveryId INT, userId INT, likes INT)")
-    cur.execute(f"CREATE TABLE DiscoveryPin (discoveryId INT)")
     # User Id is the user who engaged in this discovery item
     # It could be empty is discovery is public to everyone
 

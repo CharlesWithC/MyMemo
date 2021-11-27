@@ -1,5 +1,22 @@
 # Update History
 
+## v5.3.13
+
+*Date: 2021/11/27*  
+Feature Updates:  
+1.Moved detailed user session info to modal, displaying only basic info on page  
+2.Merged some database tables  
+3.Improved database operation by converting multi-row id info to single-row id string (somehow compressing the database)  
+4.Allowed admins to use username for userId in CLI commands  
+5.Allowed admins to revoke user creation in 2 hours after the user is created by using the delete_user command  
+6.Removed modal from html files and they will be loaded by javascript  
+
+Bug Fixes:  
+1.Changed bar chart ratio to 0.8  
+2.Updated max length in database  
+3.Fixed the bug that users are not logged out completely when session expired  
+4.Fixed the bug allowing users to set negative integars for goal  
+
 ## v5.3.12
 
 *Date: 2021/11/21*  

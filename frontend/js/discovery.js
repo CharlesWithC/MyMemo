@@ -64,7 +64,7 @@ function RefreshDiscovery() {
                 toplist[discoveryList[i].discoveryId] = discoveryList.likes;
                 table.row.add([
                     [pin],
-                    [discoveryList[i].title],
+                    ["<a href='/discovery?discoveryId=" + discoveryList[i].discoveryId + "'>" + discoveryList[i].title + "</a>"],
                     [discoveryList[i].description],
                     [l[discoveryList[i].type]],
                     [discoveryList[i].publisher],
@@ -123,7 +123,6 @@ function RefreshDiscovery() {
 }
 
 function AdminPin(disid, op) {
-    pressedbtn.push(disid);
     l = ["unpin", "pin"];
     $.ajax({
         url: '/api/discovery/pin',
@@ -144,14 +143,8 @@ function AdminPin(disid, op) {
             } else {
                 NotyNotification(r.msg, type = 'error');
             }
-            setTimeout(function () {
-                pressedbtn.splice(pressedbtn.indexOf(disid), 1);
-            }, 200);
         },
         error: function (r, textStatus, errorThrown) {
-            setTimeout(function () {
-                pressedbtn.splice(pressedbtn.indexOf(disid), 1);
-            }, 200);
             if (r.status == 401) {
                 SessionExpired();
             } else {
@@ -162,7 +155,6 @@ function AdminPin(disid, op) {
 }
 
 function AdminUnpublishDiscoveryConfirm(disid) {
-    pressedbtn.push(disid);
     $("#admin-delete-" + disid).html("Confirm?");
     $("#admin-delete-" + disid).attr("onclick", "AdminUnpublishDiscovery(" + disid + ");");
 }
@@ -196,14 +188,8 @@ function AdminUnpublishDiscovery(disid) {
             } else {
                 NotyNotification(r.msg, type = 'error');
             }
-            setTimeout(function () {
-                pressedbtn.splice(pressedbtn.indexOf(disid), 1);
-            }, 200);
         },
         error: function (r, textStatus, errorThrown) {
-            setTimeout(function () {
-                pressedbtn.splice(pressedbtn.indexOf(disid), 1);
-            }, 200);
             if (r.status == 401) {
                 SessionExpired();
             } else {
@@ -238,6 +224,7 @@ function UpdateDiscoveryQuestionList() {
                 NotyNotification(r.msg, type = 'error');
                 $(".discovery-list").show();
                 $(".discovery-detail").hide();
+                setTimeout(function(){window.location.href='/discovery'},1000);
                 return;
             }
             title = r.title;
@@ -335,9 +322,44 @@ function ShowDiscovery(discoveryId) {
 }
 
 function UpdateInformationShow() {
+    $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLabel"><i class="fa fa-edit"></i> Edit Post</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                        onclick="$('#modal').modal('hide')">
+                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="discovery-title" class="col-form-label">Title:</label>
+                            <textarea class="form-control" id="discovery-title"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="discovery-description" class="col-form-label">Description:</label>
+                            <textarea class="form-control" id="discovery-description"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                        onclick="$('#modal').modal('hide')">Close</button>
+                    <button id="publish-to-discovery-btn" type="button" class="btn btn-primary"
+                        onclick="UpdateInformation()">Edit <i class="fa fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>`);
     $("#discovery-title").val(title);
     $("#discovery-description").val(description);
-    $('#editPostModal').modal('show');
+    $("#modal").modal("show");
+    $('#modal').on('hidden.bs.modal', function () {
+        $("#modal").remove();
+    });
 }
 
 function UpdateInformation() {
@@ -366,7 +388,7 @@ function UpdateInformation() {
                 $("#detail-description").html(description);
 
                 NotyNotification(r.msg);
-                $('#editPostModal').modal('hide');
+                $('#modal').modal('hide');
             } else {
                 NotyNotification(r.msg, type = 'error');
             }

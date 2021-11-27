@@ -33,12 +33,12 @@ updateconn()
 def apiDiscovery():
     updateconn()
     cur = conn.cursor()
-    cur.execute(f"SELECT discoveryId, title, description, publisherId, type, bookId FROM Discovery")
+    cur.execute(f"SELECT discoveryId, title, description, publisherId, type, bookId, pin FROM Discovery")
     d = cur.fetchall()
     dis = []
     for dd in d:
         if dd[4] == 1:
-            cur.execute(f"SELECT shareCode FROM BookShare WHERE bookId = {dd[5]}")
+            cur.execute(f"SELECT shareCode FROM Book WHERE bookId = {dd[5]}")
             if len(cur.fetchall()) == 0:
                 continue
         elif dd[4] == 2:
@@ -59,7 +59,7 @@ def apiDiscovery():
                 publisher = "Deleted Account"
 
         # update views
-        cur.execute(f"SELECT count FROM DiscoveryClick WHERE discoveryId = {dd[0]}")
+        cur.execute(f"SELECT click FROM Discovery WHERE discoveryId = {dd[0]}")
         views = 0
         t = cur.fetchall()
         if len(t) > 0:
@@ -75,7 +75,7 @@ def apiDiscovery():
         # get imports / members
         imports = 0
         if dd[4] == 1:
-            cur.execute(f"SELECT count FROM ShareImport WHERE userId = {dd[3]} AND bookId = {dd[5]}")
+            cur.execute(f"SELECT importCount FROM Book WHERE userId = {dd[3]} AND bookId = {dd[5]}")
             t = cur.fetchall()
             if len(t) > 0:
                 imports = t[0][0]
@@ -84,11 +84,8 @@ def apiDiscovery():
             t = cur.fetchall()
             if len(t) > 0:
                 imports = t[0][0]
-        # check pin
-        pinned = False
-        cur.execute(f"SELECT discoveryId FROM DiscoveryPin WHERE discoveryId = {dd[0]}")
-        if len(cur.fetchall()) > 0:
-            pinned = True
+        
+        pinned = dd[6]
         
         cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {dd[3]}")
         t = cur.fetchall()
@@ -124,7 +121,7 @@ def apiDiscoveryData(discoveryId):
         if not loggedin:
             userId = 0
     
-    cur.execute(f"SELECT publisherId, bookId, title, description, type FROM Discovery WHERE discoveryId = {discoveryId}")
+    cur.execute(f"SELECT publisherId, bookId, title, description, type, pin FROM Discovery WHERE discoveryId = {discoveryId}")
     d = cur.fetchall()
     if len(d) == 0:
         return json.dumps({"success": False, "msg": "Post not found!"})
@@ -135,6 +132,7 @@ def apiDiscoveryData(discoveryId):
     title = decode(d[2])
     description = decode(d[3])
     distype = d[4]
+    pinned = d[5]
     
     # Check share existence
     if distype == 1:
@@ -158,7 +156,7 @@ def apiDiscoveryData(discoveryId):
     # Do not clear discovery status as publisher may just want to close it temporarily
     shareCode = ""
     if distype == 1:
-        cur.execute(f"SELECT shareCode FROM BookShare WHERE userId = {uid} AND bookId = {bookId}")
+        cur.execute(f"SELECT shareCode FROM Book WHERE userId = {uid} AND bookId = {bookId}")
         t = cur.fetchall()
         if len(t) != 0:
             shareCode = "!"+t[0][0]
@@ -167,16 +165,10 @@ def apiDiscoveryData(discoveryId):
             return json.dumps({"success": False, "msg": "Book not shared! Maybe the publisher just closed it temporarily."})
 
     elif distype == 2:
-        groupId = -1
-        cur.execute(f"SELECT groupId FROM GroupBind WHERE userId = {uid} AND bookId = {bookId}")
+        cur.execute(f"SELECT groupCode FROM GroupInfo WHERE groupId = {bookId}")
         t = cur.fetchall()
         if len(t) != 0:
-            groupId = t[0][0]
-        if groupId != -1:
-            cur.execute(f"SELECT groupCode FROM GroupInfo WHERE groupId = {groupId}")
-            t = cur.fetchall()
-            if len(t) != 0:
-                shareCode = "@"+t[0][0]
+            shareCode = "@"+t[0][0]
 
         if shareCode == "" or shareCode == "@pvtgroup":
             return json.dumps({"success": False, "msg": "Group not open to public! Maybe the publisher just closed it temporarily."})
@@ -197,10 +189,9 @@ def apiDiscoveryData(discoveryId):
     # get questions
     questions = []
     if distype == 1:
-        cur.execute(f"SELECT questionId FROM BookData WHERE userId = {uid} AND bookId = {bookId}")
-        p = cur.fetchall()
+        p = getBookData(uid, bookId)
         for pp in p:
-            cur.execute(f"SELECT question, answer FROM QuestionList WHERE userId = {uid} AND questionId = {pp[0]}")
+            cur.execute(f"SELECT question, answer FROM QuestionList WHERE userId = {uid} AND questionId = {pp}")
             t = cur.fetchall()
             if len(t) == 0:
                 continue
@@ -212,15 +203,12 @@ def apiDiscoveryData(discoveryId):
             questions.append({"question": decode(tt[0]), "answer": decode(tt[1])})
 
     # update views
-    cur.execute(f"SELECT count FROM DiscoveryClick WHERE discoveryId = {discoveryId}")
+    cur.execute(f"SELECT click FROM Discovery WHERE discoveryId = {discoveryId}")
     views = 1
     t = cur.fetchall()
     if len(t) > 0:
-        views = t[0][0] + 1
-        cur.execute(f"UPDATE DiscoveryClick SET count = count + 1 WHERE discoveryId = {discoveryId}")
-    else:
-        cur.execute(f"INSERT INTO DiscoveryClick VALUES ({discoveryId}, 1)")
-    conn.commit()
+        cur.execute(f"UPDATE Discovery SET click = click + 1 WHERE discoveryId = {discoveryId}")
+        conn.commit()
     
     # get views and likes
     cur.execute(f"SELECT COUNT(likes) FROM DiscoveryLike WHERE discoveryId = {discoveryId}")
@@ -239,7 +227,7 @@ def apiDiscoveryData(discoveryId):
     # get imports / members
     imports = 0
     if distype == 1:
-        cur.execute(f"SELECT count FROM ShareImport WHERE userId = {uid} AND bookId = {bookId}")
+        cur.execute(f"SELECT importCount FROM Book WHERE userId = {uid} AND bookId = {bookId}")
         t = cur.fetchall()
         if len(t) > 0:
             imports = t[0][0]
@@ -248,12 +236,6 @@ def apiDiscoveryData(discoveryId):
         t = cur.fetchall()
         if len(t) > 0:
             imports = t[0][0]
-    
-    # check pin
-    pinned = False
-    cur.execute(f"SELECT discoveryId FROM DiscoveryPin WHERE discoveryId = {discoveryId}")
-    if len(cur.fetchall()) > 0:
-        pinned = True
 
     cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {uid}")
     t = cur.fetchall()
@@ -304,7 +286,7 @@ def apiDiscoveryPublish():
     # get share code
     shareCode = ""
     if distype == 1:
-        cur.execute(f"SELECT shareCode FROM BookShare WHERE userId = {userId} AND bookId = {bookId}")
+        cur.execute(f"SELECT shareCode FROM Book WHERE userId = {userId} AND bookId = {bookId}")
         t = cur.fetchall()
         if len(t) != 0:
             shareCode = "!"+t[0][0]
@@ -326,7 +308,6 @@ def apiDiscoveryPublish():
         if shareCode == "" or shareCode == "@pvtgroup":
             return json.dumps({"success": False, "msg": "Group must be open to public before publishing it on Discovery!"})
     
-
     discoveryId = 1
     cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 6")
     t = cur.fetchall()
@@ -334,12 +315,12 @@ def apiDiscoveryPublish():
         discoveryId = t[0][0]
     cur.execute(f"UPDATE IDInfo SET nextId = {discoveryId + 1} WHERE type = 6")
     
-    if len(title) > 1000:
+    if len(title) >= 256:
         return json.dumps({"success": False, "msg": "Title too long!"})
-    if len(description) > 1000:
+    if len(description) >= 2048:
         return json.dumps({"success": False, "msg": "Description too long!"})
 
-    cur.execute(f"INSERT INTO Discovery VALUES ({discoveryId}, {userId}, {bookId}, '{title}', '{description}', {distype})")
+    cur.execute(f"INSERT INTO Discovery VALUES ({discoveryId}, {userId}, {bookId}, '{title}', '{description}', {distype}, 0, 0)")
     conn.commit()
 
     msg = "Book published to Discovery. People will be able to find it and import it. All your updates made within this book will be synced to Discovery."
@@ -412,9 +393,9 @@ def apiDiscoveryUpdate():
         if publisherId != userId:
             return json.dumps({"success": False, "msg": "You are not the publisher of this post!"})
 
-    if len(title) > 1000:
+    if len(title) >= 256:
         return json.dumps({"success": False, "msg": "Title too long!"})
-    if len(description) > 1000:
+    if len(description) >= 2048:
         return json.dumps({"success": False, "msg": "Description too long!"})
 
     cur.execute(f"UPDATE Discovery SET title = '{title}' WHERE discoveryId = {discoveryId}")
@@ -444,22 +425,30 @@ def apiDiscoveryPin():
     discoveryId = int(request.form["discoveryId"])
 
     if op == "pin":
-        cur.execute(f"SELECT discoveryId FROM DiscoveryPin WHERE discoveryId = {discoveryId}")
-        if len(cur.fetchall()) == 0:
-            cur.execute(f"INSERT INTO DiscoveryPin VALUES ({discoveryId})")
-            conn.commit()
-            return json.dumps({"success": True, "msg": "Pinned!"})
+        cur.execute(f"SELECT pin FROM Discovery WHERE discoveryId = {discoveryId}")
+        t = cur.fetchall()
+        if len(t) > 0:
+            if t[0][0] == 0:
+                cur.execute(f"UPDATE Discovery SET pin = 1 WHERE discoveryId = {discoveryId}")
+                conn.commit()
+                return json.dumps({"success": True, "msg": "Pinned!"})
+            else:
+                return json.dumps({"success": False, "msg": "Post already pinned!"})
         else:
-            return json.dumps({"success": False, "msg": "Post already pinned!"})
+            return json.dumps({"success": False, "msg": "Post not found!"})
 
     elif op == "unpin":
-        cur.execute(f"SELECT discoveryId FROM DiscoveryPin WHERE discoveryId = {discoveryId}")
-        if len(cur.fetchall()) == 0:
-            return json.dumps({"success": False, "msg": "Post not pinned!"})
+        cur.execute(f"SELECT pin FROM Discovery WHERE discoveryId = {discoveryId}")
+        t = cur.fetchall()
+        if len(t) > 0:
+            if t[0][0] == 1:
+                cur.execute(f"UPDATE Discovery SET pin = 0 WHERE discoveryId = {discoveryId}")
+                conn.commit()
+                return json.dumps({"success": True, "msg": "Unpinned!"})
+            else:
+                return json.dumps({"success": False, "msg": "Post not pinned!"})
         else:
-            cur.execute(f"DELETE FROM DiscoveryPin WHERE discoveryId = {discoveryId}")
-            conn.commit()
-            return json.dumps({"success": True, "msg": "Unpinned!"})
+            return json.dumps({"success": False, "msg": "Post not found!"})
 
 @app.route("/api/discovery/like", methods = ['POST'])
 def apiDiscoveryLike():

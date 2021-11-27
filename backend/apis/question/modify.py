@@ -46,15 +46,11 @@ def apiAddQuestion():
     bookId = int(request.form["addToBook"])
     groupId = -1
     if bookId != 0:
-        cur.execute(f"SELECT groupId FROM GroupBind WHERE userId = {userId} AND bookId = {bookId}")
+        cur.execute(f"SELECT groupId, isEditor FROM GroupMember WHERE userId = {userId} AND bookId = {bookId}")
         d = cur.fetchall()
         if len(d) != 0:
             groupId = d[0][0]
-            isEditor = 0
-            cur.execute(f"SELECT isEditor FROM GroupMember WHERE groupId = {groupId} AND userId = {userId}")
-            tt = cur.fetchall()
-            if len(tt) > 0:
-                isEditor = tt[0][0]
+            isEditor = d[0][1]
             if isEditor == 0:
                 return json.dumps({"success": False, "msg": "You are not allowed to edit this question in group as you are not an editor! Clone the book to edit!"})
 
@@ -91,12 +87,12 @@ def apiAddQuestion():
         questionId = d[0][0]
         cur.execute(f"UPDATE IDInfo SET nextId = {questionId + 1} WHERE type = 2 AND userId = {userId}")
 
-    if len(question) > 1000:
+    if len(question) >= 40960:
         return json.dumps({"success": False, "msg": "Question too long!"})
-    if len(answer) > 1000:
+    if len(answer) >= 40960:
         return json.dumps({"success": False, "msg": "Answer too long!"})
 
-    cur.execute(f"INSERT INTO QuestionList VALUES ({userId},{questionId},'{question}','{answer}',1)")
+    cur.execute(f"INSERT INTO QuestionList VALUES ({userId},{questionId},'{question}','{answer}',1, 0)")
     cur.execute(f"INSERT INTO ChallengeData VALUES ({userId},{questionId},0,-1)")
     updateQuestionStatus(userId, questionId, -2) # -2 is website added question
     updateQuestionStatus(userId, questionId, 1)
@@ -104,7 +100,7 @@ def apiAddQuestion():
     if bookId != -1:
         cur.execute(f"SELECT bookId FROM Book WHERE userId = {userId} AND bookId = {bookId}")
         if len(cur.fetchall()) != 0:
-            cur.execute(f"INSERT INTO BookData VALUES ({userId}, {bookId}, {questionId})")
+            appendBookData(userId, bookId, questionId)
     
     if groupId != -1:
         gquestionId = 1
@@ -119,7 +115,7 @@ def apiAddQuestion():
         cur.execute(f"INSERT INTO GroupQuestion VALUES ({groupId}, {gquestionId}, '{question}', '{answer}')")
         cur.execute(f"INSERT INTO GroupSync VALUES ({groupId}, {userId}, {questionId}, {gquestionId})")
         
-        cur.execute(f"SELECT userId, bookId FROM GroupBind WHERE groupId = {groupId}")
+        cur.execute(f"SELECT userId, bookId FROM GroupMember WHERE groupId = {groupId}")
         t = cur.fetchall()
         for tt in t:
             uid = tt[0]
@@ -136,13 +132,13 @@ def apiAddQuestion():
                 wid = d[0][0]
                 cur.execute(f"UPDATE IDInfo SET nextId = {wid + 1} WHERE type = 2 AND userId = {uid}")
 
-            if len(question) > 1000:
+            if len(question) >= 40960:
                 return json.dumps({"success": False, "msg": "Question too long!"})
-            if len(answer) > 1000:
+            if len(answer) >= 40960:
                 return json.dumps({"success": False, "msg": "Answer too long!"})
 
-            cur.execute(f"INSERT INTO QuestionList VALUES ({uid}, {wid}, '{question}', '{answer}', 1)")
-            cur.execute(f"INSERT INTO BookData VALUES ({uid}, {wbid}, {wid})")
+            cur.execute(f"INSERT INTO QuestionList VALUES ({uid}, {wid}, '{question}', '{answer}', 1, 0)")
+            appendBookData(uid, wbid, wid)
             cur.execute(f"INSERT INTO ChallengeData VALUES ({uid},{wid},0,-1)")
             cur.execute(f"INSERT INTO GroupSync VALUES ({groupId}, {uid}, {wid}, {gquestionId})")
             updateQuestionStatus(uid, wid, -3) # -3 is group question
@@ -186,9 +182,9 @@ def apiEditQuestion():
     if len(cur.fetchall()) == 0:
         return json.dumps({"success": False, "msg": "Question does not exist!"})
     
-    if len(question) > 1000:
+    if len(question) >= 40960:
         return json.dumps({"success": False, "msg": "Question too long!"})
-    if len(answer) > 1000:
+    if len(answer) >= 40960:
         return json.dumps({"success": False, "msg": "Answer too long!"})
 
     cur.execute(f"UPDATE QuestionList SET question = '{question}' WHERE questionId = {questionId} AND userId = {userId}")
@@ -209,9 +205,9 @@ def apiEditQuestion():
                     continue
                 wid = tt[1]
                 
-                if len(question) > 1000:
+                if len(question) >= 40960:
                     return json.dumps({"success": False, "msg": "Question too long!"})
-                if len(answer) > 1000:
+                if len(answer) >= 40960:
                     return json.dumps({"success": False, "msg": "Answer too long!"})
 
                 cur.execute(f"UPDATE QuestionList SET question = '{question}' WHERE userId = {uid} AND questionId = {wid}")
@@ -255,7 +251,7 @@ def apiDeleteQuestion():
             ts = int(time.time())
             dd = d[0]
             cur.execute(f"DELETE FROM QuestionList WHERE userId = {userId} AND questionId = {questionId}")
-            cur.execute(f"DELETE FROM BookData WHERE userId = {userId} AND questionId = {questionId}")
+            removeBookData(userId, -1, questionId)
             
         if groupId != -1:
             cur.execute(f"SELECT questionIdOfGroup FROM GroupSync WHERE userId = {userId} AND questionIdOfUser = {questionId}")
@@ -272,7 +268,7 @@ def apiDeleteQuestion():
                     continue
                 wid = tt[1]
                 cur.execute(f"DELETE FROM QuestionList WHERE userId = {uid} AND questionId = {wid}")
-                cur.execute(f"DELETE FROM BookData WHERE userId = {uid} AND questionId = {wid}")
+                removeBookData(uid, -1, wid)
             cur.execute(f"DELETE FROM GroupSync WHERE groupId = {groupId} AND questionIdOfGroup = {gquestionId}")
             cur.execute(f"DELETE FROM GroupQuestion WHERE groupQuestionId = {gquestionId}")
 
@@ -297,7 +293,7 @@ def apiClearDeleted():
     ts = int(time.time())
     cur.execute(f"DELETE FROM QuestionList WHERE userId = {userId} AND status = 3")
     for dd in d:
-        cur.execute(f"DELETE FROM BookData WHERE userId = {userId} AND questionId = {dd[0]}")
+        removeBookData(userId, -1, dd[0])
     conn.commit()
 
     return json.dumps({"success": True})

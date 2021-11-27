@@ -202,7 +202,7 @@ function PageInit() {
                 checkin_today = r.checkin_today;
                 checkin_continuous = r.checkin_continuous;
 
-                $("#navusername").html(username);
+                $("#navusername").html(r.username);
 
                 $("#goal-progress").css("width", Math.min(chtoday / goal * 100, 100) + "%");
                 $("#today-goal").html(chtoday + " / " + goal);
@@ -435,7 +435,7 @@ function MemoMove(direction) {
             memo.questionStatus = requiredList[index].status;
         }
 
-        setTimeout(ShowQuestion,100);
+        setTimeout(ShowQuestion, 100);
     }
 }
 
@@ -1012,10 +1012,6 @@ function ChallengeChoice(choiceid) {
 }
 
 function Statistics() {
-    if ($("#statisticsQuestion").text() == memo.question) {
-        $('#statisticsModal').modal('show');
-        return;
-    }
     $.ajax({
         url: '/api/question/stat',
         method: 'POST',
@@ -1029,10 +1025,28 @@ function Statistics() {
         success: function (r) {
             statistics = r.msg.replaceAll("\n", "<br>");
 
-            $("#statisticsQuestion").html(memo.question);
-            $("#statisticsDetail").html(statistics);
+            $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="modalLabel">Statistics of ` + memo.question + `</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                                onclick="$('#modal').modal('hide')">
+                                <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <p>` + statistics + `</p>
+                        </div>
+                    </div>
+                </div>
+            </div>`);
 
-            $('#statisticsModal').modal('show');
+            $("#modal").modal("show");
+            $('#modal').on('hidden.bs.modal', function () {
+                $("#modal").remove();
+            });
         },
         error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
@@ -1045,9 +1059,43 @@ function Statistics() {
 }
 
 function EditQuestionShow() {
+    $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Edit Question</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                        onclick="$('#modal').modal('hide')">
+                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="edit-question" class="col-form-label">Question:</label>
+                            <textarea class="form-control" id="edit-question"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-answer" class="col-form-label">Answer:</label>
+                            <textarea class="form-control" id="edit-answer"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                        onclick="$('#modal').modal('hide')">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="EditQuestion()">Edit</button>
+                </div>
+            </div>
+        </div>
+    </div>`);
     $("#edit-question").val(memo.question);
     $("#edit-answer").val(memo.answer);
-    $("#editQuestionModal").modal('show');
+    $("#modal").modal("show");
+    $('#modal').on('hidden.bs.modal', function () {
+        $("#modal").remove();
+    });
 }
 
 function EditQuestion() {

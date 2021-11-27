@@ -49,10 +49,10 @@ def apiGetBook():
     for tt in t:
         questions.append(tt[0])
     
-    cur.execute(f"SELECT shareCode FROM BookShare WHERE bookId = 0 AND userId = {userId}")
+    cur.execute(f"SELECT shareCode FROM Book WHERE bookId = 0 AND userId = {userId}")
     t = cur.fetchall()
     shareCode = ""
-    if len(t) != 0:
+    if len(t) != 0 and t[0][0] != "":
         shareCode = "!"+t[0][0]
     
     ret.append({"bookId": 0, "name": "All questions", "questions": questions, "shareCode": shareCode, "anonymous": 0,
@@ -63,19 +63,15 @@ def apiGetBook():
     cur.execute(f"SELECT bookId, name FROM Book WHERE userId = {userId}")
     d = cur.fetchall()
     for dd in d:
-        questions = []
-        cur.execute(f"SELECT questionId FROM BookData WHERE bookId = {dd[0]} AND userId = {userId}")
-        t = cur.fetchall()
-        for tt in t:
-            questions.append(tt[0])
+        questions = getBookData(userId, dd[0])
 
-        cur.execute(f"SELECT shareCode FROM BookShare WHERE bookId = {dd[0]} AND userId = {userId}")
+        cur.execute(f"SELECT shareCode FROM Book WHERE bookId = {dd[0]} AND userId = {userId}")
         t = cur.fetchall()
         shareCode = ""
-        if len(t) != 0:
-            shareCode = "!" + t[0][0]
+        if len(t) != 0 and t[0][0] != "":
+            shareCode = "!"+t[0][0]
         
-        cur.execute(f"SELECT groupId FROM GroupBind WHERE userId = {userId} AND bookId = {dd[0]}")
+        cur.execute(f"SELECT groupId FROM GroupMember WHERE userId = {userId} AND bookId = {dd[0]}")
         t = cur.fetchall()
         groupId = -1
         gcode = ""
@@ -110,13 +106,10 @@ def apiGetBook():
                 if len(cur.fetchall()) != 0:
                     isGroupEditor = True
         
-        cur.execute(f"SELECT progress FROM BookProgress WHERE userId = {userId} AND bookId = {dd[0]}")
+        cur.execute(f"SELECT progress FROM Book WHERE userId = {userId} AND bookId = {dd[0]}")
         t = cur.fetchall()
         progress = 0
-        if len(t) == 0:
-            cur.execute(f"INSERT INTO BookProgress VALUES ({userId}, {dd[0]}, 0)")
-            conn.commit()
-        else:
+        if len(t) > 0:
             progress = t[0][0]
         
         discoveryId = -1
@@ -174,11 +167,12 @@ def apiGetBookChart():
 
     book = []
     if bookId > 0:
-        cur.execute(f"SELECT questionId FROM BookData WHERE bookId = {bookId}")
-        book = cur.fetchall()
+        book = getBookData(userId, bookId)
     else:
-        cur.execute(f"SELECT questionId FROM BookData")
-        book = cur.fetchall()
+        cur.execute(f"SELECT questionId FROM QuestionList WHERE userId = {userId}")
+        t = cur.fetchall()
+        for tt in t:
+            book.append(tt[0])
     
     d1 = []
     batch = 3
@@ -188,7 +182,7 @@ def apiGetBookChart():
         memorized = 0
         if len(t) > 0:
             for tt in t:
-                if (tt[0],) in book:
+                if tt[0] in book:
                     memorized += 1
 
         cur.execute(f"SELECT questionId FROM ChallengeRecord WHERE userId = {userId} AND memorized = 0 AND timestamp >= {int(time.time()/86400+1)*86400 - 86400*batch*(i+1)} AND timestamp <= {int(time.time()/86400+1)*86400 - 86400*batch*i}")
@@ -196,7 +190,7 @@ def apiGetBookChart():
         forgotten = 0
         if len(t) > 0:
             for tt in t:
-                if (tt[0],) in book:
+                if tt[0] in book:
                     forgotten += 1
         
         d1.append({"index": 30 - i, "memorized": memorized, "forgotten": forgotten})
@@ -205,12 +199,12 @@ def apiGetBookChart():
     total_memorized = 0
     batch = 3
     for i in range(30):
-        cur.execute(f"SELECT questionId FROM MyMemorized WHERE userId = {userId} AND timestamp <= {int(time.time()/86400+1)*86400 - 86400*batch*i}")
+        cur.execute(f"SELECT questionId FROM QuestionList WHERE userId = {userId} AND memorizedTimestamp != 0 AND memorizedTimestamp <= {int(time.time()/86400+1)*86400 - 86400*batch*i}")
         t = cur.fetchall()
         total = 0
         if len(t) > 0:
             for tt in t:
-                if (tt[0],) in book:
+                if tt[0] in book:
                     total += 1
         total_memorized = max(total_memorized, total)
         d2.append({"index": 30 - i, "total": total})
@@ -222,7 +216,7 @@ def apiGetBookChart():
     t = cur.fetchall()
     if len(t) > 0:
         for tt in t:
-            if (tt[0],) in book:
+            if tt[0] in book:
                 tagcnt += 1
 
     delcnt = 0
@@ -230,7 +224,7 @@ def apiGetBookChart():
     t = cur.fetchall()
     if len(t) > 0:
         for tt in t:
-            if (tt[0],) in book:
+            if tt[0] in book:
                 delcnt += 1
 
     return json.dumps({"challenge_history": d1, "total_memorized_history": d2, "tag_cnt": tagcnt, "del_cnt": delcnt, "total_memorized": total_memorized, "total": cnt})

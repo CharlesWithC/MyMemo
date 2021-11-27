@@ -45,7 +45,7 @@ def apiCreateBook():
 
     if name.startswith("!") and name[1:].isalnum():
         name = name[1:]
-        cur.execute(f"SELECT userId, bookId FROM BookShare WHERE shareCode = '{name}'")
+        cur.execute(f"SELECT userId, bookId FROM Book WHERE shareCode = '{name}'")
         d = cur.fetchall()
         if len(d) != 0:
             sharerUserId = d[0][0]
@@ -71,11 +71,13 @@ def apiCreateBook():
 
             t = []
             if sharerBookId != 0:
-                cur.execute(f"SELECT questionId FROM BookData WHERE userId = {sharerUserId} AND bookId = {sharerBookId}")
-                t = cur.fetchall()
+                t = getBookData(sharerUserId, sharerBookId)
             else:
                 cur.execute(f"SELECT questionId FROM QuestionList WHERE userId = {sharerUserId}")
-                t = cur.fetchall()
+                ttt = cur.fetchall()
+                for tt in ttt:
+                    t.append(tt[0])
+
             cur.execute(f"SELECT questionId, question, answer FROM QuestionList WHERE userId = {sharerUserId}")
             b = cur.fetchall()
             di = {}
@@ -112,10 +114,9 @@ def apiCreateBook():
                 cur.execute(f"UPDATE IDInfo SET nextId = {bookId + 1} WHERE type = 3 AND userId = {userId}")
                 
             # do import
-            cur.execute(f"INSERT INTO Book VALUES ({userId}, {bookId}, '{name}')")
+            cur.execute(f"INSERT INTO Book VALUES ({userId}, {bookId}, '{name}', 0, '', 0)")
             cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'create_book', {int(time.time())}, '{encode(f'Imported book {decode(name)}')}')")
-            cur.execute(f"INSERT INTO BookProgress VALUES ({userId}, {bookId}, 0)")
-
+            
             questionId = 1
             for tt in t:
                 cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 2 AND userId = {userId}")
@@ -126,22 +127,23 @@ def apiCreateBook():
                     questionId = d[0][0]
                     cur.execute(f"UPDATE IDInfo SET nextId = {questionId + 1} WHERE type = 2 AND userId = {userId}")
                 
-                cur.execute(f"SELECT questionId, answer FROM QuestionList WHERE userId = {userId} AND question = '{di[tt[0]][0]}'")
+                cur.execute(f"SELECT questionId, answer FROM QuestionList WHERE userId = {userId} AND question = '{di[tt][0]}'")
                 p = cur.fetchall()
                 ctn = False
                 for pp in p:
-                    if pp[1] == di[tt[0]][1]: # question completely the same
-                        cur.execute(f"INSERT INTO BookData VALUES ({userId}, {bookId}, {pp[0]})")
-                        cur.execute(f"SELECT * FROM MyMemorized WHERE userId = {userId} AND questionId = {pp[0]}")
-                        if len(cur.fetchall()) != 0:
-                            cur.execute(f"UPDATE BookProgress SET progress = progress + 1 WHERE userId = {userId} AND bookId = {bookId}")
+                    if pp[1] == di[tt][1]: # question completely the same
+                        appendBookData(userId, bookId, pp[0])
+                        cur.execute(f"SELECT memorizedTimestamp FROM QuestionList WHERE userId = {userId} AND questionId = {pp[0]}")
+                        t = cur.fetchall()
+                        if len(t) != 0 and t[0][0] != 0:
+                            cur.execute(f"UPDATE Book SET progress = progress + 1 WHERE userId = {userId} AND bookId = {bookId}")
                         ctn = True
                         break
                 if ctn:
                     continue
 
-                cur.execute(f"INSERT INTO BookData VALUES ({userId}, {bookId}, {questionId})")
-                cur.execute(f"INSERT INTO QuestionList VALUES ({userId}, {questionId}, '{di[tt[0]][0]}', '{di[tt[0]][1]}', 1)")
+                appendBookData(userId, bookId, questionId)
+                cur.execute(f"INSERT INTO QuestionList VALUES ({userId}, {questionId}, '{di[tt][0]}', '{di[tt][1]}', 1, 0)")
                 cur.execute(f"INSERT INTO ChallengeData VALUES ({userId},{questionId}, 0, -1)")
 
                 updateQuestionStatus(userId, questionId, -1) # -1 is imported question
@@ -150,12 +152,7 @@ def apiCreateBook():
                 questionId += 1
             
             # update import count
-            cur.execute(f"SELECT count FROM ShareImport WHERE userId = {userId} AND bookId = {sharerBookId}")
-            t = cur.fetchall()
-            if len(t) > 0:
-                cur.execute(f"UPDATE ShareImport SET count = count + 1 WHERE userId = {userId} AND bookId = {sharerBookId}")
-            else:
-                cur.execute(f"INSERT INTO ShareImport VALUES ({userId}, {sharerBookId}, 1)")
+            cur.execute(f"UPDATE Book SET importCount = importCount + 1 WHERE userId = {userId} AND bookId = {sharerBookId}")
             conn.commit()            
 
             return json.dumps({"success": True})
@@ -232,10 +229,8 @@ def apiCreateBook():
                 cur.execute(f"UPDATE IDInfo SET nextId = {bookId + 1} WHERE type = 3 AND userId = {userId}")
 
             # do import
-            cur.execute(f"INSERT INTO Book VALUES ({userId}, {bookId}, '{name}')")
-            cur.execute(f"INSERT INTO BookProgress VALUES ({userId}, {bookId}, 0)")
-            cur.execute(f"INSERT INTO GroupMember VALUES ({groupId}, {userId}, 0)")
-            cur.execute(f"INSERT INTO GroupBind VALUES ({groupId}, {userId}, {bookId})")
+            cur.execute(f"INSERT INTO Book VALUES ({userId}, {bookId}, '{name}', 0, '', 0)")
+            cur.execute(f"INSERT INTO GroupMember VALUES ({groupId}, {userId}, 0, {bookId})")
             cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'join_group', {int(time.time())}, '{encode(f'Joined group {decode(name)}')}')")
 
             questionId = 1
@@ -249,8 +244,8 @@ def apiCreateBook():
                     cur.execute(f"UPDATE IDInfo SET nextId = {questionId + 1} WHERE type = 2 AND userId = {userId}")
 
                 # no duplicate check as user are not allowed to edit questions in group
-                cur.execute(f"INSERT INTO BookData VALUES ({userId}, {bookId}, {questionId})")
-                cur.execute(f"INSERT INTO QuestionList VALUES ({userId}, {questionId}, '{tt[0]}', '{tt[1]}', 1)")
+                appendBookData(userId, bookId, questionId)
+                cur.execute(f"INSERT INTO QuestionList VALUES ({userId}, {questionId}, '{tt[0]}', '{tt[1]}', 1, 0)")
                 cur.execute(f"INSERT INTO ChallengeData VALUES ({userId},{questionId}, 0, -1)")
                 cur.execute(f"INSERT INTO GroupSync VALUES ({groupId}, {userId}, {questionId}, {tt[2]})")
 
@@ -287,12 +282,11 @@ def apiCreateBook():
         bookId = d[0][0]
         cur.execute(f"UPDATE IDInfo SET nextId = {bookId + 1} WHERE type = 3 AND userId = {userId}")
     
-    if len(name) > 1000:
+    if len(name) >= 256:
         return json.dumps({"success": False, "msg": "Book name too long!"})
 
-    cur.execute(f"INSERT INTO Book VALUES ({userId}, {bookId}, '{name}')")
+    cur.execute(f"INSERT INTO Book VALUES ({userId}, {bookId}, '{name}', 0, '', 0)")
     cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'create_book', {int(time.time())}, '{encode(f'Created book {decode(name)}')}')")
-    cur.execute(f"INSERT INTO BookProgress VALUES ({userId}, {bookId}, 0)")
     conn.commit()
     
     return json.dumps({"success": True})
@@ -336,21 +330,16 @@ def apiCloneBook():
         bookId = d[0][0]
         cur.execute(f"UPDATE IDInfo SET nextId = {bookId + 1} WHERE type = 3 AND userId = {userId}")
     
-    cur.execute(f"INSERT INTO Book VALUES ({userId}, {bookId}, '{name}')")
-    cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'create_book', {int(time.time())}, '{encode(f'Created book {decode(name)}')}')")
-    cur.execute(f"SELECT questionId FROM BookData WHERE userId = {userId} AND bookId = {cloneFrom}")
-    d = cur.fetchall()
-    for dd in d:
-        cur.execute(f"INSERT INTO BookData VALUES ({userId}, {bookId}, {dd[0]})")
-    cur.execute(f"SELECT progress FROM BookProgress WHERE userId = {userId} AND bookId = {cloneFrom}")
+    cur.execute(f"SELECT progress FROM Book WHERE userId = {userId} AND bookId = {cloneFrom}")
     t = cur.fetchall()
     progress = 0
-    if len(t) == 0:
-        cur.execute(f"INSERT INTO BookProgress VALUES ({userId}, {cloneFrom}, 0)")
-        conn.commit()
-    else:
+    if len(t) > 0:
         progress = t[0][0]
-    cur.execute(f"INSERT INTO BookProgress VALUES ({userId}, {bookId}, {progress})")
+    cur.execute(f"INSERT INTO Book VALUES ({userId}, {bookId}, '{name}', 0, '', 0)")
+    cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'create_book', {int(time.time())}, '{encode(f'Created book {decode(name)}')}')")
+    d = getBookData(userId, cloneFrom)
+    for dd in d:
+        appendBookData(userId, bookId, dd)
     
     conn.commit()
     return json.dumps({"success": True, "msg": "Book cloned!"})
@@ -381,7 +370,7 @@ def apiDeleteBook():
         return json.dumps({"success": False, "msg": "Book published to Discovery! Unpublish it first before deleting the book."})
             
     groupId = -1
-    cur.execute(f"SELECT groupId FROM GroupBind WHERE userId = {userId} AND bookId = {bookId}")
+    cur.execute(f"SELECT groupId FROM GroupMember WHERE userId = {userId} AND bookId = {bookId}")
     d = cur.fetchall()
     if len(d) != 0:
         groupId = d[0][0]
@@ -398,14 +387,11 @@ def apiDeleteBook():
         
         cur.execute(f"DELETE FROM GroupSync WHERE groupId = {groupId} AND userId = {userId}")
         cur.execute(f"DELETE FROM GroupMember WHERE groupId = {groupId} AND userId = {userId}")
-        cur.execute(f"DELETE FROM GroupBind WHERE groupId = {groupId} AND userId = {userId}")
         cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'quit_group', {int(time.time())}, '{encode(f'Quit group {decode(name)}')}')")
         
     cur.execute(f"DELETE FROM Book WHERE userId = {userId} AND bookId = {bookId}")
     cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'delete_book', {int(time.time())}, '{encode(f'Deleted book {decode(name)}')}')")
     cur.execute(f"DELETE FROM BookData WHERE userId = {userId} AND bookId = {bookId}")
-    cur.execute(f"DELETE FROM BookProgress WHERE userId = {userId} AND bookId = {bookId}")
-    cur.execute(f"DELETE FROM ShareImport WHERE userId = {userId} AND bookId = {bookId}")
     conn.commit()
 
     return json.dumps({"success": True})
@@ -426,7 +412,7 @@ def apiRenameBook():
     newName = str(request.form["name"])
 
     groupId = -1
-    cur.execute(f"SELECT groupId FROM GroupBind WHERE bookId = {bookId} AND userId = {userId}")
+    cur.execute(f"SELECT groupId FROM GroupMember WHERE bookId = {bookId} AND userId = {userId}")
     t = cur.fetchall()
     if len(t) != 0:
         groupId = t[0][0]
@@ -436,7 +422,7 @@ def apiRenameBook():
         if len(tt) > 0:
             gname = tt[0][0]
         
-        if len(gname) > 1000:
+        if len(gname) >= 256:
             return json.dumps({"success": False, "msg": "Book name too long!"})
 
         cur.execute(f"UPDATE Book SET name = '{gname}' WHERE userId = {userId} AND bookId = {bookId}")
@@ -447,7 +433,7 @@ def apiRenameBook():
     if len(cur.fetchall()) == 0:
         return json.dumps({"success": False, "msg": "Book does not exist!"})
 
-    if len(encode(newName)) > 1000:
+    if len(encode(newName)) >= 256:
         return json.dumps({"success": False, "msg": "Book name too long!"})
 
     cur.execute(f"UPDATE Book SET name = '{encode(newName)}' WHERE userId = {userId} AND bookId = {bookId}")
@@ -470,23 +456,24 @@ def apiShareBook():
     op = request.form["operation"]
 
     if op == "share":
-        cur.execute(f"SELECT * FROM BookShare WHERE userId = {userId} AND bookId = {bookId}")
-        if len(cur.fetchall()) != 0:
+        cur.execute(f"SELECT shareCode FROM Book WHERE userId = {userId} AND bookId = {bookId}")
+        t = cur.fetchall()
+        if len(t) > 0 and t[0][0] != '':
             return json.dumps({"success": False, "msg": "Book already shared!"})
         else:
             shareCode = genCode(8)
-            cur.execute(f"SELECT * FROM BookShare WHERE shareCode = '{shareCode}'")
+            cur.execute(f"SELECT shareCode FROM Book WHERE shareCode = '{shareCode}'")
             if len(cur.fetchall()) != 0: # conflict
-                for _ in range(10):
+                for _ in range(30):
                     shareCode = genCode(8)
-                    cur.execute(f"SELECT * FROM BookShare WHERE shareCode = '{shareCode}'")
+                    cur.execute(f"SELECT shareCode FROM Book WHERE shareCode = '{shareCode}'")
                     if len(cur.fetchall()) == 0:
                         break
-                cur.execute(f"SELECT * FROM BookShare WHERE shareCode = '{shareCode}'")
+                cur.execute(f"SELECT shareCode FROM Book WHERE shareCode = '{shareCode}'")
                 if len(cur.fetchall()) != 0:
                     return json.dumps({"success": False, "msg": "Unable to generate an unique share code..."})
                     
-            cur.execute(f"INSERT INTO BookShare VALUES ({userId}, {bookId}, '{shareCode}')")
+            cur.execute(f"UPDATE Book SET shareCode = '{shareCode}' WHERE bookId = {bookId} AND userId = {userId}")
             conn.commit()
             return json.dumps({"success": True, "msg": f"Done! Share code: !{shareCode}. Tell your friend to enter it in the textbox of 'Create Book' and he / she will be able to import it!", "shareCode": f"!{shareCode}"})
     
@@ -496,10 +483,11 @@ def apiShareBook():
         if len(cur.fetchall()) != 0:
             notice = "Book published to Discovery! This will make it invisible on Discovery."
             
-        cur.execute(f"SELECT * FROM BookShare WHERE userId = {userId} AND bookId = {bookId}")
-        if len(cur.fetchall()) == 0:
+        cur.execute(f"SELECT shareCode FROM Book WHERE userId = {userId} AND bookId = {bookId}")
+        t = cur.fetchall()
+        if len(t) > 0 and t[0][0] == '':
             return json.dumps({"success": False, "msg": "Book not shared!"})
         else:
-            cur.execute(f"DELETE FROM BookShare WHERE userId = {userId} AND bookId = {bookId}")
+            cur.execute(f"UPDATE Book SET shareCode = '' WHERE bookId = {bookId} AND userId = {userId}")
             conn.commit()
             return json.dumps({"success": True, "msg": "Book unshared! " + notice})

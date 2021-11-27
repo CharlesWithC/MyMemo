@@ -16,6 +16,7 @@ class UserClass {
         this.chtoday = 0;
         this.checkin_today = 0;
         this.checkin_continuous = 0;
+        this.sessions = [];
     }
 }
 user = new UserClass();
@@ -153,14 +154,9 @@ if (uid == -1 || uid == localStorage.getItem("userId")) {
                 if (sessions[i].userAgent.indexOf("Linux") != -1) system = "linux";
                 if (sessions[i].userAgent.indexOf("Android") != -1) system = "android";
                 sysver = sessions[i].userAgent.substr(sessions[i].userAgent.indexOf("(") + 1, sessions[i].userAgent.indexOf(")") - sessions[i].userAgent.indexOf("(") - 1);
-                loginTime = new Date(sessions[i].loginTime * 1000).toString();
-                expireTime = new Date(sessions[i].expireTime * 1000).toString();
-                $("#sessions").append("<div class='rect'>\
+                $("#sessions").append("<div class='rect' onclick='SessionDetail(" + i + ");'>\
                     <p class='rect-title'><i class='fa fa-" + system + "'></i>&nbsp;&nbsp;" + sysver + "\
                     <p class='rect-content'>IP: " + sessions[i].ip + "</p>\
-                    <p class='rect-content'>User Agent: " + sessions[i].userAgent + "</p></p>\
-                    <p class='rect-content'>Login time: " + loginTime + "</p>\
-                    <p class='rect-content'>Expire time: " + expireTime + "</p>\
                     </div><br>")
             }
         },
@@ -225,7 +221,7 @@ if (tuid != -1 && tuid != null) {
                 },
                 bar: {
                     width: {
-                        ratio: 0.3
+                        ratio: 0.8
                     }
                 },
                 axis: {
@@ -519,12 +515,53 @@ function Register() {
 }
 
 function UpdateProfileShow() {
-    $("#updateProfileModal").modal("show");
+    $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog"
+        aria-labelledby="modalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLabel"><i class="fa fa-edit"></i> Update Profile</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                        onclick="$('#modal').modal('hide')">
+                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="basic-addon1">Username</span>
+                            <input type="text" class="form-control" id="update-username" aria-describedby="basic-addon1"
+                                style="z-index:100">
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="basic-addon1">Email</span>
+                            <input type="text" class="form-control" id="update-email" aria-describedby="basic-addon1"
+                                style="z-index:100">
+                        </div>
+                        <div class="form-group">
+                            <label for="update-bio" class="col-form-label">Bio (You can use HTML tags to make your bio
+                                more beautiful):</label>
+                            <textarea class="form-control" id="update-bio"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                        onclick="$('#modal').modal('hide')">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="UpdateUserProfile()">Update</button>
+                </div>
+            </div>
+        </div>
+    </div>`);
     l = user.username.indexOf('>', user.username.indexOf('>') + 1);
     r = user.username.indexOf('<', user.username.indexOf('<', user.username.indexOf('<') + 1) + 1);
     $("#update-username").val(user.username.substr(l + 1, r - l - 1));
     $("#update-email").val(user.email);
     $("#update-bio").val(user.bio);
+    $("#modal").modal("show");
+    $('#modal').on('hidden.bs.modal', function () {
+        $("#modal").remove();
+    });
 }
 
 function UpdateUserProfile() {
@@ -570,7 +607,7 @@ function UpdateUserProfile() {
                         $("#email").html(user.email);
                     }
                 });
-                $("#updateProfileModal").modal("hide");
+                $("#modal").modal("hide");
 
                 NotyNotification(r.msg);
             } else {
@@ -610,7 +647,7 @@ function ChangePassword() {
 
                 NotyNotification('Password has been changed! You have to log in again!', type = 'warning');
 
-                $("#changepasswordModal").modal("hide");
+                $("#modal").modal("hide");
 
                 localStorage.removeItem("userid");
                 localStorage.removeItem("username");
@@ -628,7 +665,48 @@ function ChangePassword() {
 
 
 function ChangePasswordShow() {
-    $("#changepasswordModal").modal("show");
+    $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog"
+        aria-labelledby="modalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLabel"><i class="fa fa-edit"></i>Change Password</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                        onclick="$('#modal').modal('hide')">
+                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="basic-addon1">Current Password</span>
+                            <input type="password" class="form-control" id="oldpwd" aria-describedby="basic-addon1"
+                                style="z-index:100">
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="basic-addon1">New Password</span>
+                            <input type="password" class="form-control" id="newpwd" aria-describedby="basic-addon1"
+                                style="z-index:100">
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="basic-addon1">Repeat new Password</span>
+                            <input type="password" class="form-control" id="cfmpwd" aria-describedby="basic-addon1"
+                                style="z-index:100">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                        onclick="$('#modal').modal('hide')">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="ChangePassword()">Change</button>
+                </div>
+            </div>
+        </div>
+    </div>`);
+    $("#modal").modal("show");
+    $('#modal').on('hidden.bs.modal', function () {
+        $("#modal").remove();
+    });
 }
 
 function DeleteAccount() {
@@ -660,7 +738,7 @@ function DeleteAccount() {
 
                 NotyNotification("Account deactivated! It will be deleted after 14 days!", type = 'warning', timeout = 10000);
 
-                $("#deleteAccountModal").modal("hide");
+                $("#modal").modal("hide");
 
                 localStorage.removeItem("userid");
                 localStorage.removeItem("username");
@@ -677,7 +755,54 @@ function DeleteAccount() {
 }
 
 function DeleteAccountShow() {
-    $("#deleteAccountModal").modal("show");
+    $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog"
+        aria-labelledby="modalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLabel"><i class="fa fa-trash"></i> Delete Account</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                        onclick="$('#modal').modal('hide')">
+                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <p>Are you sure to delete your account?</p>
+                        <p>By continuing, your account will be disabled and it will be deleted after 14 days.</p>
+                        <p>You can recover it by logging in at any time during that period.</p>
+                        <p>After 14 days it will be deleted permanently and cannot be recovered.</p>
+                        <br>
+                        <p>Deleting your account will make you unable to login permanently but all your other data will
+                            be preserved.</p>
+                        <p>You can delete most of the data manually such as questions and books.</p>
+                        <p>If you want a deep data wipe, you can contact administrator and provide your User ID.</p>
+                        <p>Administrators will be able to wipe your data completely when your account is deleted.</p>
+                        <br>
+                        <p>Type your "I acknowledge what I'm doing" and your password to continue:</p>
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" id="acknowledge-confirm"
+                                aria-describedby="basic-addon1" style="z-index:100">
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="basic-addon1">Password</span>
+                            <input type="password" class="form-control" id="delete-password"
+                                aria-describedby="basic-addon1" style="z-index:100">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                        onclick="$('#modal').modal('hide')">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="DeleteAccount()">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>`);
+    $("#modal").modal("show");
+    $('#modal').on('hidden.bs.modal', function () {
+        $("#modal").remove();
+    });
 }
 
 function RestartServer() {
@@ -811,5 +936,46 @@ function UpdateGoal() {
                 NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
+    });
+}
+
+function SessionDetail(i) {
+    system = "desktop";
+    if (sessions[i].userAgent.indexOf("Win") != -1) system = "windows";
+    if (sessions[i].userAgent.indexOf("Mac") != -1) system = "apple";
+    if (sessions[i].userAgent.indexOf("Linux") != -1) system = "linux";
+    if (sessions[i].userAgent.indexOf("Android") != -1) system = "android";
+    sysver = sessions[i].userAgent.substr(sessions[i].userAgent.indexOf("(") + 1, sessions[i].userAgent.indexOf(")") - sessions[i].userAgent.indexOf("(") - 1);
+    loginTime = new Date(sessions[i].loginTime * 1000).toString();
+    expireTime = new Date(sessions[i].expireTime * 1000).toString();
+    body = "<p>IP: " + sessions[i].ip + "</p>\
+    <p>User Agent: " + sessions[i].userAgent + "</p></p>\
+    <p>Login time: " + loginTime + "</p>\
+    <p>Expire time: " + expireTime + "</p>";
+    $("#content").after(`
+    <div class="modal fade" id="modal" tabindex="-1" role="dialog"
+        aria-labelledby="modalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class='fa fa-` + system + `'></i>&nbsp;&nbsp;` + sysver + `</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                        onclick="$('#modal').modal('hide');">
+                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    ` + body + `
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                        onclick="$('#modal').modal('hide');">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>`);
+    $("#modal").modal("show");
+    $('#modal').on('hidden.bs.modal', function () {
+        $("#modal").remove();
     });
 }

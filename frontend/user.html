@@ -51,15 +51,19 @@
 
             setTimeout(onkeypress, 500);
 
-            if (localStorage.getItem("settings-theme") == "dark") {
-                $("body").attr("style", "color:#ffffff;background-color:#333333");
-                setInterval(function () {
-                    $("#content a,.container a").css("color", "#dddddd");
-                }, 500);
-                $("hr").attr("style", "background-color:#cccccc;");
-                $(".modal-content").attr("style", "background-color:#333333");
-                $(".fa-times").attr("style", "color:white");
+            function UpdateTheme(){
+                if (localStorage.getItem("settings-theme") == "dark") {
+                    $("body").attr("style", "color:#ffffff;background-color:#333333");
+                    setInterval(function () {
+                        $("#content a,.container a").css("color", "#dddddd");
+                    }, 500);
+                    $("hr").attr("style", "background-color:#cccccc;");
+                    $(".modal-content").attr("style", "background-color:#333333");
+                    $(".fa-times").attr("style", "color:white");
+                }
             }
+            setInterval(UpdateTheme, 100);
+
             $("#book-btn").hover(function () {
                 ShowBook();
             });
@@ -108,7 +112,7 @@
             </div>
         </div>
         <div class="userctrl">
-            <a href='/user'><i class="fa fa-user"></i> <span id="navusername">Sign in&nbsp;&nbsp;  </span></a>
+            <a href='/user'><i class="fa fa-user"></i> <span id="navusername">Sign in&nbsp;&nbsp; </span></a>
             <a class="only-signed-in" href='#' onclick="UserEvents()" style="display:none"><i
                     class="fa fa-bell"></i></a>
             <a href='#' onclick="window.location.href='/settings'"><i class="fa fa-cogs"></i></a>
@@ -178,11 +182,14 @@
                     <p>Invited By: <span id="inviteBy"></span></p>
                     <hr>
                     <h2>Goal</h2>
-                    <div class="progress">
-                        <div id="goal-progress" class="progress-bar progress-bar-striped progress-bar-animated"
-                            role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"
-                            style="width: 0%">
-                            <span id="today-goal">0 / 0</span>
+                    <div style="height:1.5em">
+                        <div class="progress" style="display:inline-block;width:100%;height:1.7em">
+                            <div id="goal-progress" class="progress-bar progress-bar-striped progress-bar-animated"
+                                role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"
+                                style="width: 0%; height:1.7em">
+                                <p style="position:absolute;margin:0;margin-left:1em;color:black">Progress: <span
+                                        id="today-goal">0 / 0</span></p>
+                            </div>
                         </div>
                     </div>
                     <p>You have checked in continuously for <span id="checkin-continuous">0</span> days</p>
@@ -226,7 +233,7 @@
             </div>
             <br>
             <button id="login-btn" type="button" class="btn btn-primary"
-                style="position:relative;width:10em;margin-top:1em" onclick="Login()">  Sign in  </button>
+                style="position:relative;width:10em;margin-top:1em" onclick="Login()"> Sign in </button>
         </div>
 
         <div class="register center" style="margin-top:4em;margin-bottom:10em;display:none">
@@ -248,7 +255,7 @@
                 <input type="text" class="form-control" id="register-inviteCode" aria-describedby="basic-addon1">
             </div>
             <div class="center" style="width:30%">
-                <a href="#" onclick="$('.login').show();$('.register').hide();" style="float:right">  Sign in  </a>
+                <a href="#" onclick="$('.login').show();$('.register').hide();" style="float:right"> Sign in </a>
             </div>
             <br>
             <button id="login-btn" type="button" class="btn btn-primary"
@@ -256,132 +263,9 @@
         </div>
     </div>
 
-    <div class="modal fade" id="updateProfileModal" tabindex="-1" role="dialog"
-        aria-labelledby="updateProfileModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="updateProfileModalLabel"><i class="fa fa-edit"></i> Update Profile</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#updateProfileModal').modal('hide')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form>
-                        <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1">Username</span>
-                            <input type="text" class="form-control" id="update-username" aria-describedby="basic-addon1"
-                                style="z-index:100">
-                        </div>
-                        <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1">Email</span>
-                            <input type="text" class="form-control" id="update-email" aria-describedby="basic-addon1"
-                                style="z-index:100">
-                        </div>
-                        <div class="form-group">
-                            <label for="update-bio" class="col-form-label">Bio (You can use HTML tags to make your bio
-                                more beautiful):</label>
-                            <textarea class="form-control" id="update-bio"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#updateProfileModal').modal('hide')">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="UpdateUserProfile()">Update</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="changepasswordModal" tabindex="-1" role="dialog"
-        aria-labelledby="changepasswordModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="changepasswordModalLabel"><i class="fa fa-edit"></i>Change Password</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#changepasswordModal').modal('hide')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form>
-                        <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1">Current Password</span>
-                            <input type="password" class="form-control" id="oldpwd" aria-describedby="basic-addon1"
-                                style="z-index:100">
-                        </div>
-                        <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1">New Password</span>
-                            <input type="password" class="form-control" id="newpwd" aria-describedby="basic-addon1"
-                                style="z-index:100">
-                        </div>
-                        <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1">Repeat new Password</span>
-                            <input type="password" class="form-control" id="cfmpwd" aria-describedby="basic-addon1"
-                                style="z-index:100">
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#changepasswordModal').modal('hide')">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="ChangePassword()">Change</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="deleteAccountModal" tabindex="-1" role="dialog"
-        aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deleteAccountModalLabel"><i class="fa fa-trash"></i> Delete Account</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#deleteAccountModal').modal('hide')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form>
-                        <p>Are you sure to delete your account?</p>
-                        <p>By continuing, your account will be disabled and it will be deleted after 14 days.</p>
-                        <p>You can recover it by logging in at any time during that period.</p>
-                        <p>After 14 days it will be deleted permanently and cannot be recovered.</p>
-                        <br>
-                        <p>Deleting your account will make you unable to login permanently but all your other data will
-                            be preserved.</p>
-                        <p>You can delete most of the data manually such as questions and books.</p>
-                        <p>If you want a deep data wipe, you can contact administrator and provide your User ID.</p>
-                        <p>Administrators will be able to wipe your data completely when your account is deleted.</p>
-                        <br>
-                        <p>Type your "I acknowledge what I'm doing" and your password to continue:</p>
-                        <div class="input-group mb-3">
-                            <input type="text" class="form-control" id="acknowledge-confirm"
-                                aria-describedby="basic-addon1" style="z-index:100">
-                        </div>
-                        <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1">Password</span>
-                            <input type="password" class="form-control" id="delete-password"
-                                aria-describedby="basic-addon1" style="z-index:100">
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#deleteAccountModal').modal('hide')">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="DeleteAccount()">Delete</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.12 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.13 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

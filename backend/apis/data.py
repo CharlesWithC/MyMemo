@@ -47,14 +47,14 @@ def importData():
 
     # Do file check
     if 'file' not in request.files:
-        return "Invalid import! E1: No file found"
+        return "<link href='/css/main.css' rel='stylesheet'><p>Invalid import! E1: No file found</p>"
     
     f = request.files['file']
     if f.filename == '':
-        return "Invalid import! E2: Empty file name"
+        return "<link href='/css/main.css' rel='stylesheet'><p>Invalid import! E2: Empty file name</p>"
 
     if not f.filename.endswith(".xlsx"):
-        return "Only .xlsx files are supported!"
+        return "<link href='/css/main.css' rel='stylesheet'><p>Only .xlsx files are supported!</p>"
     
     ts=int(time.time())
 
@@ -66,9 +66,9 @@ def importData():
     try:
         newlist = pd.read_excel(buf.getvalue(), engine = "openpyxl")
         if list(newlist.keys()).count("Question") != 1 or list(newlist.keys()).count("Answer")!=1:
-            return "Invalid format! The columns must contain 'Question','Answer'!"
+            return "<link href='/css/main.css' rel='stylesheet'><p>Invalid format! The columns must contain 'Question','Answer'!</p>"
     except:
-        return "Invalid format! The columns must contain 'Question','Answer'!"
+        return "<link href='/css/main.css' rel='stylesheet'><p>Invalid format! The columns must contain 'Question','Answer'!</p>"
     
     #####
     
@@ -86,7 +86,7 @@ def importData():
 
     if checkDuplicate and updateType == "append":
         if len(importDuplicate) != 0:
-            return f"Upload rejected due to duplicated questions: {' ; '.join(importDuplicate)}"
+            return f"<link href='/css/main.css' rel='stylesheet'><p>Upload rejected due to duplicated questions: {' ; '.join(importDuplicate)}</p>"
 
     
     max_allow = config.max_question_per_user_allowed
@@ -97,7 +97,7 @@ def importData():
     cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {userId}")
     d = cur.fetchall()
     if len(d) != 0 and max_allow != -1 and d[0][0] + len(newlist) >= max_allow:
-        return f"You have reached your limit of maximum added questions {max_allow}. Remove some old questions or contact administrator for help."
+        return f"<link href='/css/main.css' rel='stylesheet'><p>You have reached your limit of maximum added questions {max_allow}. Remove some old questions or contact administrator for help.</p>"
 
     questionId = 1
     cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 2 AND userId = {userId}")
@@ -124,8 +124,7 @@ def importData():
         if len(cur.fetchall()) == 0:
             bookId = 0
         else:
-            cur.execute(f"SELECT questionId FROM BookData WHERE userId = {userId} AND bookId = {bookId}")
-            bookList = cur.fetchall()
+            bookList = getBookData(userId, bookId)
 
     StatusTextToStatus = {"Default": 1, "Tagged": 2, "Removed": 3}
 
@@ -140,19 +139,16 @@ def importData():
             if len(t) > 0:
                 wid = t[0][0]
             
-            if len(encode(answer)) > 1000:
-                return json.dumps({"success": False, "msg": "Answer too long!"})
+            if len(encode(answer)) >= 40960:
+                return "<link href='/css/main.css' rel='stylesheet'><p>Answer too long: </p>" + answer
 
             cur.execute(f"UPDATE QuestionList SET answer = '{encode(answer)}' WHERE questionId = {wid} AND userId = {userId}")
             if list(newlist.keys()).count("Status") == 1 and newlist["Status"][i] in ["Default", "Tagged", "Removed"]:
                 status = StatusTextToStatus[newlist["Status"][i]]
                 cur.execute(f"UPDATE QuestionList SET status = {status} WHERE questionId = {wid} AND userId = {userId}")
-            if bookId != 0:
-                if not (questionId,) in bookList:
-                    cur.execute(f"INSERT INTO BookData VALUES ({userId}, {bookId}, {questionId})")
-                    bookList.append((questionId,))
-                else:
-                    cur.execute(f"UPDATE BookData SET bookId = {bookId} WHERE userId = {userId} AND questionId = {questionId}")
+            if bookId != 0 and not questionId in bookList:
+                appendBookData(userId, bookId, questionId)
+                bookList.append(questionId)
             continue
 
         status = -1
@@ -167,21 +163,21 @@ def importData():
             status = 1
             updateQuestionStatus(userId, questionId, status)
             
-        if len(encode(question)) > 1000:
-            return json.dumps({"success": False, "msg": "Question too long!"})
-        if len(encode(description)) > 1000:
-            return json.dumps({"success": False, "msg": "Description too long!"})
+        if len(encode(question)) >= 40960:
+            return "<link href='/css/main.css' rel='stylesheet'><p>Question too long: </p>" + question
+        if len(encode(answer)) >= 40960:
+            return "<link href='/css/main.css' rel='stylesheet'><p>Answer too long: </p>" + answer
             
-        cur.execute(f"INSERT INTO QuestionList VALUES ({userId},{questionId}, '{encode(question)}', '{encode(answer)}', {status})")
+        cur.execute(f"INSERT INTO QuestionList VALUES ({userId},{questionId}, '{encode(question)}', '{encode(answer)}', {status}, 0)")
         cur.execute(f"INSERT INTO ChallengeData VALUES ({userId},{questionId}, 0, -1)")
         cur.execute(f"UPDATE IDInfo SET nextId = {questionId + 1} WHERE type = 2 AND userId = {userId}")
         
         if bookId != 0:
-            cur.execute(f"INSERT INTO BookData VALUES ({userId}, {bookId}, {questionId})")
+            appendBookData(userId, bookId, questionId)
 
     conn.commit()
 
-    return "Data imported successfully!"
+    return "<link href='/css/main.css' rel='stylesheet'><p>Data imported successfully!</p>"
 
 @app.route("/api/data/export", methods = ['POST'])
 def exportData():
@@ -303,12 +299,12 @@ def download():
             df = df.append(row.astype(str))
         df.to_excel(writer, sheet_name = 'Book List', index = False)
         df = pd.DataFrame()
-
-        cur.execute(f"SELECT bookId, questionId FROM BookData WHERE userId = {userId}")
-        d = cur.fetchall()
+        
         for dd in d:
-            row = pd.DataFrame([[dd[0], dd[1]]], columns = ["Book ID", "Question ID"])
-            df = df.append(row.astype(str))
+            bookData = getBookData(userId, dd[0])
+            for bd in bookData:
+                row = pd.DataFrame([[dd[0], bd]], columns = ["Book ID", "Question ID"])
+                df = df.append(row.astype(str))
         df.to_excel(writer, sheet_name = 'Book Data', index = False)
         df = pd.DataFrame()
 

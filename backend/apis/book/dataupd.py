@@ -49,15 +49,11 @@ def apiAddToBook():
         return json.dumps({"success": False, "msg": "Book does not exist!"})
         
     groupId = -1
-    cur.execute(f"SELECT groupId FROM GroupBind WHERE userId = {userId} AND bookId = {bookId}")
+    cur.execute(f"SELECT groupId, isEditor FROM GroupMember WHERE userId = {userId} AND bookId = {bookId}")
     d = cur.fetchall()
     if len(d) != 0:
         groupId = d[0][0]
-        isEditor = 0
-        cur.execute(f"SELECT isEditor FROM GroupMember WHERE groupId = {groupId} AND userId = {userId}")
-        t = cur.fetchall()
-        if len(t) > 0:
-            isEditor = t[0][0]
+        isEditor = d[0][1]
         if isEditor == 0:
             return json.dumps({"success": False, "msg": "You are not allowed to edit this question in group as you are not an editor! Clone the book to edit!"})
     
@@ -65,15 +61,13 @@ def apiAddToBook():
     d = cur.fetchall()
     d = list(d)
 
-    cur.execute(f"SELECT questionId FROM BookData WHERE userId = {userId} AND bookId = {bookId}")
-    t = cur.fetchall()
-    t = list(t)
+    t = getBookData(userId, bookId)
 
     for questionId in questions:
-        if (questionId,) in d and not (questionId,) in t:
-            cur.execute(f"INSERT INTO BookData VALUES ({userId}, {bookId}, {questionId})")
+        if (questionId,) in d and not questionId in t:
+            appendBookData(userId, bookId, questionId)
             d.append((questionId,))
-            t.append((questionId,))
+            t.append(questionId)
 
             if groupId != -1:
                 p = None
@@ -99,7 +93,7 @@ def apiAddToBook():
                 cur.execute(f"INSERT INTO GroupQuestion VALUES ({groupId}, {gquestionId}, '{question}', '{answer}')")
                 cur.execute(f"INSERT INTO GroupSync VALUES ({groupId}, {userId}, {questionId}, {gquestionId})")
                 
-                cur.execute(f"SELECT userId, bookId FROM GroupBind WHERE groupId = {groupId}")
+                cur.execute(f"SELECT userId, bookId FROM GroupMember WHERE groupId = {groupId}")
                 ttt = cur.fetchall()
                 for tt in ttt:
                     uid = tt[0]
@@ -116,13 +110,13 @@ def apiAddToBook():
                         wid = d[0][0]
                         cur.execute(f"UPDATE IDInfo SET nextId = {wid + 1} WHERE type = 2 AND userId = {uid}")
                    
-                    if len(question) > 1000:
+                    if len(question) >= 40960:
                         return json.dumps({"success": False, "msg": "Question too long!"})
-                    if len(answer) > 1000:
+                    if len(answer) >= 40960:
                         return json.dumps({"success": False, "msg": "Answer too long!"})
 
-                    cur.execute(f"INSERT INTO QuestionList VALUES ({uid}, {wid}, '{question}', '{answer}', 1)")
-                    cur.execute(f"INSERT INTO BookData VALUES ({uid}, {wbid}, {wid})")
+                    cur.execute(f"INSERT INTO QuestionList VALUES ({uid}, {wid}, '{question}', '{answer}', 1, 0)")
+                    appendBookData(userId, wbid, wid)
                     cur.execute(f"INSERT INTO ChallengeData VALUES ({uid},{wid},0,-1)")
                     cur.execute(f"INSERT INTO GroupSync VALUES ({groupId}, {uid}, {wid}, {gquestionId})")
                     updateQuestionStatus(uid, wid, -3) # -3 is group question
@@ -151,25 +145,19 @@ def apiDeleteFromBook():
         return json.dumps({"success": False, "msg": "Book does not exist!"})
 
     groupId = -1
-    cur.execute(f"SELECT groupId FROM GroupBind WHERE userId = {userId} AND bookId = {bookId}")
+    cur.execute(f"SELECT groupId, isEditor FROM GroupMember WHERE userId = {userId} AND bookId = {bookId}")
     d = cur.fetchall()
     if len(d) != 0:
         groupId = d[0][0]
-        isEditor = 0
-        cur.execute(f"SELECT isEditor FROM GroupMember WHERE groupId = {groupId} AND userId = {userId}")
-        tt = cur.fetchall()
-        if len(tt) > 0:
-            isEditor = tt[0][0]
+        isEditor = d[0][1]
         if isEditor == 0:
             return json.dumps({"success": False, "msg": "You are not allowed to edit this question in group as you are not an editor! Clone the book to edit!"})
 
-    
-    cur.execute(f"SELECT questionId FROM BookData WHERE userId = {userId} AND bookId = {bookId}")
-    d = cur.fetchall()
+    d = getBookData(userId, bookId)
 
     for questionId in questions:
-        if (questionId,) in d:
-            cur.execute(f"DELETE FROM BookData WHERE userId = {userId} AND bookId = {bookId} AND questionId = {questionId}")
+        if questionId in d:
+            removeBookData(userId, bookId, questionId)
             
             if groupId != -1:
                 cur.execute(f"SELECT questionIdOfGroup FROM GroupSync WHERE userId = {userId} AND questionIdOfUser = {questionId}")
@@ -186,7 +174,7 @@ def apiDeleteFromBook():
                         continue
                     wid = tt[1]
                     cur.execute(f"DELETE FROM QuestionList WHERE userId = {uid} AND questionId = {wid}")
-                    cur.execute(f"DELETE FROM BookData WHERE userId = {uid} AND questionId = {wid}")
+                    removeBookData(uid, -1, wid)
                 cur.execute(f"DELETE FROM GroupSync WHERE groupId = {groupId} AND questionIdOfGroup = {gquestionId}")
                 cur.execute(f"DELETE FROM GroupQuestion WHERE groupQuestionId = {gquestionId}")
     

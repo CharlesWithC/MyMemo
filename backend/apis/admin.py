@@ -115,12 +115,18 @@ def apiAdminCommand():
     if len(cur.fetchall()) == 0:
         abort(401)
     
-    command = request.form["command"].split(" ")
+    command = request.form["command"].split()
     if command[0] == "get_user_info":
         if len(command) != 2:
             return json.dumps({"success": False, "msg": f"Usage: get_user_info [userId]\nGet detailed user info of [userId]"})
         
-        uid = abs(int(command[1]))
+        uid = 0
+        if not command[1].isdigit():
+            uid = usernameToUid(encode(command[1]))
+        else:
+            uid = int(command[1])
+        if uid == 0:
+            return json.dumps({"success": False, "msg": "Invalid user id!"})
         
         cur.execute(f"SELECT username, email, inviteCode, inviter FROM UserInfo WHERE userId = {uid}")
         d = cur.fetchall()
@@ -197,10 +203,10 @@ def apiAdminCommand():
                 uid = t[0][0]
             cur.execute(f"UPDATE IDInfo SET nextId = {uid + 1} WHERE type = 1")
 
-            if len(username) > 500:
+            if len(username) >= 256:
                 return json.dumps({"success": False, "msg": "Username too long!"})
 
-            cur.execute(f"INSERT INTO UserInfo VALUES ({uid}, '{username}', '', '{email}', '{encode(password)}', {inviter}, '{inviteCode}')")
+            cur.execute(f"INSERT INTO UserInfo VALUES ({uid}, '{username}', '', '{email}', '{encode(password)}', {inviter}, '{inviteCode}', 99999)")
             conn.commit()
         except:
             sessions.errcnt += 1
@@ -215,10 +221,29 @@ def apiAdminCommand():
         if len(command) != 2:
             return json.dumps({"success": False, "msg": "Usage: delete_user [userId]\nThe account must be marked as deletion first, and admin will be able to bring the deletion schedule forward"})
 
-        uid = int(command[1])
+        uid = 0
+        if not command[1].isdigit():
+            uid = usernameToUid(encode(command[1]))
+        else:
+            uid = int(command[1])
+        if uid == 0:
+            return json.dumps({"success": False, "msg": "Invalid user id!"})
+        
         ok = sessions.DeleteAccountNow(uid)
 
         if ok == -1:
+            cur.execute(f"SELECT inviter FROM UserInfo WHERE userId = {uid}")
+            t = cur.fetchall()
+            if len(t) != 0 and t[0][0] == userId: # created by this admin
+                cur.execute(f"SELECT timestamp FROM UserEvent WHERE userId = {uid} AND event = 'register'")
+                t = cur.fetchall()
+                if len(t) != 0 and int(time.time()) - t[0][0] <= 7200:
+                    cur.execute(f"UPDATE UserInfo SET username = '{encode('@deleted')}' WHERE userId = {uid}")
+                    cur.execute(f"UPDATE UserInfo SET email = '' WHERE userId = {uid}")
+                    cur.execute(f"UPDATE UserInfo SET password = '' WHERE userId = {uid}")
+                    conn.commit()
+                    return json.dumps({"success": False, "msg": "Revoked account creation!"})
+
             return json.dumps({"success": False, "msg": "Account not marked for deletion!"})
         
         elif ok == 0:
@@ -233,7 +258,13 @@ def apiAdminCommand():
         if len(command) != 2:
             return json.dumps({"success": False, "msg": "Usage: delete_user_completely [userId]\nThe account must be deleted already and admins will be able to wipe all data stored in the database."})
 
-        uid = int(command[1])
+        uid = 0
+        if not command[1].isdigit():
+            uid = usernameToUid(encode(command[1]))
+        else:
+            uid = int(command[1])
+        if uid == 0:
+            return json.dumps({"success": False, "msg": "Invalid user id!"})
         
         username = ""
         cur.execute(f"SELECT username FROM UserInfo WHERE userId = {uid}")
@@ -245,7 +276,6 @@ def apiAdminCommand():
             return json.dumps({"success": False, "msg": "Account not deleted yet!"})
         
         elif username == "@deleted":
-            cur.execute(f"DELETE FROM UserGoal WHERE userId = {uid}")
             cur.execute(f"DELETE FROM CheckIn WHERE userId = {uid}")
             cur.execute(f"DELETE FROM UserSettings WHERE userId = {uid}")
             cur.execute(f"DELETE FROM UserNameTag WHERE userId = {uid}")
@@ -253,15 +283,11 @@ def apiAdminCommand():
             cur.execute(f"DELETE FROM Privilege WHERE userId = {uid}")
             cur.execute(f"DELETE FROM Book WHERE userId = {uid}")
             cur.execute(f"DELETE FROM BookData WHERE userId = {uid}")
-            cur.execute(f"DELETE FROM BookShare WHERE userId = {uid}")
-            cur.execute(f"DELETE FROM MyMemorized WHERE userId = {uid}")
-            cur.execute(f"DELETE FROM BookProgress WHERE userId = {uid}")
             cur.execute(f"DELETE FROM ChallengeData WHERE userId = {uid}")
             cur.execute(f"DELETE FROM ChallengeRecord WHERE userId = {uid}")
             cur.execute(f"DELETE FROM StatusUpdate WHERE userId = {uid}")
             cur.execute(f"DELETE FROM GroupMember WHERE userId = {uid}")
             cur.execute(f"DELETE FROM GroupSync WHERE userId = {uid}")
-            cur.execute(f"DELETE FROM GroupBind WHERE userId = {uid}")
             cur.execute(f"DELETE FROM Discovery WHERE publisherId = {uid}")
             cur.execute(f"DELETE FROM IDInfo WHERE userId = {uid}")
             cur.execute(f"DELETE FROM UserSessionHistory WHERE userId = {uid}")
@@ -273,7 +299,14 @@ def apiAdminCommand():
         if len(command) != 3:
             return json.dumps({"success": False, "msg": "Usage: mute [userId] [duration]\nMute [userId] for [duration] days\nTo mute forever, set [duration] to -1"})
 
-        uid = int(command[1])
+        uid = 0
+        if not command[1].isdigit():
+            uid = usernameToUid(encode(command[1]))
+        else:
+            uid = int(command[1])
+        if uid == 0:
+            return json.dumps({"success": False, "msg": "Invalid user id!"})
+
         value = int(command[2])
 
         if uid == userId:
@@ -295,7 +328,14 @@ def apiAdminCommand():
         if len(command) != 2:
             return json.dumps({"success": False, "msg": "Usage: unmute [userId]\nUnmute [userId]"})
         
-        uid = int(command[1])
+        uid = 0
+        if not command[1].isdigit():
+            uid = usernameToUid(encode(command[1]))
+        else:
+            uid = int(command[1])
+        if uid == 0:
+            return json.dumps({"success": False, "msg": "Invalid user id!"})
+
         cur.execute(f"SELECT * FROM Privilege WHERE userId = {uid} AND item = 'mute'")
         if len(cur.fetchall()) != 0:
             cur.execute(f"DELETE FROM Privilege WHERE userId = {uid} AND item = 'mute'")
@@ -308,7 +348,14 @@ def apiAdminCommand():
         if len(command) != 4:
             return json.dumps({"success": False, "msg": "Usage: set_privilege [userId] [item] [value]\nAdd [item] privilege for user [userId] ([item] can be question_limit)\nIf privilege exists, then update it"})
 
-        uid = int(command[1])
+        uid = 0
+        if not command[1].isdigit():
+            uid = usernameToUid(encode(command[1]))
+        else:
+            uid = int(command[1])
+        if uid == 0:
+            return json.dumps({"success": False, "msg": "Invalid user id!"})
+
         item = command[2]
         value = int(command[3])
 
@@ -328,7 +375,14 @@ def apiAdminCommand():
         if len(command) != 3:
             return json.dumps({"success": False, "msg": "Usage: remove_privilege [userId] [item]\nDelete [item] privilege from user [userId]"})
 
-        uid = int(command[1])
+        uid = 0
+        if not command[1].isdigit():
+            uid = usernameToUid(encode(command[1]))
+        else:
+            uid = int(command[1])
+        if uid == 0:
+            return json.dumps({"success": False, "msg": "Invalid user id!"})
+
         item = command[2]
 
         if not item in ['question_limit', 'book_limit', 'allow_group_creation', 'group_member_limit']:
@@ -346,7 +400,14 @@ def apiAdminCommand():
         if len(command) != 4:
             return json.dumps({"success": False, "msg": "Usage: set_name_tag [userId] [tag] [tag type]"})
 
-        uid = int(command[1])
+        uid = 0
+        if not command[1].isdigit():
+            uid = usernameToUid(encode(command[1]))
+        else:
+            uid = int(command[1])
+        if uid == 0:
+            return json.dumps({"success": False, "msg": "Invalid user id!"})
+            
         tag = encode(command[2])
         tagtype = command[3]
 
@@ -356,7 +417,7 @@ def apiAdminCommand():
         cur.execute(f"SELECT * FROM UserNameTag WHERE userId = {uid}")
         t = cur.fetchall()
         if len(t) == 0:
-            if len(tag) > 45:
+            if len(tag) > 32:
                 return json.dumps({"success": False, "msg": "Tag too long!"})
             cur.execute(f"INSERT INTO UserNameTag VALUES ({uid}, '{tag}', '{tagtype}')")
         else:
@@ -370,7 +431,13 @@ def apiAdminCommand():
         if len(command) != 2:
             return json.dumps({"success": False, "msg": "Usage: remove_name_tag [userId]"})
 
-        uid = int(command[1])
+        uid = 0
+        if not command[1].isdigit():
+            uid = usernameToUid(encode(command[1]))
+        else:
+            uid = int(command[1])
+        if uid == 0:
+            return json.dumps({"success": False, "msg": "Invalid user id!"})
 
         cur.execute(f"SELECT * FROM UserNameTag WHERE userId = {uid}")
         t = cur.fetchall()
@@ -387,7 +454,13 @@ def apiAdminCommand():
         if len(command) != 2:
             return json.dumps({"success": False, "msg": "Usage: ban [userId]\nBan account"})
         
-        uid = int(command[1])
+        uid = 0
+        if not command[1].isdigit():
+            uid = usernameToUid(encode(command[1]))
+        else:
+            uid = int(command[1])
+        if uid == 0:
+            return json.dumps({"success": False, "msg": "Invalid user id!"})
 
         if uid < 0:
             return json.dumps({"success": False, "msg": "Invalid user id!"})
@@ -412,9 +485,12 @@ def apiAdminCommand():
         if len(command) != 2:
             return json.dumps({"success": False, "msg": "Usage: unban [userId]\nUnban account"})
         
-        uid = int(command[1])
-
-        if uid <= 0:
+        uid = 0
+        if not command[1].isdigit():
+            uid = usernameToUid(encode(command[1]))
+        else:
+            uid = int(command[1])
+        if uid == 0:
             return json.dumps({"success": False, "msg": "Invalid user id!"})
 
         cur.execute(f"SELECT userId FROM UserInfo WHERE userId = {-uid}")

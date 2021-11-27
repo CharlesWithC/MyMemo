@@ -77,23 +77,21 @@ def apiGroup():
         if len(pr) != 0:
             lmt = pr[0][0]
 
-        if len(name) > 200:
+        if len(name) >= 256:
             return json.dumps({"success": False, "msg": "Group name too long!"})
-        if len(description) > 1000:
+        if len(description) >= 2048:
             return json.dumps({"success": False, "msg": "Description too long!"})
 
         gcode = genCode(8)
         cur.execute(f"INSERT INTO GroupInfo VALUES ({groupId}, {userId}, '{name}', '{description}', {lmt}, '{gcode}', 0)")
-        cur.execute(f"INSERT INTO GroupMember VALUES ({groupId}, {userId}, 1)")
+        cur.execute(f"INSERT INTO GroupMember VALUES ({groupId}, {userId}, 1, {bookId})")
         cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'create_group', {int(time.time())}, '{encode(f'Created group {decode(name)}')}')")
         cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'join_group', {int(time.time()+1)}, '{encode(f'Joined group {decode(name)}')}')")
-        cur.execute(f"INSERT INTO GroupBind VALUES ({groupId}, {userId}, {bookId})")
         
-        cur.execute(f"SELECT questionId FROM BookData WHERE userId = {userId} AND bookId = {bookId}")
-        questions = cur.fetchall()
+        questions = getBookData(userId, bookId)
         
         gquestionId = 1
-        for question in questions:
+        for questionId in questions:
             cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 5 AND userId = {groupId}")
             d = cur.fetchall()
             if len(d) == 0:
@@ -102,7 +100,6 @@ def apiGroup():
                 gquestionId = d[0][0]
                 cur.execute(f"UPDATE IDInfo SET nextId = {gquestionId + 1} WHERE type = 5 AND userId = {groupId}")
 
-            questionId = question[0]
             cur.execute(f"SELECT question, answer FROM QuestionList WHERE userId = {userId} AND questionId = {questionId}")
             t = cur.fetchall()
             if len(t) > 0:
@@ -138,7 +135,6 @@ def apiGroup():
         cur.execute(f"DELETE FROM GroupMember WHERE groupId = {groupId}")
         cur.execute(f"DELETE FROM GroupQuestion WHERE groupId = {groupId}")
         cur.execute(f"DELETE FROM GroupSync WHERE groupId = {groupId}")
-        cur.execute(f"DELETE FROM GroupBind WHERE groupId = {groupId}")
         cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'quit_group', {int(time.time())}, '{encode(f'Quit group {decode(name)}')}')")
         cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'delete_group', {int(time.time()+1)}, '{encode(f'Deleted group {decode(name)}')}')")
         conn.commit()
@@ -174,7 +170,6 @@ def apiQuitGroup():
 
     cur.execute(f"DELETE FROM GroupSync WHERE groupId = {groupId} AND userId = {userId}")
     cur.execute(f"DELETE FROM GroupMember WHERE groupId = {groupId} AND userId = {userId}")
-    cur.execute(f"DELETE FROM GroupBind WHERE groupId = {groupId} AND userId = {userId}")
     cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'quit_group', {int(time.time())}, '{encode(f'Quit group {decode(name)}')}')")
 
     conn.commit()
@@ -280,11 +275,11 @@ def apiGroupMember():
             username = username + " (Editor)"
         
         bookId = -1
-        cur.execute(f"SELECT bookId FROM GroupBind WHERE groupId = {groupId} AND userId = {uid}")
+        cur.execute(f"SELECT bookId FROM GroupMember WHERE groupId = {groupId} AND userId = {uid}")
         t = cur.fetchall()
         if len(t) > 0:
             bookId = t[0][0]
-        cur.execute(f"SELECT progress FROM BookProgress WHERE userId = {uid} AND bookId = {bookId}")
+        cur.execute(f"SELECT progress FROM Book WHERE userId = {uid} AND bookId = {bookId}")
         p = cur.fetchall()
         pgs = 0
         if len(p) != 0:
@@ -365,7 +360,6 @@ def apiManageGroup():
                 continue
             cur.execute(f"DELETE FROM GroupSync WHERE groupId = {groupId} AND userId = {uid}")
             cur.execute(f"DELETE FROM GroupMember WHERE groupId = {groupId} AND userId = {uid}")
-            cur.execute(f"DELETE FROM GroupBind WHERE groupId = {groupId} AND userId = {uid}")
             cur.execute(f"INSERT INTO UserEvent VALUES ({uid}, 'quit_group', {int(time.time())}, '{encode(f'You have been kicked from group {decode(name)}')}')")
         conn.commit()
         return json.dumps({"success": True, "msg": "Success!"})
@@ -399,20 +393,20 @@ def apiManageGroup():
         name = encode(request.form["name"])
         description = encode(request.form["description"])
 
-        if len(name) > 200:
+        if len(name) >= 256:
             return json.dumps({"success": False, "msg": "Group name too long!"})
-        if len(description) > 1000:
+        if len(description) >= 2048:
             return json.dumps({"success": False, "msg": "Description too long!"})
 
         cur.execute(f"UPDATE GroupInfo SET name = '{name}' WHERE groupId = {groupId}")
         cur.execute(f"UPDATE GroupInfo SET description = '{description}' WHERE groupId = {groupId}")
-        cur.execute(f"SELECT userId, bookId FROM GroupBind WHERE groupId = {groupId}")
+        cur.execute(f"SELECT userId, bookId FROM GroupMember WHERE groupId = {groupId}")
         binds = cur.fetchall()
         for bind in binds:
             uid = bind[0]
             wbid = bind[1]
 
-            if len(name) > 1000:
+            if len(name) >= 256:
                 return json.dumps({"success": False, "msg": "Book name too long!"})
 
             cur.execute(f"UPDATE Book SET name = '{name}' WHERE bookId = {wbid} AND userId = {uid}")

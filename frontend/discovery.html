@@ -95,15 +95,6 @@
                 $("textarea").attr("style", "z-index:100;color:#000000;background-color:#ffffff");
             }
 
-            pressedbtn = [];
-            $('#discoveryList tbody').on('click', 'tr', function () {
-                discoveryId = parseInt($(this).attr("id"));
-                setTimeout(function () {
-                    if (pressedbtn.indexOf(discoveryId) == -1 && window.location.href.indexOf("user") == -1) {
-                        window.location.href = "/discovery?discoveryId=" + discoveryId;
-                    }
-                }, 100);
-            });
             $("#book-btn").hover(function () {
                 ShowBook();
             });
@@ -252,42 +243,9 @@
         </div>
     </div>
 
-    <div class="modal fade" id="editPostModal" tabindex="-1" role="dialog" aria-labelledby="editPostModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editPostModalLabel"><i class="fa fa-edit"></i> Edit Post</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#editPostModal').modal('hide')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form>
-                        <div class="form-group">
-                            <label for="discovery-title" class="col-form-label">Title:</label>
-                            <textarea class="form-control" id="discovery-title"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="discovery-description" class="col-form-label">Description:</label>
-                            <textarea class="form-control" id="discovery-description"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#editPostModal').modal('hide')">Close</button>
-                    <button id="publish-to-discovery-btn" type="button" class="btn btn-primary"
-                        onclick="UpdateInformation()">Edit <i class="fa fa-paper-plane"></i></button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.12 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.13 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

@@ -76,8 +76,8 @@ def apiGetQuestionID():
         for dd in d:
             questionId = dd[0]
             if bookId > 0:
-                cur.execute(f"SELECT bookId FROM BookData WHERE questionId = {questionId} AND bookId = {bookId} AND userId = {userId}")
-                if len(cur.fetchall()) == 0:
+                bookData = getBookData(userId, bookId)
+                if not questionId in bookData:
                     continue
 
             # If there are multiple records, then return the first one

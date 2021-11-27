@@ -131,9 +131,13 @@ def apiGetNextChallenge():
 
     bookId = int(request.form["bookId"])
     questionId = getChallengeQuestionId(userId, bookId)
+    mixcnt = int(request.form["mixcnt"])
 
     if questionId == -1:
-        return json.dumps({"questionId": questionId, "question": "Out of challenge", "answer": "You are super!\nNo more challenge can be done!", "status": 1})
+        mix = []
+        for _ in range(mixcnt):
+            mix.append({"question": "No more challenge", "answer": "No more challenge"})
+        return json.dumps({"questionId": questionId, "question": "No more challenge", "answer": "No more challenge", "status": 1, "mix": mix})
 
     cur.execute(f"SELECT question, answer, status FROM QuestionList WHERE questionId = {questionId} AND userId = {userId}")
     d = cur.fetchall()
@@ -141,9 +145,10 @@ def apiGetNextChallenge():
     question = decode(question)
     answer = decode(answer)
 
-    mixcnt = int(request.form["mixcnt"])
     mix = []
     qs = list(getQuestionsInBook(userId, bookId, "status >= 0"))
+    while len(qs) <= mixcnt:
+        qs.append((-1,encode("No more choice"),encode("No more choice")))
     for _ in range(mixcnt):
         random.shuffle(qs)
     for i in range(mixcnt):
@@ -173,21 +178,22 @@ def apiUpdateChallengeRecord():
     cur.execute(f"SELECT memorized, timestamp FROM ChallengeRecord WHERE questionId = {questionId} AND userId = {userId} ORDER BY timestamp DESC")
     d = cur.fetchall()
 
-    cur.execute(f"INSERT INTO ChallengeRecord VALUES ({userId}, {questionId}, {memorized}, {ts})")
-    cur.execute(f"UPDATE ChallengeData SET lastChallenge = {ts} WHERE questionId = {questionId}  AND userId = {userId}")
+    if questionId != -1:
+        cur.execute(f"INSERT INTO ChallengeRecord VALUES ({userId}, {questionId}, {memorized}, {ts})")
+        cur.execute(f"UPDATE ChallengeData SET lastChallenge = {ts} WHERE questionId = {questionId}  AND userId = {userId}")
 
-    tot = 0
-    if memorized == 1:
-        tot = 1
-        for dd in d:
-            if dd[0] == 1:
-                tot += 1
-        if tot > 8:
-            tot = 8
-        cur.execute(f"UPDATE ChallengeData SET nextChallenge = {ts + addtime[tot]} WHERE questionId = {questionId} AND userId = {userId}")
+        tot = 0
+        if memorized == 1:
+            tot = 1
+            for dd in d:
+                if dd[0] == 1:
+                    tot += 1
+            if tot > 8:
+                tot = 8
+            cur.execute(f"UPDATE ChallengeData SET nextChallenge = {ts + addtime[tot]} WHERE questionId = {questionId} AND userId = {userId}")
 
-    elif memorized == 0:
-        cur.execute(f"UPDATE ChallengeData SET nextChallenge = {ts + addtime[0]} WHERE questionId = {questionId} AND userId = {userId}")
+        elif memorized == 0:
+            cur.execute(f"UPDATE ChallengeData SET nextChallenge = {ts + addtime[0]} WHERE questionId = {questionId} AND userId = {userId}")
     
     cur.execute(f"SELECT memorized, timestamp FROM ChallengeRecord WHERE questionId = {questionId} AND userId = {userId} ORDER BY timestamp DESC")
     d = cur.fetchall()
@@ -203,31 +209,31 @@ def apiUpdateChallengeRecord():
         i += 1
     for i in range(0,len(s)):
         if s[i] >= 2:
-            cur.execute(f"SELECT * FROM MyMemorized WHERE userId = {userId} AND questionId = {questionId}")
-            if len(cur.fetchall()) == 0:
-                cur.execute(f"INSERT INTO MyMemorized VALUES ({userId}, {questionId}, {int(time.time())})")
+            cur.execute(f"SELECT memorizedTimestamp FROM QuestionList WHERE userId = {userId} AND questionId = {questionId}")
+            t = cur.fetchall()
+            if len(t) != 0 and t[0][0] == 0:
+                cur.execute(f"UPDATE QuestionList SET memorizedTimestamp = {int(time.time())} WHERE userId = {userId} AND questionId = {questionId}")
 
-                cur.execute(f"SELECT bookId FROM BookData WHERE userId = {userId} AND questionId = {questionId}")
-                books = cur.fetchall()
-                for book in books:
-                    bookId = book[0]
-                    cur.execute(f"SELECT progress FROM BookProgress WHERE bookId = {bookId} AND userId = {userId}")
+                books = getBookId(userId, questionId)
+                for bookId in books:
+                    cur.execute(f"SELECT progress FROM Book WHERE bookId = {bookId} AND userId = {userId}")
                     p = cur.fetchall()
-                    if len(p) == 0:
-                        cur.execute(f"INSERT INTO BookProgress VALUES ({userId}, {bookId}, 1)")
-                    else:
-                        p = p[0][0]
-                        cur.execute(f"UPDATE BookProgress SET progress = {p + 1} WHERE bookId = {bookId} AND userId = {userId}")
+                    if len(p) > 0:
+                        cur.execute(f"UPDATE Book SET progress = progress + 1 WHERE bookId = {bookId} AND userId = {userId}")
 
     conn.commit()
 
     if getNext == 1:
         bookId = int(request.form["bookId"])
+        mixcnt = int(request.form["mixcnt"])
 
         questionId = getChallengeQuestionId(userId, bookId)
 
         if questionId == -1:
-            return json.dumps({"questionId": questionId, "question": "Out of challenge", "answer": "You are super! No more challenge can be done!", "status": 1})
+            mix = []
+            for _ in range(mixcnt):
+                mix.append({"question": "No more challenge", "answer": "No more challenge"})
+            return json.dumps({"questionId": questionId, "question": "No more challenge", "answer": "No more challenge", "status": 1, "mix": mix})
 
         cur.execute(f"SELECT question, answer, status FROM QuestionList WHERE questionId = {questionId} AND userId = {userId}")
         d = cur.fetchall()
@@ -235,9 +241,10 @@ def apiUpdateChallengeRecord():
         question = decode(question)
         answer = decode(answer)
 
-        mixcnt = int(request.form["mixcnt"])
         mix = []
         qs = list(getQuestionsInBook(userId, bookId, "status >= 0"))
+        while len(qs) <= mixcnt:
+            qs.append((-1,encode("No more choice"),encode("No more choice")))
         for _ in range(mixcnt):
             random.shuffle(qs)
         for i in range(mixcnt):

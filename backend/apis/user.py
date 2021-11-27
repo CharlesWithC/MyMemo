@@ -94,12 +94,12 @@ def apiRegister():
             userId = t[0][0]
         cur.execute(f"UPDATE IDInfo SET nextId = {userId + 1} WHERE type = 1")
 
-        if len(username) > 500:
+        if len(username) >= 256:
             return json.dumps({"success": False, "msg": "Username too long!"})
-        if len(email) > 128:
+        if len(email) >= 128:
             return json.dumps({"success": False, "msg": "Email too long!"})
 
-        cur.execute(f"INSERT INTO UserInfo VALUES ({userId}, '{username}', '', '{email}', '{encode(password)}', {inviter}, '{inviteCode}')")
+        cur.execute(f"INSERT INTO UserInfo VALUES ({userId}, '{username}', '', '{email}', '{encode(password)}', {inviter}, '{inviteCode}', 99999)")
         conn.commit()
     except:
         sessions.errcnt += 1
@@ -109,7 +109,7 @@ def apiRegister():
         cur.execute(f"UPDATE UserInfo SET email = 'disabled' WHERE userId = 0")
         cur.execute(f"UPDATE UserInfo SET inviteCode = '' WHERE userId = 0")
         cur.execute(f"INSERT INTO AdminList VALUES ({userId})")
-        cur.execute(f"INSERT INTO UserNameTag VALUES ({userId}, '{encode('root')}', 'admin')")
+        cur.execute(f"INSERT INTO UserNameTag VALUES ({userId}, '{encode('root')}', 'purple')")
 
     cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'register', {int(time.time())}, '{encode('Birth of account')}')")
     conn.commit()
@@ -297,8 +297,8 @@ def apiGetUserInfo():
     if len(t) > 0:
         username = f"<a href='/user?userId={userId}'><span style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
 
-    goal = 0
-    cur.execute(f"SELECT count FROM UserGoal WHERE userId = {userId}")
+    goal = 99999
+    cur.execute(f"SELECT goal FROM UserInfo WHERE userId = {userId}")
     t = cur.fetchall()
     if len(t) > 0:
         goal = t[0][0]
@@ -342,8 +342,8 @@ def apiGetUserGoal():
     if not validateToken(userId, token):
         abort(401)
     
-    goal = 0
-    cur.execute(f"SELECT count FROM UserGoal WHERE userId = {userId}")
+    goal = 99999
+    cur.execute(f"SELECT goal FROM UserInfo WHERE userId = {userId}")
     t = cur.fetchall()
     if len(t) > 0:
         goal = t[0][0]
@@ -387,11 +387,11 @@ def apiUserUpdateGoal():
         abort(401)
     
     goal = int(request.form["goal"])
-    cur.execute(f"SELECT * FROM UserGoal WHERE userId = {userId}")
-    if len(cur.fetchall()) == 0:
-        cur.execute(f"INSERT INTO UserGoal VALUES ({userId}, {goal})")
-    else:
-        cur.execute(f"UPDATE UserGoal SET count = {goal} WHERE userId = {userId}")
+
+    if goal <= 0:
+        return json.dumps({"success": True, "msg": "Goal must be a positive number!"})
+
+    cur.execute(f"UPDATE UserInfo SET goal = {goal} WHERE userId = {userId}")
     conn.commit()
 
     return json.dumps({"success": True, "msg": "Goal updated!"})
@@ -413,7 +413,7 @@ def apiUserCheckin():
         return json.dumps({"success": False, "msg": "You have already checked in today!"})
     
     goal = 0
-    cur.execute(f"SELECT count FROM UserGoal WHERE userId = {userId}")
+    cur.execute(f"SELECT goal FROM UserInfo WHERE userId = {userId}")
     t = cur.fetchall()
     if len(t) > 0:
         goal = t[0][0]
@@ -466,7 +466,7 @@ def apiGetUserChart(uid):
     total_memorized = 0
     batch = 3
     for i in range(30):
-        cur.execute(f"SELECT COUNT(*) FROM MyMemorized WHERE userId = {uid} AND timestamp <= {int(time.time()/86400+1)*86400 - 86400*batch*i}")
+        cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {uid} AND memorizedTimestamp != 0 AND memorizedTimestamp <= {int(time.time()/86400+1)*86400 - 86400*batch*i}")
         t = cur.fetchall()
         total = 0
         if len(t) > 0:
@@ -624,11 +624,11 @@ def apiUpdateInfo():
     if len(cur.fetchall()) != 0:
         return json.dumps({"success": False, "msg": "Username occupied!"})
     
-    if len(encode(username)) > 500:
+    if len(encode(username)) >= 256:
         return json.dumps({"success": False, "msg": "Username too long!"})
-    if len(encode(bio)) > 1000:
+    if len(encode(bio)) >= 4096:
         return json.dumps({"success": False, "msg": "Bio too long!"})
-    if len(encode(email)) > 100:
+    if len(encode(email)) >= 128:
         return json.dumps({"success": False, "msg": "Email too long!"})
 
     cur.execute(f"UPDATE UserInfo SET username = '{username}' WHERE userId = {userId}")
