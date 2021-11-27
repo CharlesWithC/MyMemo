@@ -85,6 +85,9 @@ if doinit:
         config = Dict2Obj(json.loads(config_txt))
 
     cur = conn.cursor()
+
+    ########## NOTE: Tables related to users
+
     cur.execute(f"CREATE TABLE UserInfo (userId INT, username VARCHAR(256), bio TEXT, email VARCHAR(128), password VARCHAR(256), inviter INT, inviteCode CHAR(8), goal INT)")
     # encode username
     # Allow only inviting registration mode to prevent abuse
@@ -95,6 +98,12 @@ if doinit:
     cur.execute(f"CREATE TABLE UserEvent (userId INT, event VARCHAR(32), timestamp INT, msg TEXT)")
     # Available event: register, login, change_password, delete_account, create_book, delete_book, create_group, 
     # delete_group, join_group, quit_group
+
+    cur.execute(f"CREATE TABLE UserSessionHistory (userId INT, loginTime INT, logoutTime INT, expire INT, ip VARCHAR(128))")
+    # User Session History, updated when user logs out
+    # If user logged out manually, then logout time is his/her logout time and "expire" will be set to 0
+    # If the token expired, then logout time is the expireTime and "expire" will be set to 1
+    # When the user changes his/her password, all of the sessions will be logged out, and expire will be set to 2
 
     cur.execute(f"CREATE TABLE CheckIn (userId INT, timestamp INT)")
     # Everyday Goal of passing how many challenges
@@ -125,32 +134,13 @@ if doinit:
     cur.execute(f"CREATE TABLE AdminList (userId INT)")
     # Currently this admin list can only be edited from backend using database operations
 
+    ########## NOTE: Tables related to questions
+
     cur.execute(f"CREATE TABLE QuestionList (userId INT, questionId INT, question TEXT, answer TEXT, status INT, memorizedTimestamp INT)")
     # questionId is unique for each question, when the question is removed, its questionId will refer to null
     # EXAMPLE: Book 1 has questionId 1,2 and Book 2 has questionId 3
     # question and answer are encoded with base64 to prevent datalose
     # status is a status code while 1 refers to Default, 2 refers to Tagged and 3 refers to removed
-
-    cur.execute(f"CREATE TABLE Book (userId INT, bookId INT, name VARCHAR(256), progress INT, shareCode VARCHAR(8), importCount INT)")
-    cur.execute(f"CREATE TABLE BookData (userId INT, bookId INT, questions TEXT, page INT)")
-    # When a new question is added, it belongs to no book
-    # A question can belong to many books
-
-    cur.execute(f"CREATE TABLE GroupInfo (groupId INT, owner INT, name VARCHAR(256), description TEXT, memberLimit INT, groupCode VARCHAR(8), anonymous INT)")
-    cur.execute(f"CREATE TABLE GroupMember (groupId INT, userId INT, isEditor INT, bookId INT)")
-    cur.execute(f"CREATE TABLE GroupQuestion (groupId INT, groupQuestionId INT, question TEXT, answer TEXT)")
-    cur.execute(f"CREATE TABLE GroupSync (groupId INT, userId INT, questionIdOfUser INT, questionIdOfGroup INT)") # book id of user
-    # Group is used for multiple users to memorize questions together
-    # One user will make the share, other users join the group with the code and sync the sharer's book
-    # The sharer will become the owner and he / she will be able to select some users to be editors
-    # Each time an editor makes an update on the book, it will be synced to others
-    # Normal users are not allowed to edit the book
-    # Editors are also allowed to kick normal users
-    # The users will see each other on a list and know everyone's progress
-
-    # Anyone is allowed to quit the group at any time, when he / she quit the group, 
-    # the book will become a normal editable book,
-    # but sync & progress share will stop
 
     cur.execute(f"CREATE TABLE ChallengeData (userId INT, questionId INT, nextChallenge INT, lastChallenge INT)")
     # Challenge Data is a table that tells when to display the question next time
@@ -174,6 +164,33 @@ if doinit:
     # updateTo is the status the question is updated to
     # NOTE: When a new question is added, there should be a StatusUpdate record, with questionUpdateId = 0 and updateTo = 0
 
+    ########## NOTE: Tables related to books
+
+    cur.execute(f"CREATE TABLE Book (userId INT, bookId INT, name VARCHAR(256), progress INT, shareCode VARCHAR(8), importCount INT)")
+    cur.execute(f"CREATE TABLE BookData (userId INT, bookId INT, questions TEXT, page INT)")
+    # When a new question is added, it belongs to no book
+    # A question can belong to many books
+
+    ########## NOTE: Tables related to groups
+
+    cur.execute(f"CREATE TABLE GroupInfo (groupId INT, owner INT, name VARCHAR(256), description TEXT, memberLimit INT, groupCode VARCHAR(8), anonymous INT)")
+    cur.execute(f"CREATE TABLE GroupMember (groupId INT, userId INT, isEditor INT, bookId INT)")
+    cur.execute(f"CREATE TABLE GroupQuestion (groupId INT, groupQuestionId INT, question TEXT, answer TEXT)")
+    cur.execute(f"CREATE TABLE GroupSync (groupId INT, userId INT, questionIdOfUser INT, questionIdOfGroup INT)") # book id of user
+    # Group is used for multiple users to memorize questions together
+    # One user will make the share, other users join the group with the code and sync the sharer's book
+    # The sharer will become the owner and he / she will be able to select some users to be editors
+    # Each time an editor makes an update on the book, it will be synced to others
+    # Normal users are not allowed to edit the book
+    # Editors are also allowed to kick normal users
+    # The users will see each other on a list and know everyone's progress
+
+    # Anyone is allowed to quit the group at any time, when he / she quit the group, 
+    # the book will become a normal editable book,
+    # but sync & progress share will stop
+
+    ########## NOTE: Tables related to discovery
+
     cur.execute(f"CREATE TABLE Discovery (discoveryId INT, publisherId INT, bookId INT, title VARCHAR(256), description TEXT, type INT, click INT, pin INT)")
     # title is discovery title
     # description is discovery description
@@ -182,11 +199,15 @@ if doinit:
     # User Id is the user who engaged in this discovery item
     # It could be empty is discovery is public to everyone
 
+    ########## NOTE: Tables related to system data
+
     cur.execute(f"CREATE TABLE IDInfo (type INT, userId INT, nextId INT)")
     cur.execute(f"INSERT INTO IDInfo VALUES (1, -1, 1)")
     cur.execute(f"INSERT INTO IDInfo VALUES (4, -1, 1)")
     cur.execute(f"INSERT INTO IDInfo VALUES (6, -1, 1)")
-    # To store next id of userId 1 / questionId 2 / bookId 3 / groupId 4 / groupQuestionId 5 / discoveryId 6
+    # To store next id of userId 1 / questionId 2 / bookId 3 / groupId 4 / groupQuestionId 5 / discoveryPostId 6
+
+    ########## NOTE: Temporary related to users
 
     # Sessions
     cur.execute(f"CREATE TABLE ActiveUserLogin (userId INT, token CHAR(46), loginTime INT, expireTime INT, ua VARCHAR(256), ip VARCHAR(128))")
@@ -194,17 +215,10 @@ if doinit:
     # Remove data when expired / logged out
     # Token = 9-digit-userId + '-' + uuid.uuid(4)
 
-    cur.execute(f"CREATE TABLE UserSessionHistory (userId INT, loginTime INT, logoutTime INT, expire INT, ip VARCHAR(128))")
-    # User Session History, updated when user logs out
-    # If user logged out manually, then logout time is his/her logout time and "expire" will be set to 0
-    # If the token expired, then logout time is the expireTime and "expire" will be set to 1
-    # When the user changes his/her password, all of the sessions will be logged out, and expire will be set to 2
-
     cur.execute(f"CREATE TABLE PendingAccountDeletion (userId INT, deletionTime INT)")
 
     cur.execute(f"CREATE TABLE PasswordTrial (userId INT, count INT, lastts INT, ip VARCHAR(128))")
 
-    # Temp
     cur.execute(f"CREATE TABLE DataDownloadToken (userId INT, exportType VARCHAR(10), ts INT, token VARCHAR(32))")
     cur.execute(f"CREATE TABLE RequestRecoverAccount (userId INT)")
 

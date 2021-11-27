@@ -20,7 +20,7 @@ function PageInit() {
                 var time = new Date(parseInt(notifications[i].timestamp) * 1000);
                 $("#content").append("<div id="+i+" class='notification'>\
                 <p style='font-size:1.2em'>" + notifications[i].msg + "</p>\
-                <p style='font-size:0.8em;color:#888888'>" + time.toString() + "</p>\
+                <p style='font-size:0.8em;color:#888888'>" + time.toLocaleString() + "</p>\
                 <hr>\
                 </div>");
             }
@@ -45,7 +45,7 @@ function ShowMore(){
         var time = new Date(parseInt(notifications[i].timestamp) * 1000);
         $("#content").append("<div id="+i+" class='notification'>\
         <p style='font-size:1.2em'>" + notifications[i].msg + "</p>\
-        <p style='font-size:0.8em;color:#888888'>" + time.toString() + "</p>\
+        <p style='font-size:0.8em;color:#888888'>" + time.toLocaleString() + "</p>\
         <hr>\
         </div>");
     }

@@ -23,7 +23,6 @@ function UpdateGroupMember() {
     if (localStorage.getItem("settings-theme") == "dark") {
         $("tr").attr("style", "background-color:#333333");
     }
-    table.clear();
 
     $.ajax({
         url: "/api/group/member",
@@ -36,6 +35,7 @@ function UpdateGroupMember() {
             groupId: groupId
         },
         success: function (r) {
+            table.clear();
             bookName = r.name;
             member = r.member;
 

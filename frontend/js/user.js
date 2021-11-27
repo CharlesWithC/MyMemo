@@ -946,8 +946,8 @@ function SessionDetail(i) {
     if (sessions[i].userAgent.indexOf("Linux") != -1) system = "linux";
     if (sessions[i].userAgent.indexOf("Android") != -1) system = "android";
     sysver = sessions[i].userAgent.substr(sessions[i].userAgent.indexOf("(") + 1, sessions[i].userAgent.indexOf(")") - sessions[i].userAgent.indexOf("(") - 1);
-    loginTime = new Date(sessions[i].loginTime * 1000).toString();
-    expireTime = new Date(sessions[i].expireTime * 1000).toString();
+    loginTime = new Date(sessions[i].loginTime * 1000).toLocaleString();
+    expireTime = new Date(sessions[i].expireTime * 1000).toLocaleString();
     body = "<p>IP: " + sessions[i].ip + "</p>\
     <p>User Agent: " + sessions[i].userAgent + "</p></p>\
     <p>Login time: " + loginTime + "</p>\

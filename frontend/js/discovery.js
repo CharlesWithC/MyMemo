@@ -32,7 +32,6 @@ function RefreshDiscovery() {
     } else {
         $("#questionList tr").attr("style", "background-color:#ffffff");
     }
-    table.clear();
 
     $.ajax({
         url: "/api/discovery",
@@ -44,6 +43,7 @@ function RefreshDiscovery() {
             token: localStorage.getItem("token")
         },
         success: function (r) {
+            table.clear();
             discoveryList = r;
             toplist = {};
             l = ["", "Book", "Group"];
@@ -208,7 +208,6 @@ function UpdateDiscoveryQuestionList() {
         [""]
     ]);
     table.draw();
-    table.clear();
 
     $.ajax({
         url: "/api/discovery/" + discoveryId,
@@ -227,6 +226,7 @@ function UpdateDiscoveryQuestionList() {
                 setTimeout(function(){window.location.href='/discovery'},1000);
                 return;
             }
+            table.clear();
             title = r.title;
             description = r.description;
             liked = r.liked;

@@ -64,6 +64,21 @@
 
             function UpdateTable() {
                 $("#refresh-btn").html('<i class="fa fa-refresh fa-spin"></i>');
+                table = $("#userList").DataTable();
+                table.clear();
+                table.row.add([
+                    [""],
+                    [""],
+                    [""],
+                    ["Loading <i class='fa fa-spinner fa-spin'></i>"],
+                    [""],
+                    [""],
+                    [""],
+                ]);
+                table.draw();
+                if (localStorage.getItem("settings-theme") == "dark") {
+                    $("td").attr("style", "background-color:#333333");
+                }
                 $.ajax({
                     url: "/api/admin/userList",
                     method: 'POST',
@@ -75,18 +90,6 @@
                     },
                     success: function (r) {
                         userList = r;
-                        table = $("#userList").DataTable();
-                        table.clear();
-                        table.row.add([
-                            [""],
-                            [""],
-                            [""],
-                            ["Loading <i class='fa fa-spinner fa-spin'></i>"],
-                            [""],
-                            [""],
-                            [""],
-                        ]);
-                        table.draw();
                         if (localStorage.getItem("settings-theme") == "dark") {
                             $("td").attr("style", "background-color:#333333");
                         }
@@ -176,14 +179,13 @@
     <div id="navigate" style="z-index:100">
         <div class="leftside">
             <div class="sqbtn">
-                <a href="/"><img src="/img/icon.png" style="width:4em;height:4em"></a>
+                <a href="/"><img src="/img/icon.png" style="width:2.2em;height:2.2em"></a>
             </div>
             <div class="sqbtn">
-                <a id="book-btn" href="#" onclick="window.location.href='/book'"><i class="fa fa-book"></i><br>Books</a>
+                <a id="book-btn" href="#" onclick="window.location.href='/book'"><i class="fa fa-book"></i></a><br>
             </div>
             <div class="sqbtn">
-                <a href="#" onclick="window.location.href='/discovery'"><i
-                        class="fa fa-paper-plane"></i><br>Discovery</a>
+                <a href="#" onclick="window.location.href='/discovery'"><i class="fa fa-paper-plane"></i></a><br>
             </div>
         </div>
         <div class="userctrl">
@@ -245,7 +247,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.13 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.14 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

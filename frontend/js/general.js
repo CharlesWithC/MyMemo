@@ -291,12 +291,12 @@ $(document).ready(function () {
 
     if (localStorage.getItem("isAdmin") == true) {
         $(".leftside").append("<hr>");
-        $(".leftside").append('<div class="sqbtn">\
-            <a href="#" onclick="window.location.href=\'/admin/cli\'" id="book-btn"><i class="fa fa-terminal"></i><br>Terminal</a>\
-        </div>');
-        $(".leftside").append('<div class="sqbtn">\
-            <a href="#" onclick="window.location.href=\'/admin/userlist\'" id="book-btn"><i class="fa fa-users"></i><br>Users</a>\
-        </div>');
+        $(".leftside").append(`<div class="sqbtn">
+            <a href="#" onclick="window.location.href='/admin/cli'" id="book-btn"><i class="fa fa-terminal"></i></a><br>
+        </div>
+        <div class="sqbtn">
+            <a href="#" onclick="window.location.href='/admin/userlist'" id="book-btn"><i class="fa fa-users"></i></a><br>
+        </div>`);
     }
     
     $('.modal').on('hidden.bs.modal', function () {
