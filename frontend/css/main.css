@@ -267,6 +267,7 @@ a:hover {
     border-radius: 0.5em;
     box-shadow: none;
     cursor: pointer;
+    transition: all 0.2s ease-in-out;
 }
 
 .rect:hover {
@@ -308,9 +309,4 @@ a:hover {
     border: #aaaaaa solid;
     background: #dddddd solid;
     border-radius: 100%;
-}
-
-.moment-comment {
-    float: right;
-    font-size: 1em;
 }

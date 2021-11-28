@@ -74,6 +74,7 @@
                     [""],
                     [""],
                     [""],
+                    [""],
                 ]);
                 table.draw();
                 if (localStorage.getItem("settings-theme") == "dark") {
@@ -106,7 +107,8 @@
                                 [userList[i].inviter],
                                 [userList[i].inviteCode],
                                 [userList[i].age],
-                                [userList[i].status]
+                                [userList[i].status],
+                                [userList[i].privilege]
                             ]).node().id = userList[i].userId;
                         }
 
@@ -237,6 +239,7 @@
                     <th id="table-inviteCode">Invitation Code</th>
                     <th id="table-inviteCode">Age</th>
                     <th id="table-status">Status</th>
+                    <th id="table-privilege">Privilege</th>
                 </tr>
             </thead>
             <tbody>
@@ -247,7 +250,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.14 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.15 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

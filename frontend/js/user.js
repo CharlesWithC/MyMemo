@@ -21,37 +21,7 @@ class UserClass {
 }
 user = new UserClass();
 
-uid = getUrlParameter("userId");
-if (uid != -1 && uid != localStorage.getItem("userId")) {
-    $.ajax({
-        url: "/api/user/publicInfo/" + uid,
-        method: 'GET',
-        async: true,
-        dataType: "json",
-        success: function (r) {
-            user.username = r.username;
-            user.bio = r.bio;
-            user.age = r.age;
-            user.isAdmin = r.isAdmin;
-
-            $(".user-public").show();
-            $(".user").remove();
-            $(".title").show();
-            $("#signout-btn").show();
-            l = user.username.indexOf('>', user.username.indexOf('>') + 1);
-            r = user.username.indexOf('<', user.username.indexOf('<', user.username.indexOf('<') + 1) + 1);
-            $("title").html(user.username.substr(l + 1, r - l - 1) + " | My Memo");
-
-            $("#username-public").html(user.username);
-            $("#bio-public").html(user.bio);
-            $("#userId-public").html(uid);
-            $("#age-public").html(user.age);
-        }
-    });
-}
-
-if (uid == -1 || uid == localStorage.getItem("userId")) {
-    $("#signout-btn").hide();
+function UpdateUserInfo() {
     $.ajax({
         url: "/api/user/info",
         method: 'POST',
@@ -125,40 +95,32 @@ if (uid == -1 || uid == localStorage.getItem("userId")) {
             if (r.isAdmin) {
                 $("#danger-zone").remove();
             }
-        },
-        error: function (r, textStatus, errorThrown) {
-            if (r.status == 401) {
-                $(".user").remove();
-                $(".login").show();
-                $(".title").hide();
-                $("#signout-btn").hide();
-            }
-        }
-    });
 
-    $.ajax({
-        url: "/api/user/sessions",
-        method: 'POST',
-        async: true,
-        dataType: "json",
-        data: {
-            userId: localStorage.getItem("userId"),
-            token: localStorage.getItem("token")
-        },
-        success: function (r) {
-            sessions = r;
-            for (var i = 0; i < sessions.length; i++) {
-                system = "desktop";
-                if (sessions[i].userAgent.indexOf("Win") != -1) system = "windows";
-                if (sessions[i].userAgent.indexOf("Mac") != -1) system = "apple";
-                if (sessions[i].userAgent.indexOf("Linux") != -1) system = "linux";
-                if (sessions[i].userAgent.indexOf("Android") != -1) system = "android";
-                sysver = sessions[i].userAgent.substr(sessions[i].userAgent.indexOf("(") + 1, sessions[i].userAgent.indexOf(")") - sessions[i].userAgent.indexOf("(") - 1);
-                $("#sessions").append("<div class='rect' onclick='SessionDetail(" + i + ");'>\
+            $.ajax({
+                url: "/api/user/sessions",
+                method: 'POST',
+                async: true,
+                dataType: "json",
+                data: {
+                    userId: localStorage.getItem("userId"),
+                    token: localStorage.getItem("token")
+                },
+                success: function (r) {
+                    sessions = r;
+                    for (var i = 0; i < sessions.length; i++) {
+                        system = "desktop";
+                        if (sessions[i].userAgent.indexOf("Win") != -1) system = "windows";
+                        if (sessions[i].userAgent.indexOf("Mac") != -1) system = "apple";
+                        if (sessions[i].userAgent.indexOf("Linux") != -1) system = "linux";
+                        if (sessions[i].userAgent.indexOf("Android") != -1) system = "android";
+                        sysver = sessions[i].userAgent.substr(sessions[i].userAgent.indexOf("(") + 1, sessions[i].userAgent.indexOf(")") - sessions[i].userAgent.indexOf("(") - 1);
+                        $("#sessions").append("<div class='rect' onclick='SessionDetail(" + i + ");'>\
                     <p class='rect-title'><i class='fa fa-" + system + "'></i>&nbsp;&nbsp;" + sysver + "\
                     <p class='rect-content'>IP: " + sessions[i].ip + "</p>\
                     </div><br>")
-            }
+                    }
+                }
+            });
         },
         error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
@@ -171,17 +133,17 @@ if (uid == -1 || uid == localStorage.getItem("userId")) {
     });
 }
 
-tuid = uid;
-if (tuid == -1) {
-    tuid = localStorage.getItem("userId");
-}
-if (tuid != -1 && tuid != null) {
+function UpdateChart(tuid) {
     $.ajax({
         url: "/api/user/chart/" + tuid,
         method: 'GET',
         async: true,
         dataType: "json",
         success: function (r) {
+            if (r.success == false) {
+                return;
+            }
+            $(".chart").show();
             if (uid != -1 && uid != localStorage.getItem("userId")) {
                 $("#charts").appendTo("#user-public");
             } else {
@@ -979,3 +941,67 @@ function SessionDetail(i) {
         $("#modal").remove();
     });
 }
+
+$(document).ready(function () {
+    uid = getUrlParameter("userId");
+    if (uid != -1 && uid != localStorage.getItem("userId")) {
+        $.ajax({
+            url: "/api/user/publicInfo/" + uid,
+            method: 'GET',
+            async: true,
+            dataType: "json",
+            success: function (r) {
+                if (r.success == true || r.success == undefined) {
+                    if (r.username == "@deleted") {
+                        NotyNotification("That's a deleted user!", type = 'error');
+                        setTimeout(function(){window.location.href="/user";},1000);
+                        return;
+                    } else {
+                        user.username = r.username;
+                        user.bio = r.bio;
+                        user.age = r.age;
+                        user.isAdmin = r.isAdmin;
+
+                        $(".user-public").show();
+                        $(".user").remove();
+                        $(".title").show();
+                        $("#signout-btn").show();
+                        l = user.username.indexOf('>', user.username.indexOf('>') + 1);
+                        r = user.username.indexOf('<', user.username.indexOf('<', user.username.indexOf('<') + 1) + 1);
+                        $("title").html(user.username.substr(l + 1, r - l - 1) + " | My Memo");
+
+                        $("#username-public").html(user.username);
+                        $("#bio-public").html(user.bio);
+                        $("#userId-public").html(uid);
+                        $("#age-public").html(user.age);
+
+                        UpdateChart(uid);
+                    }
+                } else {
+                    NotyNotification(r.msg, type = 'error');
+                    setTimeout(function(){window.location.href="/user";},1000);
+                }
+            },
+            error: function (r) {
+                if (r.status == 401) {
+                    SessionExpired();
+                } else {
+                    NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
+                }
+            }
+        });
+    } else {
+        if ((uid == -1 || uid == localStorage.getItem("userId")) && localStorage.getItem("userId") != null) {
+            $("#signout-btn").hide();
+            UpdateUserInfo();
+            UpdateChart(localStorage.getItem("userId"));
+        }
+
+        if (localStorage.getItem("userId") == null && uid == -1) {
+            $(".user").remove();
+            $(".login").show();
+            $(".title").hide();
+            $("#signout-btn").hide();
+        }
+    }
+});

@@ -171,6 +171,13 @@ function RefreshBookList() {
             localStorage.setItem("book-list", JSON.stringify(bookList));
             UpdateBookDisplay();
             $("#book-list-refresh-btn").html('<i class="fa fa-refresh"></i>');
+        },
+        error: function (r) {
+            if (r.status == 401) {
+                SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
+            }
         }
     });
 }
@@ -333,7 +340,8 @@ function UpdateTheme(){
         $("hr").attr("style", "background-color:#cccccc;");
         $(".modal-content").attr("style", "background-color:#333333");
         $(".fa-times").attr("style", "color:white");
-        $("textarea").attr("style", "color:#ffffff;background-color:#333333");
+        $("textarea").css("color","#ffffff");
+        $("textarea").css("background-color","#333333");
     }
 }
 setInterval(UpdateTheme, 100);

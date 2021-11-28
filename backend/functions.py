@@ -53,6 +53,20 @@ def decode(s):
     except:
         print(f"Unable to decode {s}")
         return ""
+
+def checkBanned(userId):
+    updateconn()
+    cur = conn.cursor()
+    userId = abs(userId)
+    cur.execute(f"SELECT userId FROM UserInfo WHERE userId = {userId}")
+    if len(cur.fetchall()) > 0:
+        return False
+    else:
+        cur.execute(f"SELECT userId FROM UserInfo WHERE userId = {-userId}")
+        if len(cur.fetchall()) > 0:
+            return True
+        else:
+            return False
     
 def validateToken(userId, token):
     updateconn()
@@ -60,6 +74,9 @@ def validateToken(userId, token):
     cur.execute(f"SELECT username FROM UserInfo WHERE userId = {userId}")
     d = cur.fetchall()
     if len(d) == 0 or decode(d[0][0]) == "@deleted":
+        return False
+    
+    if checkBanned(abs(userId)):
         return False
     
     return sessions.validateToken(userId, token)

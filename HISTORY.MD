@@ -1,5 +1,19 @@
 # Update History
 
+## v5.3.15
+
+*Date: 2021/11/28*  
+Feature Updates:
+1.Added transition for rect:hover  
+2.Removed unnecessary columns on /discovery table  
+3.Added privilege display on /admin/userlist  
+4.Allowed email sign in  
+
+Bug Fixes:  
+1.Fixed some bugs on /user frontend page  
+2.Fixed the bug that banned user could still appear on public pages  
+3.Fixed the bug that username couldn't be parsed correctly on /user if user doesn't have name tag  
+
 ## v5.3.14
 
 *Date: 2021/11/27*  

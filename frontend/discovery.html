@@ -30,12 +30,12 @@
                 iDisplayLength: 25,
                 aaSorting: [
                     [0, 'desc'],
-                    [6, 'desc'],
-                    [5, 'desc']
+                    [4, 'desc'],
+                    [3, 'desc']
                 ]
             });
             if (localStorage.getItem("isAdmin") != "1") {
-                $('#discoveryList').DataTable().column(8).visible(false);
+                $('#discoveryList').DataTable().column(5).visible(false);
             }
             $("#th-pin").before("<th width='0.2em'></th>")
             $("#th-pin").remove();
@@ -179,12 +179,9 @@
                         <tr>
                             <th id="th-pin"></th>
                             <th id="th-title">Title</th>
-                            <th id="th-description">Description</th>
-                            <th id="th-type">Type</th>
                             <th id="th-publisher">Publisher</th>
                             <th id="th-views">Views</th>
                             <th id="th-likes">Likes</th>
-                            <th id="th-imports">Imports / Members</th>
                             <th id="th-operation">Operation</th>
                         </tr>
                     </thead>
@@ -245,7 +242,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.14 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.3.15 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>This is an open source project:
             <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>

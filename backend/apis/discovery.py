@@ -49,6 +49,9 @@ def apiDiscovery():
                     continue
             else:
                 continue
+        
+        if checkBanned(dd[3]): # display nothing from banned user
+            continue
 
         publisher = "Unknown User"
         cur.execute(f"SELECT username FROM UserInfo WHERE userId = {dd[3]}")
@@ -91,6 +94,8 @@ def apiDiscovery():
         t = cur.fetchall()
         if len(t) > 0:
             publisher = f"<a href='/user?userId={dd[3]}'><span style='color:{t[0][1]}'>{publisher}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
+        else:
+            publisher = f"<a href='/user?userId={dd[3]}'><span>{publisher}></span></a>"
 
         dis.append({"discoveryId": dd[0], "title": decode(dd[1]), "description": decode(dd[2]), \
             "publisher": publisher, "type": dd[4], "views": views, "likes": likes, "imports": imports, "pinned": pinned})
@@ -133,6 +138,9 @@ def apiDiscoveryData(discoveryId):
     description = decode(d[3])
     distype = d[4]
     pinned = d[5]
+
+    if checkBanned(uid):
+        return json.dumps({"success": False, "msg": "Post not found!"})
     
     # Check share existence
     if distype == 1:
@@ -241,6 +249,8 @@ def apiDiscoveryData(discoveryId):
     t = cur.fetchall()
     if len(t) > 0:
         publisher = f"<a href='/user?userId={uid}'><span style='color:{t[0][1]}'>{publisher}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
+    else:
+        publisher = f"<a href='/user?userId={uid}'><span>{publisher}></span></a>"
 
     return json.dumps({"title": title, "description": description, "questions": questions, \
         "shareCode": shareCode, "type": distype, "publisher": publisher, "isPublisher": isPublisher, \

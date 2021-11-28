@@ -54,7 +54,7 @@ elif config["database"] == "mysql":
     conn = MySQLdb.connect(host = host, user = user, passwd = passwd, db = dbname)
     cur = conn.cursor()
     cur.execute(f"SHOW TABLES")
-    if len(cur.fetchall()) != 26:
+    if len(cur.fetchall()) != 27:
         doinit = True
     
     app.config['MYSQL_HOST'] = host
@@ -130,6 +130,8 @@ if doinit:
 
     cur.execute(f"CREATE TABLE Privilege (userId INT, item VARCHAR(32), value INT)")
     # User privilege, such as question_limit, book_limit, allow_group_creation, group_member_limit
+
+    cur.execute(f"CREATE TABLE BanReason (userId INT, reason TEXT)")
 
     cur.execute(f"CREATE TABLE AdminList (userId INT)")
     # Currently this admin list can only be edited from backend using database operations

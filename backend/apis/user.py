@@ -62,10 +62,14 @@ def apiRegister():
         return json.dumps({"success": False, "msg": "Invalid email!"})
     if not invitationCode.isalnum():
         return json.dumps({"success": False, "msg": "Invitation code can only contain alphabets and digits!"})
-
-    cur.execute(f"SELECT username FROM UserInfo WHERE username = '{username}'")
-    if len(cur.fetchall()) != 0:
-        return json.dumps({"success": False, "msg": "Username occupied!"})
+        
+    cur.execute(f"SELECT username, email FROM UserInfo")
+    t = cur.fetchall()
+    for tt in t:
+        if decode(tt[0]).lower() == decode(username).lower():
+            return json.dumps({"success": False, "msg": "Username has been occupied!"})
+        if tt[1].lower() == email.lower():
+            return json.dumps({"success": False, "msg": "Email has already been registered!"})
 
     password = hashpwd(password)
     
@@ -128,7 +132,14 @@ def apiLogin():
         cur.execute(f"SELECT userId, password FROM UserInfo WHERE username = '{username}'")
         d = cur.fetchall()
         if len(d) == 0:
-            return json.dumps({"success": False, "msg": "User does not exist!"})
+            username = decode(username)
+            if validators.email(username) == True and not "'" in username:
+                cur.execute(f"SELECT userId, password FROM UserInfo WHERE email = '{username}'")
+                d = cur.fetchall()
+                if len(d) == 0:
+                    return json.dumps({"success": False, "msg": "Incorrect username or password!"})
+            else:
+                return json.dumps({"success": False, "msg": "Incorrect username or password!"})
         d = d[0]
     except:
         sessions.errcnt += 1
@@ -155,7 +166,7 @@ def apiLogin():
         else:
             sessions.updatePasswordTrialCount(userId, sessions.getPasswordTrialCount(userId, ip)[0] + 1, time.time(), ip)
             
-        return json.dumps({"success": False, "msg": "Invalid password!"})
+        return json.dumps({"success": False, "msg": "Incorrect username or password!"})
     
     sessions.updatePasswordTrialCount(userId, 0, 0, ip)
 
@@ -173,7 +184,12 @@ def apiLogin():
         sessions.removeDeletionMark(userId)
     
     if userId < 0:
-        return json.dumps({"success": False, "msg": "Account banned. Contact administrator for more information."})
+        reason = ""
+        cur.execute(f"SELECT reason FROM BanReason WHERE userId = {-userId}")
+        t = cur.fetchall()
+        if len(t) > 0:
+            reason = "Reason: " + decode(t[0][0])
+        return json.dumps({"success": False, "msg": "Account banned. " + reason})
 
     token = sessions.login(userId, encode(request.headers['User-Agent']), encode(request.headers['CF-Connecting-Ip']))
 
@@ -296,6 +312,8 @@ def apiGetUserInfo():
     t = cur.fetchall()
     if len(t) > 0:
         username = f"<a href='/user?userId={userId}'><span style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
+    else:
+        username = f"<a href='/user?userId={userId}'><span>{username}></span></a>"
 
     goal = 99999
     cur.execute(f"SELECT goal FROM UserInfo WHERE userId = {userId}")
@@ -501,7 +519,7 @@ def apiGetUserPublicInfo(uid):
     
     cur.execute(f"SELECT username, bio FROM UserInfo WHERE userId = {uid}")
     t = cur.fetchall()
-    if len(t) == 0:
+    if len(t) == 0 or uid < 0:
         return json.dumps({"success": False, "msg": "User not found!"})
     username = decode(t[0][0])
     bio = decode(t[0][1])
@@ -546,6 +564,8 @@ def apiGetUserPublicInfo(uid):
     t = cur.fetchall()
     if len(t) > 0:
         username = f"<a href='/user?userId={uid}'><span style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
+    else:
+        username = f"<a href='/user?userId={uid}'><span>{username}></span></a>"
 
     return json.dumps({"username": username, "bio": bio, "cnt": cnt, "tagcnt": tagcnt, "delcnt": delcnt, "chcnt": chcnt, "age": age, "isAdmin": isAdmin})   
 

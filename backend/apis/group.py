@@ -292,6 +292,8 @@ def apiGroupMember():
             t = cur.fetchall()
             if len(t) > 0:
                 username = f"<a href='/user?userId={uid}'><span style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
+            else:
+                username = f"<a href='/user?userId={uid}'><span>{username}></span></a>"
             ret.append({"userId": uid, "username": username, "progress": pgs})
         elif info[2] == 1:
             ret.append({"userId": 0, "username": "Anonymous", "progress": pgs})

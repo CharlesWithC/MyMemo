@@ -18,10 +18,7 @@ function RefreshDiscovery() {
     table.row.add([
         [""],
         [""],
-        [""],
-        [""],
         ["Loading <i class='fa fa-spinner fa-spin'></i>"],
-        [""],
         [""],
         [""],
         [""]
@@ -65,13 +62,9 @@ function RefreshDiscovery() {
                 table.row.add([
                     [pin],
                     ["<a href='/discovery?discoveryId=" + discoveryList[i].discoveryId + "'>" + discoveryList[i].title + "</a>"],
-                    [discoveryList[i].description],
-                    [l[discoveryList[i].type]],
                     [discoveryList[i].publisher],
                     [discoveryList[i].views],
                     [discoveryList[i].likes],
-                    [discoveryList[i].imports],
-                    //[discoveryList[i].views + " <i class='fa fa-eye'></i>&nbsp;&nbsp;" + discoveryList[i].likes + "<i class='fa fa-heart' style='color:red'></i>"],
                     [btns]
                 ]).node().id = discoveryList[i].discoveryId;
             }
