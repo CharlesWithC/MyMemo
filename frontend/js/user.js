@@ -124,6 +124,7 @@ function UpdateUserInfo() {
         },
         error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
+                $(".user-public").remove();
                 $(".user").remove();
                 $(".login").show();
                 $(".title").hide();
@@ -998,6 +999,7 @@ $(document).ready(function () {
         }
 
         if (localStorage.getItem("userId") == null && uid == -1) {
+            $(".user-public").remove();
             $(".user").remove();
             $(".login").show();
             $(".title").hide();
