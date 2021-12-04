@@ -24,11 +24,6 @@ function RefreshDiscovery() {
         [""]
     ]);
     table.draw();
-    if (localStorage.getItem("settings-theme") == "dark") {
-        $("td").attr("style", "background-color:#333333");
-    } else {
-        $("#questionList tr").attr("style", "background-color:#ffffff");
-    }
 
     $.ajax({
         url: "/api/discovery",
@@ -103,12 +98,6 @@ function RefreshDiscovery() {
                 }
             });
             $("#top-post").append("<hr class='discovery-top'>");
-
-            if (localStorage.getItem("settings-theme") == "dark") {
-                $("td").attr("style", "background-color:#333333");
-            } else {
-                $("#questionList tr").attr("style", "background-color:#ffffff");
-            }
 
             $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
         }
@@ -321,7 +310,7 @@ function UpdateInformationShow() {
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalLabel"><i class="fa fa-edit"></i> Edit Post</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
                         onclick="$('#modal').modal('hide')">
                         <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>

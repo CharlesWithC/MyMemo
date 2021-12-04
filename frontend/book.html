@@ -31,96 +31,17 @@
         $(document).ready(function () {
             $('#questionList').DataTable({
                 pagingType: "full_numbers",
-                iDisplayLength: 25
+                iDisplayLength: 10
             });
 
-            $("#questionList_length").after('<div id="qf" class="dataTables_filter input-group mb-3">\
-                <span class="input-group-text" id="basic-addon1">Search</span>\
-            </div>');
-            $("#questionList_filter > label > input").addClass("form-control");
-            $("#questionList_filter > label > input").appendTo("#qf");
-            $("#questionList_filter").attr("id", "qqf");
-            $("#qf").attr("id", "questionList_filter");
-            $("#qqf").remove();
-            setInterval(function () {
-                $("#questionList").css("width", "");
-            }, 100);
+            MDTSB("questionList");
 
-            if (localStorage.getItem("settings-theme") == "dark") {
-                $("body").attr("style", "color:#ffffff;background-color:#333333");
-                setInterval(function () {
-                    $("#content a,.container a").css("color", "#dddddd");
-                }, 500);
-                $("hr").attr("style", "background-color:#cccccc;");
-                $("textarea").attr("style", "color:#ffffff;background-color:#333333");
-                $(".modal-content").attr("style", "background-color:#333333");
-                $(".fa-times").attr("style", "color:white");
-                $("#questionList_length").attr("style", "color:white");
+            $("#questionList_length").append(
+                '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="selectAll();" href="#">Select All</a>');
+            $("#questionList_length").append(
+                '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="deselectAll();" href="#">Deselect All</a>');
 
-                $("#questionList_length").append(
-                    '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="selectAll();" href="#" style="color:white">Select All</a>'
-                );
-                $("#questionList_length").append(
-                    '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="deselectAll();" href="#" style="color:white">Deselect All</a>'
-                );
-                $("#questionList tr").attr("style", "background-color: #444444");
-
-                $("#qlist").css("background-color", "#444444");
-                $("#qlist").css("border", "0.05em solid #aaaaaa");
-                $("#manage").css("background-color", "#444444");
-                $("#manage").css("border", "0.05em solid #aaaaaa");
-
-                setInterval(function () {
-                    $("#questionList_paginate > a").attr("style", "background-color:#d3d3d3");
-                    $("#questionList_paginate > span > a").attr("style", "background-color:#d3d3d3");
-                    $("#questionList_paginate > span > span").removeClass("ellipsis");
-                    $("#questionList_paginate > span > span").addClass("paginate_button");
-                    $("#questionList_paginate > span > span").css("style", "background-color:#d3d3d3");
-
-                    $("#questionList tr").each(function () {
-                        found = false;
-                        for (var i = 0; i < selected.length; i++) {
-                            if (selected[i] == parseInt(this.id)) {
-                                found = true;
-                            }
-                        }
-                        if (found) {
-                            $(this).css("background-color", "#888888");
-                        } else {
-                            $(this).css("background-color", "#444444");
-                        }
-                    });
-                }, 100);
-            } else {
-                $("#questionList_length").append(
-                    '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="selectAll();" href="#">Select All</a>');
-                $("#questionList_length").append(
-                    '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="deselectAll();" href="#">Deselect All</a>');
-                $("textarea").attr("style", "z-index:100;color:#000000;background-color:#ffffff");
-
-                $("#qlist").css("background-color", "#eeeeee");
-                $("#qlist").css("border", "0.05em solid #222222");
-                $("#manage").css("background-color", "#eeeeee");
-                $("#manage").css("border", "0.05em solid #222222");
-
-                $("tr").css("backgroun-color", "#eeeeee");
-
-                setInterval(function () {
-                    $("#questionList tr").each(function () {
-                        found = false;
-                        for (var i = 0; i < selected.length; i++) {
-                            if (selected[i] == parseInt(this.id)) {
-                                found = true;
-                            }
-                        }
-                        if (found) {
-                            $(this).css("background-color", "#dddddd");
-                        } else {
-                            $(this).css("background-color", "#eeeeee");
-                        }
-                    });
-                }, 100);
-            }
+            PageInit();
 
             setInterval(function () {
                 for (var i = 0; i < selectedQuestionList.length; i++) {
@@ -140,13 +61,22 @@
                         }
                     }
                 }
-            }, 100);
 
-            PageInit();
-
+                if (window.innerWidth < 1200) {
+                    $("#qlist").css("width", "100%");
+                    $("#manage").css("margin-top", "2em");
+                    $("#manage").css("margin-left", "0");
+                    $("#manage").css("width", "100%");
+                } else {
+                    $("#qlist").css("width", "55%");
+                    $("#manage").css("margin-top", "0em");
+                    $("#manage").css("margin-left", "4em");
+                    $("#manage").css("width", "35%");
+                }
+            }, 50);
             $('#questionList tbody').on('click', 'tr', function () {
                 wid = parseInt($(this).attr("id"));
-                if ($(this).hasClass("selected")) {
+                if ($(this).hasClass("table-active")) {
                     idx = selected.indexOf(wid);
                     if (idx > -1) {
                         selected.splice(idx, 1);
@@ -154,7 +84,7 @@
                 } else {
                     selected.push(wid);
                 }
-                $(this).toggleClass('selected');
+                $(this).toggleClass('table-active');
             });
 
             $("#book-rename").on('keypress', function (e) {
@@ -167,11 +97,6 @@
                     GroupDismiss();
                 }
             });
-            $("#create-book-name").on('keypress', function (e) {
-                if (e.which == 13 || e.which == 13 && e.ctrlKey) {
-                    CreateBook("#create-book-name");
-                }
-            });
             $("#create-book-name-content").on('keypress', function (e) {
                 if (e.which == 13 || e.which == 13 && e.ctrlKey) {
                     CreateBook("#create-book-name-content");
@@ -179,12 +104,6 @@
             });
             $("#refresh-btn").click(function () {
                 UpdateBookList();
-            });
-            $("#book-btn").hover(function () {
-                ShowBook();
-            });
-            $("#content").hover(function () {
-                $("#book-div").fadeOut();
             });
             $("#edit-question,#edit-answer").on('keypress', function (e) {
                 if (e.which == 13 && e.ctrlKey) {
@@ -206,43 +125,32 @@
                     CreateGroup();
                 }
             });
+
+            var MGCollpase = false;
+            $("#showMGCollapse").click(function(){
+                if(MGCollpase){
+                    $("#manageGroupCollapse").collapse('hide');
+                    $("#showMGCollapse").html("Manage Group <i class='fa fa-arrow-down'></i>");
+                } else {
+                    $("#manageGroupCollapse").collapse('show');
+                    $("#showMGCollapse").html("Manage Group <i class='fa fa-arrow-up'></i>");
+                }
+                MGCollpase = 1 - MGCollpase;
+            });
         });
     </script>
-
-    <style>
-        button {
-            margin: 0.1em;
-            margin-bottom: 0.3em;
-        }
-
-        h4,
-        h5,
-        p {
-            margin: 0.5em;
-        }
-    </style>
 </head>
 
 <body>
-    <h1 class="title" style="padding-bottom: 0;">My Memo&nbsp;&nbsp;<button type="button"
-            class="btn btn-outline-secondary" onclick="UpdateBookContentList()"><i class="fa fa-refresh"></i></button>
-    </h1>
-
     <div id="navigate" style="z-index:100">
         <div class="leftside">
             <div class="sqbtn">
                 <a href="/"><img src="/img/icon.png" style="width:2.2em;height:2.2em"></a>
             </div>
-            <div class="sqbtn">
-                <a id="book-btn" href="#" onclick="window.location.href='/book'"><i class="fa fa-book"></i></a><br>
-            </div>
-            <div class="sqbtn">
-                <a href="#" onclick="window.location.href='/discovery'"><i
-                        class="fa fa-paper-plane"></i></a><br>
-            </div>
         </div>
         <div class="userctrl">
-            <a href='/user'><i class="fa fa-user"></i> <span id="navusername">Sign in&nbsp;&nbsp; </span></a>
+            <a href='/user'><i class="fa fa-user"></i></a> <span id="navusername"><a href='/user/login'>Sign
+                    in</a>&nbsp;&nbsp; </span>
             <a class="only-signed-in" href='#' onclick="UserEvents()" style="display:none"><i
                     class="fa fa-bell"></i></a>
             <a href='#' onclick="window.location.href='/settings'"><i class="fa fa-cogs"></i></a>
@@ -251,33 +159,11 @@
         </div>
     </div>
 
-    <div id="book-div" class="book-side" style="display:none">
-        <div class="book-side-content">
-            <h2 style="float:left">Books</h2>
-            <button type="button" class="btn btn-outline-secondary" style="margin:0.5em" onclick="RefreshBookList()"
-                id="book-list-refresh-btn"><i class="fa fa-refresh"></i></button>
-            <button style="float:right" type="button" class="close" aria-label="Close"
-                onclick="$('#book-div').fadeOut()">
-                <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-            </button>
-
-        </div>
-        <div class="book-side-content-scroll" id="book-list">
-            <div>
-                <p>Create Book: </p>
-                <div class="input-group mb-3 w-75">
-                    <span class="input-group-text" id="basic-addon1">Name</span>
-                    <input type="text" class="form-control" id="create-book-name" aria-describedby="basic-addon1">
-                    <div class="input-group-append">
-                        <button class="btn btn-outline-primary" type="button"
-                            onclick="CreateBook('#create-book-name')">Create</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div id="content" class="container">
+        <h1 class="title" style="padding-bottom: 0;">Book&nbsp;&nbsp;<button type="button" id="refresh-btn"
+                class="btn btn-outline-secondary" onclick="UpdateBookContentList()"><i
+                    class="fa fa-refresh"></i></button>
+        </h1>
         <div class="book-list-content-div container">
             <div class="book-list-content" style="margin:2em;margin-top:0">
                 <div>
@@ -297,7 +183,7 @@
 
         <div class="book-data-div container" style="display:none">
             <div id="qlist" class="subcontainer" style="position:relative;width:55%;float:left">
-                <table class="table" id="questionList" style="text-align:center">
+                <table class="table table-hover" id="questionList" style="text-align:center">
                     <thead>
                         <tr>
                             <th id="question">Question</th>
@@ -311,7 +197,8 @@
                 </table>
             </div>
 
-            <div id="manage" class="manage subcontainer" style="position:relative;width:35%;float:right">
+            <div id="manage" class="manage subcontainer"
+                style="position:relative;width:35%;float:left;margin-left:4em;">
                 <div>
                     <h4><i class="fa fa-list"></i> Questions</h4>
                     <h5><i class="fa fa-info"></i> Status</h5>
@@ -356,22 +243,6 @@
                     <button type="button" class="btn btn-danger not-for-all-questions" onclick="BookDeleteShow()">Delete
                         <i class="fa fa-trash"></i></button>
                 </div>
-                <div class="not-for-all-questions">
-                    <hr>
-                    <h4><i class="fa fa-share-square"></i> Share</h4>
-                    <p class="only-shared" style="display:none">Code: <span id="bookShareCode">(Private)</span></p>
-                    <button type="button" class="btn btn-primary" onclick="BookShare()"><span
-                            id="shareop">Share</span></button>
-                    <button type="button" class="btn btn-primary only-shared not-published-to-discovery"
-                        onclick="PublishToDiscoveryShow()">Publish To Discovery <i
-                            class="fa fa-paper-plane"></i></button>
-                    <button type="button" class="btn btn-primary published-to-discovery" onclick=""
-                        id="go-to-discovery-btn" style="display:none">Check on Discovery <i
-                            class="fa fa-search"></i></button>
-                    <button type="button" class="btn btn-danger published-to-discovery"
-                        onclick="UnpublishDiscoveryShow()" style="display:none">Unpublish <i
-                            class="fa fa-trash"></i></button>
-                </div>
                 <div id="group" class="group not-for-all-questions" style="display:none">
                     <hr>
                     <h4><i class="fa fa-users"></i> Group</h4>
@@ -389,43 +260,65 @@
                         id="group-go-to-discovery-btn" style="display:none">Check on Discovery <i
                             class="fa fa-search"></i></button>
 
-                    <div class="only-group-owner">
-                        <hr>
-                        <h4>Manage group: </h4>
-                        <button type="button" class="btn btn-primary" onclick="GroupInfoUpdateShow()">Update Information
-                            <i class="fa fa-edit"></i></button>
+                    <div id="manageGroup" class="only-group-owner">
                         <br>
-                        <h5>Discovery:</h5>
-                        <button type="button" class="btn btn-primary group-not-published-to-discovery"
-                            onclick="GroupPublishToDiscoveryShow()">Publish To Discovery <i
-                                class="fa fa-paper-plane"></i></button>
-                        <button type="button" class="btn btn-danger group-published-to-discovery"
-                            onclick="GroupUnpublishDiscoveryShow()" style="display:none">Unpublish <i
-                                class="fa fa-trash"></i></button>
-                        <br>
-                        <h5>Group anonymous settings:</h5>
-                        <button id="group-anonymous-0" type="button" class="btn btn-secondary group-anonymous-btn"
-                            onclick="GroupAnonymousSwitch(0)">Open</button>
-                        <button id="group-anonymous-1" type="button" class="btn btn-secondary group-anonymous-btn"
-                            onclick="GroupAnonymousSwitch(1)">Anonymous</button>
-                        <button id="group-anonymous-2" type="button" class="btn btn-secondary group-anonymous-btn"
-                            onclick="GroupAnonymousSwitch(2)">Full Anonymous</button>
-                        <p style="font-size:0.75em">*Open means members can see other members' username and progress.
-                            Anonymous means members can see other member's progress but not username. Full Anonymous
-                            means
-                            members can see no data from other members.</p>
-                        <p style="font-size:0.75em">*Anonymous settings will not stop the group's question list sync.
-                        </p>
-                        <br>
-                        <h5>Group code settings:</h5>
-                        <button type="button" class="btn btn-warning" onclick="GroupCodeUpdate('disable')">Make
-                            private <i class="fa fa-lock"></i></button>
-                        <button type="button" class="btn btn-primary" onclick="GroupCodeUpdate('revoke')">Revoke code <i
-                                class="fa fa-undo"></i> </button>
-                        <br>
-                        <h5>Danger zone:</h5>
-                        <button type="button" class="btn btn-danger" onclick="GroupDismissShow()">Dismiss
-                            <i class="fa fa-times"></i></button>
+                        <div class="card">
+                            <div class="card-header" id="manageGroupHeading" style="background-color:#555555">
+                                <h5 class="mb-0">
+                                    <button id="showMGCollapse" class="btn btn-primary" data-toggle="collapse">
+                                        Manage Group <i class='fa fa-arrow-down'></i>
+                                    </button>
+                                </h5>
+                            </div>
+
+                            <div id="manageGroupCollapse" class="collapse">
+                                <div class="card card-body" style="background-color:#555555">
+                                    <button type="button" class="btn btn-primary" onclick="GroupInfoUpdateShow()">Update
+                                        Information
+                                        <i class="fa fa-edit"></i></button>
+                                    <br>
+                                    <h5>Discovery:</h5>
+                                    <button type="button" class="btn btn-primary group-not-published-to-discovery"
+                                        onclick="GroupPublishToDiscoveryShow()">Publish To Discovery <i
+                                            class="fa fa-paper-plane"></i></button>
+                                    <button type="button" class="btn btn-danger group-published-to-discovery"
+                                        onclick="GroupUnpublishDiscoveryShow()" style="display:none">Unpublish <i
+                                            class="fa fa-trash"></i></button>
+                                    <br>
+                                    <h5>Group anonymous settings:</h5>
+                                    <button id="group-anonymous-0" type="button"
+                                        class="btn btn-secondary group-anonymous-btn"
+                                        onclick="GroupAnonymousSwitch(0)">Open</button>
+                                    <button id="group-anonymous-1" type="button"
+                                        class="btn btn-secondary group-anonymous-btn"
+                                        onclick="GroupAnonymousSwitch(1)">Anonymous</button>
+                                    <button id="group-anonymous-2" type="button"
+                                        class="btn btn-secondary group-anonymous-btn"
+                                        onclick="GroupAnonymousSwitch(2)">Full Anonymous</button>
+                                    <p style="font-size:0.75em">*Open means members can see other members' username and
+                                        progress.
+                                        Anonymous means members can see other member's progress but not username. Full
+                                        Anonymous
+                                        means
+                                        members can see no data from other members.</p>
+                                    <p style="font-size:0.75em">*Anonymous settings will not stop the group's question
+                                        list sync.
+                                    </p>
+                                    <br>
+                                    <h5>Group code settings:</h5>
+                                    <button type="button" class="btn btn-warning"
+                                        onclick="GroupCodeUpdate('disable')">Make
+                                        private <i class="fa fa-lock"></i></button>
+                                    <button type="button" class="btn btn-primary"
+                                        onclick="GroupCodeUpdate('revoke')">Revoke code <i class="fa fa-undo"></i>
+                                    </button>
+                                    <br>
+                                    <h5>Danger zone:</h5>
+                                    <button type="button" class="btn btn-danger" onclick="GroupDismissShow()">Dismiss
+                                        <i class="fa fa-times"></i></button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -442,15 +335,11 @@
     </div>
 
     <div class="footer">
-        <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.15 <i class="fa fa-check-circle"></i></p>
+        <p>Copyright &copy; 2021 My Memo</p>
+        <p>Version: v5.3.16 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
-        <p>This is an open source project:
-            <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>
-                GitHub</a>
-        </p>
-        <p>Your privacy is valued. No 3rd party script is used. No cookie is used. All your local data is stored in
-            Local Storage.</p>
+        <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i> GitHub</a></p>
+        <p>Developer by <a href="www.charles14.xyz">Charles</a></p>
     </div>
 </body>
 

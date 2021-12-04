@@ -53,8 +53,6 @@ function UpdateUserInfo() {
 
             localStorage.setItem("username", user.username);
 
-            $(".user").show();
-            $(".title").show();
             $("#signout-btn").show();
             l = user.username.indexOf('>', user.username.indexOf('>') + 1);
             r = user.username.indexOf('<', user.username.indexOf('<', user.username.indexOf('<') + 1) + 1);
@@ -124,10 +122,9 @@ function UpdateUserInfo() {
         },
         error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
-                $(".user-public").remove();
-                $(".user").remove();
-                $(".login").show();
-                $(".title").hide();
+                if ((window.location).toString().indexOf("/login") == -1) {
+                    window.location.href = "/user/login";
+                }
                 $("#signout-btn").hide();
             }
         }
@@ -431,7 +428,7 @@ function Login() {
                         $("#input-username").val("");
                         $("#input-password").val("");
 
-                        window.location.reload();
+                        window.location.href = "/user";
                     }
                 });
             } else {
@@ -468,7 +465,6 @@ function Register() {
                 NotyNotification('Success! You are now registered!');
                 $(".register").hide();
                 $(".login").show();
-                $(".title").hide();
                 $("#register-password").val("");
             } else {
                 NotyNotification(r.msg, type = 'error');
@@ -484,7 +480,7 @@ function UpdateProfileShow() {
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalLabel"><i class="fa fa-edit"></i> Update Profile</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
                         onclick="$('#modal').modal('hide')">
                         <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>
@@ -502,8 +498,7 @@ function UpdateProfileShow() {
                                 style="z-index:100">
                         </div>
                         <div class="form-group">
-                            <label for="update-bio" class="col-form-label">Bio (You can use HTML tags to make your bio
-                                more beautiful):</label>
+                            <label for="update-bio" class="col-form-label">Bio:</label>
                             <textarea class="form-control" id="update-bio"></textarea>
                         </div>
                     </form>
@@ -616,9 +611,9 @@ function ChangePassword() {
                 localStorage.removeItem("username");
                 localStorage.removeItem("token");
 
-                $(".user").hide();
-                $(".login").show();
-                $(".title").hide();
+                setTimeout(function () {
+                    window.location.href = "/user/login";
+                }, 1000);
             } else {
                 NotyNotification(r.msg, type = 'error');
             }
@@ -634,7 +629,7 @@ function ChangePasswordShow() {
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalLabel"><i class="fa fa-edit"></i>Change Password</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
                         onclick="$('#modal').modal('hide')">
                         <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>
@@ -707,9 +702,9 @@ function DeleteAccount() {
                 localStorage.removeItem("username");
                 localStorage.removeItem("token");
 
-                $(".user").hide();
-                $(".login").show();
-                $(".title").hide();
+                setTimeout(function () {
+                    window.location.href = "/user/login";
+                }, 1000);
             } else {
                 NotyNotification(r.msg, type = 'error');
             }
@@ -724,7 +719,7 @@ function DeleteAccountShow() {
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalLabel"><i class="fa fa-trash"></i> Delete Account</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
                         onclick="$('#modal').modal('hide')">
                         <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>
@@ -922,7 +917,7 @@ function SessionDetail(i) {
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title"><i class='fa fa-` + system + `'></i>&nbsp;&nbsp;` + sysver + `</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
                         onclick="$('#modal').modal('hide');">
                         <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>
@@ -955,7 +950,9 @@ $(document).ready(function () {
                 if (r.success == true || r.success == undefined) {
                     if (r.username == "@deleted") {
                         NotyNotification("That's a deleted user!", type = 'error');
-                        setTimeout(function(){window.location.href="/user";},1000);
+                        setTimeout(function () {
+                            window.location.href = "/user";
+                        }, 1000);
                         return;
                     } else {
                         user.username = r.username;
@@ -965,7 +962,6 @@ $(document).ready(function () {
 
                         $(".user-public").show();
                         $(".user").remove();
-                        $(".title").show();
                         $("#signout-btn").show();
                         l = user.username.indexOf('>', user.username.indexOf('>') + 1);
                         r = user.username.indexOf('<', user.username.indexOf('<', user.username.indexOf('<') + 1) + 1);
@@ -980,7 +976,9 @@ $(document).ready(function () {
                     }
                 } else {
                     NotyNotification(r.msg, type = 'error');
-                    setTimeout(function(){window.location.href="/user";},1000);
+                    setTimeout(function () {
+                        window.location.href = "/user";
+                    }, 1000);
                 }
             },
             error: function (r) {
@@ -999,11 +997,10 @@ $(document).ready(function () {
         }
 
         if (localStorage.getItem("userId") == null && uid == -1) {
-            $(".user-public").remove();
-            $(".user").remove();
-            $(".login").show();
-            $(".title").hide();
             $("#signout-btn").hide();
+            if ((window.location).toString().indexOf("/login") == -1) {
+                window.location.href = "/user/login";
+            }
         }
     }
 });

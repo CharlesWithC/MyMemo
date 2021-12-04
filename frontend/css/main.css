@@ -62,6 +62,9 @@ body {
 
 .subcontainer {
     padding: 1.5em;
+    background-color: #444444;
+    border: 0.05em solid #222222;
+    overflow: hidden;
 }
 
 h1 {
@@ -71,7 +74,8 @@ h1 {
 }
 
 a {
-    color: #222222;
+    color: #444444;
+    text-decoration: none;
 }
 
 a:hover {
@@ -105,7 +109,7 @@ a:hover {
     position: absolute;
     top: 0;
     margin-top: 0;
-    right: 4em;
+    right: 5%;
     height: 3em;
     padding-top: 0.7em;
     padding-left: 1em;
@@ -126,7 +130,7 @@ a:hover {
 
 .leftside {
     text-decoration: none;
-    
+
     position: absolute;
     top: 4em;
     margin-top: 0;
@@ -197,6 +201,7 @@ a:hover {
     width: 100%;
     text-align: left;
     font-size: 0.75em;
+    margin-top: 4em;
     padding: 4em;
     color: #ffffff;
     background-color: #333333;
@@ -217,7 +222,7 @@ a:hover {
     height: 100%;
     background-color: #aaaaaa;
     opacity: 0.95;
-    border-radius:0.5em;
+    border-radius: 0.5em;
 }
 
 .book-side-content {
@@ -309,4 +314,52 @@ a:hover {
     border: #aaaaaa solid;
     background: #dddddd solid;
     border-radius: 100%;
+}
+
+.btn {
+    margin: 0.2em;
+}
+
+.table-light {
+    --bs-table-bg: #ffffff;
+    --bs-table-active-bg: #bbbbbb;
+    --bs-table-active-color: #fff;
+    --bs-table-hover-bg: #cccccc;
+    --bs-table-hover-color: #fff;
+    color: #fff;
+    border-color: #cccccc;
+}
+
+.table-light-subcontainer {
+    --bs-table-bg: #eeeeee;
+    --bs-table-active-bg: #bbbbbb;
+    --bs-table-active-color: #fff;
+    --bs-table-hover-bg: #cccccc;
+    --bs-table-hover-color: #fff;
+    color: #fff;
+    border-color: #cccccc;
+}
+
+.table-dark {
+    --bs-table-bg: #333333;
+    --bs-table-active-bg: #666666;
+    --bs-table-active-color: #fff;
+    --bs-table-hover-bg: #555555;
+    --bs-table-hover-color: #fff;
+    color: #fff;
+    border-color: #cccccc;
+}
+
+.table-dark-subcontainer {
+    --bs-table-bg: #444444;
+    --bs-table-active-bg: #666666;
+    --bs-table-active-color: #fff;
+    --bs-table-hover-bg: #555555;
+    --bs-table-hover-color: #fff;
+    color: #fff;
+    border-color: #cccccc;
+}
+
+.selected {
+    background-color: #aaaaaa;
 }

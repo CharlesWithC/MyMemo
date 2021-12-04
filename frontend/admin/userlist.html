@@ -28,37 +28,10 @@
                 pagingType: "full_numbers",
                 iDisplayLength: 25
             });
-            $("#userList_length").after('<div id="qf" class="dataTables_filter input-group mb-3">\
-                <span class="input-group-text" id="basic-addon1">Search</span>\
-            </div>');
-            $("#userList_filter > label > input").addClass("form-control");
-            $("#userList_filter > label > input").appendTo("#qf");
-            $("#userList_filter").attr("id", "qqf");
-            $("#qf").attr("id", "userList_filter");
-            $("#qqf").remove();
+            MDTSB("#userList");
             setInterval(function () {
                 $("#userList").css("width", "");
             }, 100);
-
-            if (localStorage.getItem("settings-theme") == "dark") {
-                $("body").attr("style", "color:#ffffff;background-color:#333333");
-                setInterval(function () {
-                    $("#content a,.container a").css("color", "#dddddd");
-                }, 500);
-                $("hr").attr("style", "background-color:#cccccc;");
-                $(".modal-content").attr("style", "background-color:#333333");
-                $(".fa-times").attr("style", "color:white");
-                $("#userList_length").attr("style", "color:white");
-
-                setInterval(function () {
-                    $("td").attr("style", "background-color:#333333");
-                    $("#userList_paginate > a").attr("style", "background-color:#d3d3d3");
-                    $("#userList_paginate > span > a").attr("style", "background-color:#d3d3d3");
-                    $("#userList_paginate > span > span").removeClass("ellipsis");
-                    $("#userList_paginate > span > span").addClass("paginate_button");
-                    $("#userList_paginate > span > span").attr("style", "background-color:#d3d3d3");
-                }, 50);
-            }
 
             userList = [];
 
@@ -77,9 +50,6 @@
                     [""],
                 ]);
                 table.draw();
-                if (localStorage.getItem("settings-theme") == "dark") {
-                    $("td").attr("style", "background-color:#333333");
-                }
                 $.ajax({
                     url: "/api/admin/userList",
                     method: 'POST',
@@ -91,9 +61,6 @@
                     },
                     success: function (r) {
                         userList = r;
-                        if (localStorage.getItem("settings-theme") == "dark") {
-                            $("td").attr("style", "background-color:#333333");
-                        }
                         table.clear();
 
                         for (var i = 0; i < userList.length; i++) {
@@ -113,9 +80,6 @@
                         }
 
                         table.draw();
-                        if (localStorage.getItem("settings-theme") == "dark") {
-                            $("td").attr("style", "background-color:#333333");
-                        }
 
                         for (var i = 0; i < userList.length; i++) {
                             if (userList[i].status.indexOf("Active") != -1) {
@@ -162,17 +126,6 @@
             $("#refresh-btn").click(function () {
                 UpdateTable();
             });
-            $("#book-btn").hover(function () {
-                ShowBook();
-            });
-            $("#content").hover(function () {
-                $("#book-div").fadeOut();
-            });
-            $("#create-book-name").on('keypress', function (e) {
-                if (e.which == 13 || e.which == 13 && e.ctrlKey) {
-                    CreateBook();
-                }
-            });
         });
     </script>
 </head>
@@ -183,15 +136,9 @@
             <div class="sqbtn">
                 <a href="/"><img src="/img/icon.png" style="width:2.2em;height:2.2em"></a>
             </div>
-            <div class="sqbtn">
-                <a id="book-btn" href="#" onclick="window.location.href='/book'"><i class="fa fa-book"></i></a><br>
-            </div>
-            <div class="sqbtn">
-                <a href="#" onclick="window.location.href='/discovery'"><i class="fa fa-paper-plane"></i></a><br>
-            </div>
         </div>
         <div class="userctrl">
-            <a href='/user'><i class="fa fa-user"></i> <span id="navusername">Sign in&nbsp;&nbsp; </span></a>
+            <a href='/user'><i class="fa fa-user"></i></a> <span id="navusername"><a href='/user/login'>Sign in</a>&nbsp;&nbsp; </span>
             <a class="only-signed-in" href='#' onclick="UserEvents()" style="display:none"><i
                     class="fa fa-bell"></i></a>
             <a href='#' onclick="window.location.href='/settings'"><i class="fa fa-cogs"></i></a>
@@ -200,36 +147,11 @@
         </div>
     </div>
 
-    <div id="book-div" class="book-side" style="display:none">
-        <div class="book-side-content">
-            <h2 style="float:left">Books</h2>
-            <button type="button" class="btn btn-outline-secondary" style="margin:0.5em" onclick="RefreshBookList()"
-                id="book-list-refresh-btn"><i class="fa fa-refresh"></i></button>
-            <button style="float:right" type="button" class="close" aria-label="Close"
-                onclick="$('#book-div').fadeOut()">
-                <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-            </button>
-
-        </div>
-        <div class="book-side-content-scroll" id="book-list">
-            <div>
-                <p>Create Book: </p>
-                <div class="input-group mb-3 w-75">
-                    <span class="input-group-text" id="basic-addon1">Name</span>
-                    <input type="text" class="form-control" id="create-book-name" aria-describedby="basic-addon1">
-                    <div class="input-group-append">
-                        <button class="btn btn-outline-primary" type="button" onclick="CreateBook()">Create</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <h1 class="title" style="padding-bottom: 0;">User List&nbsp;&nbsp;<button type="button"
             class="btn btn-outline-secondary" id="refresh-btn"><i class="fa fa-refresh"></i></button></h1>
 
     <div id="content" class="container">
-        <table class="table" id="userList" style="text-align:center">
+        <table class="table table-hover" id="userList" style="text-align:center">
             <thead>
                 <tr>
                     <th id="table-userId">User ID</th>
@@ -249,15 +171,11 @@
     </div>
 
     <div class="footer">
-        <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.15 <i class="fa fa-check-circle"></i></p>
+        <p>Copyright &copy; 2021 My Memo</p>
+        <p>Version: v5.3.16 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
-        <p>This is an open source project:
-            <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>
-                GitHub</a>
-        </p>
-        <p>Your privacy is valued. No 3rd party script is used. No cookie is used. All your local data is stored in
-            Local Storage.</p>
+        <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i> GitHub</a></p>
+        <p>Developer by <a href="www.charles14.xyz">Charles</a></p>
     </div>
 </body>
 

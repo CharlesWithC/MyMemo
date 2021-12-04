@@ -20,9 +20,6 @@ function UpdateGroupMember() {
         [""],
     ]);
     table.draw();
-    if (localStorage.getItem("settings-theme") == "dark") {
-        $("tr").attr("style", "background-color:#333333");
-    }
 
     $.ajax({
         url: "/api/group/member",
@@ -76,9 +73,6 @@ function UpdateGroupMember() {
                 ]).node().id = r.member[i].userId;
             }
             table.draw();
-            if (localStorage.getItem("settings-theme") == "dark") {
-                $("tr").attr("style", "background-color:#333333");
-            }
 
             $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
         },
@@ -89,9 +83,6 @@ function UpdateGroupMember() {
                 [""],
             ]);
             table.draw();
-            if (localStorage.getItem("settings-theme") == "dark") {
-                $("tr").attr("style", "background-color:#333333");
-            }
 
             $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
         }
@@ -108,7 +99,7 @@ function TransferOwnershipShow(uid) {
                 <div class="modal-header">
                     <h5 class="modal-title" style="color:red"><i class="fa fa-random"></i> Transfer Ownership
                     </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
                         onclick="$('#modal').modal('hide')">
                         <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>

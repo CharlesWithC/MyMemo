@@ -110,7 +110,7 @@ function UpdateSettingsButtons() {
                 localStorage.setItem("username", r.username);
             },
             error: function (r, textStatus, errorThrown) {
-                $("#navusername").html("Sign in&nbsp;&nbsp;  ");
+                $("#navusername").html("<a href='/user/login'>Sign in</a>&nbsp;&nbsp;  ");
                 localStorage.setItem("username", "");
             }
         });
@@ -254,7 +254,7 @@ function ClearDeletedQuestionsShow(){
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" style="color:red"><i class="fa fa-trash"></i> Clear Deleted Questions</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
                         onclick="$('#modal').modal('hide')">
                         <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>

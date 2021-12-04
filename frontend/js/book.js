@@ -4,7 +4,6 @@
 
 var bookId = -1;
 var bookName = "";
-var bookShareCode = "";
 var groupId = -1;
 var groupCode = "";
 var isGroupOwner = false;
@@ -99,19 +98,6 @@ function SelectQuestions() {
                 btns += '<button type="button" class="btn btn-outline-secondary" onclick="SelectBook(' + bookId + ')" id="select-book-btn"><i class="fa fa-check-square-o"></i></button>';
             $(".title").html(bookName + '&nbsp;&nbsp;' + btns);
             $("title").html(bookName + " | My Memo");
-            bookShareCode = bookList[i].shareCode;
-            if (bookShareCode == "") {
-                $("#bookShareCode").html("(Private)");
-            } else {
-                $("#bookShareCode").html(bookShareCode);
-            }
-            if (bookShareCode == "") {
-                $("#shareop").html("Share");
-                $(".only-shared").hide();
-            } else {
-                $("#shareop").html("Unshare");
-                $(".only-shared").show();
-            }
             groupId = bookList[i].groupId;
             groupCode = bookList[i].groupCode;
             $("#groupCode").html(groupCode);
@@ -147,7 +133,7 @@ function SelectQuestions() {
                 }
             }
             discoveryId = bookList[i].discoveryId;
-            if (discoveryId == -1 && bookShareCode != "") {
+            if (discoveryId == -1) {
                 $(".not-published-to-discovery").show();
                 $(".published-to-discovery").hide();
             } else if (discoveryId != -1) {
@@ -225,12 +211,6 @@ function UpdateTable() {
         ]).node().id = selectedQuestionList[i].questionId;
     }
     table.draw();
-
-    if (localStorage.getItem("settings-theme") == "dark") {
-        $("#questionList tr").attr("style", "background-color:#333333");
-    } else {
-        $("#questionList tr").attr("style", "background-color:#ffffff");
-    }
 }
 
 function UpdateQuestionList() {
@@ -275,11 +255,6 @@ function PageInit() {
         [""]
     ]);
     table.draw();
-    if (localStorage.getItem("settings-theme") == "dark") {
-        $("#questionList tr").attr("style", "background-color:#333333");
-    } else {
-        $("#questionList tr").attr("style", "background-color:#ffffff");
-    }
     table.clear();
 
     if (bookId == 0) {
@@ -327,7 +302,7 @@ function ShowStatistics(wid) {
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="modal">Statistics of ` + question + `</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                            <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
                                 onclick="$('#modal').modal('hide')">
                                 <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                             </button>
@@ -376,7 +351,7 @@ function EditQuestionShow(wid) {
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalLabel">Edit Question</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
                         onclick="$('#modal').modal('hide')">
                         <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>
@@ -528,11 +503,6 @@ function ShowQuestionDatabase() {
             }
         }
     }
-    if (localStorage.getItem("settings-theme") == "dark") {
-        $("#questionList tr").attr("style", "background-color:#333333");
-    } else {
-        $("#questionList tr").attr("style", "background-color:#ffffff");
-    }
 }
 
 function ShowManage() {
@@ -580,7 +550,7 @@ function AddQuestionShow() {
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalLabel">Add a new question to ` + bookName + `</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
                         onclick="$('#modal').modal('hide')">
                         <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>
@@ -692,7 +662,7 @@ function RemoveQuestionShow() {
                     <h5 class="modal-title" style="color:red"><i class="fa fa-trash"></i> Remove Question from
                         Database
                     </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
                         onclick="$('#modal').modal('hide')">
                         <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>
@@ -785,7 +755,7 @@ function BookRenameShow() {
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalLabel">Rename Book</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
                         onclick="$('#modal').modal('hide')">
                         <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>
@@ -868,7 +838,7 @@ function BookDeleteShow() {
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" style="color:red"><i class="fa fa-trash"></i> Delete Book</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
                         onclick="$('#modal').modal('hide')">
                         <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>
@@ -936,104 +906,6 @@ function BookDelete() {
     });
 }
 
-function BookShare() {
-    if (bookShareCode == "") {
-        $.ajax({
-            url: '/api/book/share',
-            method: 'POST',
-            async: true,
-            dataType: "json",
-            data: {
-                bookId: bookId,
-                operation: "share",
-                userId: localStorage.getItem("userId"),
-                token: localStorage.getItem("token")
-            },
-            success: function (r) {
-                if (r.success == true) {
-                    for (var i = 0; i < bookList.length; i++) {
-                        if (bookList[i].bookId == bookId) {
-                            bookList[i].shareCode = r.shareCode;
-                            bookShareCode = r.shareCode;
-                            localStorage.setItem("book-list", JSON.stringify(bookList));
-                            break;
-                        }
-                    }
-                    NotyNotification(r.msg, type = 'info', timeout = 30000);
-                    $("#bookShareCode").html(r.shareCode);
-                    $("#shareop").html("Unshare");
-                    $(".only-shared").show();
-                    discoveryId = bookList[i].discoveryId;
-                    if (discoveryId == -1 && bookShareCode != "") {
-                        $(".not-published-to-discovery").show();
-                        $(".published-to-discovery").hide();
-                    } else if (discoveryId != -1) {
-                        $(".not-published-to-discovery").hide();
-                        $(".published-to-discovery").show();
-                        $("#go-to-discovery-btn").attr("onclick", "window.location.href='/discovery?discoveryId=" + discoveryId + "'");
-                    }
-                } else {
-                    NotyNotification(r.msg, type = 'error');
-                }
-            },
-            error: function (r, textStatus, errorThrown) {
-                if (r.status == 401) {
-                    SessionExpired();
-                } else {
-                    NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-                }
-            }
-        });
-    } else {
-        $.ajax({
-            url: '/api/book/share',
-            method: 'POST',
-            async: true,
-            dataType: "json",
-            data: {
-                bookId: bookId,
-                operation: "unshare",
-                userId: localStorage.getItem("userId"),
-                token: localStorage.getItem("token")
-            },
-            success: function (r) {
-                if (r.success == true) {
-                    for (var i = 0; i < bookList.length; i++) {
-                        if (bookList[i].bookId == bookId) {
-                            bookList[i].shareCode = "";
-                            bookShareCode = "";
-                            localStorage.setItem("book-list", JSON.stringify(bookList));
-                            break;
-                        }
-                    }
-                    NotyNotification(r.msg, type = 'success', timeout = 30000);
-                    $("#bookShareCode").html("(Private)");
-                    $("#shareop").html("Share");
-                    $(".only-shared").hide();
-                    discoveryId = bookList[i].discoveryId;
-                    if (discoveryId == -1 && bookShareCode != "") {
-                        $(".not-published-to-discovery").show();
-                        $(".published-to-discovery").hide();
-                    } else if (discoveryId != -1) {
-                        $(".not-published-to-discovery").hide();
-                        $(".published-to-discovery").show();
-                        $("#go-to-discovery-btn").attr("onclick", "window.location.href='/discovery?discoveryId=" + discoveryId + "'");
-                    }
-                } else {
-                    NotyNotification(r.msg, type = 'error');
-                }
-            },
-            error: function (r, textStatus, errorThrown) {
-                if (r.status == 401) {
-                    SessionExpired();
-                } else {
-                    NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-                }
-            }
-        });
-    }
-}
-
 function PublishToDiscoveryShow() {
     $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog"
         aria-labelledby="modalLabel" aria-hidden="true">
@@ -1043,7 +915,7 @@ function PublishToDiscoveryShow() {
                     <h5 class="modal-title" id="modallLabel"><i class="fa fa-paper-plane"></i>
                         Publish
                         To Discovery</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
                         onclick="$('#modal').modal('hide')">
                         <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>
@@ -1053,7 +925,6 @@ function PublishToDiscoveryShow() {
                     <p>This will make it able to be found by any people.</p>
                     <p>All your updates made within this book will be synced to Discovery. (But people already
                         imported it will not get the sync, use Group function to do that)</p>
-                    <p>You can unshare the book to make it temporarily invisible on Discovery.</p>
                     <br>
                     <p>Please enter title and description below. Make them beautiful and others may get engaged.</p>
                     <form>
@@ -1131,7 +1002,7 @@ function UnpublishDiscoveryShow() {
                 <div class="modal-header">
                     <h5 class="modal-title" style="color:red"><i class="fa fa-trash"></i> Unpublish From Discovery
                     </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
                         onclick="$('#modal').modal('hide')">
                         <span aria-hidden="true"><i class="fa fa-times"></i></span>
                     </button>
@@ -1164,7 +1035,7 @@ function GroupPublishToDiscoveryShow() {
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalLabel"><i class="fa fa-paper-plane"></i>
                         Publish To Discovery</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
                         onclick="$('#modal').modal('hide')">
                         <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>
@@ -1252,7 +1123,7 @@ function GroupUnpublishDiscoveryShow() {
                 <div class="modal-header">
                     <h5 class="modal-title" style="color:red"><i class="fa fa-trash"></i> Unpublish From Discovery
                     </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
                         onclick="$('#modal').modal('hide')">
                         <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>
@@ -1352,7 +1223,7 @@ function CreateGroupShow() {
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalLabel">Create Group</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
                         onclick="$('#modal').modal('hide')">
                         <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>
@@ -1431,8 +1302,6 @@ function CreateGroup() {
                 }
                 NotyNotification(r.msg, type = 'info', timeout = 30000);
                 $("#modal").modal("hide");
-                $("#bookShareCode").html(r.shareCode);
-                $("#shareop").html("Unshare");
             } else {
                 NotyNotification(r.msg, type = 'error');
             }
@@ -1458,7 +1327,7 @@ function QuitGroupShow() {
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" style="color:red"><i class="fa fa-sign-out"></i> Quit Group</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
                         onclick="$('#modal').modal('hide')">
                         <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>
@@ -1541,7 +1410,7 @@ function GroupInfoUpdateShow() {
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modal">Update Group Information</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
                         onclick="$('#modal').modal('hide')">
                         <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>
@@ -1751,7 +1620,7 @@ function GroupDismissShow() {
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" style="color:red"><i class="fa fa-times"></i> Dismiss Group</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
                         onclick="$('#modal').modal('hide')">
                         <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>
@@ -1843,25 +1712,25 @@ function GroupDismiss() {
 function selectAll() {
     $("#questionList tr").each(function () {
         wid = parseInt($(this).attr("id"));
-        if (wid == wid && !$(this).hasClass("selected")) { // check for NaN
+        if (wid == wid && !$(this).hasClass("table-active")) { // check for NaN
             selected.push(wid);
         }
 
-        $(this).addClass("selected");
+        $(this).addClass("table-active");
     });
 }
 
 function deselectAll() {
     $("#questionList tr").each(function () {
         wid = parseInt($(this).attr("id"));
-        if (wid == wid && $(this).hasClass("selected")) { // check for NaN
+        if (wid == wid && $(this).hasClass("table-active")) { // check for NaN
             idx = selected.indexOf(wid);
             if (idx > -1) {
                 selected.splice(idx, 1);
             }
         }
 
-        $(this).removeClass("selected");
+        $(this).removeClass("table-active");
     });
 }
 
@@ -1984,7 +1853,7 @@ function BookChart(bid) {
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="modalLabel"><i class="fa fa-bar-chart"></i> Book Statistics</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                            <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
                                 onclick="$('#modal').modal('hide')">
                                 <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                             </button>

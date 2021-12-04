@@ -45,7 +45,8 @@ def apiCreateBook():
 
     if name.startswith("!") and name[1:].isalnum():
         name = name[1:]
-        cur.execute(f"SELECT userId, bookId FROM Book WHERE shareCode = '{name}'")
+        shareCode = name
+        cur.execute(f"SELECT userId, bookId FROM BookShare WHERE shareCode = '{name}'")
         d = cur.fetchall()
         if len(d) != 0:
             sharerUserId = d[0][0]
@@ -114,7 +115,7 @@ def apiCreateBook():
                 cur.execute(f"UPDATE IDInfo SET nextId = {bookId + 1} WHERE type = 3 AND userId = {userId}")
                 
             # do import
-            cur.execute(f"INSERT INTO Book VALUES ({userId}, {bookId}, '{name}', 0, '', 0)")
+            cur.execute(f"INSERT INTO Book VALUES ({userId}, {bookId}, '{name}', 0)")
             cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'create_book', {int(time.time())}, '{encode(f'Imported book {decode(name)}')}')")
             
             questionId = 1
@@ -152,7 +153,7 @@ def apiCreateBook():
                 questionId += 1
             
             # update import count
-            cur.execute(f"UPDATE Book SET importCount = importCount + 1 WHERE userId = {userId} AND bookId = {sharerBookId}")
+            cur.execute(f"UPDATE BookShare SET importCount = importCount + 1 WHERE userId = {userId} AND bookId = {sharerBookId} AND shareCode = '{shareCode}'")
             conn.commit()            
 
             return json.dumps({"success": True})
@@ -229,7 +230,7 @@ def apiCreateBook():
                 cur.execute(f"UPDATE IDInfo SET nextId = {bookId + 1} WHERE type = 3 AND userId = {userId}")
 
             # do import
-            cur.execute(f"INSERT INTO Book VALUES ({userId}, {bookId}, '{name}', 0, '', 0)")
+            cur.execute(f"INSERT INTO Book VALUES ({userId}, {bookId}, '{name}', 0)")
             cur.execute(f"INSERT INTO GroupMember VALUES ({groupId}, {userId}, 0, {bookId})")
             cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'join_group', {int(time.time())}, '{encode(f'Joined group {decode(name)}')}')")
 
@@ -285,7 +286,7 @@ def apiCreateBook():
     if len(name) >= 256:
         return json.dumps({"success": False, "msg": "Book name too long!"})
 
-    cur.execute(f"INSERT INTO Book VALUES ({userId}, {bookId}, '{name}', 0, '', 0)")
+    cur.execute(f"INSERT INTO Book VALUES ({userId}, {bookId}, '{name}', 0)")
     cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'create_book', {int(time.time())}, '{encode(f'Created book {decode(name)}')}')")
     conn.commit()
     
@@ -335,7 +336,7 @@ def apiCloneBook():
     progress = 0
     if len(t) > 0:
         progress = t[0][0]
-    cur.execute(f"INSERT INTO Book VALUES ({userId}, {bookId}, '{name}', 0, '', 0)")
+    cur.execute(f"INSERT INTO Book VALUES ({userId}, {bookId}, '{name}', 0)")
     cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'create_book', {int(time.time())}, '{encode(f'Created book {decode(name)}')}')")
     d = getBookData(userId, cloneFrom)
     for dd in d:
@@ -439,55 +440,3 @@ def apiRenameBook():
     cur.execute(f"UPDATE Book SET name = '{encode(newName)}' WHERE userId = {userId} AND bookId = {bookId}")
     conn.commit()
     return json.dumps({"success": True})
-
-@app.route("/api/book/share", methods = ['POST'])
-def apiShareBook():
-    updateconn()
-    cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
-
-    userId = int(request.form["userId"])
-    token = request.form["token"]
-    if not validateToken(userId, token):
-        abort(401)
-    
-    bookId = int(request.form["bookId"])
-    op = request.form["operation"]
-
-    if op == "share":
-        cur.execute(f"SELECT shareCode FROM Book WHERE userId = {userId} AND bookId = {bookId}")
-        t = cur.fetchall()
-        if len(t) > 0 and t[0][0] != '':
-            return json.dumps({"success": False, "msg": "Book already shared!"})
-        else:
-            shareCode = genCode(8)
-            cur.execute(f"SELECT shareCode FROM Book WHERE shareCode = '{shareCode}'")
-            if len(cur.fetchall()) != 0: # conflict
-                for _ in range(30):
-                    shareCode = genCode(8)
-                    cur.execute(f"SELECT shareCode FROM Book WHERE shareCode = '{shareCode}'")
-                    if len(cur.fetchall()) == 0:
-                        break
-                cur.execute(f"SELECT shareCode FROM Book WHERE shareCode = '{shareCode}'")
-                if len(cur.fetchall()) != 0:
-                    return json.dumps({"success": False, "msg": "Unable to generate an unique share code..."})
-                    
-            cur.execute(f"UPDATE Book SET shareCode = '{shareCode}' WHERE bookId = {bookId} AND userId = {userId}")
-            conn.commit()
-            return json.dumps({"success": True, "msg": f"Done! Share code: !{shareCode}. Tell your friend to enter it in the textbox of 'Create Book' and he / she will be able to import it!", "shareCode": f"!{shareCode}"})
-    
-    elif op == "unshare":
-        cur.execute(f"SELECT * FROM Discovery WHERE publisherId = {userId} AND bookId = {bookId}")
-        notice = ""
-        if len(cur.fetchall()) != 0:
-            notice = "Book published to Discovery! This will make it invisible on Discovery."
-            
-        cur.execute(f"SELECT shareCode FROM Book WHERE userId = {userId} AND bookId = {bookId}")
-        t = cur.fetchall()
-        if len(t) > 0 and t[0][0] == '':
-            return json.dumps({"success": False, "msg": "Book not shared!"})
-        else:
-            cur.execute(f"UPDATE Book SET shareCode = '' WHERE bookId = {bookId} AND userId = {userId}")
-            conn.commit()
-            return json.dumps({"success": True, "msg": "Book unshared! " + notice})

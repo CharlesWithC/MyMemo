@@ -1,24 +1,30 @@
-<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
- <!-- Created with Method Draw - http://github.com/duopixel/Method-Draw/ -->
- <defs>
-  <filter id="svg_1_blur">
-   <feGaussianBlur stdDeviation="0"/>
-  </filter>
-  <filter height="200%" width="200%" y="-50%" x="-50%" id="svg_2_blur">
-   <feGaussianBlur stdDeviation="10"/>
-  </filter>
- </defs>
+<svg width="384" height="384" xmlns="http://www.w3.org/2000/svg">
  <g>
   <title>background</title>
-  <rect fill="#fff" id="canvas_background" height="514" width="514" y="-1" x="-1"/>
-  <g display="none" id="canvasGrid">
-   <rect fill="url(#gridpattern)" stroke-width="0" y="0" x="0" height="100%" width="100%" id="svg_3"/>
+  <rect fill="#ffffff" id="canvas_background" height="386" width="386" y="-1" x="-1"/>
+  <g display="none" overflow="visible" y="0" x="0" height="100%" width="100%" id="canvasGrid">
+   <rect fill="url(#gridpattern)" stroke-width="0" y="0" x="0" height="100%" width="100%"/>
   </g>
  </g>
  <g>
   <title>Layer 1</title>
-  <rect filter="url(#svg_1_blur)" rx="100" id="svg_1" height="502" width="502" y="4.52496" x="5" stroke-width="1.5" stroke="#003f7f" fill="#56aaff"/>
-  <rect rx="100" filter="url(#svg_2_blur)" id="svg_2" height="432" width="432" y="39.52496" x="40" stroke-width="1.5" fill="#007fff"/>
-  <text transform="matrix(1.65106, 0, 0, 1.82109, -83.3479, -23.4314)" xml:space="preserve" text-anchor="start" font-family="'Palatino Linotype', 'Book Antiqua', Palatino, serif" font-size="250" id="svg_15" y="208.161376" x="97.536197" stroke-opacity="null" stroke-width="0" stroke="#007fff" fill="#00007f">m</text>
+  <ellipse stroke="#c90000" ry="55.500001" rx="55.50001" id="svg_48" cy="283.437617" cx="271.531165" fill-opacity="null" stroke-width="40" fill="none"></ellipse>
+  <ellipse stroke="#c90000" ry="55.500001" rx="55.500001" id="svg_46" cy="284.162259" cx="160.6" fill-opacity="null" stroke-width="40" fill="none"></ellipse>
+  <rect stroke="#ffffff" canvas="#ffffff" canvas-opacity="1" id="svg_52" height="88" width="40.125704" y="183.964193" x="251" stroke-width="31" fill="#ffffff"></rect>
+  <rect stroke="#ffffff" canvas="#ffffff" canvas-opacity="1" id="svg_51" height="88" width="39.46564" y="183.536801" x="141.58" stroke-width="31" fill="#ffffff"></rect>
+  <line stroke-linecap="undefined" stroke-linejoin="undefined" id="svg_4" y2="229.495614" x2="170.900766" y1="99.495614" x1="170.900766" stroke-width="40" stroke="#00c900" fill="none"></line>
+  <ellipse stroke="#00c900" ry="55.5" rx="55.5" id="svg_6" cy="105.633" cx="115.728" fill-opacity="null" stroke-width="40" fill="none"></ellipse>
+  <line stroke-linecap="undefined" stroke-linejoin="undefined" id="svg_9" y2="240.230911" x2="281.353914" y1="100.230911" x1="281.353914" stroke-width="40" stroke="#00c900" fill="none"></line>
+  <ellipse stroke="#00c900" ry="55.500001" rx="55.500001" id="svg_10" cy="105.265467" cx="225.971671" fill-opacity="null" stroke-width="40" fill="none"></ellipse>
+  <rect stroke="#ffffff" canvas="#ffffff" canvas-opacity="1" id="svg_11" height="88" width="39.3" y="116.446" x="206.5" stroke-width="31" fill="#ffffff"></rect>
+  <g id="svg_43"></g>
+  <rect stroke="#ffffff" canvas="#ffffff" canvas-opacity="1" id="svg_7" height="88" width="39.7" y="115.169042" x="95.783827" stroke-width="31" fill="#ffffff"></rect>
+  <line stroke-linecap="undefined" stroke-linejoin="undefined" id="svg_44" y2="296.596316" x2="106.050803" y1="156.596316" x1="106.050803" stroke-width="40" stroke="#c90000" fill="none"></line>
+  <line stroke-linecap="undefined" stroke-linejoin="undefined" id="svg_45" y2="287.616723" x2="216.011917" y1="157.616723" x1="216.011917" stroke-width="40" stroke="#c90000" fill="none"></line>
+  <line stroke-linecap="undefined" stroke-linejoin="undefined" id="svg_47" y2="296.596316" x2="326.286491" y1="156.596316" x1="326.286491" stroke-width="40" stroke="#c90000" fill="none"></line>
+  <line stroke-linecap="undefined" stroke-linejoin="undefined" id="svg_1" y2="238.990671" x2="60.727831" y1="98.990671" x1="60.727831" stroke-width="40" stroke="#00c900" fill="none"></line>
+  <rect stroke="#ffffff" canvas="#ffffff" canvas-opacity="1" id="rect-1" height="47.56" width="2.167" y="90.365" x="-38.054" stroke-width="5" fill="#ffffff" style="" transform="matrix(-1, 0, 0, 1, 0, 0)"></rect>
+  <rect stroke="#ffffff" canvas="#ffffff" canvas-opacity="1" id="rect-2" height="47.56" width="2.167" y="263.703" x="-83.52" stroke-width="5" fill="#ffffff" style="" transform="matrix(-1, 0, 0, 1, 0, 0)"></rect>
+  <rect stroke="#ffffff" canvas="#ffffff" canvas-opacity="1" id="rect-3" height="47.56" width="2.167" y="262.77" x="-350.983" stroke-width="5" fill="#ffffff" style="" transform="matrix(-1, 0, 0, 1, 0, 0)"></rect>
  </g>
 </svg>

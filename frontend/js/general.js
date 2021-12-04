@@ -47,12 +47,12 @@ function SignOut() {
     localStorage.setItem("first-use", "0");
     localStorage.setItem("sign-out", "1");
 
-    $("#navusername").html("Sign in&nbsp;&nbsp;  ");
+    $("#navusername").html("<a href='/user/login'>Sign in</a>&nbsp;&nbsp;  ");
 
     NotyNotification('You are now signed out!');
 
     setTimeout(function () {
-        window.location.reload();
+        window.location.href = "/user/login";
     }, 1000);
 }
 
@@ -182,8 +182,8 @@ function RefreshBookList() {
     });
 }
 
-function CreateBook() {
-    bookName = $("#create-book-name").val();
+function CreateBook(element) {
+    bookName = $(element).val();
 
     if (bookName == "") {
         NotyNotification('Please enter the book name!', type = 'warning');
@@ -231,7 +231,7 @@ function LoadHide() {
 }
 
 function LoadDetect() {
-    if ($.active > 0) {
+    if ($.active > 0 && $("#general-loader").length == 0) {
         LoadShow();
     } else {
         LoadHide();
@@ -258,7 +258,7 @@ function UpdateNavUsername() {
             localStorage.setItem("username", r.username);
         },
         error: function (r, textStatus, errorThrown) {
-            $("#navusername").html("Sign in&nbsp;&nbsp;  ");
+            $("#navusername").html("<a href='/user/login'>Sign in</a>&nbsp;&nbsp;  ");
             localStorage.setItem("username", "");
             clearInterval(updnu_interval);
         }
@@ -289,23 +289,58 @@ $(document).ready(function () {
             },
             error: function (r, textStatus, errorThrown) {
                 if (r.status == 401) {
-                    $("#navusername").html("Sign in&nbsp;&nbsp;  ");
+                    $("#navusername").html("<a href='/user/login'>Sign in</a>&nbsp;&nbsp;  ");
                     localStorage.setItem("username", "");
                 }
             }
         });
     }
 
+    $("#navigate").after(`<div id="book-div" class="book-side" style="display:none">
+        <div class="book-side-content">
+            <h2 style="float:left">Books</h2>
+            <button type="button" class="btn btn-outline-secondary" style="margin:0.5em" onclick="RefreshBookList()"
+                id="book-list-refresh-btn"><i class="fa fa-refresh"></i></button>
+            <button type="button" class="close" style="float:right;background-color:transparent;border:none" aria-label="Close"
+                onclick="$('#book-div').fadeOut()">
+                <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+            </button>
+
+        </div>
+        <div class="book-side-content-scroll" id="book-list">
+            <div>
+                <p>Create Book: </p>
+                <div class="input-group mb-3 w-75">
+                    <span class="input-group-text" id="basic-addon1">Name</span>
+                    <input type="text" class="form-control" id="create-book-name" aria-describedby="basic-addon1">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-primary" type="button"
+                            onclick="CreateBook('#create-book-name')">Create</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>`);
+
+    $(".leftside").append(`<div class="sqbtn">
+        <a id="book-btn" href="#" onclick="window.location.href='/book'"><i class="fa fa-book"></i></a><br>
+    </div>`);
+    $(".leftside").append(`<div class="sqbtn">
+        <a href="#" onclick="window.location.href='/share'"><i class="fa fa-share-alt"></i></a><br>
+    </div>`);
+    $(".leftside").append(`<div class="sqbtn">
+        <a href="#" onclick="window.location.href='/discovery'"><i class="fa fa-paper-plane"></i></a><br>
+    </div>`);
     if (localStorage.getItem("isAdmin") == true) {
         $(".leftside").append("<hr>");
         $(".leftside").append(`<div class="sqbtn">
             <a href="#" onclick="window.location.href='/admin/cli'" id="book-btn"><i class="fa fa-terminal"></i></a><br>
         </div>
         <div class="sqbtn">
-            <a href="#" onclick="window.location.href='/admin/userlist'" id="book-btn"><i class="fa fa-users"></i></a><br>
+            <a href="#" onclick="window.location.href='/admin/userlist'" id="book-btn"><i class="fa fa-address-book"></i></a><br>
         </div>`);
     }
-    
+
     $('.modal').on('hidden.bs.modal', function () {
         $(".modal").remove();
     })
@@ -331,17 +366,128 @@ function sleep(time) {
     return new Promise((resolve) => setTimeout(resolve, time));
 }
 
-function UpdateTheme(){
+function GeneralUpdateTheme() {
+    navusername = $("#navusername").html();
+    setInterval(function () {
+        if ($(".userctrl").length != 0) {
+            t = $(".userctrl").css("left");
+            if (parseInt(t.slice(0, t.indexOf("px"))) / window.innerWidth < 0.6) {
+                if ($("#navusername").html() != "") {
+                    navusername = $("#navusername").html();
+                }
+                $("#navusername").html("");
+                if (window.location.pathname == "/") {
+                    $("#progress-div").hide();
+                    $(".userctrl").attr("style", "");
+                }
+            } else if (parseInt(t.slice(0, t.indexOf("px"))) / window.innerWidth > 0.8) {
+                $("#navusername").html(navusername);
+                if (window.location.pathname == "/") {
+                    $("#progress-div").show();
+                    $(".userctrl").attr("style", "height:4.5em;min-width: 14em;");
+                }
+            }
+        }
+    }, 50);
+
+    $("table").addClass("table");
     if (localStorage.getItem("settings-theme") == "dark") {
-        $("body").attr("style", "color:#ffffff;background-color:#333333");
-        setInterval(function () {
-            $("#content a,.container a").css("color", "#dddddd");
-        }, 500);
-        $("hr").attr("style", "background-color:#cccccc;");
-        $(".modal-content").attr("style", "background-color:#333333");
-        $(".fa-times").attr("style", "color:white");
-        $("textarea").css("color","#ffffff");
-        $("textarea").css("background-color","#333333");
+        $("table").addClass("table-dark");
+        $(".subcontainer table").addClass("table-dark-subcontainer");
+        $("tr").css("color", "#ffffff");
+        $("th").css("color", "#ffffff");
+        $("tr").css("background-color", "#333333");
+        $("th").css("background-color", "#333333");
+        $(".subcontainer tr").css("background-color", "#444444");
+        $(".subcontainer th").css("background-color", "#444444");
+    } else {
+        $("table").addClass("table-light");
+        $(".subcontainer table").addClass("table-light-subcontainer");
+        $("tr").css("color", "#000000");
+        $("th").css("color", "#000000");
+        $("tr").css("background-color", "#ffffff");
+        $("th").css("background-color", "#ffffff");
+        $(".subcontainer tr").css("background-color", "#eeeeee");
+        $(".subcontainer th").css("background-color", "#eeeeee");
     }
+
+    setInterval(function () {
+        $(".dataTables_paginate > span > span").removeClass("ellipsis");
+        $(".dataTables_paginate > span > span").addClass("btn btn-outline-secondary btn-sm btn-paginate");
+        $(".dataTables_paginate > span > span").css("margin", "0.2em");
+        $(".paginate_button").addClass("btn btn-outline-secondary btn-sm btn-paginate");
+        $(".paginate_button").css("margin", "0.2em");
+        $(".paginate_button").removeClass("paginate_button");
+        if (localStorage.getItem("settings-theme") == "dark") {
+            $("body").css("color", "#ffffff");
+            $("body").css("background-color", "#333333");
+            $(".subcontainer").css("background-color", "#444444");
+            $(".subcontainer").css("border", "0.05em solid #eeeeee");
+            $("#content a,.container a").css("color", "#dddddd");
+
+            $("hr").css("background-color", "#cccccc");
+            $(".modal-content").css("background-color", "#333333");
+            $(".fa-times").css("color", "white");
+
+            $("textarea").css("color", "#ffffff");
+            $("textarea").css("background-color", "#333333");
+
+            //$(".dataTables_paginate a").css("background-color", "#d3d3d3");
+            //$(".dataTables_paginate span").css("background-color", "#d3d3d3");
+            $(".dataTables_info").css("color", "#ffffff");
+            $(".dataTables_length").css("color", "#ffffff");
+            $(".dataTables_length a").css("color", "#ffffff");
+        } else {
+            $("body").css("color", "#000000");
+            $("body").css("background-color", "#ffffff");
+            $(".subcontainer").css("background-color", "#eeeeee");
+            $(".subcontainer").css("border", "0.05em solid #222222");
+            $("#content a,.container a").css("color", "#222222");
+
+            $("hr").css("background-color", "#222222");
+            $(".modal-content").css("background-color", "#ffffff");
+            $(".fa-times").css("color", "black");
+
+            $("textarea").css("color", "#000000");
+            $("textarea").css("background-color", "#ffffff");
+
+            //$(".dataTables_paginate a").css("background-color", "#ffffff");
+            //$(".dataTables_paginate span").css("background-color", "#ffffff");
+            $(".dataTables_info").css("color", "#ffffff");
+            $(".dataTables_length").css("color", "#000000");
+            $(".dataTables_length a").css("color", "#000000");
+        }
+    }, 5);
 }
-setInterval(UpdateTheme, 100);
+$(document).ready(function () {
+    GeneralUpdateTheme();
+
+    $("#book-btn").hover(function () {
+        ShowBook();
+    });
+    $("#content").hover(function () {
+        $("#book-div").fadeOut();
+    });
+    $("#create-book-name").on('keypress', function (e) {
+        if (e.which == 13 || e.which == 13 && e.ctrlKey) {
+            CreateBook();
+        }
+    });
+
+    $(".btn-paginate").click(function(){
+        $("#dataTables_paginate").fadeOut();
+        setTimeout(function(){$("#dataTables_paginate").fadeIn();},50);
+    })
+});
+
+// ModifyDataTableSearchBox
+function MDTSB(tableName) {
+    $("#" + tableName + "_length").after('<div id="tmp' + tableName + '" class="dataTables_filter input-group mb-3" style="max-width:15em">\
+        <span class="input-group-text" id="basic-addon1">Search</span>\
+    </div>');
+    $("#" + tableName + "_filter > label > input").addClass("form-control");
+    $("#" + tableName + "_filter > label > input").appendTo("#tmp" + tableName);
+    $("#" + tableName + "_filter").attr("id", "ttmp" + tableName);
+    $("#tmp" + tableName).attr("id", tableName + "_filter");
+    $("#ttmp" + tableName).remove();
+}

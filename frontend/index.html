@@ -39,39 +39,11 @@
                 SpeakAnswer();
             });
 
-            function onkeypress() {
-                $("#start-from").on('keypress', function (e) {
-                    if (e.which == 13 || e.which == 13 && e.ctrlKey) {
-                        MemoGo();
-                    }
-                });
-                $("#create-book-name").on('keypress', function (e) {
-                    if (e.which == 13 || e.which == 13 && e.ctrlKey) {
-                        CreateBook();
-                    }
-                });
-                $("#book-btn").hover(function () {
-                    ShowBook();
-                });
-                $("#content").hover(function () {
-                    $("#book-div").fadeOut();
-                });
-            }
-
-            if (localStorage.getItem("settings-theme") == "dark") {
-                $("body").attr("style", "color:#ffffff;background-color:#333333");
-                setInterval(function () {
-                    $("#content a,.container a").css("color", "#dddddd");
-                }, 500);
-                $("hr").attr("style", "background-color:#cccccc;");
-                $(".modal-content").attr("style", "background-color:#333333");
-                $(".fa-times").attr("style", "color:white");
-                $("textarea").css("color", "#ffffff");
-                $("textarea").css("background-color", "#333333");
-            } else {
-                $("textarea").css("color", "#000000");
-                $("textarea").css("background-color", "#ffffff");
-            }
+            $("#start-from").on('keypress', function (e) {
+                if (e.which == 13 || e.which == 13 && e.ctrlKey) {
+                    MemoGo();
+                }
+            });
 
             $("#edit-question,#edit-answer").on('keypress', function (e) {
                 if (e.which == 13 && e.ctrlKey) {
@@ -90,58 +62,27 @@
             <div class="sqbtn">
                 <a href="/"><img src="/img/icon.png" style="width:2.2em;height:2.2em"></a>
             </div>
-            <div class="sqbtn">
-                <a href="#" onclick="window.location.href='/book'" id="book-btn"><i class="fa fa-book"></i></a><br>
-            </div>
-            <div class="sqbtn">
-                <a href="#" onclick="window.location.href='/discovery'"><i
-                        class="fa fa-paper-plane"></i></a><br>
-            </div>
         </div>
         <div class="userctrl" style="height:4.5em;min-width: 14em;">
-            <a href='/user'><i class="fa fa-user"></i> <span id="navusername">Sign in&nbsp;&nbsp; </span></a>
+            <a href='/user'><i class="fa fa-user"></i></a> <span id="navusername"><a href='/user/login'>Sign in</a>&nbsp;&nbsp; </span>
             <a class="only-signed-in" href='#' onclick="UserEvents()" style="display:none"><i
                     class="fa fa-bell"></i></a>
             <a href='#' onclick="window.location.href='/settings'"><i class="fa fa-cogs"></i></a>
             <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i
                     class="fa fa-sign-out"></i></a>
             <br>
-            <div style="margin-top:0.5em;height:1.5em">
+            <div id="progress-div" style="margin-top:0.5em;height:1.5em">
                 <div class="progress" style="display:inline-block;width:80%;height:1.7em">
                     <div id="goal-progress" class="progress-bar progress-bar-striped progress-bar-animated"
                         role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"
                         style="width: 0%; height:1.7em">
-                        <p style="margin-top:1.2em;margin-left:1em;position:absolute;color:black">Goal: <span id="today-goal">0 /
+                        <p style="margin-top:1.2em;margin-left:1em;position:absolute;color:black">Goal: <span
+                                id="today-goal">0 /
                                 0</span></p>
                     </div>
                 </div>
                 <button id="checkin-btn" class="btn btn-primary btn-sm" style="margin-top:-0.6em" type="button"
                     onclick="CheckIn()" disabled><i class="fa fa-check-square-o"></i></button>
-            </div>
-        </div>
-    </div>
-
-    <div id="book-div" class="book-side" style="display:none">
-        <div class="book-side-content">
-            <h2 style="float:left">Books</h2>
-            <button type="button" class="btn btn-outline-secondary" style="margin:0.5em" onclick="RefreshBookList()"
-                id="book-list-refresh-btn"><i class="fa fa-refresh"></i></button>
-            <button style="float:right" type="button" class="close" aria-label="Close"
-                onclick="$('#book-div').fadeOut()">
-                <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-            </button>
-
-        </div>
-        <div class="book-side-content-scroll" id="book-list">
-            <div>
-                <p>Create Book: </p>
-                <div class="input-group mb-3 w-75">
-                    <span class="input-group-text" id="basic-addon1">Name</span>
-                    <input type="text" class="form-control" id="create-book-name" aria-describedby="basic-addon1">
-                    <div class="input-group-append">
-                        <button class="btn btn-outline-primary" type="button" onclick="CreateBook()">Create</button>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -264,15 +205,11 @@
     </div>
 
     <div class="footer">
-        <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.15 <i class="fa fa-check-circle"></i></p>
+        <p>Copyright &copy; 2021 My Memo</p>
+        <p>Version: v5.3.16 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
-        <p>This is an open source project:
-            <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>
-                GitHub</a>
-        </p>
-        <p>Your privacy is valued. No 3rd party script is used. No cookie is used. All your local data
-            is stored in Local Storage.</p>
+        <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i> GitHub</a></p>
+        <p>Developer by <a href="www.charles14.xyz">Charles</a></p>
     </div>
 </body>
 

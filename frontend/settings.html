@@ -23,77 +23,27 @@
     <script>
         $(document).ready(function () {
             UpdateSettingsButtons();
-
-            if (localStorage.getItem("settings-theme") == "dark") {
-                $("body").attr("style", "color:#ffffff;background-color:#333333");setInterval(function(){$("#content a,.container a").css("color","#dddddd");},500);
-                $("hr").attr("style", "background-color:#cccccc;");
-                $(".modal-content").attr("style", "background-color:#333333");
-                $(".fa-times").attr("style", "color:white");
-            }
-            $("#book-btn").hover(function () {
-                ShowBook();
-            });
-            $("#content").hover(function () {
-                $("#book-div").fadeOut();
-            });
-            $("#create-book-name").on('keypress', function (e) {
-                if (e.which == 13 || e.which == 13 && e.ctrlKey) {
-                    CreateBook();
-                }
-            });
         });
     </script>
 </head>
 
 <body>
-    <h1 class="title" style="padding-bottom: 0;">My Memo</h1>
+    <h1 class="title" style="padding-bottom: 0;">Settings</h1>
 
     <div id="navigate" style="z-index:100">
         <div class="leftside">
             <div class="sqbtn">
                 <a href="/"><img src="/img/icon.png" style="width:2.2em;height:2.2em"></a>
             </div>
-            <div class="sqbtn">
-                <a id="book-btn" href="#" onclick="window.location.href='/book'"><i class="fa fa-book"></i></a><br>
-            </div>
-            <div class="sqbtn">
-                <a href="#" onclick="window.location.href='/discovery'"><i
-                        class="fa fa-paper-plane"></i></a><br>
-            </div>
         </div>
         <div class="userctrl">
-            <a href='/user'><i class="fa fa-user"></i> <span id="navusername">Sign in&nbsp;&nbsp;  </span></a>
+            <a href='/user'><i class="fa fa-user"></i></a> <span id="navusername"><a href='/user/login'>Sign in</a>&nbsp;&nbsp; </span>
             <a class="only-signed-in" href='#' onclick="UserEvents()" style="display:none"><i class="fa fa-bell"></i></a>
             <a href='#' onclick="window.location.href='/settings'"><i class="fa fa-cogs"></i></a>
             <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i class="fa fa-sign-out"></i></a>
         </div>
     </div>
-
-    <div id="book-div" class="book-side" style="display:none">
-        <div class="book-side-content">
-            <h2 style="float:left">Books</h2>
-            <button type="button" class="btn btn-outline-secondary" style="margin:0.5em" onclick="RefreshBookList()"
-                id="book-list-refresh-btn"><i class="fa fa-refresh"></i></button>
-            <button style="float:right" type="button" class="close" aria-label="Close"
-                onclick="$('#book-div').fadeOut()">
-                <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-            </button>
-
-        </div>
-        <div class="book-side-content-scroll" id="book-list">
-            <div>
-                <p>Create Book: </p>
-                <div class="input-group mb-3 w-75">
-                    <span class="input-group-text" id="basic-addon1">Name</span>
-                    <input type="text" class="form-control" id="create-book-name" aria-describedby="basic-addon1">
-                    <div class="input-group-append">
-                        <button class="btn btn-outline-primary" type="button" onclick="CreateBook()">Create</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    
     <div id="content" class="container">
         <h2>Memo Settings</h2>
         <br>
@@ -167,15 +117,11 @@
     </div>
 
     <div class="footer">
-        <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.15 <i class="fa fa-check-circle"></i></p>
+        <p>Copyright &copy; 2021 My Memo</p>
+        <p>Version: v5.3.16 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
-        <p>This is an open source project:
-            <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>
-                GitHub</a>
-        </p>
-        <p>Your privacy is valued. No 3rd party script is used. No cookie is used. All your local data is stored in
-            Local Storage.</p>
+        <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i> GitHub</a></p>
+        <p>Developer by <a href="www.charles14.xyz">Charles</a></p>
     </div>
 </body>
 

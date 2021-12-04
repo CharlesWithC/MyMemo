@@ -6,6 +6,7 @@ import bcrypt
 import random
 import base64
 import time
+import re
 
 from app import app, config
 import sessions
@@ -38,10 +39,12 @@ def genCode(length = 8):
     ret = ""
     for _ in range(length):
         ret += st[random.randint(0,len(st)-1)]
-    return ret
+    return ret  
 
-def encode(s):
+def encode(s, removeHTMLTag = True):
     try:
+        if removeHTMLTag:
+            s = re.sub("\\<.*?\\>", "<HTML_REMOVED>", s)
         return base64.b64encode(s.encode()).decode()
     except:
         print(f"Unable to encode {s}")

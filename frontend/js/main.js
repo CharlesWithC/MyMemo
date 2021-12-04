@@ -1031,7 +1031,7 @@ function Statistics() {
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="modalLabel">Statistics of ` + memo.question + `</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                            <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
                                 onclick="$('#modal').modal('hide')">
                                 <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                             </button>
@@ -1065,7 +1065,7 @@ function EditQuestionShow() {
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="exampleModalLabel">Edit Question</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
                         onclick="$('#modal').modal('hide')">
                         <span aria-hidden=" true"><i class="fa fa-times"></i></span>
                     </button>

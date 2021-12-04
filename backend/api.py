@@ -19,6 +19,7 @@ import apis.admin
 import apis.question.main
 import apis.book.main
 import apis.group
+import apis.share
 import apis.data
 import apis.discovery
 

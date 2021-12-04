@@ -1,5 +1,22 @@
 # Update History
 
+## v5.3.16
+
+*Date: 2021/12/4*  
+Feature Updates:  
+1.Updated ICON  
+2.Shortening .userctrl when window is too narrow  
+3.Improved UI  
+4.Added new share function which allows up to 20 shares for each book  
+5.Added function at backend to remove HTML tags in string to prevent **XSS attack**  
+
+Other Updates:  
+1.Moved general js code in html files to general.js  
+2.Updated footer (User privacy is still valued, no cookie is used and all data are still stored in local storage)  
+
+Bug Fixes:  
+1.Fixed some bugs on /user by separating user pages to multiple files  
+
 ## v5.3.15
 
 *Date: 2021/11/28*  

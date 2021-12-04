@@ -38,7 +38,7 @@ def apiDiscovery():
     dis = []
     for dd in d:
         if dd[4] == 1:
-            cur.execute(f"SELECT shareCode FROM Book WHERE bookId = {dd[5]}")
+            cur.execute(f"SELECT shareCode FROM BookShare WHERE bookId = {dd[5]} AND shareType = 1")
             if len(cur.fetchall()) == 0:
                 continue
         elif dd[4] == 2:
@@ -78,7 +78,7 @@ def apiDiscovery():
         # get imports / members
         imports = 0
         if dd[4] == 1:
-            cur.execute(f"SELECT importCount FROM Book WHERE userId = {dd[3]} AND bookId = {dd[5]}")
+            cur.execute(f"SELECT importCount FROM BookShare WHERE userId = {dd[3]} AND bookId = {dd[5]} AND shareType = 1")
             t = cur.fetchall()
             if len(t) > 0:
                 imports = t[0][0]
@@ -164,13 +164,13 @@ def apiDiscoveryData(discoveryId):
     # Do not clear discovery status as publisher may just want to close it temporarily
     shareCode = ""
     if distype == 1:
-        cur.execute(f"SELECT shareCode FROM Book WHERE userId = {uid} AND bookId = {bookId}")
+        cur.execute(f"SELECT shareCode FROM BookShare WHERE userId = {uid} AND bookId = {bookId} AND shareType = 1")
         t = cur.fetchall()
         if len(t) != 0:
             shareCode = "!"+t[0][0]
 
         if shareCode == "":
-            return json.dumps({"success": False, "msg": "Book not shared! Maybe the publisher just closed it temporarily."})
+            return json.dumps({"success": False, "msg": "Book not found!"})
 
     elif distype == 2:
         cur.execute(f"SELECT groupCode FROM GroupInfo WHERE groupId = {bookId}")
@@ -235,7 +235,7 @@ def apiDiscoveryData(discoveryId):
     # get imports / members
     imports = 0
     if distype == 1:
-        cur.execute(f"SELECT importCount FROM Book WHERE userId = {uid} AND bookId = {bookId}")
+        cur.execute(f"SELECT importCount FROM BookShare WHERE userId = {dd[3]} AND bookId = {dd[5]} AND shareType = 1")
         t = cur.fetchall()
         if len(t) > 0:
             imports = t[0][0]
@@ -296,13 +296,24 @@ def apiDiscoveryPublish():
     # get share code
     shareCode = ""
     if distype == 1:
-        cur.execute(f"SELECT shareCode FROM Book WHERE userId = {userId} AND bookId = {bookId}")
+        cur.execute(f"SELECT shareCode FROM BookShare WHERE userId = {userId} AND bookId = {bookId} AND shareType = 1")
         t = cur.fetchall()
-        if len(t) != 0:
-            shareCode = "!"+t[0][0]
+        if len(t) == 0:
+            shareCode = genCode(8)
+            cur.execute(f"SELECT shareCode FROM BookShare WHERE shareCode = '{shareCode}'")
+            if len(cur.fetchall()) != 0: # conflict
+                for _ in range(30):
+                    shareCode = genCode(8)
+                    cur.execute(f"SELECT shareCode FROM BookShare WHERE shareCode = '{shareCode}'")
+                    if len(cur.fetchall()) == 0:
+                        break
+                cur.execute(f"SELECT shareCode FROM BookShare WHERE shareCode = '{shareCode}'")
+                if len(cur.fetchall()) != 0:
+                    return json.dumps({"success": False, "msg": "Unable to generate an unique share code..."})
 
-        if shareCode == "":
-            return json.dumps({"success": False, "msg": "Book must be shared first before publishing it on Discovery!"})
+            cur.execute(f"INSERT INTO BookShare VALUES ({userId}, {bookId}, '{shareCode}', 0, {int(time.time())}, 1)")
+            conn.commit()
+            shareCode = "!" + shareCode
 
     elif distype == 2:
         groupId = bookId
@@ -353,9 +364,12 @@ def apiDiscoveryUnpublish():
     
     discoveryId = int(request.form["discoveryId"])
 
-    cur.execute(f"SELECT * FROM Discovery WHERE discoveryId = {discoveryId}")
-    if len(cur.fetchall()) == 0:
-        return json.dumps({"success": False, "msg": "Book not published!"})
+    cur.execute(f"SELECT publisherId, bookId FROM Discovery WHERE discoveryId = {discoveryId}")
+    t = cur.fetchall()
+    if len(t) == 0:
+        return json.dumps({"success": False, "msg": "Post not found!"})
+    uid = t[0][0]
+    bookId = t[0][1]
     
     # allow admin to unpublish
     cur.execute(f"SELECT userId FROM AdminList WHERE userId = {userId}")
@@ -369,9 +383,10 @@ def apiDiscoveryUnpublish():
             return json.dumps({"success": False, "msg": "You are not the publisher of this post!"})
 
     cur.execute(f"DELETE FROM Discovery WHERE discoveryId = {discoveryId}")
+    cur.execute(f"DELETE FROM BookShare WHERE userId = {uid} AND bookId = {bookId} AND shareType = 1")
     conn.commit()
 
-    return json.dumps({"success": True, "msg": "Book unpublished!"})
+    return json.dumps({"success": True, "msg": "Post unpublished!"})
 
 @app.route("/api/discovery/update", methods = ['POST'])
 def apiDiscoveryUpdate():
@@ -477,7 +492,7 @@ def apiDiscoveryLike():
     cur.execute(f"SELECT publisherId, bookId FROM Discovery WHERE discoveryId = {discoveryId}")
     d = cur.fetchall()
     if len(d) == 0:
-        return json.dumps({"success": False, "msg": "Book not found!"})
+        return json.dumps({"success": False, "msg": "Post not found!"})
     
     cur.execute(f"SELECT * FROM DiscoveryLike WHERE discoveryId = {discoveryId} AND userId = {userId} AND likes = 1")
     if len(cur.fetchall()) != 0:

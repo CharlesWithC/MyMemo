@@ -40,14 +40,8 @@
             $("#th-pin").before("<th width='0.2em'></th>")
             $("#th-pin").remove();
 
-            $("#discoveryList_length").after('<div id="qf" class="dataTables_filter input-group mb-3">\
-                <span class="input-group-text" id="basic-addon1">Search</span>\
-            </div>');
-            $("#discoveryList_filter > label > input").addClass("form-control");
-            $("#discoveryList_filter > label > input").appendTo("#qf");
-            $("#discoveryList_filter").attr("id", "qqf");
-            $("#qf").attr("id", "discoveryList_filter");
-            $("#qqf").remove();
+            MDTSB("discoveryList");
+
             setInterval(function () {
                 $("#discoveryList").css("width", "");
             }, 100);
@@ -56,56 +50,12 @@
                 pagingType: "full_numbers"
             });
 
-            $("#questionList_length").after('<div id="qf" class="dataTables_filter input-group mb-3">\
-                <span class="input-group-text" id="basic-addon1">Search</span>\
-            </div>');
-            $("#questionList_filter > label > input").addClass("form-control");
-            $("#questionList_filter > label > input").appendTo("#qf");
-            $("#questionList_filter").attr("id", "qqf");
-            $("#qf").attr("id", "questionList_filter");
-            $("#qqf").remove();
+            MDTSB("questionList");
+
             setInterval(function () {
                 $("#questionList").css("width", "");
             }, 100);
 
-            if (localStorage.getItem("settings-theme") == "dark") {
-                $("body").attr("style", "color:#ffffff;background-color:#333333");setInterval(function(){$("#content a,.container a").css("color","#dddddd");},500);
-                $("hr").attr("style", "background-color:#cccccc;");
-                $("textarea").attr("style", "color:#ffffff;background-color:#333333");
-                $(".modal-content").attr("style", "background-color:#333333");
-                $(".fa-times").attr("style", "color:white");
-                $("#discoveryList_length").attr("style", "color:white");
-                $("#questionList_length").attr("style", "color:white");
-
-                setInterval(function () {
-                    $("td").attr("style", "background-color:#333333");
-                    $("#discoveryList_paginate > a").attr("style", "background-color:#d3d3d3");
-                    $("#discoveryList_paginate > span > a").attr("style", "background-color:#d3d3d3");
-                    $("#discoveryList_paginate > span > span").removeClass("ellipsis");
-                    $("#discoveryList_paginate > span > span").addClass("paginate_button");
-                    $("#discoveryList_paginate > span > span").css("style", "background-color:#d3d3d3");
-
-                    $("#questionList_paginate > a").attr("style", "background-color:#d3d3d3");
-                    $("#questionList_paginate > span > a").attr("style", "background-color:#d3d3d3");
-                    $("#questionList_paginate > span > span").removeClass("ellipsis");
-                    $("#questionList_paginate > span > span").addClass("paginate_button");
-                    $("#questionList_paginate > span > span").css("style", "background-color:#d3d3d3");
-                }, 100);
-            } else {
-                $("textarea").attr("style", "z-index:100;color:#000000;background-color:#ffffff");
-            }
-
-            $("#book-btn").hover(function () {
-                ShowBook();
-            });
-            $("#content").hover(function () {
-                $("#book-div").fadeOut();
-            });
-            $("#create-book-name").on('keypress', function (e) {
-                if (e.which == 13 || e.which == 13 && e.ctrlKey) {
-                    CreateBook();
-                }
-            });
             $("#discovery-title,#discovery-description").on('keypress', function (e) {
                 if (e.which == 13 && e.ctrlKey) {
                     UpdateInformation();
@@ -113,68 +63,53 @@
             });
 
             PageInit();
+
+            setInterval(function () {
+                if (window.innerWidth < 1200) {
+                    $("#qlist").css("width", "100%");
+                    $("#manage").css("margin-top", "2em");
+                    $("#manage").css("margin-left", "0");
+                    $("#manage").css("width", "100%");
+                } else {
+                    $("#qlist").css("width", "55%");
+                    $("#manage").css("margin-top", "0em");
+                    $("#manage").css("margin-left", "4em");
+                    $("#manage").css("width", "35%");
+                }
+            }, 50);
         });
     </script>
 </head>
 
 <body>
-    <h1 class="title" style="padding-bottom: 0;">Discovery &nbsp;&nbsp;<button type="button"
-            class="btn btn-outline-secondary" onclick="RefreshDiscovery()" id="refresh-btn"><i
-                class="fa fa-refresh"></i></button></h1>
-
     <div id="navigate" style="z-index:100">
         <div class="leftside">
             <div class="sqbtn">
                 <a href="/"><img src="/img/icon.png" style="width:2.2em;height:2.2em"></a>
             </div>
-            <div class="sqbtn">
-                <a id="book-btn" href="#" onclick="window.location.href='/book'"><i class="fa fa-book"></i></a><br>
-            </div>
-            <div class="sqbtn">
-                <a href="#" onclick="window.location.href='/discovery'"><i
-                        class="fa fa-paper-plane"></i></a><br>
-            </div>
         </div>
         <div class="userctrl">
-            <a href='/user'><i class="fa fa-user"></i> <span id="navusername">Sign in&nbsp;&nbsp;  </span></a>
-            <a class="only-signed-in" href='#' onclick="UserEvents()" style="display:none"><i class="fa fa-bell"></i></a>
+            <a href='/user'><i class="fa fa-user"></i></a> <span id="navusername"><a href='/user/login'>Sign
+                    in</a>&nbsp;&nbsp; </span>
+            <a class="only-signed-in" href='#' onclick="UserEvents()" style="display:none"><i
+                    class="fa fa-bell"></i></a>
             <a href='#' onclick="window.location.href='/settings'"><i class="fa fa-cogs"></i></a>
-            <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i class="fa fa-sign-out"></i></a>
-        </div>
-    </div>
-
-    <div id="book-div" class="book-side" style="display:none">
-        <div class="book-side-content">
-            <h2 style="float:left">Books</h2>
-            <button type="button" class="btn btn-outline-secondary" style="margin:0.5em" onclick="RefreshBookList()"
-                id="book-list-refresh-btn"><i class="fa fa-refresh"></i></button>
-            <button style="float:right" type="button" class="close" aria-label="Close"
-                onclick="$('#book-div').fadeOut()">
-                <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-            </button>
-
-        </div>
-        <div class="book-side-content-scroll" id="book-list">
-            <div>
-                <p>Create Book: </p>
-                <div class="input-group mb-3 w-75">
-                    <span class="input-group-text" id="basic-addon1">Name</span>
-                    <input type="text" class="form-control" id="create-book-name" aria-describedby="basic-addon1">
-                    <div class="input-group-append">
-                        <button class="btn btn-outline-primary" type="button" onclick="CreateBook()">Create</button>
-                    </div>
-                </div>
-            </div>
+            <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i
+                    class="fa fa-sign-out"></i></a>
         </div>
     </div>
 
     <div id="content" class="container">
+        <h1 class="title" style="padding-bottom: 0;">Discovery &nbsp;&nbsp;<button type="button"
+                class="btn btn-outline-secondary" onclick="RefreshDiscovery()" id="refresh-btn"><i
+                    class="fa fa-refresh"></i></button></h1>
+
         <div class="discovery-list container">
             <div id="top-post" style="position:relative;display:none;z-index:100">
                 <h2 id="top-post-h2">Top Post</h2>
             </div>
             <div style="position:relative">
-                <table class="table" id="discoveryList" style="text-align:center">
+                <table class="table table-hover" id="discoveryList" style="text-align:center">
                     <thead>
                         <tr>
                             <th id="th-pin"></th>
@@ -192,8 +127,8 @@
         </div>
 
         <div class="discovery-detail container" style="display:none">
-            <div style="position:relative;width:55%;float:left">
-                <table class="table" id="questionList" style="text-align:center">
+            <div id="qlist" class="subcontainer" style="position:relative;width:55%;float:left">
+                <table class="table table-hover" id="questionList" style="text-align:center">
                     <thead>
                         <tr>
                             <th id="question">Question</th>
@@ -205,7 +140,8 @@
                 </table>
             </div>
 
-            <div id="manage" class="manage" style="position:relative;width:35%;float:right">
+            <div class="subcontainer" id="manage" class="manage"
+                style="position:relative;width:35%;float:left;margin-left:4em">
                 <div id="basic-info">
                     <p>Description: <span id="detail-description"></span></p>
                     <p>Published by <span id="detail-publisher"></span></p>
@@ -241,15 +177,11 @@
     </div>
 
     <div class="footer">
-        <p>Copyright &copy; 2021 My Memo by <a href="https://www.charles14.xyz/">Charles</a></p>
-        <p>Version: v5.3.15 <i class="fa fa-check-circle"></i></p>
+        <p>Copyright &copy; 2021 My Memo</p>
+        <p>Version: v5.3.16 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
-        <p>This is an open source project:
-            <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i>
-                GitHub</a>
-        </p>
-        <p>Your privacy is valued. No 3rd party script is used. No cookie is used. All your local data is stored in
-            Local Storage.</p>
+        <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i> GitHub</a></p>
+        <p>Developer by <a href="www.charles14.xyz">Charles</a></p>
     </div>
 </body>
 

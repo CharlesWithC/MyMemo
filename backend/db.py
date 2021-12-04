@@ -54,7 +54,7 @@ elif config["database"] == "mysql":
     conn = MySQLdb.connect(host = host, user = user, passwd = passwd, db = dbname)
     cur = conn.cursor()
     cur.execute(f"SHOW TABLES")
-    if len(cur.fetchall()) != 27:
+    if len(cur.fetchall()) != 28:
         doinit = True
     
     app.config['MYSQL_HOST'] = host
@@ -168,10 +168,13 @@ if doinit:
 
     ########## NOTE: Tables related to books
 
-    cur.execute(f"CREATE TABLE Book (userId INT, bookId INT, name VARCHAR(256), progress INT, shareCode VARCHAR(8), importCount INT)")
+    cur.execute(f"CREATE TABLE Book (userId INT, bookId INT, name VARCHAR(256), progress INT)")
     cur.execute(f"CREATE TABLE BookData (userId INT, bookId INT, questions TEXT, page INT)")
+    cur.execute(f"CREATE TABLE BookShare (userId INT, bookId INT, shareCode VARCHAR(8), importCount INT, createTS INT, shareType INT)")
     # When a new question is added, it belongs to no book
     # A question can belong to many books
+    # ShareType = 0: User added | 1: Discovery
+    # Only ShareType = 0 will be displayed on share list
 
     ########## NOTE: Tables related to groups
 
