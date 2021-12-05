@@ -6,6 +6,7 @@ import MySQLdb # Install MySQLdb using `apt install python3-mysqldb`
 import sqlite3
 import os, sys, json
 import getpass
+import bcrypt, base64, random, re
 
 from app import app
 
@@ -72,7 +73,7 @@ elif config["database"] == "mysql":
     conn = MySQLdb.connect(host = host, user = user, passwd = passwd, db = dbname)
     cur = conn.cursor()
     cur.execute(f"SHOW TABLES")
-    if len(cur.fetchall()) != 29:
+    if len(cur.fetchall()) != 33:
         doinit = True
     
     app.config['MYSQL_HOST'] = host
@@ -86,6 +87,8 @@ else:
     sys.exit(0)
 
 def newconn():
+    config_txt = open("./config.json","r").read()
+    config = json.loads(config_txt)
     if config["database"] == "sqlite":            
         conn = sqlite3.connect("database.db", check_same_thread = False)
     elif config["database"] == "mysql":
@@ -121,6 +124,10 @@ if doinit:
     cur.execute(f"CREATE TABLE UserInfo (userId INT, username VARCHAR(256), bio TEXT, email VARCHAR(128), password VARCHAR(256), inviter INT, inviteCode CHAR(8), goal INT)")
     # encode username
     # Allow only inviting registration mode to prevent abuse
+    cur.execute(f"CREATE TABLE UserPending (username VARCHAR(256), email VARCHAR(128), password VARCHAR(256), inviter INT, token CHAR(64), expire INT)")
+    cur.execute(f"CREATE TABLE PendingEmailChange (userId INT, email VARCHAR(128), token CHAR(60), expire INT)")
+    cur.execute(f"CREATE TABLE PendingPasswordRecovery (userId INT, token CHAR(60), timestamp INT)")
+    cur.execute(f"CREATE TABLE EmailHistory (userId INT, email VARCHAR(128), updateTS INT)")
     cur.execute(f"CREATE TABLE UserNameTag (userId INT, tag VARCHAR(32), tagtype VARCHAR(32))")
     # tag: encoded text, like 'Owner'
     # tagtype: tag color

@@ -4,7 +4,7 @@
 
 from flask import request, abort
 import os, sys, time, datetime, math
-import json
+import json, uuid
 import validators
 import threading
 
@@ -12,6 +12,7 @@ from app import app, config
 from db import newconn
 from functions import *
 import sessions
+from emailop import sendVerification, sendNormal
 
 ##########
 # Admin API
@@ -205,30 +206,15 @@ def apiAdminCommand():
                 return json.dumps({"success": False, "msg": "Email has already been registered!"})
 
         password = hashpwd(password)
-
-        inviteCode = genCode()
-
-        uid = 1
-        try:
-            cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 1")
-            t = cur.fetchall()
-            if len(t) > 0:
-                uid = t[0][0]
-            cur.execute(f"UPDATE IDInfo SET nextId = {uid + 1} WHERE type = 1")
-
-            if len(username) >= 256:
-                return json.dumps({"success": False, "msg": "Username too long!"})
-
-            cur.execute(f"INSERT INTO UserInfo VALUES ({uid}, '{username}', '', '{email}', '{encode(password)}', {inviter}, '{inviteCode}', 99999)")
-            conn.commit()
-        except:
-            sessions.errcnt += 1
-            return json.dumps({"success": False, "msg": "Unknown error occured. Try again later..."})
-
-        cur.execute(f"INSERT INTO UserEvent VALUES ({uid}, 'register', {int(time.time())}, '{encode('Birth of account')}')")
+        
+        token = str(uuid.uuid4())
+        threading.Thread(target=sendVerification,args=(email, decode(username), "Account activation", \
+            f"Welcome {decode(username)}! Please verify your email to activate your account!", "20 minutes", \
+                "https://memo.charles14.xyz/user/activate?token="+token, )).start()
+        cur.execute(f"INSERT INTO UserPending VALUES ('{username}', '{email}', '{encode(password)}', {inviter}, '{token}', {int(time.time() + 1200)})")
         conn.commit()
-
-        return json.dumps({"success": True, "msg": f"User registered (UID: {uid})"})
+        
+        return json.dumps({"success": True, "msg": f"User registered but pending email verification!"})
     
     elif command[0] == "delete_user":
         if len(command) != 2:
@@ -572,6 +558,41 @@ def apiAdminCommand():
         cnt -= marked_deletion
         
         return json.dumps({"success": True, "msg": f"Total user: {tot}\nActive user: {cnt - deled}\nBanned / Banned & Deleted user: {banned}\nDisabled (Pending deletion) user: {marked_deletion}\nDeleted user: {deled}"})
+
+    elif command[0] == "revert_email_change":
+        if len(command) != 3:
+            return json.dumps({"success": False, "msg": "Usage: revert_email_change [userId] [old email]\nHelp user revert their email to [old email] only if they have used that old email. | Note that you should let user send an email with old email to you for verification."})
+        
+        uid = int(command[1])
+        email = command[2]
+
+        if validators.email(email) != True or "'" in email:
+            return json.dumps({"success": False, "msg": "Invalid email!"})
+        
+        cur.execute(f"SELECT updateTS FROM EmailHistory WHERE userId = {uid} ORDER BY updateTS DESC LIMIT 1")
+        t = cur.fetchall()
+        if len(t) > 0:
+            updateTS = t[0][0]
+            if int(time.time()) - updateTS >= 86400 * 7:
+                return json.dumps({"success": False, "msg": "You cannot revert email changes before 7 days! Contact super administrator for help!"})
+
+        cur.execute(f"SELECT email FROM EmailHistory WHERE userId = {uid} AND email = '{email.lower()}'")
+        if len(cur.fetchall()) == 0:
+            return json.dumps({"success": False, "msg": f"User hasn't used {email} before!"})
+        
+        cur.execute(f"SELECT username FROM UserInfo WHERE userId = {uid}")
+        t = cur.fetchall()
+        if len(t) == 0:
+            return json.dumps({"success": False, "msg": f"User not found!"})
+        username = t[0][0]
+        token = str(uid).zfill(9) + "-" + str(uuid.uuid4())
+        threading.Thread(target=sendVerification,args=(email, decode(username), "Email update verification", \
+            f"You are changing your email address to {email}. Please open the link to verify this new address.", "10 minutes", \
+                "https://memo.charles14.xyz/verify?type=changeemail&token="+token, )).start()
+        cur.execute(f"INSERT INTO PendingEmailChange VALUES ({uid}, '{email}', '{token}', {int(time.time()+600)})")
+        conn.commit()
+
+        return json.dumps({"success": True, "msg": "Email revert operation submitted! User need to open the inbox and verify the link."})
 
     elif command[0] == "restart":
         if os.path.exists("/tmp/MyMemoLastManualRestart"):

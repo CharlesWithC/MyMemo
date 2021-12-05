@@ -3,7 +3,8 @@
 # License: GNU General Public License v3.0
 
 from flask import request, abort
-import os, sys, time, math
+import os, sys, time, math, uuid
+import threading
 import json
 import validators
 
@@ -11,6 +12,7 @@ from app import app, config
 from db import newconn
 from functions import *
 import sessions
+from emailop import sendVerification, sendNormal
 
 ##########
 # User API
@@ -36,8 +38,8 @@ def apiRegister():
     password = request.form["password"]
     invitationCode = request.form["invitationCode"]
 
-    if username is None or email is None or password is None or invitationCode is None \
-        or username.replace(" ","") == "" or email.replace(" ","") == "" or password.replace(" ","") == "" or invitationCode.replace(" ","") == "":
+    if username is None or email is None or password is None \
+        or username.replace(" ","") == "" or email.replace(" ","") == "" or password.replace(" ","") == "":
         return json.dumps({"success": False, "msg": "Username and email must be filled!"})
     if " " in username or "(" in username or ")" in username or "[" in username or "]" in username or "{" in username or "}" in username \
         or "<" in username or ">" in username \
@@ -46,9 +48,27 @@ def apiRegister():
     username = encode(username)
     if validators.email(email) != True:
         return json.dumps({"success": False, "msg": "Invalid email!"})
-    if not invitationCode.isalnum():
+    if invitationCode != "" and not invitationCode.isalnum():
         return json.dumps({"success": False, "msg": "Invitation code can only contain alphabets and digits!"})
-        
+    
+    cur.execute(f"DELETE FROM UserPending WHERE expire < {int(time.time())}")
+    conn.commit()
+    cur.execute(f"SELECT username, email FROM UserPending")
+    t = cur.fetchall()
+    for tt in t:
+        if decode(tt[0]).lower() == decode(username).lower():
+            return json.dumps({"success": False, "msg": "Username has been occupied!"})
+        if tt[1].lower() == email.lower():
+            return json.dumps({"success": False, "msg": "Email has already been registered!"})
+
+    cur.execute(f"DELETE FROM PendingEmailChange WHERE expire < {int(time.time())}")
+    conn.commit()
+    cur.execute(f"SELECT email FROM PendingEmailChange")
+    t = cur.fetchall()
+    for tt in t:
+        if tt[0].lower() == email.lower():
+            return json.dumps({"success": False, "msg": "Email has already been registered!"})
+
     cur.execute(f"SELECT username, email FROM UserInfo")
     t = cur.fetchall()
     for tt in t:
@@ -73,6 +93,46 @@ def apiRegister():
             inviterUsername = decode(t[0][0])
         if inviterUsername == "@deleted" or inviter < 0: # inviter < 0 => account banned
             return json.dumps({"success": False, "msg": "Invalid invitation code!"})
+    
+    if len(username) >= 256:
+        return json.dumps({"success": False, "msg": "Username too long!"})
+    if len(email) >= 128:
+        return json.dumps({"success": False, "msg": "Email too long!"})
+
+    token = str(uuid.uuid4())
+    threading.Thread(target=sendVerification,args=(email, decode(username), "Account activation", \
+        f"Welcome {decode(username)}! Please verify your email to activate your account!", "20 minutes", \
+            "https://memo.charles14.xyz/user/activate?token="+token, )).start()
+    cur.execute(f"INSERT INTO UserPending VALUES ('{username}', '{email}', '{encode(password)}', {inviter}, '{token}', {int(time.time() + 1200)})")
+    
+    return json.dumps({"success": True, "msg": "Account registered, but pending activation! \
+        Check your email and open the verification link to activate your account! \
+        The link expires in 20 minutes. After that your account will be removed and you need to register again!"})
+
+@app.route("/api/user/activate", methods = ['POST'])
+def apiActivate():
+    conn = newconn()
+    cur = conn.cursor()
+
+    token = request.form["token"]
+    token = token
+    if token == "" or not token.replace("-","").replace("_","").isalnum():
+        return json.dumps({"success": False, "msg": "Invalid or expired activation token!"})
+
+    cur.execute(f"SELECT username, email, password, inviter, expire FROM UserPending WHERE token = '{token}'")
+    t = cur.fetchall()
+    if len(t) == 0:
+        return json.dumps({"success": False, "msg": "Invalid or expired activation token!"})
+    
+    if t[0][4] <= int(time.time()):
+        cur.execute(f"DELETE FROM UserPending WHERE token = '{token}'")
+        conn.commit()
+        return json.dumps({"success": False, "msg": "Activation token expired! Please register again!"})
+    
+    username = t[0][0]
+    email = t[0][1]
+    password = t[0][2]
+    inviter = t[0][3]
 
     inviteCode = genCode(8)
 
@@ -84,27 +144,25 @@ def apiRegister():
             userId = t[0][0]
         cur.execute(f"UPDATE IDInfo SET nextId = {userId + 1} WHERE type = 1")
 
-        if len(username) >= 256:
-            return json.dumps({"success": False, "msg": "Username too long!"})
-        if len(email) >= 128:
-            return json.dumps({"success": False, "msg": "Email too long!"})
-
-        cur.execute(f"INSERT INTO UserInfo VALUES ({userId}, '{username}', '', '{email}', '{encode(password)}', {inviter}, '{inviteCode}', 99999)")
+        cur.execute(f"INSERT INTO UserInfo VALUES ({userId}, '{username}', '', '{email}', '{password}', {inviter}, '{inviteCode}', 99999)")
         conn.commit()
     except:
         sessions.errcnt += 1
         return json.dumps({"success": False, "msg": "Unknown error occured. Try again later..."})
+
+    cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'register', {int(time.time())}, '{encode('Birth of account')}')")
     
     if userId == 1: # block default user and add the user to admin list
         cur.execute(f"UPDATE UserInfo SET email = 'disabled' WHERE userId = 0")
         cur.execute(f"UPDATE UserInfo SET inviteCode = '' WHERE userId = 0")
         cur.execute(f"INSERT INTO AdminList VALUES ({userId})")
         cur.execute(f"INSERT INTO UserNameTag VALUES ({userId}, '{encode('root')}', 'purple')")
-
-    cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'register', {int(time.time())}, '{encode('Birth of account')}')")
+    
+    cur.execute(f"DELETE FROM UserPending WHERE token = '{token}'")
+    cur.execute(f"INSERT INTO EmailHistory VALUES ({userId}, '{email}', {int(time.time())})")
     conn.commit()
 
-    return json.dumps({"success": True, "msg": "You are registered! Now you can login!"})
+    return json.dumps({"success": True, "msg": "Account activated!"})
 
 @app.route("/api/user/login", methods = ['POST'])
 def apiLogin():
@@ -112,6 +170,11 @@ def apiLogin():
     cur = conn.cursor()
     username = encode(request.form["username"])
     password = request.form["password"]
+
+    cur.execute(f"SELECT token, expire FROM UserPending WHERE username = '{username}'")
+    t = cur.fetchall()
+    if len(t) > 0:
+        return json.dumps({"success": False, "msg": "Please verify your email to activate your account!"})
     
     d = [-1]
     try:
@@ -212,6 +275,86 @@ def apiLogoutAll():
 
     return json.dumps({"success": ret})
 
+@app.route("/api/user/requestResetPassword", methods = ['POST'])
+def apiRequestResetPassword():
+    conn = newconn()
+    cur = conn.cursor()
+    email = request.form["email"]
+
+    cur.execute(f"DELETE FROM PendingPasswordRecovery WHERE timestamp <= {int(time.time()) - 600}")
+    conn.commit()
+
+    cur.execute(f"SELECT userId, username FROM UserInfo WHERE email = '{email}'")
+    d = cur.fetchall()
+    if len(d) != 0:
+        userId = d[0][0]
+
+        cur.execute(f"SELECT timestamp FROM PendingPasswordRecovery WHERE userId = {userId}")
+        t = cur.fetchall()
+        if len(t) > 0:
+            return json.dumps({"success": True, "msg": "An email containing password reset link will be sent if there is an user registered with this email!"})
+
+    if validators.email(email) == True and not "'" in email:
+        cur.execute(f"SELECT userId, username FROM UserInfo WHERE email = '{email}'")
+        d = cur.fetchall()
+        if len(d) != 0:
+            userId = d[0][0]
+            username = d[0][1]
+            
+            token = str(userId).zfill(9) + "-" + str(uuid.uuid4())
+            threading.Thread(target=sendVerification,args=(email, decode(username), "Password recovery", \
+                f"You are recovering your password. Open the link below to continue!<br>If you didn't request that, simply ignore this email and your account will be safe.", "10 minutes", \
+                    "https://memo.charles14.xyz/user/reset?token="+token, )).start()
+            cur.execute(f"INSERT INTO PendingPasswordRecovery VALUES ({userId}, '{token}', {int(time.time()+600)})")
+            conn.commit()
+            
+        return json.dumps({"success": True, "msg": "An email containing password reset link will be sent if there is an user registered with this email!"})
+
+    else:
+        return json.dumps({"success": False, "msg": "Incorrect email address!"})
+
+@app.route("/api/user/resetPassword", methods = ['POST'])
+def apiResetPassword():
+    conn = newconn()
+    cur = conn.cursor()
+    token = request.form['token']
+    
+    cur.execute(f"DELETE FROM PendingPasswordRecovery WHERE timestamp <= {int(time.time()) - 600}")
+    conn.commit()
+
+    token = request.form["token"]
+    token = token
+    
+    if token == "" or not token.replace("-","").replace("_","").isalnum():
+        return json.dumps({"success": False, "msg": "Invalid or expired verification token!"})
+
+    cur.execute(f"SELECT userId FROM PendingPasswordRecovery WHERE token = '{token}'")
+    t = cur.fetchall()
+    if len(t) == 0:
+        return json.dumps({"success": False, "msg": "Invalid or expired verification token!"})
+    
+    if 'validate' in request.form.keys():
+        return json.dumps({"success": True})
+
+    userId = t[0][0]
+
+    newpwd = request.form['newpwd']
+
+    newhashed = hashpwd(newpwd)
+
+    cur.execute(f"DELETE FROM PendingPasswordRecovery WHERE token = '{token}'")
+    cur.execute(f"UPDATE UserInfo SET password = '{encode(newhashed)}' WHERE userId = {userId}")
+    conn.commit()
+
+    cur.execute(f"SELECT username, email FROM UserInfo WHERE userId = {userId}")
+    t = cur.fetchall()
+    username = t[0][0]
+    email = t[0][1]
+
+    threading.Thread(target=sendNormal, args=(email, username, "Password updated", f"Your password has been updated. If you didn't do this, reset your password immediately!")).start()
+
+    return json.dumps({"success": True, "msg": "Password updated!"})
+
 @app.route("/api/user/delete", methods = ['POST'])
 def apiDeleteAccount():
     conn = newconn()
@@ -274,6 +417,14 @@ def apiGetUserInfo():
     d = list(d)
     d[0] = decode(d[0])
     d[4] = decode(d[4])
+    email = d[1]
+
+    cur.execute(f"DELETE FROM PendingEmailChange WHERE expire < {int(time.time())}")
+    conn.commit()
+    cur.execute(f"SELECT email FROM PendingEmailChange WHERE userId = {userId}")
+    t = cur.fetchall()
+    if len(t) > 0:
+        email = email + " -> " + t[0][0] + " (Not verified)"
 
     inviter = 0
     cur.execute(f"SELECT username FROM UserInfo WHERE userId = {d[3]}")
@@ -331,7 +482,7 @@ def apiGetUserInfo():
             elif int(lst/86400) - int(tt[0]/86400) > 1:
                 break
 
-    return json.dumps({"username": username, "bio": d[4], "email": d[1], "invitationCode": d[2], "inviter": inviter, "age": age, "isAdmin": isAdmin, \
+    return json.dumps({"username": username, "bio": d[4], "email": email, "invitationCode": d[2], "inviter": inviter, "age": age, "isAdmin": isAdmin, \
         "goal": goal, "chtoday": chtoday, "checkin_today": checkin_today, "checkin_continuous": checkin_continuous})
 
 @app.route("/api/user/goal", methods = ['POST'])
@@ -626,23 +777,76 @@ def apiUpdateInfo():
         return json.dumps({"success": False, "msg": "Invalid email!"})
     bio = encode(bio)
     
-    cur.execute(f"SELECT * FROM UserInfo WHERE username = '{username}' AND userId != {userId}")
-    if len(cur.fetchall()) != 0:
-        return json.dumps({"success": False, "msg": "Username occupied!"})
+    cur.execute(f"SELECT username, email, userId FROM UserInfo")
+    t = cur.fetchall()
+    for tt in t:
+        if tt[2] == userId:
+            continue
+        if decode(tt[0]).lower() == decode(username).lower():
+            return json.dumps({"success": False, "msg": "Username has been occupied!"})
+        if tt[1].lower() == email.lower():
+            return json.dumps({"success": False, "msg": "Email has already been registered!"})
     
-    if len(encode(username)) >= 256:
+    if len(username) >= 256:
         return json.dumps({"success": False, "msg": "Username too long!"})
-    if len(encode(bio)) >= 4096:
+    if len(bio) >= 4096:
         return json.dumps({"success": False, "msg": "Bio too long!"})
-    if len(encode(email)) >= 128:
+    if len(email) >= 128:
         return json.dumps({"success": False, "msg": "Email too long!"})
-
+    
     cur.execute(f"UPDATE UserInfo SET username = '{username}' WHERE userId = {userId}")
     cur.execute(f"UPDATE UserInfo SET bio = '{bio}' WHERE userId = {userId}")
-    cur.execute(f"UPDATE UserInfo SET email = '{email}' WHERE userId = {userId}")
     conn.commit()
 
-    return json.dumps({"success": True, "msg": "User profile updated!"})
+    cur.execute(f"SELECT email FROM UserInfo WHERE userId = {userId}")
+    t = cur.fetchall()
+    if len(t) > 0 and t[0][0].lower() != email.lower():
+        token = str(userId).zfill(9) + "-" + str(uuid.uuid4())
+        threading.Thread(target=sendVerification,args=(email, decode(username), "Email update verification", \
+            f"You are changing your email address to {email}. Please open the link to verify this new address.", "10 minutes", \
+                "https://memo.charles14.xyz/verify?type=changeemail&token="+token, )).start()
+        cur.execute(f"INSERT INTO PendingEmailChange VALUES ({userId}, '{email}', '{token}', {int(time.time()+600)})")
+        return json.dumps({"success": True, "msg": "User profile updated, but email is not updated! \
+            Please check the inbox of the new email and open the link in it to verify it!"})
+    else:
+        cur.execute(f"UPDATE UserInfo SET email = '{email}' WHERE userId = {userId}") # maybe capital case changes
+        return json.dumps({"success": True, "msg": "User profile updated!"})
+
+@app.route("/api/user/changeemail/verify", methods = ['POST'])
+def apiChangeEmailVerify():
+    conn = newconn()
+    cur = conn.cursor()
+
+    token = request.form["token"]
+    token = token
+    
+    if token == "" or not token.replace("-","").replace("_","").isalnum():
+        return json.dumps({"success": False, "msg": "Invalid or expired verification token!"})
+
+    cur.execute(f"SELECT userId, email, expire FROM PendingEmailChange WHERE token = '{token}'")
+    t = cur.fetchall()
+    if len(t) == 0:
+        return json.dumps({"success": False, "msg": "Invalid or expired verification token!"})
+    
+    if t[0][2] <= int(time.time()):
+        cur.execute(f"DELETE FROM PendingEmailChange WHERE token = '{token}'")
+        conn.commit()
+        return json.dumps({"success": False, "msg": "Verification token expired! Please register again!"})
+    
+    userId = t[0][0]
+    newEmail = t[0][1]
+    cur.execute(f"SELECT username, email FROM UserInfo WHERE userId = {userId}")
+    t = cur.fetchall()
+    if len(t) > 0:
+        username = t[0][0]
+        oldEmail = t[0][1]
+        threading.Thread(target=sendNormal, args=(oldEmail, username, "Email updated", f"Your email has been updated to {newEmail}. If you didn't do this, please send an email to memo@charles14.xyz immediately for support!")).start()
+    cur.execute(f"INSERT INTO EmailHistory VALUES ({userId}, '{newEmail.lower()}', {int(time.time())})")
+    cur.execute(f"UPDATE UserInfo SET email = '{newEmail}' WHERE userId = {userId}")
+    cur.execute(f"DELETE FROM PendingEmailChange WHERE token = '{token}'")
+    conn.commit()
+
+    return json.dumps({"success": True, "msg": f"Email updated to {newEmail}"})
 
 @app.route("/api/user/changepassword", methods=['POST'])
 def apiChangePassword():

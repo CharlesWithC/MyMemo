@@ -1,5 +1,14 @@
 # Update History
 
+## v5.4.2  
+
+*Date: 2021/12/5*  
+Feature Updates:  
+1.Added email verification for account register and change email  
+2.Added password recovery function
+
+**Note**: Email sending is based on postfix and telnet because the author didn't manage to set up a SMTP server for postfix. The email sending code is modulized so you can edit the code to adapt to your own email sending mechanism.
+
 ## v5.4.1  
 
 *Date: 2021/12/4*  

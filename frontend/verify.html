@@ -8,14 +8,14 @@
     <script src="/js/bootstrap.bundle.min.js"></script>
     <script src="/js/popper.min.js"></script>
     <script src="/js/general.js"></script>
-    <script src="/js/notifications.js"></script>
 
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/font-awesome.min.css" rel="stylesheet">
     <link href="/css/main.css" rel="stylesheet">
 
-    <link rel="stylesheet" href="/dataTables/jquery.dataTables.min.css">
-    <script src="/dataTables/jquery.dataTables.min.js"></script>
+    <link href="/css/c3.min.css" rel="stylesheet">
+    <script src="/js/d3.v5.min.js" charset="utf-8"></script>
+    <script src="/js/c3.min.js"></script>
 
     <link href="/noty/noty.css" rel="stylesheet">
     <script src="/noty/noty.min.js" type="text/javascript"></script>
@@ -25,22 +25,36 @@
 
     <script>
         $(document).ready(function () {
-            PageInit();
+            var vtype = getUrlParameter("type");
+            var token = getUrlParameter("token");
+
+            if (vtype == "changeemail") {
+                $("#title").html("Validating token")
+                $.ajax({
+                    url: "/api/user/changeemail/verify",
+                    method: 'POST',
+                    async: true,
+                    dataType: "json",
+                    data: {
+                        token: token
+                    },
+                    success: function (r) {
+                        if (r.success == true) {
+                            NotyNotification(r.msg, type = 'success');
+                            $("#msg").html(r.msg +
+                                "<br>You will be redirected to home page in 5 seconds...");
+                            setTimeout(function () {
+                                window.location.href = '/user';
+                            }, 5000);
+                        } else {
+                            NotyNotification(r.msg, type = 'error');
+                            $("#msg").html(r.msg);
+                        }
+                    }
+                });
+            }
         });
     </script>
-
-    <style>
-        button {
-            margin: 0.1em;
-            margin-bottom: 0.3em;
-        }
-
-        h4,
-        h5,
-        p {
-            margin: 0.5em;
-        }
-    </style>
 </head>
 
 <body>
@@ -51,7 +65,8 @@
             </div>
         </div>
         <div class="userctrl">
-            <a href='/user'><i class="fa fa-user"></i></a> <span id="navusername"><a href='/user/login'>Sign in</a>&nbsp;&nbsp; </span>
+            <a href='/user'><i class="fa fa-user"></i></a> <span id="navusername"><a href='/user/login'>Sign
+                    in</a>&nbsp;&nbsp; </span>
             <a class="only-signed-in" href='#' onclick="UserEvents()" style="display:none"><i
                     class="fa fa-bell"></i></a>
             <a href='#' onclick="window.location.href='/settings'"><i class="fa fa-cogs"></i></a>
@@ -61,10 +76,10 @@
     </div>
 
     <div id="content" class="container">
-        <h1 class="title" style="padding-bottom: 0;">Notifications
-            <button id="refresh-btn-noti" type="button" class="btn btn-outline-secondary" onclick="PageInit()"><i
-                    class="fa fa-refresh"></i></button></h1>    
-
+        <div id="home" class="center">
+            <h1 id="title"></h1>
+            <h2 id="msg">Please wait a few seconds... <i class="fa fa-spinner fa-spin"></i></h2>
+        </div>
     </div>
 
     <div class="footer">

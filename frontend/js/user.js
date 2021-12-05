@@ -462,7 +462,7 @@ function Register() {
         },
         success: function (r) {
             if (r.success == true) {
-                NotyNotification('Success! You are now registered!');
+                NotyNotification(r.msg);
                 $(".register").hide();
                 $(".login").show();
                 $("#register-password").val("");
@@ -1003,3 +1003,64 @@ $(document).ready(function () {
         }
     }
 });
+
+function ForgotPasswordShow(){
+    $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog"
+        aria-labelledby="modalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLabel">Reset Password</h5>
+                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
+                        onclick="$('#modal').modal('hide')">
+                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <p>Please enter your email below and an email containing password reset link will be sent to you.</p>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="basic-addon1">Email</span>
+                            <input type="text" class="form-control" id="reset-email" aria-describedby="basic-addon1">
+                        </div>
+                        <p id="msg"></p>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                        onclick="$('#modal').modal('hide')">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="ForgotPassword()">Reset</button>
+                </div>
+            </div>
+        </div>
+    </div>`);
+    $("#modal").modal("show");
+    $('#modal').on('hidden.bs.modal', function () {
+        $("#modal").remove();
+    });
+}
+
+function ForgotPassword(){
+    $.ajax({
+        url: '/api/user/requestResetPassword',
+        method: 'POST',
+        async: false,
+        dataType: "json",
+        data: {
+            email: $("#reset-email").val()
+        },
+        success: function (r) {
+            if (r.success == true) {
+                NotyNotification(r.msg);
+                $("#msg").html(r.msg);
+            } else {
+                NotyNotification(r.msg, type = 'error');
+            }
+        },
+        error: function (r, textStatus, errorThrown) {
+            if (r.status == 401) {
+                SessionExpired();
+            }
+        }
+    });
+}
