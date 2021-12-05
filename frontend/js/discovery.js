@@ -218,7 +218,7 @@ function UpdateDiscoveryQuestionList() {
                 $(".title").html(r.title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart-o" style="color:red"></i></a>');
             }
             $("#detail-publisher").html(r.publisher);
-            $("#detail-description").html(r.description);
+            $("#detail-description").html(marked.parse(r.description));
             $("#detail-views").html(r.views);
             $("#detail-likes").html(r.likes);
             $("#detail-imports").html(r.imports);
@@ -317,12 +317,13 @@ function UpdateInformationShow() {
                 </div>
                 <div class="modal-body">
                     <form>
-                        <div class="form-group">
-                            <label for="discovery-title" class="col-form-label">Title:</label>
-                            <textarea class="form-control" id="discovery-title"></textarea>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="basic-addon1">Title</span>
+                            <input type="text" class="form-control" id="discovery-title" aria-describedby="basic-addon1">
                         </div>
                         <div class="form-group">
                             <label for="discovery-description" class="col-form-label">Description:</label>
+                            <script>var descriptionMDE = new SimpleMDE({spellChecker:false,tabSize:4});</script>
                             <textarea class="form-control" id="discovery-description"></textarea>
                         </div>
                     </form>
@@ -337,16 +338,23 @@ function UpdateInformationShow() {
         </div>
     </div>`);
     $("#discovery-title").val(title);
-    $("#discovery-description").val(description);
     $("#modal").modal("show");
     $('#modal').on('hidden.bs.modal', function () {
         $("#modal").remove();
+    });
+    $(".editor-toolbar").css("background-color", "white");
+    $(".editor-toolbar").css("opacity", "1");
+    $(".CodeMirror").css("height", "6em");
+    $(".CodeMirror").css("min-height", "6em");
+    $(".cursor").remove();
+    $('#modal').on('shown.bs.modal', function () {
+        descriptionMDE.value(description);
     });
 }
 
 function UpdateInformation() {
     title = $("#discovery-title").val();
-    description = $("#discovery-description").val();
+    description = descriptionMDE.value();
 
     $.ajax({
         url: '/api/discovery/update',
@@ -367,7 +375,7 @@ function UpdateInformation() {
                 } else {
                     $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart-o" style="color:red"></i></a>');
                 }
-                $("#detail-description").html(description);
+                $("#detail-description").html(marked.parse(description));
 
                 NotyNotification(r.msg);
                 $('#modal').modal('hide');

@@ -7,6 +7,7 @@
     <script src="/js/jquery-3.6.0.min.js"></script>
     <script src="/js/bootstrap.bundle.min.js"></script>
     <script src="/js/popper.min.js"></script>
+    <script src="/js/marked.min.js"></script>
     <script src="/js/general.js"></script>
     <script src="/js/group.js"></script>
 
@@ -33,7 +34,7 @@
             });
             $('#memberList').DataTable().column(2).visible(false);
 
-            MDTSB("#memberList");
+            MDTSB("memberList");
             setInterval(function(){$("#memberList").css("width","");},100);
 
             setInterval(function () {
@@ -120,10 +121,10 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo</p>
-        <p>Version: v5.3.16 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.4.1 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i> GitHub</a></p>
-        <p>Developer by <a href="www.charles14.xyz">Charles</a></p>
+        <p>Developed by <a href="www.charles14.xyz">Charles</a></p>
     </div>
 </body>
 

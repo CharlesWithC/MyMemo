@@ -47,7 +47,7 @@ function UpdateGroupMember() {
             $("title").html(bookName + " | My Memo");
             $(".title").html(bookName + '&nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="UpdateGroupMember()" id="refresh-btn"><i class="fa fa-refresh"></i></button>');
 
-            $("#groupDescription").html(r.description.replaceAll("\n", "<br>"));
+            $("#groupDescription").html(marked.parse(r.description.replaceAll("\n", "<br>")));
 
             for (var i = 0; i < r.member.length; i++) {
                 btns = '';

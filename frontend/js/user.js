@@ -60,7 +60,7 @@ function UpdateUserInfo() {
 
             $("#navusername").html(user.username);
             $("#username").html(user.username);
-            $("#bio").html(user.bio);
+            $("#bio").html(marked.parse(user.bio));
             $("#userId").html(user.userId);
             $("#age").html(user.age);
             $("#email").html(user.email);
@@ -347,7 +347,7 @@ function Login() {
     password = $("#input-password").val();
 
     if (username == "" || password == "") {
-        NotyNotification('Both fields must be filled', type = 'warning');
+        NotyNotification('Username and password must be filled', type = 'warning');
         return;
     }
 
@@ -444,8 +444,8 @@ function Register() {
     email = $("#register-email").val();
     invitationCode = $("#register-inviteCode").val();
 
-    if (username == "" || password == "" || email == "" || invitationCode == "") {
-        NotyNotification('All fields must be filled', type = 'warning');
+    if (username == "" || password == "" || email == "") {
+        NotyNotification('Username, password and email must be filled', type = 'warning');
         return;
     }
 
@@ -489,16 +489,15 @@ function UpdateProfileShow() {
                     <form>
                         <div class="input-group mb-3">
                             <span class="input-group-text" id="basic-addon1">Username</span>
-                            <input type="text" class="form-control" id="update-username" aria-describedby="basic-addon1"
-                                style="z-index:100">
+                            <input type="text" class="form-control" id="update-username" aria-describedby="basic-addon1">
                         </div>
                         <div class="input-group mb-3">
                             <span class="input-group-text" id="basic-addon1">Email</span>
-                            <input type="text" class="form-control" id="update-email" aria-describedby="basic-addon1"
-                                style="z-index:100">
+                            <input type="text" class="form-control" id="update-email" aria-describedby="basic-addon1">
                         </div>
                         <div class="form-group">
                             <label for="update-bio" class="col-form-label">Bio:</label>
+                            <script>var biomde = new SimpleMDE({spellChecker:false,tabSize:4});</script>
                             <textarea class="form-control" id="update-bio"></textarea>
                         </div>
                     </form>
@@ -515,20 +514,27 @@ function UpdateProfileShow() {
     r = user.username.indexOf('<', user.username.indexOf('<', user.username.indexOf('<') + 1) + 1);
     $("#update-username").val(user.username.substr(l + 1, r - l - 1));
     $("#update-email").val(user.email);
-    $("#update-bio").val(user.bio);
     $("#modal").modal("show");
     $('#modal').on('hidden.bs.modal', function () {
         $("#modal").remove();
+    });
+    $(".editor-toolbar").css("background-color", "white");
+    $(".editor-toolbar").css("opacity", "1");
+    $(".CodeMirror").css("height", "6em");
+    $(".CodeMirror").css("min-height", "6em");
+    $(".cursor").remove();
+    $('#modal').on('shown.bs.modal', function () {
+        biomde.value(user.bio);
     });
 }
 
 function UpdateUserProfile() {
     username = $("#update-username").val();
     email = $("#update-email").val();
-    bio = $("#update-bio").val();
+    bio = biomde.value();
 
     if (username == "" || email == "") {
-        NotyNotification('Both fields must be filled', type = 'warning');
+        NotyNotification('Username and email must be filled', type = 'warning');
         return;
     }
 
@@ -557,11 +563,11 @@ function UpdateUserProfile() {
                     },
                     success: function (r) {
                         user.username = r.username;
-                        user.email = r.email
-                        user.bio = r.bio
+                        user.email = r.email;
+                        user.bio = r.bio;
                         $("#navusername").html(user.username);
                         $("#username").html(user.username);
-                        $("#bio").html(user.bio);
+                        $("#bio").html(marked.parse(user.bio));
                         $("#email").html(user.email);
                     }
                 });
@@ -581,7 +587,7 @@ function ChangePassword() {
     cfmpwd = $("#cfmpwd").val();
 
     if (oldpwd == "" || newpwd == "" || cfmpwd == "") {
-        NotyNotification('All fields must be filled', type = 'warning');
+        NotyNotification('Passwords must be filled', type = 'warning');
         return;
     }
 
@@ -638,18 +644,15 @@ function ChangePasswordShow() {
                     <form>
                         <div class="input-group mb-3">
                             <span class="input-group-text" id="basic-addon1">Current Password</span>
-                            <input type="password" class="form-control" id="oldpwd" aria-describedby="basic-addon1"
-                                style="z-index:100">
+                            <input type="password" class="form-control" id="oldpwd" aria-describedby="basic-addon1">
                         </div>
                         <div class="input-group mb-3">
                             <span class="input-group-text" id="basic-addon1">New Password</span>
-                            <input type="password" class="form-control" id="newpwd" aria-describedby="basic-addon1"
-                                style="z-index:100">
+                            <input type="password" class="form-control" id="newpwd" aria-describedby="basic-addon1">
                         </div>
                         <div class="input-group mb-3">
                             <span class="input-group-text" id="basic-addon1">Repeat new Password</span>
-                            <input type="password" class="form-control" id="cfmpwd" aria-describedby="basic-addon1"
-                                style="z-index:100">
+                            <input type="password" class="form-control" id="cfmpwd" aria-describedby="basic-addon1">
                         </div>
                     </form>
                 </div>
@@ -740,12 +743,12 @@ function DeleteAccountShow() {
                         <p>Type your "I acknowledge what I'm doing" and your password to continue:</p>
                         <div class="input-group mb-3">
                             <input type="text" class="form-control" id="acknowledge-confirm"
-                                aria-describedby="basic-addon1" style="z-index:100">
+                                aria-describedby="basic-addon1">
                         </div>
                         <div class="input-group mb-3">
                             <span class="input-group-text" id="basic-addon1">Password</span>
                             <input type="password" class="form-control" id="delete-password"
-                                aria-describedby="basic-addon1" style="z-index:100">
+                                aria-describedby="basic-addon1">
                         </div>
                     </form>
                 </div>
@@ -925,10 +928,6 @@ function SessionDetail(i) {
                 <div class="modal-body">
                     ` + body + `
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#modal').modal('hide');">Cancel</button>
-                </div>
             </div>
         </div>
     </div>`);
@@ -968,7 +967,7 @@ $(document).ready(function () {
                         $("title").html(user.username.substr(l + 1, r - l - 1) + " | My Memo");
 
                         $("#username-public").html(user.username);
-                        $("#bio-public").html(user.bio);
+                        $("#bio-public").html(marked.parse(user.bio));
                         $("#userId-public").html(uid);
                         $("#age-public").html(user.age);
 

@@ -9,30 +9,16 @@ import validators
 import threading
 
 from app import app, config
-import db
+from db import newconn
 from functions import *
 import sessions
-
-import MySQLdb
-import sqlite3
-conn = None
-
-def updateconn():
-    global conn
-    if config.database == "mysql":
-        conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
-            passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
-    elif config.database == "sqlite":
-        conn = sqlite3.connect("database.db", check_same_thread = False)
-    
-updateconn()
 
 ##########
 # Admin API
 
 @app.route("/api/admin/userList", methods = ['POST'])
 def apiAdminUserList():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -107,10 +93,11 @@ def apiAdminUserList():
         if len(t) > 0:
             username = f"<a href='/user?userId={dd[0]}'><span style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
         else:
-            username = f"<a href='/user?userId={dd[0]}'><span>{username}></span></a>"
+            username = f"<a href='/user?userId={dd[0]}'><span>{username}</span></a>"
         
         users.append({"userId": dd[0], "username": dd[1], "email": dd[2], "inviter": f"{inviterUsername} (UID: {dd[3]})", "inviteCode": dd[4], "age": age, "status": status, "privilege": prv})
 
+    
     return json.dumps(users)
 
 def restart():
@@ -120,7 +107,7 @@ def restart():
 
 @app.route("/api/admin/command", methods = ['POST'])
 def apiAdminCommand():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)

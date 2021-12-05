@@ -9,30 +9,16 @@ import json
 import validators
 
 from app import app, config
-import db
+from db import newconn
 from functions import *
 import sessions
-
-import MySQLdb
-import sqlite3
-conn = None
-
-def updateconn():
-    global conn
-    if config.database == "mysql":
-        conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
-            passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
-    elif config.database == "sqlite":
-        conn = sqlite3.connect("database.db", check_same_thread = False)
-    
-updateconn()
 
 ##########
 # Group API
 
 @app.route("/api/group", methods = ['POST'])
 def apiGroup():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -143,7 +129,7 @@ def apiGroup():
 
 @app.route("/api/group/quit", methods = ['POST'])
 def apiQuitGroup():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -178,7 +164,7 @@ def apiQuitGroup():
 
 @app.route("/api/group/code/update", methods = ['POST'])
 def apiGroupCodeUpdate():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -213,7 +199,7 @@ def apiGroupCodeUpdate():
 
 @app.route("/api/group/member", methods = ['POST'])
 def apiGroupMember():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -293,7 +279,7 @@ def apiGroupMember():
             if len(t) > 0:
                 username = f"<a href='/user?userId={uid}'><span style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
             else:
-                username = f"<a href='/user?userId={uid}'><span>{username}></span></a>"
+                username = f"<a href='/user?userId={uid}'><span>{username}</span></a>"
             ret.append({"userId": uid, "username": username, "progress": pgs})
         elif info[2] == 1:
             ret.append({"userId": 0, "username": "Anonymous", "progress": pgs})
@@ -304,7 +290,7 @@ def apiGroupMember():
 
 @app.route("/api/group/manage", methods = ['POST'])
 def apiManageGroup():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)

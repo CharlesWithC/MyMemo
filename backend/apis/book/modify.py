@@ -7,23 +7,9 @@ import os, sys, time
 import json
 
 from app import app, config
-import db
+from db import newconn
 from functions import *
 import sessions
-
-import MySQLdb
-import sqlite3
-conn = None
-
-def updateconn():
-    global conn
-    if config.database == "mysql":
-        conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
-            passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
-    elif config.database == "sqlite":
-        conn = sqlite3.connect("database.db", check_same_thread = False)
-    
-updateconn()
 
 ##########
 # Book API
@@ -31,7 +17,7 @@ updateconn()
 
 @app.route("/api/book/create", methods = ['POST'])
 def apiCreateBook():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -120,14 +106,6 @@ def apiCreateBook():
             
             questionId = 1
             for tt in t:
-                cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 2 AND userId = {userId}")
-                d = cur.fetchall()
-                if len(d) == 0:
-                    cur.execute(f"INSERT INTO IDInfo VALUES (2, {userId}, 2)")
-                else:
-                    questionId = d[0][0]
-                    cur.execute(f"UPDATE IDInfo SET nextId = {questionId + 1} WHERE type = 2 AND userId = {userId}")
-                
                 cur.execute(f"SELECT questionId, answer FROM QuestionList WHERE userId = {userId} AND question = '{di[tt][0]}'")
                 p = cur.fetchall()
                 ctn = False
@@ -135,13 +113,21 @@ def apiCreateBook():
                     if pp[1] == di[tt][1]: # question completely the same
                         appendBookData(userId, bookId, pp[0])
                         cur.execute(f"SELECT memorizedTimestamp FROM QuestionList WHERE userId = {userId} AND questionId = {pp[0]}")
-                        t = cur.fetchall()
-                        if len(t) != 0 and t[0][0] != 0:
+                        k = cur.fetchall()
+                        if len(k) != 0 and k[0][0] != 0:
                             cur.execute(f"UPDATE Book SET progress = progress + 1 WHERE userId = {userId} AND bookId = {bookId}")
                         ctn = True
                         break
                 if ctn:
                     continue
+
+                cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 2 AND userId = {userId}")
+                d = cur.fetchall()
+                if len(d) == 0:
+                    cur.execute(f"INSERT INTO IDInfo VALUES (2, {userId}, 2)")
+                else:
+                    questionId = d[0][0]
+                    cur.execute(f"UPDATE IDInfo SET nextId = {questionId + 1} WHERE type = 2 AND userId = {userId}")
 
                 appendBookData(userId, bookId, questionId)
                 cur.execute(f"INSERT INTO QuestionList VALUES ({userId}, {questionId}, '{di[tt][0]}', '{di[tt][1]}', 1, 0)")
@@ -236,6 +222,21 @@ def apiCreateBook():
 
             questionId = 1
             for tt in t:
+                cur.execute(f"SELECT questionId, answer FROM QuestionList WHERE userId = {userId} AND question = '{tt[0]}'")
+                p = cur.fetchall()
+                ctn = False
+                for pp in p:
+                    if pp[1] == tt[1]: # question completely the same
+                        appendBookData(userId, bookId, pp[0])
+                        cur.execute(f"SELECT memorizedTimestamp FROM QuestionList WHERE userId = {userId} AND questionId = {pp[0]}")
+                        k = cur.fetchall()
+                        if len(k) != 0 and k[0][0] != 0:
+                            cur.execute(f"UPDATE Book SET progress = progress + 1 WHERE userId = {userId} AND bookId = {bookId}")
+                        ctn = True
+                        break
+                if ctn:
+                    continue
+
                 cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 2 AND userId = {userId}")
                 d = cur.fetchall()
                 if len(d) == 0:
@@ -294,7 +295,7 @@ def apiCreateBook():
 
 @app.route("/api/book/clone", methods = ['POST'])
 def apiCloneBook():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -348,7 +349,7 @@ def apiCloneBook():
 
 @app.route("/api/book/delete", methods = ['POST'])
 def apiDeleteBook():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -399,7 +400,7 @@ def apiDeleteBook():
 
 @app.route("/api/book/rename", methods = ['POST'])
 def apiRenameBook():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)

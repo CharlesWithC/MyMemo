@@ -78,7 +78,7 @@ function getUrlParameter(sParam) {
         }
     }
     return -1;
-};
+}
 
 function lsGetItem(lsItemName, defaultValue = 0) {
     if (localStorage.getItem(lsItemName) == null || localStorage.getItem(lsItemName) == "undefined") {
@@ -89,8 +89,17 @@ function lsGetItem(lsItemName, defaultValue = 0) {
     }
 }
 
+function ssGetItem(lsItemName, defaultValue = 0) {
+    if (sessionStorage.getItem(lsItemName) == null || sessionStorage.getItem(lsItemName) == "undefined") {
+        sessionStorage.setItem(lsItemName, defaultValue);
+        return defaultValue;
+    } else {
+        return sessionStorage.getItem(lsItemName);
+    }
+}
 
-bookList = JSON.parse(lsGetItem("book-list", JSON.stringify([])));
+
+bookList = JSON.parse(ssGetItem("book-list", JSON.stringify([])));
 
 function UpdateBookDisplay() {
     $(".book").remove();
@@ -135,7 +144,7 @@ function UpdateBookList() {
         },
         success: function (r) {
             bookList = r;
-            localStorage.setItem("book-list", JSON.stringify(bookList));
+            try{sessionStorage.setItem("book-list", JSON.stringify(bookList));}catch{console.warning("Cannot store book list to Session Storage, aborted!");}
             UpdateBookDisplay();
         }
     });
@@ -168,7 +177,7 @@ function RefreshBookList() {
         },
         success: function (r) {
             bookList = r;
-            localStorage.setItem("book-list", JSON.stringify(bookList));
+            try{sessionStorage.setItem("book-list", JSON.stringify(bookList));}catch{console.warning("Cannot store book list to Session Storage, aborted!");}
             UpdateBookDisplay();
             $("#book-list-refresh-btn").html('<i class="fa fa-refresh"></i>');
         },
@@ -233,7 +242,7 @@ function LoadHide() {
 function LoadDetect() {
     if ($.active > 0 && $("#general-loader").length == 0) {
         LoadShow();
-    } else {
+    } else if ($.active == 0) {
         LoadHide();
     }
 }
@@ -412,6 +421,7 @@ function GeneralUpdateTheme() {
     }
 
     setInterval(function () {
+        $("thead tr").removeClass("table-active");
         $(".dataTables_paginate > span > span").removeClass("ellipsis");
         $(".dataTables_paginate > span > span").addClass("btn btn-outline-secondary btn-sm btn-paginate");
         $(".dataTables_paginate > span > span").css("margin", "0.2em");
@@ -453,9 +463,21 @@ function GeneralUpdateTheme() {
 
             //$(".dataTables_paginate a").css("background-color", "#ffffff");
             //$(".dataTables_paginate span").css("background-color", "#ffffff");
-            $(".dataTables_info").css("color", "#ffffff");
+            $(".dataTables_info").css("color", "#000000");
             $(".dataTables_length").css("color", "#000000");
             $(".dataTables_length a").css("color", "#000000");
+        }
+
+        if (window.innerWidth < 1200) {
+            $(".sub-left").css("width", "100%");
+            $(".sub-right").css("margin-top", "2em");
+            $(".sub-right").css("margin-left", "0");
+            $(".sub-right").css("width", "100%");
+        } else {
+            $(".sub-left").css("width", "55%");
+            $(".sub-right").css("margin-top", "0em");
+            $(".sub-right").css("margin-left", "4em");
+            $(".sub-right").css("width", "35%");
         }
     }, 5);
 }
@@ -474,9 +496,11 @@ $(document).ready(function () {
         }
     });
 
-    $(".btn-paginate").click(function(){
+    $(".btn-paginate").click(function () {
         $("#dataTables_paginate").fadeOut();
-        setTimeout(function(){$("#dataTables_paginate").fadeIn();},50);
+        setTimeout(function () {
+            $("#dataTables_paginate").fadeIn();
+        }, 50);
     })
 });
 
@@ -490,4 +514,33 @@ function MDTSB(tableName) {
     $("#" + tableName + "_filter").attr("id", "ttmp" + tableName);
     $("#tmp" + tableName).attr("id", tableName + "_filter");
     $("#ttmp" + tableName).remove();
+}
+
+function GetUploadResult() {
+    t = setInterval(function () {
+        $.ajax({
+            url: "/api/data/import",
+            method: 'POST',
+            async: true,
+            dataType: "json",
+            data: {
+                userId: localStorage.getItem("userId"),
+                token: localStorage.getItem("token"),
+                getResult: true
+            },
+            success: function (r) {
+                $("#result").html(r.msg);
+                if (r.success == 0) {
+                    $("#result").css("color", "red");
+                    clearInterval(t);
+                } else if (r.msg == "Success!") {
+                    $("#result").css("color", "green");
+                    clearInterval(t);
+                }
+                if (r.success == 2 || r.success == 0) {
+                    clearInterval(t);
+                }
+            }
+        });
+    }, 3500);
 }

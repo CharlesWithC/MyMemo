@@ -1,5 +1,19 @@
 # Update History
 
+## v5.4.1  
+
+*Date: 2021/12/4*  
+Feature Updates:  
+1.Added Markdown support for user bio, group & discovery description  
+
+Other Updates:  
+1.Ziped all imported js, css files  
+
+Bug Fixes:  
+1.Fixed some bugs about question list  
+2.Fixed the bug that loader on frontend is flashing  
+3.Fixed database connection issues  
+
 ## v5.3.16
 
 *Date: 2021/12/4*  

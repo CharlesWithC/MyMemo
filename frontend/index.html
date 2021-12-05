@@ -93,11 +93,10 @@
                 <h1>My Memo</h1>
                 <div class="input-group mb-3 center" style="width:15em">
                     <span class="input-group-text" id="basic-addon1">From</span>
-                    <input type="text" class="form-control" id="start-from" aria-describedby="basic-addon1"
-                        style="z-index:100">
+                    <input type="text" class="form-control" id="start-from" aria-describedby="basic-addon1">
                 </div>
                 <button id="start-btn" type="button" class="btn btn-primary"
-                    style="position:relative;width:10em;z-index:100" onclick="MemoGo()">Go <i
+                    style="position:relative;width:10em" onclick="MemoGo()">Go <i
                         class='fa fa-play'></i></button>
                 <div class="center" style="margin-top:1em">
                     <br>
@@ -107,7 +106,7 @@
             </div>
         </div>
 
-        <div id="memo" style="display:none;padding-bottom:5em;z-index:100">
+        <div id="memo" style="display:none;padding-bottom:5em">
             <h1 class="title">My Memo</h1>
             <div id="navigate" style="z-index:100">
                 <div class="top-right" style="top:4em;right:5em">
@@ -124,15 +123,15 @@
             </div>
 
             <div class="center" id="qa1">
-                <textarea class="form-control question center" id="question" style="z-index:100"
+                <textarea class="form-control question center" id="question"
                     readonly=true></textarea>
                 <br><br>
-                <textarea class="form-control answer center" id="answer" style="z-index:100" readonly=true></textarea>
+                <textarea class="form-control answer center" id="answer" readonly=true></textarea>
             </div>
 
             <div class="center" id="qa2" style="display:none">
                 <textarea class="form-control question center" id="cc-question"
-                    style="z-index:100;height:3em;margin-bottom:0.5em" readonly=true></textarea>
+                    style="height:3em;margin-bottom:0.5em" readonly=true></textarea>
                 <div id="div-choice-0" class="choice" onclick="ChallengeChoice(0);">
                     <div id="choice-circle-0" class="choice-circle"></div>
                     <span id="choice-0"></span>
@@ -151,7 +150,7 @@
                 </div>
             </div>
 
-            <div id="practice-control" class="control center" style="display:none;z-index:100">
+            <div id="practice-control" class="control center" style="display:none">
                 <button type="button" class="btn btn-primary control-btn control-btn-left control-btn-top memo-tag"
                     onclick="MemoTag()">Tag <i class='fa fa-star'></i></button>
                 <button type="button" class="btn btn-primary control-btn control-btn-right control-btn-top memo-delete"
@@ -164,7 +163,7 @@
                     onclick="MemoMove('next')">Next <i class="fa fa-arrow-circle-right"></i></button>
             </div>
 
-            <div id="challenge-yesno-control" class="control center" style="display:none;z-index:100">
+            <div id="challenge-yesno-control" class="control center" style="display:none">
                 <p style="padding-bottom:1em"><span id="challenge-msg">Do you remember it?</span></p>
                 <button type="button"
                     class="btn btn-primary control-btn control-btn-left control-btn-top memo-challenge-yes"
@@ -179,7 +178,7 @@
                     onclick="MemoDelete()">Delete <i class="fa fa-trash"></i></button>
             </div>
 
-            <div id="challenge-choice-control" class="control center" style="display:none;padding-top:1em;z-index:100">
+            <div id="challenge-choice-control" class="control center" style="display:none;padding-top:1em">
                 <button type="button" id="challenge-choice-continue"
                     class="btn btn-primary control-btn control-btn-left control-btn-top challenge-choice-continue"
                     onclick="ChallengeChoice(-1)">Continue <i class='fa fa-arrow-circle-right'></i></button>
@@ -193,7 +192,7 @@
                     onclick="MemoDelete()">Delete <i class="fa fa-trash"></i></button>
             </div>
 
-            <div id="offline-control" class="control center" style="display:none;padding-top:2em;z-index:100">
+            <div id="offline-control" class="control center" style="display:none;padding-top:2em">
                 <button type="button"
                     class="btn btn-primary control-btn control-btn-left control-btn-bottom memo-previous"
                     onclick="MemoMove('previous')"><i class="fa fa-arrow-circle-left"></i> Previous</button>
@@ -206,10 +205,10 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo</p>
-        <p>Version: v5.3.16 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.4.1 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i> GitHub</a></p>
-        <p>Developer by <a href="www.charles14.xyz">Charles</a></p>
+        <p>Developed by <a href="www.charles14.xyz">Charles</a></p>
     </div>
 </body>
 

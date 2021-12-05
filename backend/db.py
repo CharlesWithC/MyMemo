@@ -8,7 +8,25 @@ import os, sys, json
 import getpass
 
 from app import app
-from functions import hashpwd, genCode, encode
+
+def hashpwd(password):
+    return bcrypt.hashpw(password.encode(),bcrypt.gensalt(12)).decode()
+
+st="abcdefghjkmnpqrstuvwxy3456789ABCDEFGHJKMNPQRSTUVWXY"
+def genCode(length = 8):
+    ret = ""
+    for _ in range(length):
+        ret += st[random.randint(0,len(st)-1)]
+    return ret  
+
+def encode(s, removeHTMLTag = True):
+    try:
+        if removeHTMLTag:
+            s = re.sub("\\<.*?\\>", "<HTML_REMOVED>", s)
+        return base64.b64encode(s.encode()).decode()
+    except:
+        print(f"Unable to encode {s}")
+        return ""
 
 config_txt = open("./config.json","r").read()
 config = json.loads(config_txt)
@@ -54,7 +72,7 @@ elif config["database"] == "mysql":
     conn = MySQLdb.connect(host = host, user = user, passwd = passwd, db = dbname)
     cur = conn.cursor()
     cur.execute(f"SHOW TABLES")
-    if len(cur.fetchall()) != 28:
+    if len(cur.fetchall()) != 29:
         doinit = True
     
     app.config['MYSQL_HOST'] = host
@@ -66,6 +84,17 @@ elif config["database"] == "mysql":
 else:
     print("Unknown database type, choose one between sqlite and mysql!")
     sys.exit(0)
+
+def newconn():
+    if config["database"] == "sqlite":            
+        conn = sqlite3.connect("database.db", check_same_thread = False)
+    elif config["database"] == "mysql":
+        conn = MySQLdb.connect(host = host, user = user, passwd = passwd, db = dbname)
+        conn.autocommit(True)
+        conn.ping()
+    return conn
+
+conn = newconn()
 
 if doinit:
     print("Initializing database")
@@ -84,6 +113,7 @@ if doinit:
         config_txt = open("./config.json","r").read()
         config = Dict2Obj(json.loads(config_txt))
 
+    conn = newconn()
     cur = conn.cursor()
 
     ########## NOTE: Tables related to users
@@ -224,7 +254,9 @@ if doinit:
 
     cur.execute(f"CREATE TABLE PasswordTrial (userId INT, count INT, lastts INT, ip VARCHAR(128))")
 
+    cur.execute(f"CREATE TABLE DataUploadResult (userId INT, result TEXT)")
     cur.execute(f"CREATE TABLE DataDownloadToken (userId INT, exportType VARCHAR(10), ts INT, token VARCHAR(32))")
     cur.execute(f"CREATE TABLE RequestRecoverAccount (userId INT)")
 
     conn.commit()
+    

@@ -10,7 +10,7 @@ import validators
 import pandas as pd
 
 from app import app, config
-import db
+from db import newconn
 from functions import *
 import sessions
 

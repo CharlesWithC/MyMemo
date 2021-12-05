@@ -19,8 +19,6 @@ config = None
 if os.path.exists("./config.json"):
     config_txt = open("./config.json","r").read()
     config = Dict2Obj(json.loads(config_txt))
-
-
 app = Flask(__name__)
 
 app.jinja_env.auto_reload = True

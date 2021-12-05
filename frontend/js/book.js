@@ -10,8 +10,8 @@ var isGroupOwner = false;
 var isGroupEditor = false;
 var discoveryId = -1;
 var groupDiscoveryId = -1;
-var questionList = JSON.parse(lsGetItem("question-list", JSON.stringify([])));
-var bookList = JSON.parse(lsGetItem("book-list", JSON.stringify([])));
+var questionList = JSON.parse(ssGetItem("question-list", JSON.stringify([])));
+var bookList = JSON.parse(ssGetItem("book-list", JSON.stringify([])));
 var selectedQuestionList = [];
 var questionListMap = new Map();
 var selected = [];
@@ -41,7 +41,11 @@ function RefreshQuestionList(show401 = false) {
         },
         success: function (r) {
             questionList = r;
-            localStorage.setItem("question-list", JSON.stringify(questionList));
+            try {
+                sessionStorage.setItem("question-list", JSON.stringify(questionList));
+            } catch {
+                console.warning("Session storage cannot store question-list, aborted!");
+            }
             MapQuestionList();
             $.ajax({
                 url: "/api/book",
@@ -54,7 +58,11 @@ function RefreshQuestionList(show401 = false) {
                 },
                 success: function (r) {
                     bookList = r;
-                    localStorage.setItem("book-list", JSON.stringify(bookList));
+                    try {
+                        sessionStorage.setItem("book-list", JSON.stringify(bookList));
+                    } catch {
+                        console.warning("Cannot store book list to Session Storage, aborted!");
+                    }
                     MapQuestionList();
                     SelectQuestions();
                     UpdateTable();
@@ -173,12 +181,16 @@ function SelectQuestions() {
             for (this.j = 0; j < bookList[i].questions.length; j++) {
                 questionId = bookList[i].questions[j];
                 questionData = questionListMap.get(questionId);
-                selectedQuestionList.push({
-                    "questionId": questionId,
-                    "question": questionData.question,
-                    "answer": questionData.answer,
-                    "status": questionData.status
-                });
+                if (questionData != undefined) {
+                    selectedQuestionList.push({
+                        "questionId": questionId,
+                        "question": questionData.question,
+                        "answer": questionData.answer,
+                        "status": questionData.status
+                    });
+                } else {
+                    console.log(questionId);
+                }
             }
         }
     }
@@ -226,7 +238,11 @@ function UpdateQuestionList() {
         },
         success: function (r) {
             bookList = r;
-            localStorage.setItem("book-list", JSON.stringify(bookList));
+            try {
+                sessionStorage.setItem("book-list", JSON.stringify(bookList));
+            } catch {
+                console.warning("Cannot store book list to Session Storage, aborted!");
+            }
             UpdateBookDisplay();
             MapQuestionList();
             SelectQuestions();
@@ -528,6 +544,7 @@ function AddExistingQuestion() {
             if (r.success == true) {
                 NotyNotification('Success! Added ' + selected.length + ' question(s)!');
 
+                ShowManage();
                 UpdateQuestionList();
             } else {
                 NotyNotification(r.msg, type = 'error');
@@ -928,12 +945,13 @@ function PublishToDiscoveryShow() {
                     <br>
                     <p>Please enter title and description below. Make them beautiful and others may get engaged.</p>
                     <form>
-                        <div class="form-group">
-                            <label for="discovery-title" class="col-form-label">Title:</label>
-                            <textarea class="form-control" id="discovery-title"></textarea>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="basic-addon1">Title</span>
+                            <input type="text" class="form-control" id="discovery-title" aria-describedby="basic-addon1">
                         </div>
                         <div class="form-group">
                             <label for="discovery-description" class="col-form-label">Description:</label>
+                            <script>var descriptionMDE = new SimpleMDE({spellChecker:false,tabSize:4});</script>
                             <textarea class="form-control" id="discovery-description"></textarea>
                         </div>
                     </form>
@@ -951,11 +969,16 @@ function PublishToDiscoveryShow() {
     $('#modal').on('hidden.bs.modal', function () {
         $("#modal").remove();
     });
+    $(".editor-toolbar").css("background-color", "white");
+    $(".editor-toolbar").css("opacity", "1");
+    $(".CodeMirror").css("height", "6em");
+    $(".CodeMirror").css("min-height", "6em");
+    $(".cursor").remove();
 }
 
 function PublishToDiscovery() {
     title = $("#discovery-title").val();
-    description = $("#discovery-description").val();
+    description = descriptionMDE.value();
 
     $.ajax({
         url: '/api/discovery/publish',
@@ -1049,12 +1072,13 @@ function GroupPublishToDiscoveryShow() {
                     <br>
                     <p>Please enter title and description below. Make them beautiful and others may get engaged.</p>
                     <form>
-                        <div class="form-group">
-                            <label for="group-discovery-title" class="col-form-label">Title:</label>
-                            <textarea class="form-control" id="group-discovery-title"></textarea>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="basic-addon1">Title</span>
+                            <input type="text" class="form-control" id="group-discovery-title" aria-describedby="basic-addon1">
                         </div>
                         <div class="form-group">
                             <label for="group-discovery-description" class="col-form-label">Description:</label>
+                            <script>var descriptionMDE = new SimpleMDE({spellChecker:false,tabSize:4});</script>
                             <textarea class="form-control" id="group-discovery-description"></textarea>
                         </div>
                     </form>
@@ -1072,11 +1096,16 @@ function GroupPublishToDiscoveryShow() {
     $('#modal').on('hidden.bs.modal', function () {
         $("#modal").remove();
     });
+    $(".editor-toolbar").css("background-color", "white");
+    $(".editor-toolbar").css("opacity", "1");
+    $(".CodeMirror").css("height", "6em");
+    $(".CodeMirror").css("min-height", "6em");
+    $(".cursor").remove();
 }
 
 function GroupPublishToDiscovery() {
     title = $("#group-discovery-title").val();
-    description = $("#group-discovery-description").val();
+    description = descriptionMDE.value();
 
     $.ajax({
         url: '/api/discovery/publish',
@@ -1233,12 +1262,13 @@ function CreateGroupShow() {
                         below!
                     </p>
                     <form>
-                        <div class="form-group">
-                            <label for="group-name" class="col-form-label">Name:</label>
-                            <textarea class="form-control" id="group-name"></textarea>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="basic-addon1">Name</span>
+                            <input type="text" class="form-control" id="group-name" aria-describedby="basic-addon1">
                         </div>
                         <div class="form-group">
                             <label for="group-description" class="col-form-label">Description:</label>
+                            <script>var groupDescriptionMDE = new SimpleMDE({spellChecker:false,tabSize:4});</script>
                             <textarea class="form-control" id="group-description"></textarea>
                         </div>
                     </form>
@@ -1256,13 +1286,18 @@ function CreateGroupShow() {
     $('#modal').on('hidden.bs.modal', function () {
         $("#modal").remove();
     });
+    $(".editor-toolbar").css("background-color", "white");
+    $(".editor-toolbar").css("opacity", "1");
+    $(".CodeMirror").css("height", "6em");
+    $(".CodeMirror").css("min-height", "6em");
+    $(".cursor").remove();
 }
 
 function CreateGroup() {
     gname = $("#group-name").val();
-    gdescription = $("#group-description").val();
+    gdescription = groupDescriptionMDE.value();
     if (gname == "" || gdescription == "") {
-        NotyNotification('Both fields must be filled', type = 'warning');
+        NotyNotification('Group name and description must be filled', type = 'warning');
         return;
     }
     $.ajax({
@@ -1296,7 +1331,11 @@ function CreateGroup() {
                         $(".only-group-owner-if-group-exist").show();
                         $(".only-group-editor-if-group-exist").show();
 
-                        localStorage.setItem("book-list", JSON.stringify(bookList));
+                        try {
+                            sessionStorage.setItem("book-list", JSON.stringify(bookList));
+                        } catch {
+                            console.warning("Cannot store book list to Session Storage, aborted!");
+                        }
                         break;
                     }
                 }
@@ -1382,7 +1421,11 @@ function QuitGroup() {
                         $(".only-group-owner-if-group-exist").show();
                         $(".only-group-editor-if-group-exist").show();
 
-                        localStorage.setItem("book-list", JSON.stringify(bookList));
+                        try {
+                            sessionStorage.setItem("book-list", JSON.stringify(bookList));
+                        } catch {
+                            console.warning("Cannot store book list to Session Storage, aborted!");
+                        }
                         localStorage.setItem("groupId", "-1");
                         break;
                     }
@@ -1417,12 +1460,13 @@ function GroupInfoUpdateShow() {
                 </div>
                 <div class="modal-body">
                     <form>
-                        <div class="form-group">
-                            <label for="group-name" class="col-form-label">Name:</label>
-                            <textarea class="form-control" id="group-name"></textarea>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="basic-addon1">Name</span>
+                            <input type="text" class="form-control" id="group-name" aria-describedby="basic-addon1">
                         </div>
                         <div class="form-group">
                             <label for="group-description" class="col-form-label">Description:</label>
+                            <script>var groupDescriptionMDE = new SimpleMDE({spellChecker:false,tabSize:4});</script>
                             <textarea class="form-control" id="group-description"></textarea>
                         </div>
                     </form>
@@ -1440,6 +1484,11 @@ function GroupInfoUpdateShow() {
     $('#modal').on('hidden.bs.modal', function () {
         $("#modal").remove();
     });
+    $(".editor-toolbar").css("background-color", "white");
+    $(".editor-toolbar").css("opacity", "1");
+    $(".CodeMirror").css("height", "6em");
+    $(".CodeMirror").css("min-height", "6em");
+    $(".cursor").remove();
 }
 
 function GroupAnonymousSwitch(anonymous) {
@@ -1473,7 +1522,11 @@ function GroupAnonymousSwitch(anonymous) {
                 for (var i = 0; i < bookList.length; i++) {
                     if (bookList[i].bookId == bookId) {
                         bookList[i].anonymous = r.anonymous;
-                        localStorage.setItem("book-list", JSON.stringify(bookList));
+                        try {
+                            sessionStorage.setItem("book-list", JSON.stringify(bookList));
+                        } catch {
+                            console.warning("Cannot store book list to Session Storage, aborted!");
+                        }
                         break;
                     }
                 }
@@ -1508,9 +1561,9 @@ function GroupAnonymousSwitch(anonymous) {
 
 function GroupInfoUpdate() {
     gname = $("#group-name").val();
-    gdescription = $("#group-description").val();
+    gdescription = groupDescriptionMDE.value();
     if (gname == "" || gdescription == "") {
-        NotyNotification('Both fields must be filled', type = 'warning');
+        NotyNotification('Group name and description must be filled', type = 'warning');
         return;
     }
     $.ajax({
@@ -1550,7 +1603,11 @@ function GroupInfoUpdate() {
                         $(".only-group-owner-if-group-exist").show();
                         $(".only-group-editor-if-group-exist").show();
 
-                        localStorage.setItem("book-list", JSON.stringify(bookList));
+                        try {
+                            sessionStorage.setItem("book-list", JSON.stringify(bookList));
+                        } catch {
+                            console.warning("Cannot store book list to Session Storage, aborted!");
+                        }
                         localStorage.setItem("groupId", "-1");
                         break;
                     }
@@ -1593,7 +1650,11 @@ function GroupCodeUpdate(operation) {
 
                         $("#groupCode").html(groupCode);
 
-                        localStorage.setItem("book-list", JSON.stringify(bookList));
+                        try {
+                            sessionStorage.setItem("book-list", JSON.stringify(bookList));
+                        } catch {
+                            console.warning("Cannot store book list to Session Storage, aborted!");
+                        }
                         break;
                     }
                 }
@@ -1689,7 +1750,11 @@ function GroupDismiss() {
                         $(".only-group-inexist").show();
                         $(".only-group-owner").hide();
 
-                        localStorage.setItem("book-list", JSON.stringify(bookList));
+                        try {
+                            sessionStorage.setItem("book-list", JSON.stringify(bookList));
+                        } catch {
+                            console.warning("Cannot store book list to Session Storage, aborted!");
+                        }
                         break;
                     }
                 }
@@ -1789,7 +1854,11 @@ function UpdateBookContentList() {
         },
         success: function (r) {
             bookList = r;
-            localStorage.setItem("book-list", JSON.stringify(bookList));
+            try {
+                sessionStorage.setItem("book-list", JSON.stringify(bookList));
+            } catch {
+                console.warning("Cannot store book list to Session Storage, aborted!");
+            }
             UpdateBookContentDisplay();
             $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
         }
@@ -2055,7 +2124,7 @@ function BookChart(bid) {
                     $(".c3-tooltip tr").css("color", "black")
                 }, 1);
             }
-            
+
             $("#modal").modal("show");
             $('#modal').on('hidden.bs.modal', function () {
                 $("#modal").remove();

@@ -8,30 +8,16 @@ import json
 import validators
 
 from app import app, config
-import db
+from db import newconn
 from functions import *
 import sessions
-
-import MySQLdb
-import sqlite3
-conn = None
-
-def updateconn():
-    global conn
-    if config.database == "mysql":
-        conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
-            passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
-    elif config.database == "sqlite":
-        conn = sqlite3.connect("database.db", check_same_thread = False)
-    
-updateconn()
 
 ##########
 # Discovery API
 
 @app.route("/api/discovery", methods = ['GET','POST'])
 def apiDiscovery():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     cur.execute(f"SELECT discoveryId, title, description, publisherId, type, bookId, pin FROM Discovery")
     d = cur.fetchall()
@@ -95,7 +81,7 @@ def apiDiscovery():
         if len(t) > 0:
             publisher = f"<a href='/user?userId={dd[3]}'><span style='color:{t[0][1]}'>{publisher}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
         else:
-            publisher = f"<a href='/user?userId={dd[3]}'><span>{publisher}></span></a>"
+            publisher = f"<a href='/user?userId={dd[3]}'><span>{publisher}</span></a>"
 
         dis.append({"discoveryId": dd[0], "title": decode(dd[1]), "description": decode(dd[2]), \
             "publisher": publisher, "type": dd[4], "views": views, "likes": likes, "imports": imports, "pinned": pinned})
@@ -104,7 +90,7 @@ def apiDiscovery():
 
 @app.route("/api/discovery/<int:discoveryId>", methods = ['GET', 'POST'])
 def apiDiscoveryData(discoveryId):
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
 
     userId = 0
@@ -235,7 +221,7 @@ def apiDiscoveryData(discoveryId):
     # get imports / members
     imports = 0
     if distype == 1:
-        cur.execute(f"SELECT importCount FROM BookShare WHERE userId = {dd[3]} AND bookId = {dd[5]} AND shareType = 1")
+        cur.execute(f"SELECT importCount FROM BookShare WHERE userId = {uid} AND bookId = {bookId} AND shareType = 1")
         t = cur.fetchall()
         if len(t) > 0:
             imports = t[0][0]
@@ -250,7 +236,7 @@ def apiDiscoveryData(discoveryId):
     if len(t) > 0:
         publisher = f"<a href='/user?userId={uid}'><span style='color:{t[0][1]}'>{publisher}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
     else:
-        publisher = f"<a href='/user?userId={uid}'><span>{publisher}></span></a>"
+        publisher = f"<a href='/user?userId={uid}'><span>{publisher}</span></a>"
 
     return json.dumps({"title": title, "description": description, "questions": questions, \
         "shareCode": shareCode, "type": distype, "publisher": publisher, "isPublisher": isPublisher, \
@@ -258,7 +244,7 @@ def apiDiscoveryData(discoveryId):
 
 @app.route("/api/discovery/publish", methods = ['POST'])
 def apiDiscoveryPublish():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -279,7 +265,7 @@ def apiDiscoveryPublish():
             conn.commit()
 
     if request.form["title"] == "" or request.form["description"] == "":
-        return json.dumps({"success": False, "msg": "Both fields must be filled!"})
+        return json.dumps({"success": False, "msg": "Title and description must be filled!"})
 
     bookId = int(request.form["bookId"])
     title = encode(request.form["title"])
@@ -352,7 +338,7 @@ def apiDiscoveryPublish():
 
 @app.route("/api/discovery/unpublish", methods = ['POST'])
 def apiDiscoveryUnpublish():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -390,7 +376,7 @@ def apiDiscoveryUnpublish():
 
 @app.route("/api/discovery/update", methods = ['POST'])
 def apiDiscoveryUpdate():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -405,7 +391,7 @@ def apiDiscoveryUpdate():
     description = encode(request.form["description"])
 
     if request.form["title"] == "" or request.form["description"] == "":
-        return json.dumps({"success": False, "msg": "Both fields must be filled!"})
+        return json.dumps({"success": False, "msg": "Title and description must be filled!"})
 
     # allow admin to update
     cur.execute(f"SELECT userId FROM AdminList WHERE userId = {userId}")
@@ -431,7 +417,7 @@ def apiDiscoveryUpdate():
 
 @app.route("/api/discovery/pin", methods = ['POST'])
 def apiDiscoveryPin():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -477,7 +463,7 @@ def apiDiscoveryPin():
 
 @app.route("/api/discovery/like", methods = ['POST'])
 def apiDiscoveryLike():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)

@@ -4,30 +4,19 @@
 
 import os, sys
 from app import app, config
-import db
+from db import newconn
 
 import time
 import json
 import threading
 
-import MySQLdb
-import sqlite3
-
 import sessions
 import functions
 import api
 
-functions.updateconn()
-sessions.updateconn()
-
 def PendingAccountDeletion():
     while 1:
-        conn = None
-        if config.database == "mysql":
-            conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
-                passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
-        else:
-            conn = sqlite3.connect("database.db", check_same_thread = False)
+        conn = newconn()
         cur = conn.cursor()
         cur.execute(f"SELECT userId FROM PendingAccountDeletion WHERE deletionTime <= {int(time.time())}")
         d = cur.fetchall()
@@ -41,6 +30,7 @@ def PendingAccountDeletion():
             cur.execute(f"UPDATE UserInfo SET password = '' WHERE userId = {uid}")
 
             conn.commit()
+        
 
         time.sleep(3600)
 

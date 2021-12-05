@@ -7,30 +7,16 @@ import os, sys, time
 import json
 
 from app import app, config
-import db
+from db import newconn
 from functions import *
 import sessions
-
-import MySQLdb
-import sqlite3
-conn = None
-
-def updateconn():
-    global conn
-    if config.database == "mysql":
-        conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
-            passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
-    elif config.database == "sqlite":
-        conn = sqlite3.connect("database.db", check_same_thread = False)
-    
-updateconn()
 
 ##########
 # Share API
 
 @app.route("/api/share", methods = ['POST'])
 def apiShareBook():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)

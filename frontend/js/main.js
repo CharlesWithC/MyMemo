@@ -46,8 +46,8 @@ var chtoday = 0;
 memo = new MemoClass();
 memo.questionId = parseInt(lsGetItem("memo-question-id", 0));
 memo.bookId = parseInt(lsGetItem("memo-book-id", 0));
-memo.fullQuestionList = JSON.parse(lsGetItem("question-list", JSON.stringify([])));
-memo.bookList = JSON.parse(lsGetItem("book-list", JSON.stringify([])));
+memo.fullQuestionList = JSON.parse(ssGetItem("question-list", JSON.stringify([])));
+memo.bookList = JSON.parse(ssGetItem("book-list", JSON.stringify([])));
 
 settings = new SettingsClass();
 settings.random = parseInt(lsGetItem("settings-random", 0));
@@ -137,7 +137,7 @@ function UpdateBookList() {
         },
         success: function (r) {
             memo.bookList = r;
-            localStorage.setItem("book-list", JSON.stringify(memo.bookList));
+            try{sessionStorage.setItem("book-list", JSON.stringify(memo.bookList));}catch{console.warning("Cannot store book list to Session Storage, aborted!");}
             UpdateSelectedQuestionList();
             UpdateBookDisplay();
         }
@@ -163,7 +163,11 @@ function PageInit() {
         },
         success: function (r) {
             memo.fullQuestionList = r;
-            localStorage.setItem("question-list", JSON.stringify(memo.fullQuestionList));
+            try {
+                sessionStorage.setItem("question-list", JSON.stringify(memo.fullQuestionList));
+            } catch {
+                console.warning("Session storage cannot store question-list, aborted!");
+            }
             MapQuestionList();
             $.ajax({
                 url: "/api/book",
@@ -176,7 +180,7 @@ function PageInit() {
                 },
                 success: function (r) {
                     memo.bookList = r;
-                    localStorage.setItem("book-list", JSON.stringify(memo.bookList));
+                    try{sessionStorage.setItem("book-list", JSON.stringify(memo.bookList));}catch{console.warning("Cannot store book list to Session Storage, aborted!");}
                     UpdateSelectedQuestionList();
                     $("#book-name").html(memo.bookName);
                 }

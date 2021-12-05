@@ -8,23 +8,9 @@ import json
 import validators
 
 from app import app, config
-import db
+from db import newconn
 from functions import *
 import sessions
-
-import MySQLdb
-import sqlite3
-conn = None
-
-def updateconn():
-    global conn
-    if config.database == "mysql":
-        conn = MySQLdb.connect(host = app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], \
-            passwd = app.config["MYSQL_PASSWORD"], db = app.config["MYSQL_DB"])
-    elif config.database == "sqlite":
-        conn = sqlite3.connect("database.db", check_same_thread = False)
-    
-updateconn()
 
 ##########
 # User API
@@ -34,7 +20,7 @@ def apiRegister():
     if not config.allow_register:
         return json.dumps({"success": False, "msg": "Public register not enabled!"})
         
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
 
     userCnt = 0
@@ -52,7 +38,7 @@ def apiRegister():
 
     if username is None or email is None or password is None or invitationCode is None \
         or username.replace(" ","") == "" or email.replace(" ","") == "" or password.replace(" ","") == "" or invitationCode.replace(" ","") == "":
-        return json.dumps({"success": False, "msg": "All the fields must be filled!"})
+        return json.dumps({"success": False, "msg": "Username and email must be filled!"})
     if " " in username or "(" in username or ")" in username or "[" in username or "]" in username or "{" in username or "}" in username \
         or "<" in username or ">" in username \
             or "!" in username or "@" in username or "'" in username or '"' in username or "/" in username or "\\" in username :
@@ -122,7 +108,7 @@ def apiRegister():
 
 @app.route("/api/user/login", methods = ['POST'])
 def apiLogin():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     username = encode(request.form["username"])
     password = request.form["password"]
@@ -228,7 +214,7 @@ def apiLogoutAll():
 
 @app.route("/api/user/delete", methods = ['POST'])
 def apiDeleteAccount():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -268,7 +254,7 @@ def apiValidateToken():
 
 @app.route("/api/user/info", methods = ['POST'])
 def apiGetUserInfo():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -313,7 +299,7 @@ def apiGetUserInfo():
     if len(t) > 0:
         username = f"<a href='/user?userId={userId}'><span style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
     else:
-        username = f"<a href='/user?userId={userId}'><span>{username}></span></a>"
+        username = f"<a href='/user?userId={userId}'><span>{username}</span></a>"
 
     goal = 99999
     cur.execute(f"SELECT goal FROM UserInfo WHERE userId = {userId}")
@@ -350,7 +336,7 @@ def apiGetUserInfo():
 
 @app.route("/api/user/goal", methods = ['POST'])
 def apiGetUserGoal():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -394,7 +380,7 @@ def apiGetUserGoal():
 
 @app.route("/api/user/updateGoal", methods = ['POST'])
 def apiUserUpdateGoal():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -416,7 +402,7 @@ def apiUserUpdateGoal():
 
 @app.route("/api/user/checkin", methods = ['POST'])
 def apiUserCheckin():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -455,7 +441,7 @@ def apiUserCheckin():
 
 @app.route("/api/user/chart/<int:uid>", methods = ['GET'])
 def apiGetUserChart(uid):
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     
     cur.execute(f"SELECT * FROM UserInfo WHERE userId = {uid}")
@@ -514,7 +500,7 @@ def apiGetUserChart(uid):
 
 @app.route("/api/user/publicInfo/<int:uid>", methods = ['GET'])
 def apiGetUserPublicInfo(uid):
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     
     cur.execute(f"SELECT username, bio FROM UserInfo WHERE userId = {uid}")
@@ -565,13 +551,13 @@ def apiGetUserPublicInfo(uid):
     if len(t) > 0:
         username = f"<a href='/user?userId={uid}'><span style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
     else:
-        username = f"<a href='/user?userId={uid}'><span>{username}></span></a>"
+        username = f"<a href='/user?userId={uid}'><span>{username}</span></a>"
 
     return json.dumps({"username": username, "bio": bio, "cnt": cnt, "tagcnt": tagcnt, "delcnt": delcnt, "chcnt": chcnt, "age": age, "isAdmin": isAdmin})   
 
 @app.route("/api/user/events", methods = ['POST'])
 def apiUserEvents():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -591,7 +577,7 @@ def apiUserEvents():
 
 @app.route("/api/user/sessions", methods=['POST'])
 def apiUserSessions():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -614,7 +600,7 @@ def apiUserSessions():
 
 @app.route("/api/user/updateInfo", methods=['POST'])
 def apiUpdateInfo():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -630,7 +616,7 @@ def apiUpdateInfo():
 
     if username is None or email is None\
         or username.replace(" ","") == "" or email.replace(" ","") == "":
-        return json.dumps({"success": False, "msg": "All the fields must be filled!"})
+        return json.dumps({"success": False, "msg": "Username and email must be filled!"})
     if " " in username or "(" in username or ")" in username or "[" in username or "]" in username or "{" in username or "}" in username \
         or "<" in username or ">" in username \
             or "!" in username or "@" in username or "'" in username or '"' in username or "/" in username or "\\" in username :
@@ -660,7 +646,7 @@ def apiUpdateInfo():
 
 @app.route("/api/user/changepassword", methods=['POST'])
 def apiChangePassword():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)
@@ -697,7 +683,7 @@ def apiChangePassword():
 
 @app.route("/api/user/settings", methods = ['POST'])
 def apiUserSettings():
-    updateconn()
+    conn = newconn()
     cur = conn.cursor()
     if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
         abort(401)

@@ -7,9 +7,10 @@
     <script src="/js/jquery-3.6.0.min.js"></script>
     <script src="/js/bootstrap.bundle.min.js"></script>
     <script src="/js/popper.min.js"></script>
+    <script src="/js/marked.min.js"></script>
     <script src="/js/general.js"></script>
     <script src="/js/book.js"></script>
-
+    
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/font-awesome.min.css" rel="stylesheet">
     <link href="/css/main.css" rel="stylesheet">
@@ -20,6 +21,9 @@
 
     <link rel="stylesheet" href="/dataTables/jquery.dataTables.min.css">
     <script src="/dataTables/jquery.dataTables.min.js"></script>
+    
+    <link href="/css/simplemde.min.css" rel="stylesheet">
+    <script src="/js/simplemde.min.js"></script>
 
     <link href="/noty/noty.css" rel="stylesheet">
     <script src="/noty/noty.min.js" type="text/javascript"></script>
@@ -60,18 +64,6 @@
                             $("#" + selectedQuestionList[i].questionId).css("color", "black");
                         }
                     }
-                }
-
-                if (window.innerWidth < 1200) {
-                    $("#qlist").css("width", "100%");
-                    $("#manage").css("margin-top", "2em");
-                    $("#manage").css("margin-left", "0");
-                    $("#manage").css("width", "100%");
-                } else {
-                    $("#qlist").css("width", "55%");
-                    $("#manage").css("margin-top", "0em");
-                    $("#manage").css("margin-left", "4em");
-                    $("#manage").css("width", "35%");
                 }
             }, 50);
             $('#questionList tbody').on('click', 'tr', function () {
@@ -182,7 +174,7 @@
         </div>
 
         <div class="book-data-div container" style="display:none">
-            <div id="qlist" class="subcontainer" style="position:relative;width:55%;float:left">
+            <div id="qlist" class="subcontainer sub-left" style="position:relative;width:55%;float:left">
                 <table class="table table-hover" id="questionList" style="text-align:center">
                     <thead>
                         <tr>
@@ -197,7 +189,7 @@
                 </table>
             </div>
 
-            <div id="manage" class="manage subcontainer"
+            <div id="manage" class="manage subcontainer sub-right"
                 style="position:relative;width:35%;float:left;margin-left:4em;">
                 <div>
                     <h4><i class="fa fa-list"></i> Questions</h4>
@@ -242,6 +234,19 @@
                         onclick="BookRenameShow()">Rename <i class="fa fa-edit"></i></button>
                     <button type="button" class="btn btn-danger not-for-all-questions" onclick="BookDeleteShow()">Delete
                         <i class="fa fa-trash"></i></button>
+                </div>
+                <div class="not-for-all-questions" style="display:none">
+                    <hr>
+                    <h4><i class="fa fa-paper-plane"></i> Discovery</h4>
+                    <button type="button" class="btn btn-primary published-to-discovery" onclick=""
+                        id="go-to-discovery-btn" style="display:none">Check on Discovery <i
+                            class="fa fa-search"></i></button>
+                    <button type="button" class="btn btn-primary not-published-to-discovery"
+                        onclick="PublishToDiscoveryShow()">Publish To Discovery <i
+                            class="fa fa-paper-plane"></i></button>
+                    <button type="button" class="btn btn-danger published-to-discovery"
+                        onclick="UnpublishDiscoveryShow()" style="display:none">Unpublish <i
+                            class="fa fa-trash"></i></button>
                 </div>
                 <div id="group" class="group not-for-all-questions" style="display:none">
                     <hr>
@@ -323,7 +328,7 @@
                 </div>
             </div>
 
-            <div id="addExistingQuestion" class="addExistingQuestion"
+            <div id="addExistingQuestion" class="addExistingQuestion subcontainer sub-right"
                 style="position:relative;width:35%;float:right;display:none">
                 <p>Select questions to add to <span class="book-name"></span></p>
                 <button type="button" class="btn btn-primary not-for-all-questions"
@@ -336,10 +341,10 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo</p>
-        <p>Version: v5.3.16 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.4.1 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i> GitHub</a></p>
-        <p>Developer by <a href="www.charles14.xyz">Charles</a></p>
+        <p>Developed by <a href="www.charles14.xyz">Charles</a></p>
     </div>
 </body>
 
