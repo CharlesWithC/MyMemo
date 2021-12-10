@@ -3,6 +3,7 @@
 # License: GNU General Public License v3.0
 
 import os, sys
+import uvicorn
 from app import app, config
 from db import newconn
 
@@ -51,4 +52,4 @@ def PendingEmailVerificationDeletion():
 
 threading.Thread(target = PendingAccountDeletion).start()
 if __name__ == "__main__":
-    app.run(config.server_ip, config.server_port)
+    uvicorn.run("app:app", host = config.server_ip, port = config.server_port)

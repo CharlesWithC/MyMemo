@@ -2,7 +2,7 @@
 # Author: @Charles-1414
 # License: GNU General Public License v3.0
 
-from flask import request, abort, send_file
+from fastapi import Request, HTTPException
 import os, sys, datetime, time, math
 import random, uuid
 import json
@@ -16,19 +16,20 @@ import sessions
 ##########
 # Group API
 
-@app.route("/api/group", methods = ['POST'])
-def apiGroup():
+@app.post("/api/group")
+async def apiGroup(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
 
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
-    op = request.form["operation"]
+    op = form["operation"]
 
     if op == "create":
         allow = config.allow_group_creation_for_all_user
@@ -37,18 +38,18 @@ def apiGroup():
         if len(pr) != 0:
             allow = pr[0][0]
         if not allow:
-            return json.dumps({"success": False, "msg": f"You are not allowed to create groups. Contact administrator for help."})
+            return {"success": False, "msg": f"You are not allowed to create groups. Contact administrator for help."}
 
-        bookId = int(request.form["bookId"])
+        bookId = int(form["bookId"])
         if bookId == 0:
-            return json.dumps({"success": False, "msg": "You cannot create a group based on your question database."})
+            return {"success": False, "msg": "You cannot create a group based on your question database."}
         
         cur.execute(f"SELECT * FROM Book WHERE bookId = {bookId} AND userId = {userId}")
         if len(cur.fetchall()) == 0:
-            return json.dumps({"success": False, "msg": "Book to be used as group book not found!"})
+            return {"success": False, "msg": "Book to be used as group book not found!"}
 
-        name = encode(request.form["name"])
-        description = encode(request.form["description"])
+        name = encode(form["name"])
+        description = encode(form["description"])
 
         groupId = 1
         cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 4")
@@ -64,9 +65,9 @@ def apiGroup():
             lmt = pr[0][0]
 
         if len(name) >= 256:
-            return json.dumps({"success": False, "msg": "Group name too long!"})
+            return {"success": False, "msg": "Group name too long!"}
         if len(description) >= 2048:
-            return json.dumps({"success": False, "msg": "Description too long!"})
+            return {"success": False, "msg": "Description too long!"}
 
         gcode = genCode(8)
         cur.execute(f"INSERT INTO GroupInfo VALUES ({groupId}, {userId}, '{name}', '{description}', {lmt}, '{gcode}', 0)")
@@ -98,24 +99,24 @@ def apiGroup():
         
         conn.commit()
 
-        return json.dumps({"success": True, "msg": f"Group created! Group code: @{gcode}. Tell your friends to create a book with this code and they will join your group automatically.", \
-            "groupId": groupId, "groupCode": f"@{gcode}", "isGroupOwner": True})
+        return {"success": True, "msg": f"Group created! Group code: @{gcode}. Tell your friends to create a book with this code and they will join your group automatically.", \
+            "groupId": groupId, "groupCode": f"@{gcode}", "isGroupOwner": True}
 
     elif op == "dismiss":
-        groupId = int(request.form["groupId"])
+        groupId = int(form["groupId"])
         cur.execute(f"SELECT owner, name FROM GroupInfo WHERE groupId = {groupId}")
         t = cur.fetchall()
         if len(t) == 0:
-            return json.dumps({"success": False, "msg": f"Group not found!"})
+            return {"success": False, "msg": f"Group not found!"}
         owner = t[0][0]
         name = t[0][1]
 
         if owner != userId:
-            return json.dumps({"success": False, "msg": f"You are not the owner of the group!"})
+            return {"success": False, "msg": f"You are not the owner of the group!"}
             
         cur.execute(f"SELECT * FROM Discovery WHERE publisherId = {userId} AND bookId = {groupId}")
         if len(cur.fetchall()) != 0:
-            return json.dumps({"success": False, "msg": f"Group published to Discovery! Unpublish it before dismissing it!"})
+            return {"success": False, "msg": f"Group published to Discovery! Unpublish it before dismissing it!"}
         
         cur.execute(f"DELETE FROM GroupInfo WHERE groupId = {groupId}")
         cur.execute(f"DELETE FROM GroupMember WHERE groupId = {groupId}")
@@ -125,33 +126,34 @@ def apiGroup():
         cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'delete_group', {int(time.time()+1)}, '{encode(f'Deleted group {decode(name)}')}')")
         conn.commit()
 
-        return json.dumps({"success": True, "msg": f"Group dismissed! Book sync stopped and members are not able to see others' progress."})
+        return {"success": True, "msg": f"Group dismissed! Book sync stopped and members are not able to see others' progress."}
 
-@app.route("/api/group/quit", methods = ['POST'])
-def apiQuitGroup():
+@app.post("/api/group/quit")
+async def apiQuitGroup(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
 
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
-    groupId = int(request.form["groupId"])
+    groupId = int(form["groupId"])
 
     cur.execute(f"SELECT * FROM GroupMember WHERE userId = {userId} AND groupId = {groupId}")
     if len(cur.fetchall()) == 0:
-        return json.dumps({"success": False, "msg": "You are not in the group!"})
+        return {"success": False, "msg": "You are not in the group!"}
     
     cur.execute(f"SELECT owner, name FROM GroupInfo WHERE groupId = {groupId}")
     d = cur.fetchall()
     if len(d) == 0:
-        return json.dumps({"success": False, "msg": "Group does not exist!"})
+        return {"success": False, "msg": "Group does not exist!"}
     owner = d[0][0]
     if userId == owner:
-        return json.dumps({"success": False, "msg": "You are the owner of the group. You have to transfer group ownership before quiting the group."})
+        return {"success": False, "msg": "You are the owner of the group. You have to transfer group ownership before quiting the group."}
     name = d[0][1]
 
     cur.execute(f"DELETE FROM GroupSync WHERE groupId = {groupId} AND userId = {userId}")
@@ -160,60 +162,62 @@ def apiQuitGroup():
 
     conn.commit()
 
-    return json.dumps({"success": True, "msg": "You have quit the group successfully! The book has became a local one."})
+    return {"success": True, "msg": "You have quit the group successfully! The book has became a local one."}
 
-@app.route("/api/group/code/update", methods = ['POST'])
-def apiGroupCodeUpdate():
+@app.post("/api/group/code/update")
+async def apiGroupCodeUpdate(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
 
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
-    groupId = int(request.form["groupId"])
+    groupId = int(form["groupId"])
     
     cur.execute(f"SELECT owner FROM GroupInfo WHERE groupId = {groupId}")
     d = cur.fetchall()
     if len(d) == 0:
-        return json.dumps({"success": False, "msg": "Group does not exist!"})
+        return {"success": False, "msg": "Group does not exist!"}
     owner = d[0][0]
     if userId != owner:
-        return json.dumps({"success": False, "msg": "You are not the owner of the group!"})
+        return {"success": False, "msg": "You are not the owner of the group!"}
 
-    op = request.form["operation"]
+    op = form["operation"]
 
     if op == "disable":
         cur.execute(f"UPDATE GroupInfo SET groupCode = 'pvtgroup' WHERE groupId = {groupId}")
         conn.commit()
-        return json.dumps({"success": True, "msg": "Group has been made to private and no user is allowed to join!", "groupCode": "@pvtgroup"})
+        return {"success": True, "msg": "Group has been made to private and no user is allowed to join!", "groupCode": "@pvtgroup"}
     
     elif op == "revoke":
         gcode = genCode(8)
         cur.execute(f"UPDATE GroupInfo SET groupCode = '{gcode}' WHERE groupId = {groupId}")
         conn.commit()
-        return json.dumps({"success": True, "msg": f"New group code: @{gcode}", "groupCode": f"@{gcode}"})
+        return {"success": True, "msg": f"New group code: @{gcode}", "groupCode": f"@{gcode}"}
 
-@app.route("/api/group/member", methods = ['POST'])
-def apiGroupMember():
+@app.post("/api/group/member")
+async def apiGroupMember(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
 
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
-    groupId = int(request.form["groupId"])
+    groupId = int(form["groupId"])
     cur.execute(f"SELECT userId, isEditor FROM GroupMember WHERE groupId = {groupId}")
     d = cur.fetchall()
     if not (userId,0,) in d and not (userId,1,) in d:
-        return json.dumps({"success": False, "msg": f"You must be a member of the group before viewing its members."})
+        return {"success": False, "msg": f"You must be a member of the group before viewing its members."}
     
     cur.execute(f"SELECT * FROM GroupQuestion WHERE groupId = {groupId}")
     questioncnt = len(cur.fetchall())
@@ -226,7 +230,7 @@ def apiGroupMember():
     if len(t) > 0:
         info = t[0]
     else:
-        return json.dumps({"success": False, "msg": "Group not found!"})
+        return {"success": False, "msg": "Group not found!"}
 
     owner = 0
     cur.execute(f"SELECT owner FROM GroupInfo WHERE groupId = {groupId}")
@@ -234,7 +238,7 @@ def apiGroupMember():
     if len(t) > 0:
         owner = t[0][0]
         if owner < 0:
-            return json.dumps({"success": False, "msg": "Group is invisible because its owner is banned."})
+            return {"success": False, "msg": "Group is invisible because its owner is banned."}
     
     isOwner = False
     if owner == userId:
@@ -286,33 +290,34 @@ def apiGroupMember():
         elif info[2] == 2:
             ret.append({"userId": 0, "username": "Anonymous", "progress": "Unknown"})
     
-    return json.dumps({"name": decode(info[0]), "description": decode(info[1]), "member": ret, "isOwner": isOwner})
+    return {"success": True, "name": decode(info[0]), "description": decode(info[1]), "member": ret, "isOwner": isOwner}
 
-@app.route("/api/group/manage", methods = ['POST'])
-def apiManageGroup():
+@app.post("/api/group/manage")
+async def apiManageGroup(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
 
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
-    groupId = int(request.form["groupId"])
+    groupId = int(form["groupId"])
     
     cur.execute(f"SELECT owner FROM GroupInfo WHERE groupId = {groupId}")
     d = cur.fetchall()
     if len(d) == 0:
-        return json.dumps({"success": False, "msg": "Group does not exist!"})
+        return {"success": False, "msg": "Group does not exist!"}
     owner = d[0][0]
     if userId != owner:
-        return json.dumps({"success": False, "msg": "You are not the owner of the group!"})
+        return {"success": False, "msg": "You are not the owner of the group!"}
     
-    op = request.form["operation"]
+    op = form["operation"]
     if op == "makeEditor":
-        users = json.loads(request.form["users"])
+        users = json.loads(form["users"])
         for uid in users:
             if uid == userId:
                 continue
@@ -334,7 +339,7 @@ def apiManageGroup():
                 
                 cur.execute(f"UPDATE GroupMember SET isEditor = 1 WHERE groupId = {groupId} AND userId = {uid}")
         conn.commit()
-        return json.dumps({"success": True, "msg": "Success!"})
+        return {"success": True, "msg": "Success!"}
 
     elif op == "kick":
         cur.execute(f"SELECT name FROM GroupInfo WHERE groupId = {groupId}")
@@ -342,7 +347,7 @@ def apiManageGroup():
         name = ''
         if len(t) > 0:
             name = t[0][0]
-        users = json.loads(request.form["users"])
+        users = json.loads(form["users"])
         for uid in users:
             if uid == userId:
                 continue
@@ -350,19 +355,19 @@ def apiManageGroup():
             cur.execute(f"DELETE FROM GroupMember WHERE groupId = {groupId} AND userId = {uid}")
             cur.execute(f"INSERT INTO UserEvent VALUES ({uid}, 'quit_group', {int(time.time())}, '{encode(f'You have been kicked from group {decode(name)}')}')")
         conn.commit()
-        return json.dumps({"success": True, "msg": "Success!"})
+        return {"success": True, "msg": "Success!"}
     
     elif op =="transferOwnership":
-        users = json.loads(request.form["users"])
+        users = json.loads(form["users"])
         if len(users) != 1:
-            return json.dumps({"success": True, "msg": "Make sure you only selected one user!"})
+            return {"success": True, "msg": "Make sure you only selected one user!"}
         uid = users[0]
         if uid == userId:
-            return json.dumps({"success": True, "msg": "You are already the owner!"})
+            return {"success": True, "msg": "You are already the owner!"}
         cur.execute(f"SELECT isEditor FROM GroupMember WHERE groupId = {groupId} AND userId = {uid}")
         t = cur.fetchall()
         if len(t) == 0 or t[0][0] == 0:
-            return json.dumps({"success": False, "msg": "Member not in group or member not an editor. Make sure the new owner is already in group and you have made him / her an editor."})
+            return {"success": False, "msg": "Member not in group or member not an editor. Make sure the new owner is already in group and you have made him / her an editor."}
         
         newOwner = "@deleted"
         cur.execute(f"SELECT username FROM UserInfo WHERE userId = {uid}")
@@ -370,21 +375,21 @@ def apiManageGroup():
         if len(t) != 0:
             newOwner = decode(t[0][0])
         if newOwner == "@deleted":
-            return json.dumps({"success": False, "msg": f"You cannot transfer ownership to a deleted user!"})
+            return {"success": False, "msg": f"You cannot transfer ownership to a deleted user!"}
 
         cur.execute(f"UPDATE GroupInfo SET owner = {uid} WHERE groupId = {groupId}")
         cur.execute(f"UPDATE GroupMember SET isEditor = 1 WHERE groupId = {groupId} and userId = {uid}")
         conn.commit()
-        return json.dumps({"success": True, "msg": f"Success! Ownership transferred to {newOwner} (UID: {uid})"})
+        return {"success": True, "msg": f"Success! Ownership transferred to {newOwner} (UID: {uid})"}
 
     elif op == "updateInfo":
-        name = encode(request.form["name"])
-        description = encode(request.form["description"])
+        name = encode(form["name"])
+        description = encode(form["description"])
 
         if len(name) >= 256:
-            return json.dumps({"success": False, "msg": "Group name too long!"})
+            return {"success": False, "msg": "Group name too long!"}
         if len(description) >= 2048:
-            return json.dumps({"success": False, "msg": "Description too long!"})
+            return {"success": False, "msg": "Description too long!"}
 
         cur.execute(f"UPDATE GroupInfo SET name = '{name}' WHERE groupId = {groupId}")
         cur.execute(f"UPDATE GroupInfo SET description = '{description}' WHERE groupId = {groupId}")
@@ -395,23 +400,23 @@ def apiManageGroup():
             wbid = bind[1]
 
             if len(name) >= 256:
-                return json.dumps({"success": False, "msg": "Book name too long!"})
+                return {"success": False, "msg": "Book name too long!"}
 
             cur.execute(f"UPDATE Book SET name = '{name}' WHERE bookId = {wbid} AND userId = {uid}")
         conn.commit()
 
-        return json.dumps({"success": True, "msg": f"Success! Group information updated!"})
+        return {"success": True, "msg": f"Success! Group information updated!"}
     
     elif op == "anonymous":
-        anonymous = int(request.form["anonymous"])
+        anonymous = int(form["anonymous"])
         if not anonymous in [0, 1, 2]:
-            return json.dumps({"success": False, "msg": f"Invalid anonymous status!"})
+            return {"success": False, "msg": f"Invalid anonymous status!"}
 
         cur.execute(f"SELECT anonymous FROM GroupInfo WHERE groupId = {groupId}")
         t = cur.fetchall()
         if len(t) > 0:
             cur.execute(f"UPDATE GroupInfo SET anonymous = {anonymous} WHERE groupId = {groupId}")
             conn.commit()
-            return json.dumps({"success": True, "msg": f"Success!", "anonymous": anonymous})
+            return {"success": True, "msg": f"Success!", "anonymous": anonymous}
         
-        return json.dumps({"success": False, "msg": f"Group not found!"})
+        return {"success": False, "msg": f"Group not found!"}

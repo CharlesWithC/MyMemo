@@ -2,7 +2,7 @@
 # Author: @Charles-1414
 # License: GNU General Public License v3.0
 
-from flask import request, abort
+from fastapi import Request, HTTPException
 import os, sys, datetime, time
 import random
 import json
@@ -103,27 +103,28 @@ def getChallengeQuestionId(userId, bookId, nofour = False):
     
     return questionId
 
-@app.route("/api/question/challenge/next", methods = ['POST'])
-def apiGetNextChallenge():
+@app.post("/api/question/challenge/next")
+async def apiGetNextChallenge(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
         
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
 
-    bookId = int(request.form["bookId"])
+    bookId = int(form["bookId"])
     questionId = getChallengeQuestionId(userId, bookId)
-    mixcnt = int(request.form["mixcnt"])
+    mixcnt = int(form["mixcnt"])
 
     if questionId == -1:
         mix = []
         for _ in range(mixcnt):
             mix.append({"question": "No more challenge", "answer": "No more challenge"})
-        return json.dumps({"questionId": questionId, "question": "No more challenge", "answer": "No more challenge", "status": 1, "mix": mix})
+        return {"success": True, "questionId": questionId, "question": "No more challenge", "answer": "No more challenge", "status": 1, "mix": mix}
 
     cur.execute(f"SELECT question, answer, status FROM QuestionList WHERE questionId = {questionId} AND userId = {userId}")
     d = cur.fetchall()
@@ -140,25 +141,26 @@ def apiGetNextChallenge():
     for i in range(mixcnt):
         mix.append({"question": decode(qs[i][1]), "answer": decode(qs[i][2])})
 
-    return json.dumps({"questionId": questionId, "question": question, "answer": answer, "status": status, "mix": mix})
+    return {"success": True, "questionId": questionId, "question": question, "answer": answer, "status": status, "mix": mix}
 
 # addtime = [20 minute, 1 hour, 3 hour, 8 hour, 1 day, 2 day, 5 day, 10 day]
 addtime = [300, 1200, 3600, 10800, 28800, 86401, 172800, 432000, 864010]
-@app.route("/api/question/challenge/update", methods = ['POST'])
-def apiUpdateChallengeRecord():
+@app.post("/api/question/challenge/update")
+async def apiUpdateChallengeRecord(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
         
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
 
-    questionId = int(request.form["questionId"])
-    memorized = int(request.form["memorized"])
-    getNext = int(request.form["getNext"])
+    questionId = int(form["questionId"])
+    memorized = int(form["memorized"])
+    getNext = int(form["getNext"])
     ts = int(time.time())
 
     cur.execute(f"SELECT memorized, timestamp FROM ChallengeRecord WHERE questionId = {questionId} AND userId = {userId} ORDER BY timestamp DESC")
@@ -210,8 +212,8 @@ def apiUpdateChallengeRecord():
     conn.commit()
 
     if getNext == 1:
-        bookId = int(request.form["bookId"])
-        mixcnt = int(request.form["mixcnt"])
+        bookId = int(form["bookId"])
+        mixcnt = int(form["mixcnt"])
 
         questionId = getChallengeQuestionId(userId, bookId)
 
@@ -219,7 +221,7 @@ def apiUpdateChallengeRecord():
             mix = []
             for _ in range(mixcnt):
                 mix.append({"question": "No more challenge", "answer": "No more challenge"})
-            return json.dumps({"questionId": questionId, "question": "No more challenge", "answer": "No more challenge", "status": 1, "mix": mix})
+            return {"success": True, "questionId": questionId, "question": "No more challenge", "answer": "No more challenge", "status": 1, "mix": mix}
 
         cur.execute(f"SELECT question, answer, status FROM QuestionList WHERE questionId = {questionId} AND userId = {userId}")
         d = cur.fetchall()
@@ -236,7 +238,7 @@ def apiUpdateChallengeRecord():
         for i in range(mixcnt):
             mix.append({"question": decode(qs[i][1]), "answer": decode(qs[i][2])})
 
-        return json.dumps({"questionId": questionId, "question": question, "answer": answer, "status": status, "mix": mix})
+        return {"success": True, "questionId": questionId, "question": question, "answer": answer, "status": status, "mix": mix}
 
     else:
-        return json.dumps({"success": True})
+        return {"success": True}

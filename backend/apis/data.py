@@ -2,7 +2,8 @@
 # Author: @Charles-1414
 # License: GNU General Public License v3.0
 
-from flask import request, abort, send_file
+from fastapi import Request, HTTPException, BackgroundTasks, File, UploadFile
+from fastapi.responses import StreamingResponse, RedirectResponse, HTMLResponse, JSONResponse
 import os, sys, datetime, time
 import random, uuid
 import json
@@ -103,7 +104,7 @@ def importWork(userId, bookId, updateType, checkDuplicate, newlist):
     
     conn.commit()
 
-    StatusTextToStatus = {"Default": 1, "Tagged": 2, "Removed": 3}
+    StatusTextToStatus = {"Default": 1, "Tagged": 2, "Deleted": 3}
 
     groupMember = None
     if groupId != -1:
@@ -133,7 +134,7 @@ def importWork(userId, bookId, updateType, checkDuplicate, newlist):
                     return "Answer too long: " + answer
 
                 cur.execute(f"UPDATE QuestionList SET answer = '{encode(answer)}' WHERE questionId = {wid} AND userId = {userId}")
-                if list(newlist.keys()).count("Status") == 1 and newlist["Status"][i] in ["Default", "Tagged", "Removed"]:
+                if list(newlist.keys()).count("Status") == 1 and newlist["Status"][i] in ["Default", "Tagged", "Deleted"]:
                     status = StatusTextToStatus[newlist["Status"][i]]
                     cur.execute(f"UPDATE QuestionList SET status = {status} WHERE questionId = {wid} AND userId = {userId}")
                 if bookId != 0 and not questionId in bookList:
@@ -147,7 +148,7 @@ def importWork(userId, bookId, updateType, checkDuplicate, newlist):
         updateQuestionStatus(userId, questionId, status)
 
         status = 1
-        if list(newlist.keys()).count("Status") == 1 and newlist["Status"][i] in ["Default", "Tagged", "Removed"]:
+        if list(newlist.keys()).count("Status") == 1 and newlist["Status"][i] in ["Default", "Tagged", "Deleted"]:
             status = StatusTextToStatus[newlist["Status"][i]]
             updateQuestionStatus(userId, questionId, status)
         else:
@@ -252,35 +253,36 @@ def importWorkGate(userId, bookId, updateType, checkDuplicate, newlist):
     
     threading.Thread(target=clearResult,args=(userId,)).start()
 
-@app.route("/api/data/import", methods = ['POST'])
-def importData():
+@app.post("/api/data/import", response_class=HTMLResponse)
+async def apiImportData(request: Request, background_tasks: BackgroundTasks):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
 
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
-    if "getResult" in request.form.keys():
+    if "getResult" in form.keys():
         cur.execute(f"SELECT result FROM DataUploadResult WHERE userId = {userId}")
         t = cur.fetchall()
         if len(t) > 0:
             if t[0][0] != '':
                 if decode(t[0][0]) == "Failed":
                     threading.Thread(target=clearResult,args=(userId,True,)).start()
-                    return json.dumps({"success": 0, "msg": decode(t[0][0])})
+                    return JSONResponse({"success": 0, "msg": decode(t[0][0])})
                 elif decode(t[0][0]).startswith("Progress"):
                     progress = decode(t[0][0]).replace("Progress","")
-                    return json.dumps({"success": 1, "msg": f"Still working on it ... {progress}% Finished"})
+                    return JSONResponse({"success": 1, "msg": f"Still working on it ... {progress}% Finished"})
                 else:
                     threading.Thread(target=clearResult,args=(userId,True,)).start()
-                    return json.dumps({"success": 2, "msg": decode(t[0][0])})
+                    return JSONResponse({"success": 2, "msg": decode(t[0][0])})
             else:
-                return json.dumps({"success": 1, "msg": "Still working on it... <i class='fa fa-spinner fa-spin'></i>"})
-        return json.dumps({"success": 0, "msg": "Upload result has been cleared!"})
+                return JSONResponse({"success": 1, "msg": "Still working on it... <i class='fa fa-spinner fa-spin'></i>"})
+        return JSONResponse({"success": 0, "msg": "Upload result has been cleared!"})
 
     cur.execute(f"SELECT result FROM DataUploadResult WHERE userId = {userId}")
     t = cur.fetchall()
@@ -288,36 +290,37 @@ def importData():
         return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>Another upload task is running!</p>"
 
     # Do file check
-    if 'file' not in request.files:
-        return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>Invalid import! E1: No file found</p>"
-    
-    f = request.files['file']
+    form = await request.form()
+    f = form["file"]
     if f.filename == '':
         return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>Invalid import! E2: Empty file name</p>"
 
     if not f.filename.endswith(".xlsx"):
         return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>Only .xlsx files are supported!</p>"
     
-    ts=int(time.time())
+    ts = int(time.time())
 
     buf = io.BytesIO()
-    f.save(buf)
+    content = await f.read()
+    buf.write(content)
     buf.seek(0)
     newlist = None
 
     try:
-        newlist = pd.read_excel(buf.getvalue(), engine = "openpyxl")
+        newlist = pd.read_excel(buf, engine = "openpyxl")
         if list(newlist.keys()).count("Question") != 1 or list(newlist.keys()).count("Answer")!=1:
             return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>Invalid format! The columns must contain 'Question','Answer'!</p>"
     except:
+        import traceback
+        traceback.print_exc()
         return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>Invalid format! The columns must contain 'Question','Answer'!</p>"
     
-    updateType = request.form["updateType"]
+    updateType = form["updateType"]
     yesno = {"yes": True, "no": False}
-    checkDuplicate = request.form["checkDuplicate"]
+    checkDuplicate = form["checkDuplicate"]
     checkDuplicate = yesno[checkDuplicate]
 
-    bookId = int(request.form["bookId"])
+    bookId = int(form["bookId"])
 
     cur.execute(f"INSERT INTO DataUploadResult VALUES ({userId}, '')")
     conn.commit()
@@ -334,48 +337,51 @@ def importData():
         return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>The server is handling too many data import requests at this time... Please try again later!</p>"
     else:
         lastop[userId] = int(time.time())
-        threading.Thread(target=importWorkGate,args=(userId, bookId, updateType, checkDuplicate, newlist, )).start()
-        threading.Thread(target=clearResult,args=(userId,False,300,)).start()
+        background_tasks.add_task(importWorkGate, userId, bookId, updateType, checkDuplicate, newlist)
+        background_tasks.add_task(clearResult, userId, False, 300)
 
     return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><script>GetUploadResult()</script>\
-        <link href='/css/all.min.css' rel='stylesheet'><link href='/css/main.css' rel='stylesheet'>\
+        <link href='https://cdn.charles14.xyz/css/all.min.css' rel='stylesheet'><link href='/css/main.css' rel='stylesheet'>\
             <p id='result'>Working on it... <i class='fa fa-spinner fa-spin'></i></p>"
 
-@app.route("/api/data/export", methods = ['POST'])
-def exportData():
+@app.post("/api/data/export")
+async def apiExportData(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
 
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
-    exportType = request.form["exportType"]
+    exportType = form["exportType"]
     tk = str(uuid.uuid4())
     cur.execute(f"INSERT INTO DataDownloadToken VALUES ({userId}, '{exportType}', {int(time.time())}, '{tk}')")
     conn.commit()
 
-    return json.dumps({"success": True, "token": tk})
+    return {"success": True, "token": tk}
+
+def nginxException(status_code):
+    return "/error?code=" + str(status_code)
 
 queue = []
-@app.route("/download", methods = ['GET'])
-def download():
+@app.get("/download")
+async def apiDownload(token: str, request: Request):
     conn = newconn()
     cur = conn.cursor()
-    token = request.args.get("token")
-    if not token.replace("-").isalnum():
-        abort(404)
+    if not token.replace("-","").isalnum():
+        return RedirectResponse(nginxException(404))
     
     cur.execute(f"SELECT * FROM DataDownloadToken WHERE token = '{token}'")
     d = cur.fetchall()
     if len(d) == 0:
-        abort(404)
+        return RedirectResponse(nginxException(404))
     
     if config.max_concurrent_download != -1 and len(queue) > config.max_concurrent_download:
-        abort(503)
+        return RedirectResponse(nginxException(503))
     
     queue.append(token)
     
@@ -386,9 +392,9 @@ def download():
     conn.commit()
 
     if int(time.time()) - ts > 1800: # 10 minutes
-        abort(404)
+        return RedirectResponse(nginxException(404))
     
-    StatusToStatusText = {-3: "Question bound to group", -2: "Added from website", -1: "File imported", 0: "None", 1: "Default", 2: "Tagged", 3: "Removed"}
+    StatusToStatusText = {-3: "Question bound to group", -2: "Added from website", -1: "File imported", 0: "None", 1: "Default", 2: "Tagged", 3: "Deleted"}
 
     conn = newconn()
     cur = conn.cursor()
@@ -414,7 +420,8 @@ def download():
 
         queue.remove(token)
 
-        return send_file(buf, as_attachment=True, attachment_filename='MyMemo_Export_QuestionList.xlsx', mimetype='application/octet-stream')
+        return StreamingResponse(buf, headers={"Content-Disposition": "attachment; filename=MyMemo_Export_QuestionList.xlsx", \
+            "Content-Type": "application/octet-stream"})
     
     else:
         buf = io.BytesIO()
@@ -483,7 +490,8 @@ def download():
 
         queue.remove(token)
 
-        return send_file(buf, as_attachment=True, attachment_filename='MyMemo_Export_AllData.xlsx', mimetype='application/octet-stream')
+        return StreamingResponse(buf, headers={"Content-Disposition": "attachment; filename=MyMemo_Export_AllData.xlsx", \
+            "Content-Type": "application/octet-stream"})
 
 def ClearOutdatedDLToken():
     while 1:

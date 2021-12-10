@@ -2,7 +2,7 @@
 # Author: @Charles-1414
 # License: GNU General Public License v3.0
 
-from flask import request, abort
+from fastapi import Request, HTTPException
 import os, sys, time, math
 import json
 import validators
@@ -15,8 +15,10 @@ import sessions
 ##########
 # Discovery API
 
-@app.route("/api/discovery", methods = ['GET','POST'])
-def apiDiscovery():
+@app.get("/api/discovery")
+@app.post("/api/discovery")
+async def apiDiscovery(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
     cur.execute(f"SELECT discoveryId, title, description, publisherId, type, bookId, pin FROM Discovery")
@@ -86,10 +88,12 @@ def apiDiscovery():
         dis.append({"discoveryId": dd[0], "title": decode(dd[1]), "description": decode(dd[2]), \
             "publisher": publisher, "type": dd[4], "views": views, "likes": likes, "imports": imports, "pinned": pinned})
     
-    return json.dumps(dis)
+    return dis
 
-@app.route("/api/discovery/<int:discoveryId>", methods = ['GET', 'POST'])
-def apiDiscoveryData(discoveryId):
+@app.get("/api/discovery/{discoveryId:int}")
+@app.post("/api/discovery/{discoveryId:int}")
+async def apiDiscoveryData(discoveryId: int, request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
 
@@ -97,15 +101,15 @@ def apiDiscoveryData(discoveryId):
 
     if request.method == "POST":
         loggedin = False
-        if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
+        if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
             loggedin = False
         else:
             loggedin = True
         
         if loggedin:
             loggedin = False
-            userId = int(request.form["userId"])
-            token = request.form["token"]
+            userId = int(form["userId"])
+            token = form["token"]
             if validateToken(userId, token):
                 loggedin = True
         
@@ -115,7 +119,7 @@ def apiDiscoveryData(discoveryId):
     cur.execute(f"SELECT publisherId, bookId, title, description, type, pin FROM Discovery WHERE discoveryId = {discoveryId}")
     d = cur.fetchall()
     if len(d) == 0:
-        return json.dumps({"success": False, "msg": "Post not found!"})
+        return {"success": False, "msg": "Post not found!"}
     d = d[0]
 
     uid = d[0]
@@ -126,7 +130,7 @@ def apiDiscoveryData(discoveryId):
     pinned = d[5]
 
     if checkBanned(uid):
-        return json.dumps({"success": False, "msg": "Post not found!"})
+        return {"success": False, "msg": "Post not found!"}
     
     # Check share existence
     if distype == 1:
@@ -135,7 +139,7 @@ def apiDiscoveryData(discoveryId):
         if len(t) == 0:
             cur.execute(f"DELETE FROM Discovery WHERE discoveryId = {discoveryId}")
             conn.commit()
-            return json.dumps({"success": False, "msg": "Book not found!"})
+            return {"success": False, "msg": "Book not found!"}
     
     elif distype == 2:
         cur.execute(f"SELECT * FROM GroupInfo WHERE groupId = {bookId}")
@@ -143,7 +147,7 @@ def apiDiscoveryData(discoveryId):
         if len(t) == 0:
             cur.execute(f"DELETE FROM Discovery WHERE discoveryId = {discoveryId}")
             conn.commit()
-            return json.dumps({"success": False, "msg": "Group not found!"})
+            return {"success": False, "msg": "Group not found!"}
 
     
     # Check share status as books must be shared before being imported
@@ -156,7 +160,7 @@ def apiDiscoveryData(discoveryId):
             shareCode = "!"+t[0][0]
 
         if shareCode == "":
-            return json.dumps({"success": False, "msg": "Book not found!"})
+            return {"success": False, "msg": "Book not found!"}
 
     elif distype == 2:
         cur.execute(f"SELECT groupCode FROM GroupInfo WHERE groupId = {bookId}")
@@ -165,7 +169,7 @@ def apiDiscoveryData(discoveryId):
             shareCode = "@"+t[0][0]
 
         if shareCode == "" or shareCode == "@pvtgroup":
-            return json.dumps({"success": False, "msg": "Group not open to public! Maybe the publisher just closed it temporarily."})
+            return {"success": False, "msg": "Group not open to public! Maybe the publisher just closed it temporarily."}
 
     # Get discovery publisher username
     publisher = "Unknown User"
@@ -239,46 +243,47 @@ def apiDiscoveryData(discoveryId):
     else:
         publisher = f"<a href='/user?userId={uid}'><span>{publisher}</span></a>"
 
-    return json.dumps({"title": title, "description": description, "questions": questions, \
+    return {"success": True, "title": title, "description": description, "questions": questions, \
         "shareCode": shareCode, "type": distype, "publisher": publisher, "isPublisher": isPublisher, \
-            "views": views, "likes": likes, "liked": liked, "imports": imports, "pinned": pinned})
+            "views": views, "likes": likes, "liked": liked, "imports": imports, "pinned": pinned}
 
-@app.route("/api/discovery/publish", methods = ['POST'])
-def apiDiscoveryPublish():
+@app.post("/api/discovery/publish")
+async def apiDiscoveryPublish(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
 
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
     cur.execute(f"SELECT value FROM Privilege WHERE userId = {userId} AND item = 'mute'")
     t = cur.fetchall()
     if len(t) > 0:
         mute = int(t[0][0])
         if mute == -1 or mute >= int(time.time()):
-            return json.dumps({"success": False, "msg": "You have been muted!"})
+            return {"success": False, "msg": "You have been muted!"}
         else:
             cur.execute(f"DELETE FROM Privilege WHERE userId = {userId} AND item = 'mute'")
             conn.commit()
 
-    if request.form["title"] == "" or request.form["description"] == "":
-        return json.dumps({"success": False, "msg": "Title and description must be filled!"})
+    if form["title"] == "" or form["description"] == "":
+        return {"success": False, "msg": "Title and description must be filled!"}
 
-    bookId = int(request.form["bookId"])
-    title = encode(request.form["title"])
-    description = encode(request.form["description"])
-    distype = int(request.form["type"])
+    bookId = int(form["bookId"])
+    title = encode(form["title"])
+    description = encode(form["description"])
+    distype = int(form["type"])
 
     cur.execute(f"SELECT * FROM Discovery WHERE publisherId = {userId} AND bookId = {bookId} AND type = {distype}")
     if len(cur.fetchall()) != 0:
         if distype == 1:
-            return json.dumps({"success": False, "msg": "Book already published!"})
+            return {"success": False, "msg": "Book already published!"}
         else:
-            return json.dumps({"success": False, "msg": "Group already published!"})
+            return {"success": False, "msg": "Group already published!"}
 
     # get share code
     shareCode = ""
@@ -296,7 +301,7 @@ def apiDiscoveryPublish():
                         break
                 cur.execute(f"SELECT shareCode FROM BookShare WHERE shareCode = '{shareCode}'")
                 if len(cur.fetchall()) != 0:
-                    return json.dumps({"success": False, "msg": "Unable to generate an unique share code..."})
+                    return {"success": False, "msg": "Unable to generate an unique share code..."}
 
             cur.execute(f"INSERT INTO BookShare VALUES ({userId}, {bookId}, '{shareCode}', 0, {int(time.time())}, 1)")
             conn.commit()
@@ -309,12 +314,12 @@ def apiDiscoveryPublish():
         if len(t) != 0:
             # check if user is group owner
             if t[0][1] != userId:
-                return json.dumps({"success": False, "msg": "Only the group owner can publish the group on discovery!"})
+                return {"success": False, "msg": "Only the group owner can publish the group on discovery!"}
 
             shareCode = "@"+t[0][0]
     
         if shareCode == "" or shareCode == "@pvtgroup":
-            return json.dumps({"success": False, "msg": "Group must be open to public before publishing it on Discovery!"})
+            return {"success": False, "msg": "Group must be open to public before publishing it on Discovery!"}
     
     discoveryId = 1
     cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 6")
@@ -324,9 +329,9 @@ def apiDiscoveryPublish():
     cur.execute(f"UPDATE IDInfo SET nextId = {discoveryId + 1} WHERE type = 6")
     
     if len(title) >= 256:
-        return json.dumps({"success": False, "msg": "Title too long!"})
+        return {"success": False, "msg": "Title too long!"}
     if len(description) >= 2048:
-        return json.dumps({"success": False, "msg": "Description too long!"})
+        return {"success": False, "msg": "Description too long!"}
 
     cur.execute(f"INSERT INTO Discovery VALUES ({discoveryId}, {userId}, {bookId}, '{title}', '{description}', {distype}, 0, 0)")
     conn.commit()
@@ -335,26 +340,27 @@ def apiDiscoveryPublish():
     if distype == 2:
         msg = "Group published to Discovery. People will be able to find it and join it. All your updates made within this group will be synced to Discovery."
     
-    return json.dumps({"success": True, "msg": msg, "discoveryId": discoveryId})
+    return {"success": True, "msg": msg, "discoveryId": discoveryId}
 
-@app.route("/api/discovery/unpublish", methods = ['POST'])
-def apiDiscoveryUnpublish():
+@app.post("/api/discovery/unpublish")
+async def apiDiscoveryUnpublish(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
 
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
-    discoveryId = int(request.form["discoveryId"])
+    discoveryId = int(form["discoveryId"])
 
     cur.execute(f"SELECT publisherId, bookId FROM Discovery WHERE discoveryId = {discoveryId}")
     t = cur.fetchall()
     if len(t) == 0:
-        return json.dumps({"success": False, "msg": "Post not found!"})
+        return {"success": False, "msg": "Post not found!"}
     uid = t[0][0]
     bookId = t[0][1]
     
@@ -367,32 +373,33 @@ def apiDiscoveryUnpublish():
         if len(t) > 0:
             publisherId = t[0][0]
         if publisherId != userId:
-            return json.dumps({"success": False, "msg": "You are not the publisher of this post!"})
+            return {"success": False, "msg": "You are not the publisher of this post!"}
 
     cur.execute(f"DELETE FROM Discovery WHERE discoveryId = {discoveryId}")
     cur.execute(f"DELETE FROM BookShare WHERE userId = {uid} AND bookId = {bookId} AND shareType = 1")
     conn.commit()
 
-    return json.dumps({"success": True, "msg": "Post unpublished!"})
+    return {"success": True, "msg": "Post unpublished!"}
 
-@app.route("/api/discovery/update", methods = ['POST'])
-def apiDiscoveryUpdate():
+@app.post("/api/discovery/update")
+async def apiDiscoveryUpdate(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
 
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
-    discoveryId = int(request.form["discoveryId"])
-    title = encode(request.form["title"])
-    description = encode(request.form["description"])
+    discoveryId = int(form["discoveryId"])
+    title = encode(form["title"])
+    description = encode(form["description"])
 
-    if request.form["title"] == "" or request.form["description"] == "":
-        return json.dumps({"success": False, "msg": "Title and description must be filled!"})
+    if form["title"] == "" or form["description"] == "":
+        return {"success": False, "msg": "Title and description must be filled!"}
 
     # allow admin to update
     cur.execute(f"SELECT userId FROM AdminList WHERE userId = {userId}")
@@ -403,38 +410,39 @@ def apiDiscoveryUpdate():
         if len(t) > 0:
             publisherId = t[0][0]
         if publisherId != userId:
-            return json.dumps({"success": False, "msg": "You are not the publisher of this post!"})
+            return {"success": False, "msg": "You are not the publisher of this post!"}
 
     if len(title) >= 256:
-        return json.dumps({"success": False, "msg": "Title too long!"})
+        return {"success": False, "msg": "Title too long!"}
     if len(description) >= 2048:
-        return json.dumps({"success": False, "msg": "Description too long!"})
+        return {"success": False, "msg": "Description too long!"}
 
     cur.execute(f"UPDATE Discovery SET title = '{title}' WHERE discoveryId = {discoveryId}")
     cur.execute(f"UPDATE Discovery SET description = '{description}' WHERE discoveryId = {discoveryId}")
     conn.commit()
     
-    return json.dumps({"success": True, "msg": "Success! Discovery post updated!"})
+    return {"success": True, "msg": "Success! Discovery post updated!"}
 
-@app.route("/api/discovery/pin", methods = ['POST'])
-def apiDiscoveryPin():
+@app.post("/api/discovery/pin")
+async def apiDiscoveryPin(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
 
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
 
     # only admin can pin
     cur.execute(f"SELECT userId FROM AdminList WHERE userId = {userId}")
     if len(cur.fetchall()) == 0:
-        return json.dumps({"success": False, "msg": "Only admins are allowed to pin / unpin discovery posts!"})
+        return {"success": False, "msg": "Only admins are allowed to pin / unpin discovery posts!"}
     
-    op = request.form["operation"]
-    discoveryId = int(request.form["discoveryId"])
+    op = form["operation"]
+    discoveryId = int(form["discoveryId"])
 
     if op == "pin":
         cur.execute(f"SELECT pin FROM Discovery WHERE discoveryId = {discoveryId}")
@@ -443,11 +451,11 @@ def apiDiscoveryPin():
             if t[0][0] == 0:
                 cur.execute(f"UPDATE Discovery SET pin = 1 WHERE discoveryId = {discoveryId}")
                 conn.commit()
-                return json.dumps({"success": True, "msg": "Pinned!"})
+                return {"success": True, "msg": "Pinned!"}
             else:
-                return json.dumps({"success": False, "msg": "Post already pinned!"})
+                return {"success": False, "msg": "Post already pinned!"}
         else:
-            return json.dumps({"success": False, "msg": "Post not found!"})
+            return {"success": False, "msg": "Post not found!"}
 
     elif op == "unpin":
         cur.execute(f"SELECT pin FROM Discovery WHERE discoveryId = {discoveryId}")
@@ -456,37 +464,38 @@ def apiDiscoveryPin():
             if t[0][0] == 1:
                 cur.execute(f"UPDATE Discovery SET pin = 0 WHERE discoveryId = {discoveryId}")
                 conn.commit()
-                return json.dumps({"success": True, "msg": "Unpinned!"})
+                return {"success": True, "msg": "Unpinned!"}
             else:
-                return json.dumps({"success": False, "msg": "Post not pinned!"})
+                return {"success": False, "msg": "Post not pinned!"}
         else:
-            return json.dumps({"success": False, "msg": "Post not found!"})
+            return {"success": False, "msg": "Post not found!"}
 
-@app.route("/api/discovery/like", methods = ['POST'])
-def apiDiscoveryLike():
+@app.post("/api/discovery/like")
+async def apiDiscoveryLike(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
 
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
-    discoveryId = int(request.form["discoveryId"])
+    discoveryId = int(form["discoveryId"])
     
     cur.execute(f"SELECT publisherId, bookId FROM Discovery WHERE discoveryId = {discoveryId}")
     d = cur.fetchall()
     if len(d) == 0:
-        return json.dumps({"success": False, "msg": "Post not found!"})
+        return {"success": False, "msg": "Post not found!"}
     
     cur.execute(f"SELECT * FROM DiscoveryLike WHERE discoveryId = {discoveryId} AND userId = {userId} AND likes = 1")
     if len(cur.fetchall()) != 0:
         cur.execute(f"DELETE FROM DiscoveryLike WHERE discoveryId = {discoveryId} AND userId = {userId} AND likes = 1")
         conn.commit()
-        return json.dumps({"success": True, "msg": "Unliked!", "liked": False})
+        return {"success": True, "msg": "Unliked!", "liked": False}
     else:
         cur.execute(f"INSERT INTO DiscoveryLike VALUES ({discoveryId}, {userId}, 1)")
         conn.commit()
-        return json.dumps({"success": True, "msg": "Liked!", "liked": True})
+        return {"success": True, "msg": "Liked!", "liked": True}

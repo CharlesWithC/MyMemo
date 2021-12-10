@@ -2,7 +2,7 @@
 # Author: @Charles-1414
 # License: GNU General Public License v3.0
 
-from flask import request, abort
+from fastapi import Request, HTTPException
 import os, sys, datetime, time
 import random
 import json
@@ -16,46 +16,48 @@ import sessions
 # Question API
 # Info
 
-@app.route("/api/question", methods = ['POST'])
-def apiGetQuestion():
+@app.post("/api/question")
+async def apiGetQuestion(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
 
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
-    questionId = int(request.form["questionId"])
+    questionId = int(form["questionId"])
     
     cur.execute(f"SELECT question, answer, status FROM QuestionList WHERE questionId = {questionId} AND userId = {userId}")
     d = cur.fetchall()
 
     if len(d) == 0:
-        abort(404)
+        raise HTTPException(status_code=404)
     
     (question, answer, status) = d[0]
     question = decode(question)
     answer = decode(answer)
 
-    return json.dumps({"questionId": questionId, "question":question, "answer": answer, "status": status})
+    return {"success": True, "questionId": questionId, "question":question, "answer": answer, "status": status}
 
-@app.route("/api/question/id", methods = ['POST'])
-def apiGetQuestionID():
+@app.post("/api/question/id")
+async def apiGetQuestionID(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
         
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
-    question = request.form["question"].replace("\n","\\n")
-    bookId = int(request.form["bookId"])
+    question = form["question"].replace("\n","\\n")
+    bookId = int(form["bookId"])
     cur.execute(f"SELECT questionId FROM QuestionList WHERE question = '{encode(question)}' AND userId = {userId}")
     d = cur.fetchall()
     if len(d) != 0:
@@ -68,33 +70,34 @@ def apiGetQuestionID():
 
             # If there are multiple records, then return the first one
             # NOTE: The user is warned when they try to insert multiple records with the same question
-            return json.dumps({"questionId" : questionId})
+            return {"success": True, "questionId" : questionId}
             
-    abort(404)
+    raise HTTPException(status_code=404)
 
-@app.route("/api/question/stat", methods = ['POST'])
-def apiGetQuestionStat():
+@app.post("/api/question/stat")
+async def apiGetQuestionStat(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
         
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
-    questionId = int(request.form["questionId"])
+    questionId = int(form["questionId"])
     cur.execute(f"SELECT question FROM QuestionList WHERE questionId = {questionId} AND userId = {userId}")
     d = cur.fetchall()
     if len(d) == 0:
-        abort(404)
+        raise HTTPException(status_code=404)
     question = decode(d[0][0])
     
     cur.execute(f"SELECT updateTo, timestamp FROM StatusUpdate WHERE questionId = {questionId} AND updateTo <= 0 AND userId = {userId}")
     d = cur.fetchall()
     if len(d) == 0:
-        abort(404)
+        raise HTTPException(status_code=404)
     d = d[0]
     astatus = d[0] # how it is added
     ats = d[1] # addition timestamp
@@ -132,7 +135,7 @@ def apiGetQuestionStat():
     cur.execute(f"SELECT nextChallenge, lastChallenge FROM ChallengeData WHERE questionId = {questionId} AND userId = {userId}")
     d = cur.fetchall()
     if len(d) == 0:
-        abort(404)
+        raise HTTPException(status_code=404)
     d = d[0]
     nxt = d[0]
     lst = d[1]
@@ -239,16 +242,17 @@ def apiGetQuestionStat():
     else:
         res += f"It hasn't appeared yet."
     
-    return json.dumps({"msg":res})
+    return {"success": True, "msg": res}
 
-@app.route("/api/question/count", methods = ['POST'])
-def apiGetQuestionCount():
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+@app.post("/api/question/count")
+async def apiGetQuestionCount(request: Request):
+    form = await request.form()
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
         
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
 
-    return json.dumps({"count": str(getQuestionCount(userId))})
+    return {"success": True, "count": str(getQuestionCount(userId))}

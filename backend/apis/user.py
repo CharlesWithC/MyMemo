@@ -2,7 +2,7 @@
 # Author: @Charles-1414
 # License: GNU General Public License v3.0
 
-from flask import request, abort
+from fastapi import Request, HTTPException
 import os, sys, time, math, uuid
 import threading
 import json
@@ -17,10 +17,11 @@ from emailop import sendVerification, sendNormal
 ##########
 # User API
 
-@app.route("/api/user/register", methods = ['POST'])
-def apiRegister():
+@app.post("/api/user/register")
+async def apiRegister(request: Request):
+    form = await request.form()
     if not config.allow_register:
-        return json.dumps({"success": False, "msg": "Public register not enabled!"})
+        return {"success": False, "msg": "Public register not enabled!"}
         
     conn = newconn()
     cur = conn.cursor()
@@ -31,25 +32,25 @@ def apiRegister():
     if len(t) > 0:
         userCnt = t[0][0]
     if config.max_user_allowed != -1 and userCnt >= config.max_user_allowed:
-        return json.dumps({"success": False, "msg": "System has reached its limit of maximum registered users. Contact administrator for more information."})
+        return {"success": False, "msg": "System has reached its limit of maximum registered users. Contact administrator for more information."}
 
-    username = request.form["username"]
-    email = request.form["email"]
-    password = request.form["password"]
-    invitationCode = request.form["invitationCode"]
+    username = form["username"]
+    email = form["email"]
+    password = form["password"]
+    invitationCode = form["invitationCode"]
 
     if username is None or email is None or password is None \
         or username.replace(" ","") == "" or email.replace(" ","") == "" or password.replace(" ","") == "":
-        return json.dumps({"success": False, "msg": "Username and email must be filled!"})
+        return {"success": False, "msg": "Username and email must be filled!"}
     if " " in username or "(" in username or ")" in username or "[" in username or "]" in username or "{" in username or "}" in username \
         or "<" in username or ">" in username \
             or "!" in username or "@" in username or "'" in username or '"' in username or "/" in username or "\\" in username :
-        return json.dumps({"success": False, "msg": "Username must not contain: spaces, ( ) [ ] { } < > ! @ ' \" / \\"})
+        return {"success": False, "msg": "Username must not contain: spaces, ( ) [ ] { } < > ! @ ' \" / \\"}
     username = encode(username)
     if validators.email(email) != True:
-        return json.dumps({"success": False, "msg": "Invalid email!"})
+        return {"success": False, "msg": "Invalid email!"}
     if invitationCode != "" and not invitationCode.isalnum():
-        return json.dumps({"success": False, "msg": "Invitation code can only contain alphabets and digits!"})
+        return {"success": False, "msg": "Invitation code can only contain alphabets and digits!"}
     
     cur.execute(f"DELETE FROM UserPending WHERE expire < {int(time.time())}")
     conn.commit()
@@ -57,9 +58,9 @@ def apiRegister():
     t = cur.fetchall()
     for tt in t:
         if decode(tt[0]).lower() == decode(username).lower():
-            return json.dumps({"success": False, "msg": "Username has been occupied!"})
+            return {"success": False, "msg": "Username has been occupied!"}
         if tt[1].lower() == email.lower():
-            return json.dumps({"success": False, "msg": "Email has already been registered!"})
+            return {"success": False, "msg": "Email has already been registered!"}
 
     cur.execute(f"DELETE FROM PendingEmailChange WHERE expire < {int(time.time())}")
     conn.commit()
@@ -67,15 +68,15 @@ def apiRegister():
     t = cur.fetchall()
     for tt in t:
         if tt[0].lower() == email.lower():
-            return json.dumps({"success": False, "msg": "Email has already been registered!"})
+            return {"success": False, "msg": "Email has already been registered!"}
 
     cur.execute(f"SELECT username, email FROM UserInfo")
     t = cur.fetchall()
     for tt in t:
         if decode(tt[0]).lower() == decode(username).lower():
-            return json.dumps({"success": False, "msg": "Username has been occupied!"})
+            return {"success": False, "msg": "Username has been occupied!"}
         if tt[1].lower() == email.lower():
-            return json.dumps({"success": False, "msg": "Email has already been registered!"})
+            return {"success": False, "msg": "Email has already been registered!"}
 
     password = hashpwd(password)
     
@@ -84,7 +85,7 @@ def apiRegister():
         cur.execute(f"SELECT userId FROM UserInfo WHERE inviteCode = '{invitationCode}'")
         d = cur.fetchall()
         if len(d) == 0:
-            return json.dumps({"success": False, "msg": "Invalid invitation code!"})
+            return {"success": False, "msg": "Invalid invitation code!"}
         inviter = d[0][0]
         inviterUsername = "@deleted"
         cur.execute(f"SELECT username FROM UserInfo WHERE userId = {inviter}")
@@ -92,12 +93,12 @@ def apiRegister():
         if len(t) > 0:
             inviterUsername = decode(t[0][0])
         if inviterUsername == "@deleted" or inviter < 0: # inviter < 0 => account banned
-            return json.dumps({"success": False, "msg": "Invalid invitation code!"})
+            return {"success": False, "msg": "Invalid invitation code!"}
     
     if len(username) >= 256:
-        return json.dumps({"success": False, "msg": "Username too long!"})
+        return {"success": False, "msg": "Username too long!"}
     if len(email) >= 128:
-        return json.dumps({"success": False, "msg": "Email too long!"})
+        return {"success": False, "msg": "Email too long!"}
 
     token = str(uuid.uuid4())
     threading.Thread(target=sendVerification,args=(email, decode(username), "Account activation", \
@@ -105,29 +106,30 @@ def apiRegister():
             "https://memo.charles14.xyz/user/activate?token="+token, )).start()
     cur.execute(f"INSERT INTO UserPending VALUES ('{username}', '{email}', '{encode(password)}', {inviter}, '{token}', {int(time.time() + 1200)})")
     
-    return json.dumps({"success": True, "msg": "Account registered, but pending activation! \
+    return {"success": True, "msg": "Account registered, but pending activation! \
         Check your email and open the verification link to activate your account! \
-        The link expires in 20 minutes. After that your account will be removed and you need to register again!"})
+        The link expires in 20 minutes. After that your account will be removed and you need to register again!"}
 
-@app.route("/api/user/activate", methods = ['POST'])
-def apiActivate():
+@app.post("/api/user/activate")
+async def apiActivate(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
 
-    token = request.form["token"]
+    token = form["token"]
     token = token
     if token == "" or not token.replace("-","").replace("_","").isalnum():
-        return json.dumps({"success": False, "msg": "Invalid or expired activation token!"})
+        return {"success": False, "msg": "Invalid or expired activation token!"}
 
     cur.execute(f"SELECT username, email, password, inviter, expire FROM UserPending WHERE token = '{token}'")
     t = cur.fetchall()
     if len(t) == 0:
-        return json.dumps({"success": False, "msg": "Invalid or expired activation token!"})
+        return {"success": False, "msg": "Invalid or expired activation token!"}
     
     if t[0][4] <= int(time.time()):
         cur.execute(f"DELETE FROM UserPending WHERE token = '{token}'")
         conn.commit()
-        return json.dumps({"success": False, "msg": "Activation token expired! Please register again!"})
+        return {"success": False, "msg": "Activation token expired! Please register again!"}
     
     username = t[0][0]
     email = t[0][1]
@@ -148,7 +150,7 @@ def apiActivate():
         conn.commit()
     except:
         sessions.errcnt += 1
-        return json.dumps({"success": False, "msg": "Unknown error occured. Try again later..."})
+        return {"success": False, "msg": "Unknown error occured. Try again later..."}
 
     cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'register', {int(time.time())}, '{encode('Birth of account')}')")
     
@@ -162,19 +164,20 @@ def apiActivate():
     cur.execute(f"INSERT INTO EmailHistory VALUES ({userId}, '{email}', {int(time.time())})")
     conn.commit()
 
-    return json.dumps({"success": True, "msg": "Account activated!"})
+    return {"success": True, "msg": "Account activated!"}
 
-@app.route("/api/user/login", methods = ['POST'])
-def apiLogin():
+@app.post("/api/user/login")
+async def apiLogin(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    username = encode(request.form["username"])
-    password = request.form["password"]
+    username = encode(form["username"])
+    password = form["password"]
 
     cur.execute(f"SELECT token, expire FROM UserPending WHERE username = '{username}'")
     t = cur.fetchall()
     if len(t) > 0:
-        return json.dumps({"success": False, "msg": "Please verify your email to activate your account!"})
+        return {"success": False, "msg": "Please verify your email to activate your account!"}
     
     d = [-1]
     try:
@@ -186,13 +189,13 @@ def apiLogin():
                 cur.execute(f"SELECT userId, password FROM UserInfo WHERE email = '{username}'")
                 d = cur.fetchall()
                 if len(d) == 0:
-                    return json.dumps({"success": False, "msg": "Incorrect username or password!"})
+                    return {"success": False, "msg": "Incorrect username or password!"}
             else:
-                return json.dumps({"success": False, "msg": "Incorrect username or password!"})
+                return {"success": False, "msg": "Incorrect username or password!"}
         d = d[0]
     except:
         sessions.errcnt += 1
-        return json.dumps({"success": False, "msg": "Unknown error occured. Try again later..."})
+        return {"success": False, "msg": "Unknown error occured. Try again later..."}
         
     userId = d[0]
 
@@ -202,12 +205,12 @@ def apiLogin():
         if len(t) > 0:
             defaultemail = t[0][0]
             if defaultemail == "disabled":
-                return json.dumps({"success": False, "msg": "Default user has been disabled!"})
+                return {"success": False, "msg": "Default user has been disabled!"}
 
     ip = encode(request.headers['CF-Connecting-Ip'])
 
     if sessions.getPasswordTrialCount(userId, ip)[0] >= 5 and int(time.time()) - sessions.getPasswordTrialCount(userId, ip)[1] <= 600:
-        return json.dumps({"success": False, "msg": "Too many attempts! Try again later..."})
+        return {"success": False, "msg": "Too many attempts! Try again later..."}
 
     if not checkpwd(password,decode(d[1])):
         if sessions.getPasswordTrialCount(userId, ip)[0] >= 5:
@@ -215,7 +218,7 @@ def apiLogin():
         else:
             sessions.updatePasswordTrialCount(userId, sessions.getPasswordTrialCount(userId, ip)[0] + 1, time.time(), ip)
             
-        return json.dumps({"success": False, "msg": "Incorrect username or password!"})
+        return {"success": False, "msg": "Incorrect username or password!"}
     
     sessions.updatePasswordTrialCount(userId, 0, 0, ip)
 
@@ -226,7 +229,7 @@ def apiLogin():
         if sessions.checkDeletionMark(userId):
             cur.execute(f"INSERT INTO RequestRecoverAccount VALUES ({userId})")
             conn.commit()
-            return json.dumps({"success": False, "msg": "Account marked for deletion, login again to recover it!"})
+            return {"success": False, "msg": "Account marked for deletion, login again to recover it!"}
     else:
         cur.execute(f"DELETE FROM RequestRecoverAccount WHERE userId = {userId}")
         conn.commit()
@@ -238,7 +241,7 @@ def apiLogin():
         t = cur.fetchall()
         if len(t) > 0:
             reason = "Reason: " + decode(t[0][0])
-        return json.dumps({"success": False, "msg": "Account banned. " + reason})
+        return {"success": False, "msg": "Account banned. " + reason}
 
     token = sessions.login(userId, encode(request.headers['User-Agent']), encode(request.headers['CF-Connecting-Ip']))
 
@@ -251,35 +254,38 @@ def apiLogin():
     cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'login', {int(time.time())}, '{encode(f'New login from {ip}')}')")
     conn.commit()
 
-    return json.dumps({"success": True, "userId": userId, "token": token, "isAdmin": isAdmin})
+    return {"success": True, "userId": userId, "token": token, "isAdmin": isAdmin}
 
-@app.route("/api/user/logout", methods = ['POST'])
-def apiLogout():
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        return json.dumps({"success": True})
+@app.post("/api/user/logout")
+async def apiLogout(request: Request):
+    form = await request.form()
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        return {"success": True}
 
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     ret = sessions.logout(userId, token)
 
-    return json.dumps({"success": ret})
+    return {"success": ret}
 
-@app.route("/api/user/logoutalAll", methods = ['POST'])
-def apiLogoutAll():
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        return json.dumps({"success": True})
+@app.post("/api/user/logoutalAll")
+async def apiLogoutAll(request: Request):
+    form = await request.form()
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        return {"success": True}
 
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     ret = sessions.logoutAll(userId, token)
 
-    return json.dumps({"success": ret})
+    return {"success": ret}
 
-@app.route("/api/user/requestResetPassword", methods = ['POST'])
-def apiRequestResetPassword():
+@app.post("/api/user/requestResetPassword")
+async def apiRequestResetPassword(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    email = request.form["email"]
+    email = form["email"]
 
     cur.execute(f"DELETE FROM PendingPasswordRecovery WHERE timestamp <= {int(time.time()) - 600}")
     conn.commit()
@@ -292,7 +298,7 @@ def apiRequestResetPassword():
         cur.execute(f"SELECT timestamp FROM PendingPasswordRecovery WHERE userId = {userId}")
         t = cur.fetchall()
         if len(t) > 0:
-            return json.dumps({"success": True, "msg": "An email containing password reset link will be sent if there is an user registered with this email!"})
+            return {"success": True, "msg": "An email containing password reset link will be sent if there is an user registered with this email!"}
 
     if validators.email(email) == True and not "'" in email:
         cur.execute(f"SELECT userId, username FROM UserInfo WHERE email = '{email}'")
@@ -308,37 +314,38 @@ def apiRequestResetPassword():
             cur.execute(f"INSERT INTO PendingPasswordRecovery VALUES ({userId}, '{token}', {int(time.time()+600)})")
             conn.commit()
             
-        return json.dumps({"success": True, "msg": "An email containing password reset link will be sent if there is an user registered with this email!"})
+        return {"success": True, "msg": "An email containing password reset link will be sent if there is an user registered with this email!"}
 
     else:
-        return json.dumps({"success": False, "msg": "Incorrect email address!"})
+        return {"success": False, "msg": "Incorrect email address!"}
 
-@app.route("/api/user/resetPassword", methods = ['POST'])
-def apiResetPassword():
+@app.post("/api/user/resetPassword")
+async def apiResetPassword(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    token = request.form['token']
+    token = form['token']
     
     cur.execute(f"DELETE FROM PendingPasswordRecovery WHERE timestamp <= {int(time.time()) - 600}")
     conn.commit()
 
-    token = request.form["token"]
+    token = form["token"]
     token = token
     
     if token == "" or not token.replace("-","").replace("_","").isalnum():
-        return json.dumps({"success": False, "msg": "Invalid or expired verification token!"})
+        return {"success": False, "msg": "Invalid or expired verification token!"}
 
     cur.execute(f"SELECT userId FROM PendingPasswordRecovery WHERE token = '{token}'")
     t = cur.fetchall()
     if len(t) == 0:
-        return json.dumps({"success": False, "msg": "Invalid or expired verification token!"})
+        return {"success": False, "msg": "Invalid or expired verification token!"}
     
-    if 'validate' in request.form.keys():
-        return json.dumps({"success": True})
+    if 'validate' in form.keys():
+        return {"success": True}
 
     userId = t[0][0]
 
-    newpwd = request.form['newpwd']
+    newpwd = form['newpwd']
 
     newhashed = hashpwd(newpwd)
 
@@ -353,30 +360,31 @@ def apiResetPassword():
 
     threading.Thread(target=sendNormal, args=(email, username, "Password updated", f"Your password has been updated. If you didn't do this, reset your password immediately!")).start()
 
-    return json.dumps({"success": True, "msg": "Password updated!"})
+    return {"success": True, "msg": "Password updated!"}
 
-@app.route("/api/user/delete", methods = ['POST'])
-def apiDeleteAccount():
+@app.post("/api/user/delete")
+async def apiDeleteAccount(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
 
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
     cur.execute(f"SELECT * FROM AdminList WHERE userId = {userId}")
     if len(cur.fetchall()) != 0:
-        return json.dumps({"success": False, "msg": "Admins cannot delete their account on website! Contact super administrator for help!"})
+        return {"success": False, "msg": "Admins cannot delete their account on website! Contact super administrator for help!"}
     
-    password = request.form["password"]
+    password = form["password"]
     cur.execute(f"SELECT password FROM UserInfo WHERE userId = {userId}")
     d = cur.fetchall()
     pwdhash = d[0][0]
     if not checkpwd(password,decode(pwdhash)):
-        return json.dumps({"success": False, "msg": "Invalid password!"})
+        return {"success": False, "msg": "Invalid password!"}
     
     sessions.markDeletion(userId)
 
@@ -385,27 +393,29 @@ def apiDeleteAccount():
     sessions.logout(userId, token)
     conn.commit()
 
-    return json.dumps({"success": True})
+    return {"success": True}
 
-@app.route("/api/user/validate", methods = ['POST'])
-def apiValidateToken():
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        return json.dumps({"validation": False})
-    userId = int(request.form["userId"])
-    token = request.form["token"]
-    return json.dumps({"validation": validateToken(userId, token)})
+@app.post("/api/user/validate")
+async def apiValidateToken(request: Request):
+    form = await request.form()
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        return {"success": True, "validation": False}
+    userId = int(form["userId"])
+    token = form["token"]
+    return {"success": True, "validation": validateToken(userId, token)}
 
-@app.route("/api/user/info", methods = ['POST'])
-def apiGetUserInfo():
+@app.post("/api/user/info")
+async def apiGetUserInfo(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
 
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
     d = None
     cur.execute(f"SELECT username, email, inviteCode, inviter, bio FROM UserInfo WHERE userId = {userId}")
@@ -413,7 +423,7 @@ def apiGetUserInfo():
     if len(t) > 0:
         d = t[0]
     else:
-        return json.dumps({"success": False, "msg": "User not found!"})
+        return {"success": False, "msg": "User not found!"}
     d = list(d)
     d[0] = decode(d[0])
     d[4] = decode(d[4])
@@ -482,20 +492,21 @@ def apiGetUserInfo():
             elif int(lst/86400) - int(tt[0]/86400) > 1:
                 break
 
-    return json.dumps({"username": username, "bio": d[4], "email": email, "invitationCode": d[2], "inviter": inviter, "age": age, "isAdmin": isAdmin, \
-        "goal": goal, "chtoday": chtoday, "checkin_today": checkin_today, "checkin_continuous": checkin_continuous})
+    return {"success": True, "username": username, "bio": d[4], "email": email, "invitationCode": d[2], "inviter": inviter, "age": age, "isAdmin": isAdmin, \
+        "goal": goal, "chtoday": chtoday, "checkin_today": checkin_today, "checkin_continuous": checkin_continuous}
 
-@app.route("/api/user/goal", methods = ['POST'])
-def apiGetUserGoal():
+@app.post("/api/user/goal")
+async def apiGetUserGoal(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
 
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
     goal = 99999
     cur.execute(f"SELECT goal FROM UserInfo WHERE userId = {userId}")
@@ -527,45 +538,47 @@ def apiGetUserGoal():
             elif int(lst/86400) - int(tt[0]/86400) > 1:
                 break
     
-    return json.dumps({"goal": goal, "chtoday": chtoday, "checkin_today": checkin_today, "checkin_continuous": checkin_continuous})
+    return {"success": True, "goal": goal, "chtoday": chtoday, "checkin_today": checkin_today, "checkin_continuous": checkin_continuous}
 
-@app.route("/api/user/updateGoal", methods = ['POST'])
-def apiUserUpdateGoal():
+@app.post("/api/user/updateGoal")
+async def apiUserUpdateGoal(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
 
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
-    goal = int(request.form["goal"])
+    goal = int(form["goal"])
 
     if goal <= 0:
-        return json.dumps({"success": True, "msg": "Goal must be a positive number!"})
+        return {"success": True, "msg": "Goal must be a positive number!"}
 
     cur.execute(f"UPDATE UserInfo SET goal = {goal} WHERE userId = {userId}")
     conn.commit()
 
-    return json.dumps({"success": True, "msg": "Goal updated!"})
+    return {"success": True, "msg": "Goal updated!"}
 
-@app.route("/api/user/checkin", methods = ['POST'])
-def apiUserCheckin():
+@app.post("/api/user/checkin")
+async def apiUserCheckin(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
 
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
     cur.execute(f"SELECT * FROM CheckIn WHERE userId = {userId} AND timestamp >= {int(time.time()/86400)*86400}")
     if len(cur.fetchall()) > 0:
-        return json.dumps({"success": False, "msg": "You have already checked in today!"})
+        return {"success": False, "msg": "You have already checked in today!"}
     
     goal = 0
     cur.execute(f"SELECT goal FROM UserInfo WHERE userId = {userId}")
@@ -574,7 +587,7 @@ def apiUserCheckin():
         goal = t[0][0]
 
     if goal == 0:
-        return json.dumps({"success": False, "msg": "Have a goal first!"})
+        return {"success": False, "msg": "Have a goal first!"}
     
     chtoday = 0
     cur.execute(f"SELECT COUNT(*) FROM ChallengeRecord WHERE userId = {userId} AND memorized = 1 AND timestamp >= {int(time.time()/86400+86400) - 86400}")
@@ -583,22 +596,22 @@ def apiUserCheckin():
         chtoday = t[0][0]
 
     if chtoday < goal:
-        return json.dumps({"success": False, "msg": "You haven't accomplished today's goal!"})
+        return {"success": False, "msg": "You haven't accomplished today's goal!"}
         
     cur.execute(f"INSERT INTO CheckIn VALUES ({userId}, {int(time.time())})")
     conn.commit()
 
-    return json.dumps({"success": True, "msg": "Checked in successfully!"})
+    return {"success": True, "msg": "Checked in successfully!"}
 
-@app.route("/api/user/chart/<int:uid>", methods = ['GET'])
-def apiGetUserChart(uid):
+@app.get("/api/user/chart/{uid}")
+async def apiGetUserChart(uid: int, request: Request):
     conn = newconn()
     cur = conn.cursor()
     
     cur.execute(f"SELECT * FROM UserInfo WHERE userId = {uid}")
     t = cur.fetchall()
     if len(t) == 0:
-        return json.dumps({"success": False, "msg": "User not found!"})
+        return {"success": False, "msg": "User not found!"}
     
     d1 = []
     batch = 3
@@ -647,17 +660,17 @@ def apiGetUserChart(uid):
     if len(t) > 0:
         delcnt = t[0][0]
 
-    return json.dumps({"challenge_history": d1, "total_memorized_history": d2, "tag_cnt": tagcnt, "del_cnt": delcnt, "total_memorized": total_memorized, "total": cnt})
+    return {"success": True, "challenge_history": d1, "total_memorized_history": d2, "tag_cnt": tagcnt, "del_cnt": delcnt, "total_memorized": total_memorized, "total": cnt}
 
-@app.route("/api/user/publicInfo/<int:uid>", methods = ['GET'])
-def apiGetUserPublicInfo(uid):
+@app.get("/api/user/publicInfo/{uid:int}")
+async def apiGetUserPublicInfo(uid: int, request: Request):
     conn = newconn()
     cur = conn.cursor()
     
     cur.execute(f"SELECT username, bio FROM UserInfo WHERE userId = {uid}")
     t = cur.fetchall()
     if len(t) == 0 or uid < 0:
-        return json.dumps({"success": False, "msg": "User not found!"})
+        return {"success": False, "msg": "User not found!"}
     username = decode(t[0][0])
     bio = decode(t[0][1])
     
@@ -704,19 +717,20 @@ def apiGetUserPublicInfo(uid):
     else:
         username = f"<a href='/user?userId={uid}'><span>{username}</span></a>"
 
-    return json.dumps({"username": username, "bio": bio, "cnt": cnt, "tagcnt": tagcnt, "delcnt": delcnt, "chcnt": chcnt, "age": age, "isAdmin": isAdmin})   
+    return {"success": True, "username": username, "bio": bio, "cnt": cnt, "tagcnt": tagcnt, "delcnt": delcnt, "chcnt": chcnt, "age": age, "isAdmin": isAdmin}   
 
-@app.route("/api/user/events", methods = ['POST'])
-def apiUserEvents():
+@app.post("/api/user/events")
+async def apiUserEvents(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
         
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
     cur.execute(f"SELECT timestamp, msg FROM UserEvent WHERE userId = {userId} ORDER BY timestamp DESC")
     d = cur.fetchall()
@@ -724,19 +738,20 @@ def apiUserEvents():
     for dd in d:
         ret.append({"timestamp": dd[0], "msg": decode(dd[1])})
     
-    return json.dumps(ret)
+    return ret
 
-@app.route("/api/user/sessions", methods=['POST'])
-def apiUserSessions():
+@app.post("/api/user/sessions")
+async def apiUserSessions(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
         
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
     ss = []
     cur.execute(f"SELECT loginTime, expireTime, ua, ip, token FROM ActiveUserLogin WHERE userId = {userId}")
@@ -747,34 +762,35 @@ def apiUserSessions():
         else:
             ss.append({"loginTime": dd[0], "expireTime": dd[1], "userAgent": decode(dd[2]), "ip": decode(dd[3])})
     
-    return json.dumps(ss)
+    return ss
 
-@app.route("/api/user/updateInfo", methods=['POST'])
-def apiUpdateInfo():
+@app.post("/api/user/updateInfo")
+async def apiUpdateInfo(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
         
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
-    username = request.form["username"]
-    email = request.form["email"]
-    bio = request.form["bio"]
+    username = form["username"]
+    email = form["email"]
+    bio = form["bio"]
 
     if username is None or email is None\
         or username.replace(" ","") == "" or email.replace(" ","") == "":
-        return json.dumps({"success": False, "msg": "Username and email must be filled!"})
+        return {"success": False, "msg": "Username and email must be filled!"}
     if " " in username or "(" in username or ")" in username or "[" in username or "]" in username or "{" in username or "}" in username \
         or "<" in username or ">" in username \
             or "!" in username or "@" in username or "'" in username or '"' in username or "/" in username or "\\" in username :
-        return json.dumps({"success": False, "msg": "Username must not contain: spaces, ( ) [ ] { } < > ! @ ' \" / \\"})
+        return {"success": False, "msg": "Username must not contain: spaces, ( ) [ ] { } < > ! @ ' \" / \\"}
     username = encode(username)
     if validators.email(email) != True:
-        return json.dumps({"success": False, "msg": "Invalid email!"})
+        return {"success": False, "msg": "Invalid email!"}
     bio = encode(bio)
     
     cur.execute(f"SELECT username, email, userId FROM UserInfo")
@@ -783,16 +799,16 @@ def apiUpdateInfo():
         if tt[2] == userId:
             continue
         if decode(tt[0]).lower() == decode(username).lower():
-            return json.dumps({"success": False, "msg": "Username has been occupied!"})
+            return {"success": False, "msg": "Username has been occupied!"}
         if tt[1].lower() == email.lower():
-            return json.dumps({"success": False, "msg": "Email has already been registered!"})
+            return {"success": False, "msg": "Email has already been registered!"}
     
     if len(username) >= 256:
-        return json.dumps({"success": False, "msg": "Username too long!"})
+        return {"success": False, "msg": "Username too long!"}
     if len(bio) >= 4096:
-        return json.dumps({"success": False, "msg": "Bio too long!"})
+        return {"success": False, "msg": "Bio too long!"}
     if len(email) >= 128:
-        return json.dumps({"success": False, "msg": "Email too long!"})
+        return {"success": False, "msg": "Email too long!"}
     
     cur.execute(f"UPDATE UserInfo SET username = '{username}' WHERE userId = {userId}")
     cur.execute(f"UPDATE UserInfo SET bio = '{bio}' WHERE userId = {userId}")
@@ -806,32 +822,33 @@ def apiUpdateInfo():
             f"You are changing your email address to {email}. Please open the link to verify this new address.", "10 minutes", \
                 "https://memo.charles14.xyz/verify?type=changeemail&token="+token, )).start()
         cur.execute(f"INSERT INTO PendingEmailChange VALUES ({userId}, '{email}', '{token}', {int(time.time()+600)})")
-        return json.dumps({"success": True, "msg": "User profile updated, but email is not updated! \
-            Please check the inbox of the new email and open the link in it to verify it!"})
+        return {"success": True, "msg": "User profile updated, but email is not updated! \
+            Please check the inbox of the new email and open the link in it to verify it!"}
     else:
         cur.execute(f"UPDATE UserInfo SET email = '{email}' WHERE userId = {userId}") # maybe capital case changes
-        return json.dumps({"success": True, "msg": "User profile updated!"})
+        return {"success": True, "msg": "User profile updated!"}
 
-@app.route("/api/user/changeemail/verify", methods = ['POST'])
-def apiChangeEmailVerify():
+@app.post("/api/user/changeemail/verify")
+async def apiChangeEmailVerify(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
 
-    token = request.form["token"]
+    token = form["token"]
     token = token
     
     if token == "" or not token.replace("-","").replace("_","").isalnum():
-        return json.dumps({"success": False, "msg": "Invalid or expired verification token!"})
+        return {"success": False, "msg": "Invalid or expired verification token!"}
 
     cur.execute(f"SELECT userId, email, expire FROM PendingEmailChange WHERE token = '{token}'")
     t = cur.fetchall()
     if len(t) == 0:
-        return json.dumps({"success": False, "msg": "Invalid or expired verification token!"})
+        return {"success": False, "msg": "Invalid or expired verification token!"}
     
     if t[0][2] <= int(time.time()):
         cur.execute(f"DELETE FROM PendingEmailChange WHERE token = '{token}'")
         conn.commit()
-        return json.dumps({"success": False, "msg": "Verification token expired! Please register again!"})
+        return {"success": False, "msg": "Verification token expired! Please register again!"}
     
     userId = t[0][0]
     newEmail = t[0][1]
@@ -846,23 +863,24 @@ def apiChangeEmailVerify():
     cur.execute(f"DELETE FROM PendingEmailChange WHERE token = '{token}'")
     conn.commit()
 
-    return json.dumps({"success": True, "msg": f"Email updated to {newEmail}"})
+    return {"success": True, "msg": f"Email updated to {newEmail}"}
 
-@app.route("/api/user/changepassword", methods=['POST'])
-def apiChangePassword():
+@app.post("/api/user/changepassword")
+async def apiChangePassword(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
         
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
-    oldpwd = request.form["oldpwd"]
-    newpwd = request.form["newpwd"]
-    cfmpwd = request.form["cfmpwd"]
+    oldpwd = form["oldpwd"]
+    newpwd = form["newpwd"]
+    cfmpwd = form["cfmpwd"]
     
     pwd = ""
     cur.execute(f"SELECT password FROM UserInfo WHERE userId = {userId}")
@@ -870,10 +888,10 @@ def apiChangePassword():
     if len(t) > 0:
         pwd = t[0][0]
     if not checkpwd(oldpwd, decode(pwd)):
-        return json.dumps({"success": False, "msg": "Incorrect old password!"})
+        return {"success": False, "msg": "Incorrect old password!"}
 
     if newpwd != cfmpwd:
-        return json.dumps({"success": False, "msg": "New password and confirm password mismatch!"})
+        return {"success": False, "msg": "New password and confirm password mismatch!"}
 
     newhashed = hashpwd(newpwd)
     cur.execute(f"UPDATE UserInfo SET password = '{encode(newhashed)}' WHERE userId = {userId}")
@@ -883,37 +901,38 @@ def apiChangePassword():
     sessions.logoutAll(userId)
     conn.commit()
 
-    return json.dumps({"success": True})
+    return {"success": True}
 
-@app.route("/api/user/settings", methods = ['POST'])
-def apiUserSettings():
+@app.post("/api/user/settings")
+async def apiUserSettings(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
         
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
-    op = request.form["operation"]
+    op = form["operation"]
 
     if op == "upload":    
-        rnd = int(request.form["random"])
-        swp = int(request.form["swap"])
-        showStatus = int(request.form["showStatus"])
-        mode = int(request.form["mode"])
-        ap = int(request.form["autoPlay"])
-        theme = request.form["theme"]
+        rnd = int(form["random"])
+        swp = int(form["swap"])
+        showStatus = int(form["showStatus"])
+        mode = int(form["mode"])
+        ap = int(form["autoPlay"])
+        theme = form["theme"]
         if not theme in ["light","dark"]:
-            return json.dumps({"success": False, "msg": "Theme can only be light or dark"})
+            return {"success": False, "msg": "Theme can only be light or dark"}
 
         cur.execute(f"DELETE FROM UserSettings WHERE userId = {userId}")
         cur.execute(f"INSERT INTO UserSettings VALUES ({userId}, {rnd}, {swp}, {showStatus}, {mode}, {ap}, '{theme}')")
         conn.commit()
 
-        return json.dumps({"success": True, "msg": "Settings synced!"})
+        return {"success": True, "msg": "Settings synced!"}
     
     elif op == "download":
         rnd = 0
@@ -933,5 +952,5 @@ def apiUserSettings():
             autoPlay = d[0][5]
             theme = d[0][6]
                 
-        return json.dumps({"success": True, "msg": "Settings synced!", "random": rnd, "swap": swp, "showStatus": showStatus,\
-            "mode": mode, "autoPlay": autoPlay, "theme": theme})
+        return {"success": True, "msg": "Settings synced!", "random": rnd, "swap": swp, "showStatus": showStatus,\
+            "mode": mode, "autoPlay": autoPlay, "theme": theme}

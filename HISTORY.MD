@@ -1,5 +1,11 @@
 # Update History
 
+## v5.5.1  
+
+*Date: 2021/12/11*  
+Feature Updates:  
+**Framework Update** The backend code has been migrated from *Flask* to *FastAPI*  
+
 ## v5.4.3.2
 
 *Date: 2021/12/10*  

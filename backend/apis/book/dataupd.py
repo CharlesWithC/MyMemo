@@ -2,7 +2,7 @@
 # Author: @Charles-1414
 # License: GNU General Public License v3.0
 
-from flask import request, abort
+from fastapi import Request, HTTPException
 import os, sys, time
 import json
 
@@ -15,24 +15,25 @@ import sessions
 # Book API
 # Data Update (Add question / Delete question)
 
-@app.route("/api/book/addQuestion", methods = ['POST'])
-def apiAddToBook():
+@app.post("/api/book/addQuestion")
+async def apiAddToBook(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
 
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
-    questions = json.loads(request.form["questions"])
-    bookId = int(request.form["bookId"])
+    questions = json.loads(form["questions"])
+    bookId = int(form["bookId"])
 
     cur.execute(f"SELECT name FROM Book WHERE userId = {userId} AND bookId = {bookId}")
     if len(cur.fetchall()) == 0:
-        return json.dumps({"success": False, "msg": "Book does not exist!"})
+        return {"success": False, "msg": "Book does not exist!"}
         
     groupId = -1
     cur.execute(f"SELECT groupId, isEditor FROM GroupMember WHERE userId = {userId} AND bookId = {bookId}")
@@ -41,7 +42,7 @@ def apiAddToBook():
         groupId = d[0][0]
         isEditor = d[0][1]
         if isEditor == 0:
-            return json.dumps({"success": False, "msg": "You are not allowed to edit this question in group as you are not an editor! Clone the book to edit!"})
+            return {"success": False, "msg": "You are not allowed to edit this question in group as you are not an editor! Clone the book to edit!"}
     
     cur.execute(f"SELECT questionId FROM QuestionList WHERE userId = {userId}")
     d = cur.fetchall()
@@ -120,26 +121,27 @@ def apiAddToBook():
 
     conn.commit()
 
-    return json.dumps({"success": True})
+    return {"success": True}
 
-@app.route("/api/book/deleteQuestion", methods = ['POST'])
-def apiDeleteFromBook():
+@app.post("/api/book/deleteQuestion")
+async def apiDeleteFromBook(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
 
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
-    questions = json.loads(request.form["questions"])
-    bookId = int(request.form["bookId"])
+    questions = json.loads(form["questions"])
+    bookId = int(form["bookId"])
 
     cur.execute(f"SELECT name FROM Book WHERE userId = {userId} AND bookId = {bookId}")
     if len(cur.fetchall()) == 0:
-        return json.dumps({"success": False, "msg": "Book does not exist!"})
+        return {"success": False, "msg": "Book does not exist!"}
 
     groupId = -1
     cur.execute(f"SELECT groupId, isEditor FROM GroupMember WHERE userId = {userId} AND bookId = {bookId}")
@@ -148,7 +150,7 @@ def apiDeleteFromBook():
         groupId = d[0][0]
         isEditor = d[0][1]
         if isEditor == 0:
-            return json.dumps({"success": False, "msg": "You are not allowed to edit this question in group as you are not an editor! Clone the book to edit!"})
+            return {"success": False, "msg": "You are not allowed to edit this question in group as you are not an editor! Clone the book to edit!"}
 
     d = getBookData(userId, bookId)
 
@@ -196,4 +198,4 @@ def apiDeleteFromBook():
     
     conn.commit()
 
-    return json.dumps({"success": True})
+    return {"success": True}

@@ -2,7 +2,7 @@
 # Author: @Charles-1414
 # License: GNU General Public License v3.0
 
-from flask import request, abort
+from fastapi import Request, HTTPException
 import os, sys, time
 import json
 
@@ -15,17 +15,18 @@ import sessions
 # Book API
 # Info
 
-@app.route("/api/book", methods = ['POST'])
-def apiGetBook():
+@app.post("/api/book")
+async def apiGetBook(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
 
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
     ret = []
 
@@ -103,19 +104,20 @@ def apiGetBook():
                 "isGroupOwner": isGroupOwner, "isGroupEditor": isGroupEditor, \
                 "discoveryId": discoveryId, "groupDiscoveryId": groupDiscoveryId})
     
-    return json.dumps(ret)
+    return ret
 
-@app.route("/api/book/questionList", methods = ['POST'])
-def apiGetQuestionList():
+@app.post("/api/book/questionList")
+async def apiGetQuestionList(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
 
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
     ret = []
     cur.execute(f"SELECT questionId, question, answer, status FROM QuestionList WHERE userId = {userId}")
@@ -123,21 +125,22 @@ def apiGetQuestionList():
     for dd in d:
         ret.append({"questionId": dd[0], "question": decode(dd[1]), "answer": decode(dd[2]), "status": dd[3]})
     
-    return json.dumps(ret)
+    return ret
 
-@app.route("/api/book/chart", methods = ['POST'])
-def apiGetBookChart():
+@app.post("/api/book/chart")
+async def apiGetBookChart(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
 
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
     
-    bookId = int(request.form["bookId"])
+    bookId = int(form["bookId"])
 
     book = []
     if bookId > 0:
@@ -201,4 +204,4 @@ def apiGetBookChart():
             if tt[0] in book:
                 delcnt += 1
 
-    return json.dumps({"challenge_history": d1, "total_memorized_history": d2, "tag_cnt": tagcnt, "del_cnt": delcnt, "total_memorized": total_memorized, "total": cnt})
+    return {"success": True, "challenge_history": d1, "total_memorized_history": d2, "tag_cnt": tagcnt, "del_cnt": delcnt, "total_memorized": total_memorized, "total": cnt}

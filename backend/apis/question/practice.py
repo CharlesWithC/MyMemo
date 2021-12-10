@@ -2,7 +2,7 @@
 # Author: @Charles-1414
 # License: GNU General Public License v3.0
 
-from flask import request, abort
+from fastapi import Request, HTTPException
 import os, sys, datetime, time
 import random
 import json
@@ -16,36 +16,37 @@ import sessions
 # Question API
 # Practice Mode
 
-@app.route("/api/question/next", methods = ['POST'])
-def apiGetNext():
+@app.post("/api/question/next")
+async def apiGetNext(request: Request):
+    form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    if not "userId" in request.form.keys() or not "token" in request.form.keys() or "userId" in request.form.keys() and (not request.form["userId"].isdigit() or int(request.form["userId"]) < 0):
-        abort(401)
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
         
-    userId = int(request.form["userId"])
-    token = request.form["token"]
+    userId = int(form["userId"])
+    token = form["token"]
     if not validateToken(userId, token):
-        abort(401)
+        raise HTTPException(status_code=401)
 
     questionId = -1
 
     op = {-1: "<", 1: ">"}
     order = {-1: "DESC", 1: "ASC"}
-    moveType = int(request.form["moveType"]) # -1: previous, 1: next, 0: random
+    moveType = int(form["moveType"]) # -1: previous, 1: next, 0: random
     if moveType in [-1,1]:
         op = op[moveType]
         order = order[moveType]
 
     current = -1
     if moveType in [-1, 1]:
-        current = int(request.form["questionId"])
+        current = int(form["questionId"])
 
     statusRequirement = {1: "status = 1 OR status = 2", 2: "status = 2", 3: "status = 3"}
-    status = int(request.form["status"])
+    status = int(form["status"])
     statusRequirement = statusRequirement[status]
 
-    bookId = int(request.form["bookId"])
+    bookId = int(form["bookId"])
     
     if bookId == 0:
         if moveType in [-1,1]:
@@ -86,10 +87,10 @@ def apiGetNext():
                 d = [d[rnd]]
 
     if len(d) == 0:
-        return json.dumps({"questionId": -1, "question": "[No more question]", "answer": "Maybe change the settings?\nOr check your connection?", "status": 1})
+        return {"success": True, "questionId": -1, "question": "[No more question]", "answer": "Maybe change the settings?\nOr check your connection?", "status": 1}
 
     (questionId, question, answer, status) = d[0]
     question = decode(question)
     answer = decode(answer)
 
-    return json.dumps({"questionId": questionId, "question": question, "answer": answer, "status": status})
+    return {"success": True, "questionId": questionId, "question": question, "answer": answer, "status": status}

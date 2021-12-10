@@ -42,8 +42,6 @@ if config["database"] == "sqlite":
         
     conn = sqlite3.connect("database.db", check_same_thread = False)
     cur = conn.cursor()
-    
-    app.config['DB_ENABLED'] = True
 
 elif config["database"] == "mysql":
     host = "localhost"
@@ -75,12 +73,6 @@ elif config["database"] == "mysql":
     cur.execute(f"SHOW TABLES")
     if len(cur.fetchall()) != 33:
         doinit = True
-    
-    app.config['MYSQL_HOST'] = host
-    app.config['MYSQL_USER'] = user
-    app.config['MYSQL_PASSWORD'] = passwd
-    app.config['MYSQL_DB'] = dbname
-    app.config['DB_ENABLED'] = True
 
 else:
     print("Unknown database type, choose one between sqlite and mysql!")
@@ -262,7 +254,7 @@ if doinit:
     cur.execute(f"CREATE TABLE PasswordTrial (userId INT, count INT, lastts INT, ip VARCHAR(128))")
 
     cur.execute(f"CREATE TABLE DataUploadResult (userId INT, result TEXT)")
-    cur.execute(f"CREATE TABLE DataDownloadToken (userId INT, exportType VARCHAR(10), ts INT, token VARCHAR(32))")
+    cur.execute(f"CREATE TABLE DataDownloadToken (userId INT, exportType VARCHAR(10), ts INT, token VARCHAR(36))")
     cur.execute(f"CREATE TABLE RequestRecoverAccount (userId INT)")
 
     conn.commit()

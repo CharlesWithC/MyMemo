@@ -228,7 +228,7 @@ function CreateBook(element) {
 }
 
 function LoadShow() {
-    $(".footer").before("<div id='general-loader' class='loader' style='display:none'><i class='fa fa-spinner fa-spin'></i></div>");
+    $(".footer").before("<div id='general-loader' class='loader' style='display:none;padding-left:0.5em;padding-top:0.2em'><i class='fa fa-spinner fa-spin'></i></div>");
     $("#general-loader").fadeIn();
 }
 

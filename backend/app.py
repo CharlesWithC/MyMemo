@@ -2,7 +2,7 @@
 # Author: @Charles-1414
 # License: GNU General Public License v3.0
 
-from flask import Flask
+from fastapi import FastAPI
 import os
 import json
 
@@ -19,8 +19,5 @@ config = None
 if os.path.exists("./config.json"):
     config_txt = open("./config.json","r").read()
     config = Dict2Obj(json.loads(config_txt))
-app = Flask(__name__)
-
-app.jinja_env.auto_reload = True
-app.config['TEMPLATES_AUTO_RELOAD'] = True
-app.config['DB_ENABLED'] = False
+    
+app = FastAPI(docs_url = "/docs")
