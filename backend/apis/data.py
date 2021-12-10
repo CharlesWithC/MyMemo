@@ -285,18 +285,18 @@ def importData():
     cur.execute(f"SELECT result FROM DataUploadResult WHERE userId = {userId}")
     t = cur.fetchall()
     if len(t) > 0:
-        return "<script src='/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>Another upload task is running!</p>"
+        return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>Another upload task is running!</p>"
 
     # Do file check
     if 'file' not in request.files:
-        return "<script src='/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>Invalid import! E1: No file found</p>"
+        return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>Invalid import! E1: No file found</p>"
     
     f = request.files['file']
     if f.filename == '':
-        return "<script src='/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>Invalid import! E2: Empty file name</p>"
+        return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>Invalid import! E2: Empty file name</p>"
 
     if not f.filename.endswith(".xlsx"):
-        return "<script src='/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>Only .xlsx files are supported!</p>"
+        return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>Only .xlsx files are supported!</p>"
     
     ts=int(time.time())
 
@@ -308,9 +308,9 @@ def importData():
     try:
         newlist = pd.read_excel(buf.getvalue(), engine = "openpyxl")
         if list(newlist.keys()).count("Question") != 1 or list(newlist.keys()).count("Answer")!=1:
-            return "<script src='/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>Invalid format! The columns must contain 'Question','Answer'!</p>"
+            return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>Invalid format! The columns must contain 'Question','Answer'!</p>"
     except:
-        return "<script src='/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>Invalid format! The columns must contain 'Question','Answer'!</p>"
+        return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>Invalid format! The columns must contain 'Question','Answer'!</p>"
     
     updateType = request.form["updateType"]
     yesno = {"yes": True, "no": False}
@@ -325,20 +325,20 @@ def importData():
     global lastop
     if userId in lastop.keys():
         if int(time.time()) - lastop[userId] <= 300:
-            return "<script src='/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>You can only do one import each 5 minutes!</p>"
+            return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>You can only do one import each 5 minutes!</p>"
         else:
             del lastop[userId]
 
     global threads
     if threads >= 8:
-        return "<script src='/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>The server is handling too many data import requests at this time... Please try again later!</p>"
+        return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>The server is handling too many data import requests at this time... Please try again later!</p>"
     else:
         lastop[userId] = int(time.time())
         threading.Thread(target=importWorkGate,args=(userId, bookId, updateType, checkDuplicate, newlist, )).start()
         threading.Thread(target=clearResult,args=(userId,False,300,)).start()
 
-    return "<script src='/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><script>GetUploadResult()</script>\
-        <link href='/css/font-awesome.min.css' rel='stylesheet'><link href='/css/main.css' rel='stylesheet'>\
+    return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><script>GetUploadResult()</script>\
+        <link href='/css/all.min.css' rel='stylesheet'><link href='/css/main.css' rel='stylesheet'>\
             <p id='result'>Working on it... <i class='fa fa-spinner fa-spin'></i></p>"
 
 @app.route("/api/data/export", methods = ['POST'])

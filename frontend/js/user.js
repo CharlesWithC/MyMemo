@@ -434,6 +434,11 @@ function Login() {
             } else {
                 NotyNotification(r.msg, type = 'error');
             }
+        },
+        error: function (r) {
+            if(r.status == 503){
+                NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
+            }
         }
     });
 }
@@ -468,6 +473,11 @@ function Register() {
                 $("#register-password").val("");
             } else {
                 NotyNotification(r.msg, type = 'error');
+            }
+        },
+        error: function (r) {
+            if(r.status == 503){
+                NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
             }
         }
     });
@@ -622,6 +632,11 @@ function ChangePassword() {
                 }, 1000);
             } else {
                 NotyNotification(r.msg, type = 'error');
+            }
+        },
+        error: function (r) {
+            if(r.status == 503){
+                NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
             }
         }
     });

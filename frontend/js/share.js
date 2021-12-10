@@ -6,7 +6,7 @@ var shareList = [];
 var bookList = [];
 
 function UpdateShareList() {
-    $("#refresh-btn").html('<i class="fa fa-refresh fa-spin"></i>');
+    $("#refresh-btn").html('<i class="fa fa-sync fa-spin"></i>');
     table = $("#shareList").DataTable();
     table.clear();
     table.row.add([
@@ -45,11 +45,11 @@ function UpdateShareList() {
             }
             table.draw();
 
-            $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
+            $("#refresh-btn").html('<i class="fa fa-sync"></i>');
         },
         error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
-                $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
+                $("#refresh-btn").html('<i class="fa fa-sync"></i>');
                 SessionExpired();
             } else {
                 NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
@@ -84,7 +84,7 @@ function Unshare(shareCode) {
         },
         error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
-                $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
+                $("#refresh-btn").html('<i class="fa fa-sync"></i>');
                 SessionExpired();
             } else {
                 NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
@@ -170,7 +170,7 @@ function Share() {
         },
         error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
-                $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
+                $("#refresh-btn").html('<i class="fa fa-sync"></i>');
                 SessionExpired();
             } else {
                 NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');

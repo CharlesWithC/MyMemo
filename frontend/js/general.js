@@ -165,7 +165,7 @@ function SelectBook(bookId) {
 }
 
 function RefreshBookList() {
-    $("#book-list-refresh-btn").html('<i class="fa fa-refresh fa-spin"></i>');
+    $("#book-list-refresh-btn").html('<i class="fa fa-sync fa-spin"></i>');
     $.ajax({
         url: "/api/book",
         method: 'POST',
@@ -179,7 +179,7 @@ function RefreshBookList() {
             bookList = r;
             try{sessionStorage.setItem("book-list", JSON.stringify(bookList));}catch{console.warning("Cannot store book list to Session Storage, aborted!");}
             UpdateBookDisplay();
-            $("#book-list-refresh-btn").html('<i class="fa fa-refresh"></i>');
+            $("#book-list-refresh-btn").html('<i class="fa fa-sync"></i>');
         },
         error: function (r) {
             if (r.status == 401) {
@@ -308,8 +308,8 @@ $(document).ready(function () {
     $("#navigate").after(`<div id="book-div" class="book-side" style="display:none">
         <div class="book-side-content">
             <h2 style="float:left">Books</h2>
-            <button type="button" class="btn btn-outline-secondary" style="margin:0.5em" onclick="RefreshBookList()"
-                id="book-list-refresh-btn"><i class="fa fa-refresh"></i></button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" style="margin:0.5em;font-size:0.7em" onclick="RefreshBookList()"
+                id="book-list-refresh-btn"><i class="fa fa-sync"></i></button>
             <button type="button" class="close" style="float:right;background-color:transparent;border:none" aria-label="Close"
                 onclick="$('#book-div').fadeOut()">
                 <span aria-hidden=" true"><i class="fa fa-times"></i></span>
@@ -334,9 +334,11 @@ $(document).ready(function () {
     $(".leftside").append(`<div class="sqbtn">
         <a id="book-btn" href="#" onclick="window.location.href='/book'"><i class="fa fa-book"></i></a><br>
     </div>`);
-    $(".leftside").append(`<div class="sqbtn">
-        <a href="#" onclick="window.location.href='/share'"><i class="fa fa-share-alt"></i></a><br>
-    </div>`);
+    if (localStorage.getItem("userId") != null && localStorage.getItem("userId") != "-1") {
+        $(".leftside").append(`<div class="sqbtn">
+            <a href="#" onclick="window.location.href='/share'"><i class="fa fa-share-alt"></i></a><br>
+        </div>`);
+    }
     $(".leftside").append(`<div class="sqbtn">
         <a href="#" onclick="window.location.href='/discovery'"><i class="fa fa-paper-plane"></i></a><br>
     </div>`);
@@ -377,10 +379,12 @@ function sleep(time) {
 
 function GeneralUpdateTheme() {
     navusername = $("#navusername").html();
+    shortUserctrl = false;
     setInterval(function () {
         if ($(".userctrl").length != 0) {
             t = $(".userctrl").css("left");
-            if (parseInt(t.slice(0, t.indexOf("px"))) / window.innerWidth < 0.6) {
+            if (parseInt(t.slice(0, t.indexOf("px"))) / window.innerWidth < 0.6 && !shortUserctrl) {
+                shortUserctrl = true;
                 if ($("#navusername").html() != "") {
                     navusername = $("#navusername").html();
                 }
@@ -389,7 +393,8 @@ function GeneralUpdateTheme() {
                     $("#progress-div").hide();
                     $(".userctrl").attr("style", "");
                 }
-            } else if (parseInt(t.slice(0, t.indexOf("px"))) / window.innerWidth > 0.8) {
+            } else if (parseInt(t.slice(0, t.indexOf("px"))) / window.innerWidth > 0.8 && shortUserctrl) {
+                shortUserctrl = false;
                 $("#navusername").html(navusername);
                 if (window.location.pathname == "/") {
                     $("#progress-div").show();

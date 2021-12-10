@@ -11,7 +11,7 @@ var title = "";
 var description = "";
 
 function RefreshDiscovery() {
-    $("#refresh-btn").html('<i class="fa fa-refresh fa-spin"></i>');
+    $("#refresh-btn").html('<i class="fa fa-sync fa-spin"></i>');
 
     table = $("#discoveryList").DataTable();
     table.clear();
@@ -43,15 +43,15 @@ function RefreshDiscovery() {
                 btns = '';
                 if (localStorage.getItem("isAdmin") == "1" || discoveryList[i].publisher == localStorage.getItem("username")) {
                     if (!discoveryList[i].pinned) {
-                        btns += '&nbsp;&nbsp;<button id="admin-pin-' + discoveryList[i].discoveryId + '" class="btn btn-primary btn-sm" type="button" onclick="AdminPin(' + discoveryList[i].discoveryId + ',1)"><i class="fa fa-thumb-tack"></i> Pin</button>';
+                        btns += '&nbsp;&nbsp;<button id="admin-pin-' + discoveryList[i].discoveryId + '" class="btn btn-primary btn-sm" type="button" onclick="AdminPin(' + discoveryList[i].discoveryId + ',1)"><i class="fa fa-thumbtack"></i> Pin</button>';
                     } else {
-                        btns += '&nbsp;&nbsp;<button id="admin-pin-' + discoveryList[i].discoveryId + '" class="btn btn-primary btn-sm" type="button" onclick="AdminPin(' + discoveryList[i].discoveryId + ',0)"><i class="fa fa-thumb-tack fa-rotate-180"></i> Unpin</button>';
+                        btns += '&nbsp;&nbsp;<button id="admin-pin-' + discoveryList[i].discoveryId + '" class="btn btn-primary btn-sm" type="button" onclick="AdminPin(' + discoveryList[i].discoveryId + ',0)"><i class="fa fa-thumbtack fa-rotate-180"></i> Unpin</button>';
                     }
                     btns += '&nbsp;&nbsp;<button id="admin-delete-' + discoveryList[i].discoveryId + '" class="btn btn-danger btn-sm" type="button" onclick="AdminUnpublishDiscoveryConfirm(' + discoveryList[i].discoveryId + ')"><i class="fa fa-trash"></i> Delete</button>';
                 }
                 pin = '';
                 if (discoveryList[i].pinned) {
-                    pin = '<i class="fa fa-thumb-tack"></i> ';
+                    pin = '<i class="fa fa-thumbtack"></i> ';
                 }
                 toplist[discoveryList[i].discoveryId] = discoveryList.likes;
                 table.row.add([
@@ -92,14 +92,14 @@ function RefreshDiscovery() {
                     }
                     $("#top-post").append('<div class="rect discovery-top" style="display:inline-block;padding:1em;width:30%" onclick="window.location.href=\'/discovery?discoveryId=' + discoveryId + '\';">\
                     <p class="rect-title">' + title + '</p>\
-                    <p class="rect-content">&nbsp;&nbsp;' + description + '</p>\
+                    <p class="rect-content">&nbsp;&nbsp;' + marked.parse(description) + '</p>\
                     <p class="rect-content">&nbsp;&nbsp;' + info + '</p>\
                     </div>');
                 }
             });
             $("#top-post").append("<hr class='discovery-top'>");
 
-            $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
+            $("#refresh-btn").html('<i class="fa fa-sync"></i>');
         }
     });
 }
@@ -215,7 +215,7 @@ function UpdateDiscoveryQuestionList() {
             if (liked) {
                 $(".title").html(r.title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart" style="color:red"></i></a>');
             } else {
-                $(".title").html(r.title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart-o" style="color:red"></i></a>');
+                $(".title").html(r.title + ' <a href="#" onclick="LikePost()"><i class="far fa-heart" style="color:red"></i></a>');
             }
             $("#detail-publisher").html(r.publisher);
             $("#detail-description").html(marked.parse(r.description));
@@ -256,8 +256,8 @@ function UpdateDiscoveryQuestionList() {
 
             for (var i = 0; i < questionList.length; i++) {
                 table.row.add([
-                    [questionList[i].question],
-                    [questionList[i].answer]
+                    [questionList[i].question.replaceAll("\n","<br>")],
+                    [questionList[i].answer.replaceAll("\n","<br>")]
                 ]);
             }
             table.draw();
@@ -373,7 +373,7 @@ function UpdateInformation() {
                 if (liked) {
                     $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart" style="color:red"></i></a>');
                 } else {
-                    $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart-o" style="color:red"></i></a>');
+                    $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="far fa-heart" style="color:red"></i></a>');
                 }
                 $("#detail-description").html(marked.parse(description));
 
@@ -398,7 +398,7 @@ function LikePost() {
     if (liked) {
         $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart" style="color:red"></i></a>');
     } else {
-        $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart-o" style="color:red"></i></a>');
+        $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="far fa-heart" style="color:red"></i></a>');
     }
     $.ajax({
         url: '/api/discovery/like',
@@ -416,7 +416,7 @@ function LikePost() {
                 if (liked) {
                     $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart" style="color:red"></i></a>');
                 } else {
-                    $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart-o" style="color:red"></i></a>');
+                    $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="far fa-heart" style="color:red"></i></a>');
                 }
 
                 NotyNotification(r.msg);
@@ -429,7 +429,7 @@ function LikePost() {
             if (liked) {
                 $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart" style="color:red"></i></a>');
             } else {
-                $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart-o" style="color:red"></i></a>');
+                $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="far fa-heart" style="color:red"></i></a>');
             }
         }
     });

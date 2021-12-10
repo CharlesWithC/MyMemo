@@ -16,7 +16,7 @@
     "mysql_passwd": "123456",
     "mysql_db": "mymemo",
 
-    "postfix_host": sendVerification,
+    "postfix_host": "127.0.0.1:25",
 
     "max_user_allowed": -1,
     "max_question_per_user_allowed": -1,

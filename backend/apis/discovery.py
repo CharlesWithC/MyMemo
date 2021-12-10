@@ -201,6 +201,7 @@ def apiDiscoveryData(discoveryId):
     views = 1
     t = cur.fetchall()
     if len(t) > 0:
+        views = t[0][0] + 1
         cur.execute(f"UPDATE Discovery SET click = click + 1 WHERE discoveryId = {discoveryId}")
         conn.commit()
     

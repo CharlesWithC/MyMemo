@@ -2,7 +2,7 @@ var notifications = [];
 var cur = 0;
 
 function PageInit() {
-    $("#refresh-btn-noti").html('<i class="fa fa-refresh fa-spin"></i>');
+    $("#refresh-btn-noti").html('<i class="fa fa-sync fa-spin"></i>');
     $(".notification").remove();
     $.ajax({
         url: '/api/user/events',
@@ -26,7 +26,7 @@ function PageInit() {
             }
             if(cur < notifications.length) $("#content").append("<a href='#"+(cur-1)+"' class='notification more-btn' onclick='ShowMore()'>Show More</a>");
             else $("#content").append("<a href='#"+(cur-1)+"' class='notification more-btn'>The End</a>");
-            $("#refresh-btn-noti").html('<i class="fa fa-refresh"></i>');
+            $("#refresh-btn-noti").html('<i class="fa fa-sync"></i>');
         },
         error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {

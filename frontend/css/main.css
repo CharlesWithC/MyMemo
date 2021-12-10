@@ -19,6 +19,10 @@ body {
     font-size: 1.1em;
 }
 
+.btn {
+    margin: 0.2em;
+}
+
 .top-left {
     position: absolute;
     top: 1em;
@@ -318,17 +322,13 @@ a:hover {
     border-radius: 100%;
 }
 
-.btn {
-    margin: 0.2em;
-}
-
 .table-light {
     --bs-table-bg: #ffffff;
     --bs-table-active-bg: #bbbbbb;
     --bs-table-active-color: #fff;
     --bs-table-hover-bg: #cccccc;
     --bs-table-hover-color: #fff;
-    color: #fff;
+    color: #000;
     border-color: #cccccc;
 }
 

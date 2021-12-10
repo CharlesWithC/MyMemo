@@ -28,7 +28,7 @@ function MapQuestionList() {
 }
 
 function RefreshQuestionList(show401 = false) {
-    $("#refresh-btn").html('<i class="fa fa-refresh fa-spin"></i>');
+    $("#refresh-btn").html('<i class="fa fa-sync fa-spin"></i>');
     // Update list
     $.ajax({
         url: "/api/book/questionList",
@@ -66,11 +66,11 @@ function RefreshQuestionList(show401 = false) {
                     MapQuestionList();
                     SelectQuestions();
                     UpdateTable();
-                    $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
+                    $("#refresh-btn").html('<i class="fa fa-sync"></i>');
                 },
                 error: function (r, textStatus, errorThrown) {
                     if (r.status == 401 && show401) {
-                        $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
+                        $("#refresh-btn").html('<i class="fa fa-sync"></i>');
                         SessionExpired();
                     } else {
                         NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
@@ -80,7 +80,7 @@ function RefreshQuestionList(show401 = false) {
         },
         error: function (r, textStatus, errorThrown) {
             if (r.status == 401 && show401) {
-                $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
+                $("#refresh-btn").html('<i class="fa fa-sync"></i>');
                 SessionExpired();
             } else {
                 NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
@@ -98,12 +98,12 @@ function SelectQuestions() {
             $(".book-data-div").show();
 
             bookName = bookList[i].name;
-            btns = '<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-refresh"></i></button>';
-            btns += '<button type="button" class="btn btn-outline-secondary" onclick="BookChart(' + bookId + ');"><i class="fa fa-bar-chart"></i></button>';
+            btns = '<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-sync"></i></button>';
+            btns += '<button type="button" class="btn btn-outline-secondary" onclick="BookChart(' + bookId + ');"><i class="fa fa-chart-bar"></i></button>';
             if (bookId == localStorage.getItem("memo-book-id"))
                 btns += '<button type="button" class="btn btn-outline-secondary" id="select-book-btn"><i class="fa fa-check-square"></i></button>';
             else
-                btns += '<button type="button" class="btn btn-outline-secondary" onclick="SelectBook(' + bookId + ')" id="select-book-btn"><i class="fa fa-check-square-o"></i></button>';
+                btns += '<button type="button" class="btn btn-outline-secondary" onclick="SelectBook(' + bookId + ')" id="select-book-btn"><i class="far fa-check-square"></i></button>';
             $(".title").html(bookName + '&nbsp;&nbsp;' + btns);
             $("title").html(bookName + " | My Memo");
             groupId = bookList[i].groupId;
@@ -210,14 +210,14 @@ function UpdateTable() {
     l = ["", "Default", "Tagged", "Deleted"];
 
     for (var i = 0; i < selectedQuestionList.length; i++) {
-        btns = '<button type="button" class="btn btn-primary btn-sm only-group-editor-if-group-exist" onclick="ShowStatistics(' + selectedQuestionList[i].questionId + ')"><i class="fa fa-bar-chart"></i></button>';
+        btns = '<button type="button" class="btn btn-primary btn-sm only-group-editor-if-group-exist" onclick="ShowStatistics(' + selectedQuestionList[i].questionId + ')"><i class="fa fa-chart-bar"></i></button>';
         btns += '<button type="button" class="btn btn-primary btn-sm only-group-editor-if-group-exist" onclick="EditQuestionShow(' + selectedQuestionList[i].questionId + ')"><i class="fa fa-edit"></i></button>';
         if (bookId != 0) {
             btns += '<button type="button" class="btn btn-warning btn-sm only-group-editor-if-group-exist" onclick="RemoveFromBook(' + selectedQuestionList[i].questionId + ')"><i class="fa fa-trash"></i></button>';
         }
         table.row.add([
-            [selectedQuestionList[i].question],
-            [selectedQuestionList[i].answer],
+            [selectedQuestionList[i].question.replaceAll("\n","<br>")],
+            [selectedQuestionList[i].answer.replaceAll("\n","<br>")],
             [l[selectedQuestionList[i].status]],
             [btns]
         ]).node().id = selectedQuestionList[i].questionId;
@@ -226,7 +226,7 @@ function UpdateTable() {
 }
 
 function UpdateQuestionList() {
-    $("#refresh-btn").html('<i class="fa fa-refresh fa-spin"></i>');
+    $("#refresh-btn").html('<i class="fa fa-sync fa-spin"></i>');
     $.ajax({
         url: "/api/book",
         method: 'POST',
@@ -247,7 +247,7 @@ function UpdateQuestionList() {
             MapQuestionList();
             SelectQuestions();
             UpdateTable();
-            $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
+            $("#refresh-btn").html('<i class="fa fa-sync"></i>');
         }
     });
 }
@@ -495,14 +495,14 @@ function ShowQuestionDatabase() {
     table = $("#questionList").DataTable();
     table.clear();
     for (var i = 0; i < questionList.length; i++) {
-        btns = '<button type="button" class="btn btn-primary btn-sm only-group-editor-if-group-exist" onclick="ShowStatistics(' + questionList[i].questionId + ')"><i class="fa fa-bar-chart"></i></button>';
+        btns = '<button type="button" class="btn btn-primary btn-sm only-group-editor-if-group-exist" onclick="ShowStatistics(' + questionList[i].questionId + ')"><i class="fa fa-chart-bar"></i></button>';
         btns += '<button type="button" class="btn btn-primary btn-sm only-group-editor-if-group-exist" onclick="EditQuestionShow(' + questionList[i].questionId + ')"><i class="fa fa-edit"></i></button>';
         if (bookId != 0) {
             btns += '<button type="button" class="btn btn-warning btn-sm only-group-editor-if-group-exist" onclick="RemoveFromBook(' + questionList[i].questionId + ')"><i class="fa fa-trash"></i></button>';
         }
         table.row.add([
-            [questionList[i].question],
-            [questionList[i].answer],
+            [questionList[i].question.replaceAll("\n","<br>")],
+            [questionList[i].answer.replaceAll("\n","<br>")],
             [l[questionList[i].status]],
             [btns]
         ]).node().id = questionList[i].questionId;
@@ -822,12 +822,12 @@ function BookRename() {
             if (r.success == true) {
                 bookName = newName;
                 $(".book-name").html(bookName);
-                btns = '<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-refresh"></i></button>';
-                btns += '<button type="button" class="btn btn-outline-secondary" onclick="BookChart(' + bookId + ');"><i class="fa fa-bar-chart"></i></button>';
+                btns = '<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-sync"></i></button>';
+                btns += '<button type="button" class="btn btn-outline-secondary" onclick="BookChart(' + bookId + ');"><i class="fa fa-chart-bar"></i></button>';
                 if (bookId == localStorage.getItem("memo-book-id"))
                     btns += '<button type="button" class="btn btn-outline-secondary" id="select-book-btn"><i class="fa fa-check-square"></i></button>';
                 else
-                    btns += '<button type="button" class="btn btn-outline-secondary" onclick="SelectBook(' + bookId + ')" id="select-book-btn"><i class="fa fa-check-square-o"></i></button>';
+                    btns += '<button type="button" class="btn btn-outline-secondary" onclick="SelectBook(' + bookId + ')" id="select-book-btn"><i class="far fa-check-square"></i></button>';
                 $(".title").html(bookName + '&nbsp;&nbsp;' + btns);
                 $("title").html(bookName + " | My Memo");
                 $("title").html(bookName + " | My Memo");
@@ -1365,7 +1365,7 @@ function QuitGroupShow() {
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" style="color:red"><i class="fa fa-sign-out"></i> Quit Group</h5>
+                    <h5 class="modal-title" style="color:red"><i class="fa fa-arrow-right-from-bracket"></i> Quit Group</h5>
                     <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
                         onclick="$('#modal').modal('hide')">
                         <span aria-hidden=" true"><i class="fa fa-times"></i></span>
@@ -1587,12 +1587,12 @@ function GroupInfoUpdate() {
                         bookName = gname;
 
                         $(".book-name").html(bookName);
-                        btns = '<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-refresh"></i></button>';
-                        btns += '<button type="button" class="btn btn-outline-secondary" onclick="BookChart(' + bookId + ');"><i class="fa fa-bar-chart"></i></button>';
+                        btns = '<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-sync"></i></button>';
+                        btns += '<button type="button" class="btn btn-outline-secondary" onclick="BookChart(' + bookId + ');"><i class="fa fa-chart-bar"></i></button>';
                         if (bookId == localStorage.getItem("memo-book-id"))
                             btns += '<button type="button" class="btn btn-outline-secondary" id="select-book-btn"><i class="fa fa-check-square"></i></button>';
                         else
-                            btns += '<button type="button" class="btn btn-outline-secondary" onclick="SelectBook(' + bookId + ')" id="select-book-btn"><i class="fa fa-check-square-o"></i></button>';
+                            btns += '<button type="button" class="btn btn-outline-secondary" onclick="SelectBook(' + bookId + ')" id="select-book-btn"><i class="far fa-check-square"></i></button>';
                         $(".title").html(bookName + '&nbsp;&nbsp;' + btns);
                         $("title").html(bookName + " | My Memo");
                         $("title").html(bookName + " | My Memo");
@@ -1831,18 +1831,18 @@ function SelectBook(bookId) {
     UpdateBookDisplay();
     UpdateBookContentDisplay();
 
-    btns = '<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-refresh"></i></button>';
-    btns += '<button type="button" class="btn btn-outline-secondary" onclick="BookChart(' + bookId + ');"><i class="fa fa-bar-chart"></i></button>';
+    btns = '<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-sync"></i></button>';
+    btns += '<button type="button" class="btn btn-outline-secondary" onclick="BookChart(' + bookId + ');"><i class="fa fa-chart-bar"></i></button>';
     if (bookId == localStorage.getItem("memo-book-id"))
         btns += '<button type="button" class="btn btn-outline-secondary" id="select-book-btn"><i class="fa fa-check-square"></i></button>';
     else
-        btns += '<button type="button" class="btn btn-outline-secondary" onclick="SelectBook()" id="select-book-btn"><i class="fa fa-check-square-o"></i></button>';
+        btns += '<button type="button" class="btn btn-outline-secondary" onclick="SelectBook()" id="select-book-btn"><i class="far fa-check-square"></i></button>';
     $(".title").html(bookName + '&nbsp;&nbsp;' + btns);
     $("title").html(bookName + " | My Memo");
 }
 
 function UpdateBookContentList() {
-    $("#refresh-btn").html('<i class="fa fa-refresh fa-spin"></i>');
+    $("#refresh-btn").html('<i class="fa fa-sync fa-spin"></i>');
     $.ajax({
         url: "/api/book",
         method: 'POST',
@@ -1860,7 +1860,7 @@ function UpdateBookContentList() {
                 console.warning("Cannot store book list to Session Storage, aborted!");
             }
             UpdateBookContentDisplay();
-            $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
+            $("#refresh-btn").html('<i class="fa fa-sync"></i>');
         }
     });
 }
@@ -1921,7 +1921,7 @@ function BookChart(bid) {
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="modalLabel"><i class="fa fa-bar-chart"></i> Book Statistics</h5>
+                            <h5 class="modal-title" id="modalLabel"><i class="fa fa-chart-bar"></i> Book Statistics</h5>
                             <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
                                 onclick="$('#modal').modal('hide')">
                                 <span aria-hidden=" true"><i class="fa fa-times"></i></span>

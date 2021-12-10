@@ -10,7 +10,7 @@ var member = [];
 var isOwner = false;
 
 function UpdateGroupMember() {
-    $("#refresh-btn").html('<i class="fa fa-refresh fa-spin"></i>');
+    $("#refresh-btn").html('<i class="fa fa-sync fa-spin"></i>');
 
     table = $("#memberList").DataTable();
     table.clear();
@@ -45,7 +45,7 @@ function UpdateGroupMember() {
             }
 
             $("title").html(bookName + " | My Memo");
-            $(".title").html(bookName + '&nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="UpdateGroupMember()" id="refresh-btn"><i class="fa fa-refresh"></i></button>');
+            $(".title").html(bookName + '&nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="UpdateGroupMember()" id="refresh-btn"><i class="fa fa-sync"></i></button>');
 
             $("#groupDescription").html(marked.parse(r.description.replaceAll("\n", "<br>")));
 
@@ -64,7 +64,7 @@ function UpdateGroupMember() {
                         btns += '&nbsp;&nbsp;<button class="btn btn-danger btn-sm" type="button" onclick="TransferOwnershipShow(' + r.member[i].userId + ')"><i class="fa fa-random"></i> Transfer ownership</button>';
                     }
                 }
-                r.member[i].username = r.member[i].username.replaceAll("(Owner)", '<i class="fa fa-key"></i>');
+                r.member[i].username = r.member[i].username.replaceAll("(Owner)", '<i class="fa fa-crown"></i>');
                 r.member[i].username = r.member[i].username.replaceAll("(Editor)", '<i class="fa fa-edit"></i>');
                 table.row.add([
                     [r.member[i].username],
@@ -74,17 +74,17 @@ function UpdateGroupMember() {
             }
             table.draw();
 
-            $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
+            $("#refresh-btn").html('<i class="fa fa-sync"></i>');
         },
         error: function (r, textStatus, errorThrown) {
-            table.row.add([
+            ([
                 [""],
                 ["Failed to fetch group member list"],
                 [""],
             ]);
             table.draw();
 
-            $("#refresh-btn").html('<i class="fa fa-refresh"></i>');
+            $("#refresh-btn").html('<i class="fa fa-sync"></i>');
         }
     });
 

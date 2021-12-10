@@ -34,6 +34,21 @@ def PendingAccountDeletion():
 
         time.sleep(3600)
 
+def PendingEmailVerificationDeletion():
+    while 1:
+        conn = newconn()
+        cur = conn.cursor()
+
+        cur.execute(f"DELETE FROM UserPending WHERE expire < {int(time.time())}")
+        cur.execute(f"DELETE FROM PendingEmailChange WHERE expire < {int(time.time())}")
+        cur.execute(f"DELETE FROM PendingPasswordRecovery WHERE expire < {int(time.time())}")
+        cur.execute(f"DELETE FROM EmailHistory WHERE expire < {int(time.time())}")
+
+        conn.commit()
+
+        time.sleep(1200)
+
+
 threading.Thread(target = PendingAccountDeletion).start()
 if __name__ == "__main__":
     app.run(config.server_ip, config.server_port)

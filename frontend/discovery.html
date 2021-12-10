@@ -1,29 +1,30 @@
+<!DOCTYPE html>
 <html>
 
 <head>
     <meta charset="utf-8" />
     <title>My Memo</title>
 
-    <script src="/js/jquery-3.6.0.min.js"></script>
-    <script src="/js/bootstrap.bundle.min.js"></script>
-    <script src="/js/popper.min.js"></script>
-    <script src="/js/marked.min.js"></script>
+    <script src="https://cdn.charles14.xyz/js/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.charles14.xyz/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.charles14.xyz/js/popper.min.js"></script>
+    <script src="https://cdn.charles14.xyz/js/marked.min.js"></script>
     <script src="/js/general.js"></script>
     <script src="/js/discovery.js"></script>
 
-    <link href="/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/css/font-awesome.min.css" rel="stylesheet">
+    <link href="https://cdn.charles14.xyz/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.charles14.xyz/css/all.min.css" rel="stylesheet">
     <link href="/css/main.css" rel="stylesheet">
 
-    <link rel="stylesheet" href="/dataTables/jquery.dataTables.min.css">
-    <script src="/dataTables/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.charles14.xyz/dataTables/jquery.dataTables.min.css">
+    <script src="https://cdn.charles14.xyz/dataTables/jquery.dataTables.min.js"></script>
     
-    <link href="/css/simplemde.min.css" rel="stylesheet">
-    <script src="/js/simplemde.min.js"></script>
+    <link href="https://cdn.charles14.xyz/css/simplemde.min.css" rel="stylesheet">
+    <script src="https://cdn.charles14.xyz/js/simplemde.min.js"></script>
 
-    <link href="/noty/noty.css" rel="stylesheet">
-    <script src="/noty/noty.min.js" type="text/javascript"></script>
-    <link href="/noty/themes/mint.css" rel="stylesheet">
+    <link href="https://cdn.charles14.xyz/noty/noty.css" rel="stylesheet">
+    <script src="https://cdn.charles14.xyz/noty/noty.min.js" type="text/javascript"></script>
+    <link href="https://cdn.charles14.xyz/noty/themes/mint.css" rel="stylesheet">
 
     <link rel="icon" href="/img/icon.png">
 
@@ -36,7 +37,8 @@
                     [0, 'desc'],
                     [4, 'desc'],
                     [3, 'desc']
-                ]
+                ],
+                "scrollX": true
             });
             if (localStorage.getItem("isAdmin") != "1") {
                 $('#discoveryList').DataTable().column(5).visible(false);
@@ -51,7 +53,8 @@
             }, 100);
 
             $('#questionList').DataTable({
-                pagingType: "full_numbers"
+                pagingType: "full_numbers",
+                "scrollX": true
             });
 
             MDTSB("questionList");
@@ -85,14 +88,14 @@
                     class="fa fa-bell"></i></a>
             <a href='#' onclick="window.location.href='/settings'"><i class="fa fa-cogs"></i></a>
             <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i
-                    class="fa fa-sign-out"></i></a>
+                    class="fa fa-arrow-right-from-bracket"></i></a>
         </div>
     </div>
 
     <div id="content" class="container">
         <h1 class="title" style="padding-bottom: 0;">Discovery &nbsp;&nbsp;<button type="button"
                 class="btn btn-outline-secondary" onclick="RefreshDiscovery()" id="refresh-btn"><i
-                    class="fa fa-refresh"></i></button></h1>
+                    class="fa fa-sync"></i></button></h1>
 
         <div class="discovery-list container">
             <div id="top-post" style="position:relative;display:none">
@@ -149,7 +152,7 @@
                 </div>
                 <div class="user-only group-only" style="display:none">
                     <hr>
-                    <h4>Join <i class="fa fa-users"></i></h4>
+                    <h4>Join <i class="fa fa-userfriends"></i></h4>
                     <p>Group code: <span id="groupCode"></span></p>
                     <button type="button" class="btn btn-primary" onclick="ImportBook()">Join</button>
                     <br>
@@ -168,7 +171,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo</p>
-        <p>Version: v5.4.2 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.4.3 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-github"></i> GitHub</a></p>
         <p>Developed by <a href="www.charles14.xyz">Charles</a></p>

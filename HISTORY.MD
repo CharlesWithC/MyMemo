@@ -1,5 +1,24 @@
 # Update History
 
+## v5.4.3  
+
+*Date: 2021/12/10*  
+Bug Fixes:  
+1.Added scheduled email verification token deletion for expired tokens  
+2.Added markdown parse for top discovery post  
+3.Fixed the bug that table text color is white when theme is light  
+4.Fixed the bug that Sign In (in div .userctrl) could not be pressed when window is wide  
+5.Hiding share button (in div .leftside) when user is not logged in  
+6.Fixed the bug that discovery post view count is incorrect when post is shown in detail  
+7.Fixed the bug that content in overflown table is not displayed (now added a X Scroll bar)  
+8.Fixed the bug that line breaks are not displaying in table  
+
+Other Updates:  
+1.Added notification to pass CloudFlare's JS Challenge when /api/user/login or /api/user/register returns 503 error  
+2.Move all imported files to cdn.zip which is put under domain cdn.charles14.xyz  
+3.Updated fontawesome to beta v6.0.0 which has more icons and better style  
+4.Updated README  
+
 ## v5.4.2  
 
 *Date: 2021/12/5*  
