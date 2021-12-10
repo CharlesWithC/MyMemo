@@ -1,5 +1,11 @@
 # Update History
 
+## v5.4.3.2
+
+*Date: 2021/12/10*  
+Bug Fixes:  
+1.Fixed some bugs on fontawesome icon display  
+
 ## v5.4.3  
 
 *Date: 2021/12/10*  

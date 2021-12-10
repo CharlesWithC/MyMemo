@@ -113,7 +113,7 @@ function UpdateUserInfo() {
                         if (sessions[i].userAgent.indexOf("Android") != -1) system = "android";
                         sysver = sessions[i].userAgent.substr(sessions[i].userAgent.indexOf("(") + 1, sessions[i].userAgent.indexOf(")") - sessions[i].userAgent.indexOf("(") - 1);
                         $("#sessions").append("<div class='rect' onclick='SessionDetail(" + i + ");'>\
-                    <p class='rect-title'><i class='fa fa-" + system + "'></i>&nbsp;&nbsp;" + sysver + "\
+                    <p class='rect-title'><i class='fa fa-brands fa-" + system + "'></i>&nbsp;&nbsp;" + sysver + "\
                     <p class='rect-content'>IP: " + sessions[i].ip + "</p>\
                     </div><br>")
                     }
@@ -934,7 +934,7 @@ function SessionDetail(i) {
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class='fa fa-` + system + `'></i>&nbsp;&nbsp;` + sysver + `</h5>
+                    <h5 class="modal-title"><i class='fa fa-brands fa-` + system + `'></i>&nbsp;&nbsp;` + sysver + `</h5>
                     <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
                         onclick="$('#modal').modal('hide');">
                         <span aria-hidden=" true"><i class="fa fa-times"></i></span>
