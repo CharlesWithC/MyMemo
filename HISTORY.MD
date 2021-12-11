@@ -1,5 +1,16 @@
 # Update History
 
+## v5.5.2  
+
+*Date: 2021/12/11*  
+UI Updates:  
+1.Updated password reset page UI  
+2.Updated book page UI. Moved chart, select button to #manage div. Added a check box to decide whether to delete the question from database (otherwise it will only be deleted from the book).  
+3.Updated login page UI  
+
+Bug Fixes:  
+1.Fixed bugs that in-modal form cannot use Enter or Ctrl+Enter to submit  
+
 ## v5.5.1  
 
 *Date: 2021/12/11*  

@@ -27,30 +27,13 @@
 
     <script>
         $(document).ready(function () {
-            function onkeypress() {
-                $("#input-password").on('keypress', function (e) {
-                    if (e.which == 13 || e.which == 13 && e.ctrlKey) {
-                        Login();
-                    }
-                });
-            }
-
-            setTimeout(onkeypress, 500);
+            $("#input-password").on('keypress', function (e) {
+                if (e.which == 13 || e.which == 13 && e.ctrlKey) {
+                    Login();
+                }
+            });
         })
     </script>
-
-    <style>
-        button {
-            margin: 0.1em;
-            margin-bottom: 0.3em;
-        }
-
-        h4,
-        h5,
-        p {
-            margin: 0.5em;
-        }
-    </style>
 </head>
 
 <body>
@@ -61,7 +44,8 @@
             </div>
         </div>
         <div class="userctrl">
-            <a href='/user'><i class="fa fa-user"></i></a> <span id="navusername"><a href='/user/login'>Sign in</a>&nbsp;&nbsp; </span>
+            <a href='/user'><i class="fa fa-user"></i></a> <span id="navusername"><a href='/user/login'>Sign
+                    in</a>&nbsp;&nbsp; </span>
             <a class="only-signed-in" href='#' onclick="UserEvents()" style="display:none"><i
                     class="fa fa-bell"></i></a>
             <a href='#' onclick="window.location.href='/settings'"><i class="fa fa-cogs"></i></a>
@@ -71,21 +55,19 @@
     </div>
 
     <div id="content" class="container">
-        <div class="login center" style="margin-top:8em;margin-bottom:10em">
+        <div class="login center" style="margin-top:4em">
             <h1 style="margin-bottom:0.8em">My Memo</h1>
-            <div class="input-group mb-3 center" style="width:15em">
-                <span class="input-group-text" id="basic-addon1">Username</span>
-                <input type="text" class="form-control" id="input-username" aria-describedby="basic-addon1">
-            </div>
-            <div class="input-group mb-3 center" style="width:15em">
-                <span class="input-group-text" id="basic-addon1">Password</span>
-                <input type="password" class="form-control" id="input-password" aria-describedby="basic-addon1">
-            </div>
-            <div class="center" style="width:15em">
+            <div style="margin:auto;width:15em;text-align:left">
+                <span>Username / Email</span>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="input-username" aria-describedby="basic-addon1">
+                </div>
+                <span>Password</span>
+                <div class="input-group mb-3">
+                    <input type="password" class="form-control" id="input-password" aria-describedby="basic-addon1">
+                </div>
                 <a href="#" onclick="ForgotPasswordShow();" style="float:right">Forgot Password?</a>
-            </div>
-            <br>
-            <div class="center" style="width:15em">
+                <br>
                 <a href="#" onclick="$('.login').hide();$('.register').show();" style="float:right">Sign up</a>
             </div>
             <br>
@@ -93,25 +75,25 @@
                 style="position:relative;width:10em;margin-top:1em" onclick="Login()"> Sign in </button>
         </div>
 
-        <div class="register center" style="margin-top:4em;margin-bottom:10em;display:none">
+        <div class="register center" style="margin-top:0em;display:none">
             <h1 style="margin-bottom:0.8em">My Memo</h1>
-            <div class="input-group mb-3 center" style="width:15em">
-                <span class="input-group-text" id="basic-addon1">Username</span>
-                <input type="text" class="form-control" id="register-username" aria-describedby="basic-addon1">
-            </div>
-            <div class="input-group mb-3 center" style="width:15em">
-                <span class="input-group-text" id="basic-addon1">Email</span>
-                <input type="text" class="form-control" id="register-email" aria-describedby="basic-addon1">
-            </div>
-            <div class="input-group mb-3 center" style="width:15em">
-                <span class="input-group-text" id="basic-addon1">Password</span>
-                <input type="password" class="form-control" id="register-password" aria-describedby="basic-addon1">
-            </div>
-            <div class="input-group mb-3 center" style="width:15em">
-                <span class="input-group-text" id="basic-addon1">Invitation Code</span>
-                <input type="text" class="form-control" id="register-inviteCode" aria-describedby="basic-addon1">
-            </div>
-            <div class="center" style="width:30%">
+            <div style="margin:auto;width:15em;text-align:left">
+                <span>Username</span>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="register-username" aria-describedby="basic-addon1">
+                </div>
+                <span>Email</span>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="register-email" aria-describedby="basic-addon1">
+                </div>
+                <span>Password</span>
+                <div class="input-group mb-3">
+                    <input type="password" class="form-control" id="register-password" aria-describedby="basic-addon1">
+                </div>
+                <span>Invitation Code (If you have)</span>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="register-inviteCode" aria-describedby="basic-addon1">
+                </div>
                 <a href="#" onclick="$('.login').show();$('.register').hide();" style="float:right"> Sign in </a>
             </div>
             <br>
@@ -122,9 +104,10 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo</p>
-        <p>Version: v5.5.1 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.5.2 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
-        <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-brands fa-github"></i> GitHub</a></p>
+        <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-brands fa-github"></i>
+                GitHub</a></p>
         <p>Developed by <a href="www.charles14.xyz">Charles</a></p>
     </div>
 </body>

@@ -2,7 +2,7 @@
 # Author: @Charles-1414
 # License: GNU General Public License v3.0
 
-from fastapi import Request, HTTPException
+from fastapi import Request, HTTPException, BackgroundTasks
 import os, sys, time, math, uuid
 import threading
 import json
@@ -18,7 +18,7 @@ from emailop import sendVerification, sendNormal
 # User API
 
 @app.post("/api/user/register")
-async def apiRegister(request: Request):
+async def apiRegister(request: Request, background_tasks: BackgroundTasks):
     form = await request.form()
     if not config.allow_register:
         return {"success": False, "msg": "Public register not enabled!"}
@@ -101,9 +101,9 @@ async def apiRegister(request: Request):
         return {"success": False, "msg": "Email too long!"}
 
     token = str(uuid.uuid4())
-    threading.Thread(target=sendVerification,args=(email, decode(username), "Account activation", \
+    background_tasks.add_task(sendVerification, email, decode(username), "Account activation", \
         f"Welcome {decode(username)}! Please verify your email to activate your account!", "20 minutes", \
-            "https://memo.charles14.xyz/user/activate?token="+token, )).start()
+            "https://memo.charles14.xyz/user/activate?token="+token)
     cur.execute(f"INSERT INTO UserPending VALUES ('{username}', '{email}', '{encode(password)}', {inviter}, '{token}', {int(time.time() + 1200)})")
     
     return {"success": True, "msg": "Account registered, but pending activation! \
@@ -281,7 +281,7 @@ async def apiLogoutAll(request: Request):
     return {"success": ret}
 
 @app.post("/api/user/requestResetPassword")
-async def apiRequestResetPassword(request: Request):
+async def apiRequestResetPassword(request: Request, background_tasks: BackgroundTasks):
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -308,9 +308,9 @@ async def apiRequestResetPassword(request: Request):
             username = d[0][1]
             
             token = str(userId).zfill(9) + "-" + str(uuid.uuid4())
-            threading.Thread(target=sendVerification,args=(email, decode(username), "Password recovery", \
+            background_tasks.add_task(sendVerification, email, decode(username), "Password recovery", \
                 f"You are recovering your password. Open the link below to continue!<br>If you didn't request that, simply ignore this email and your account will be safe.", "10 minutes", \
-                    "https://memo.charles14.xyz/user/reset?token="+token, )).start()
+                    "https://memo.charles14.xyz/user/reset?token="+token)
             cur.execute(f"INSERT INTO PendingPasswordRecovery VALUES ({userId}, '{token}', {int(time.time()+600)})")
             conn.commit()
             
@@ -320,7 +320,7 @@ async def apiRequestResetPassword(request: Request):
         return {"success": False, "msg": "Incorrect email address!"}
 
 @app.post("/api/user/resetPassword")
-async def apiResetPassword(request: Request):
+async def apiResetPassword(request: Request, background_tasks: BackgroundTasks):
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -358,8 +358,8 @@ async def apiResetPassword(request: Request):
     username = t[0][0]
     email = t[0][1]
 
-    threading.Thread(target=sendNormal, args=(email, username, "Password updated", f"Your password has been updated. If you didn't do this, reset your password immediately!")).start()
-
+    background_tasks.add_task(sendNormal, email, username, "Password updated", f"Your password has been updated. If you didn't do this, reset your password immediately!")
+    
     return {"success": True, "msg": "Password updated!"}
 
 @app.post("/api/user/delete")
@@ -765,7 +765,7 @@ async def apiUserSessions(request: Request):
     return ss
 
 @app.post("/api/user/updateInfo")
-async def apiUpdateInfo(request: Request):
+async def apiUpdateInfo(request: Request, background_tasks: BackgroundTasks):
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -818,9 +818,9 @@ async def apiUpdateInfo(request: Request):
     t = cur.fetchall()
     if len(t) > 0 and t[0][0].lower() != email.lower():
         token = str(userId).zfill(9) + "-" + str(uuid.uuid4())
-        threading.Thread(target=sendVerification,args=(email, decode(username), "Email update verification", \
+        background_tasks.add_task(sendVerification, email, decode(username), "Email update verification", \
             f"You are changing your email address to {email}. Please open the link to verify this new address.", "10 minutes", \
-                "https://memo.charles14.xyz/verify?type=changeemail&token="+token, )).start()
+                "https://memo.charles14.xyz/verify?type=changeemail&token="+token)
         cur.execute(f"INSERT INTO PendingEmailChange VALUES ({userId}, '{email}', '{token}', {int(time.time()+600)})")
         return {"success": True, "msg": "User profile updated, but email is not updated! \
             Please check the inbox of the new email and open the link in it to verify it!"}
@@ -829,7 +829,7 @@ async def apiUpdateInfo(request: Request):
         return {"success": True, "msg": "User profile updated!"}
 
 @app.post("/api/user/changeemail/verify")
-async def apiChangeEmailVerify(request: Request):
+async def apiChangeEmailVerify(request: Request, background_tasks: BackgroundTasks):
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -857,7 +857,8 @@ async def apiChangeEmailVerify(request: Request):
     if len(t) > 0:
         username = t[0][0]
         oldEmail = t[0][1]
-        threading.Thread(target=sendNormal, args=(oldEmail, username, "Email updated", f"Your email has been updated to {newEmail}. If you didn't do this, please send an email to memo@charles14.xyz immediately for support!")).start()
+        background_tasks.add_task(sendNormal, oldEmail, username, "Email updated", f"Your email has been updated to {newEmail}. If you didn't do this, please send an email to memo@charles14.xyz immediately for support!")
+
     cur.execute(f"INSERT INTO EmailHistory VALUES ({userId}, '{newEmail.lower()}', {int(time.time())})")
     cur.execute(f"UPDATE UserInfo SET email = '{newEmail}' WHERE userId = {userId}")
     cur.execute(f"DELETE FROM PendingEmailChange WHERE token = '{token}'")

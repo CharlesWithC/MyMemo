@@ -35,9 +35,7 @@
                 "scrollX": true
             });
             $('#memberList').DataTable().column(2).visible(false);
-
             MDTSB("memberList");
-            setInterval(function(){$("#memberList").css("width","");},100);
 
             setInterval(function () {
                 for (var i = 0; i < member.length; i++) {
@@ -64,19 +62,6 @@
             });
         });
     </script>
-
-    <style>
-        button {
-            margin: 0.1em;
-            margin-bottom: 0.3em;
-        }
-
-        h4,
-        h5,
-        p {
-            margin: 0.5em;
-        }
-    </style>
 </head>
 
 <body>
@@ -123,7 +108,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo</p>
-        <p>Version: v5.5.1 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.5.2 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-brands fa-github"></i> GitHub</a></p>
         <p>Developed by <a href="www.charles14.xyz">Charles</a></p>

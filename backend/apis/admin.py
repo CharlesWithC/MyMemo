@@ -2,7 +2,7 @@
 # Author: @Charles-1414
 # License: GNU General Public License v3.0
 
-from fastapi import Request, HTTPException
+from fastapi import Request, HTTPException, BackgroundTasks
 import os, sys, time, datetime, math
 import json, uuid
 import validators
@@ -108,7 +108,7 @@ def restart():
     sys.exit(0)
 
 @app.post("/api/admin/command")
-async def apiAdminCommand(request: Request):
+async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -210,9 +210,9 @@ async def apiAdminCommand(request: Request):
         password = hashpwd(password)
         
         token = str(uuid.uuid4())
-        threading.Thread(target=sendVerification,args=(email, decode(username), "Account activation", \
+        background_tasks.add_task(sendVerification, email, decode(username), "Account activation", \
             f"Welcome {decode(username)}! Please verify your email to activate your account!", "20 minutes", \
-                "https://memo.charles14.xyz/user/activate?token="+token, )).start()
+                "https://memo.charles14.xyz/user/activate?token="+token)
         cur.execute(f"INSERT INTO UserPending VALUES ('{username}', '{email}', '{encode(password)}', {inviter}, '{token}', {int(time.time() + 1200)})")
         conn.commit()
         
@@ -588,9 +588,9 @@ async def apiAdminCommand(request: Request):
             return {"success": False, "msg": f"User not found!"}
         username = t[0][0]
         token = str(uid).zfill(9) + "-" + str(uuid.uuid4())
-        threading.Thread(target=sendVerification,args=(email, decode(username), "Email update verification", \
+        background_tasks.add_task(sendVerification, email, decode(username), "Email update verification", \
             f"You are changing your email address to {email}. Please open the link to verify this new address.", "10 minutes", \
-                "https://memo.charles14.xyz/verify?type=changeemail&token="+token, )).start()
+                "https://memo.charles14.xyz/verify?type=changeemail&token="+token)
         cur.execute(f"INSERT INTO PendingEmailChange VALUES ({uid}, '{email}', '{token}', {int(time.time()+600)})")
         conn.commit()
 
@@ -604,7 +604,7 @@ async def apiAdminCommand(request: Request):
         
         open("/tmp/MyMemoLastManualRestart","w").write(str(int(time.time())))
 
-        threading.Thread(target=restart).start()
+        background_tasks.add_task(restart)
         return {"success": True, "msg": "Server restarting..."}
 
     else:

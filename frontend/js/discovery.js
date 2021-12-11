@@ -350,6 +350,12 @@ function UpdateInformationShow() {
     $('#modal').on('shown.bs.modal', function () {
         descriptionMDE.value(description);
     });
+
+    $("#discovery-title,#discovery-description").on('keypress', function (e) {
+        if (e.which == 13 && e.ctrlKey) {
+            UpdateInformation();
+        }
+    });
 }
 
 function UpdateInformation() {

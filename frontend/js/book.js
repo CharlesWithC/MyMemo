@@ -99,11 +99,6 @@ function SelectQuestions() {
 
             bookName = bookList[i].name;
             btns = '<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-sync"></i></button>';
-            btns += '<button type="button" class="btn btn-outline-secondary" onclick="BookChart(' + bookId + ');"><i class="fa fa-chart-bar"></i></button>';
-            if (bookId == localStorage.getItem("memo-book-id"))
-                btns += '<button type="button" class="btn btn-outline-secondary" id="select-book-btn"><i class="fa fa-check-square"></i></button>';
-            else
-                btns += '<button type="button" class="btn btn-outline-secondary" onclick="SelectBook(' + bookId + ')" id="select-book-btn"><i class="far fa-check-square"></i></button>';
             $(".title").html(bookName + '&nbsp;&nbsp;' + btns);
             $("title").html(bookName + " | My Memo");
             groupId = bookList[i].groupId;
@@ -209,15 +204,21 @@ function UpdateTable() {
 
     l = ["", "Default", "Tagged", "Deleted"];
 
+    if(bookId == 0){
+        $("#removeFromDB").prop("checked", true);
+        $("#removeFromDB").attr("disabled","disabled");
+    } else {
+        $("#removeFromDB").prop("checked", false);
+        $("#removeFromDB").removeAttr("disabled");
+    }
+
     for (var i = 0; i < selectedQuestionList.length; i++) {
         btns = '<button type="button" class="btn btn-primary btn-sm only-group-editor-if-group-exist" onclick="ShowStatistics(' + selectedQuestionList[i].questionId + ')"><i class="fa fa-chart-bar"></i></button>';
         btns += '<button type="button" class="btn btn-primary btn-sm only-group-editor-if-group-exist" onclick="EditQuestionShow(' + selectedQuestionList[i].questionId + ')"><i class="fa fa-edit"></i></button>';
-        if (bookId != 0) {
-            btns += '<button type="button" class="btn btn-warning btn-sm only-group-editor-if-group-exist" onclick="RemoveFromBook(' + selectedQuestionList[i].questionId + ')"><i class="fa fa-trash"></i></button>';
-        }
+        btns += '<button type="button" class="btn btn-warning btn-sm only-group-editor-if-group-exist remove-question-btn" onclick="RemoveFromBook(' + selectedQuestionList[i].questionId + ')"><i class="fa fa-trash"></i></button>';
         table.row.add([
-            [selectedQuestionList[i].question.replaceAll("\n","<br>")],
-            [selectedQuestionList[i].answer.replaceAll("\n","<br>")],
+            [selectedQuestionList[i].question.replaceAll("\n", "<br>")],
+            [selectedQuestionList[i].answer.replaceAll("\n", "<br>")],
             [l[selectedQuestionList[i].status]],
             [btns]
         ]).node().id = selectedQuestionList[i].questionId;
@@ -399,6 +400,11 @@ function EditQuestionShow(wid) {
     $('#modal').on('hidden.bs.modal', function () {
         $("#modal").remove();
     });
+    $("#edit-question,#edit-answer").on('keypress', function (e) {
+        if (e.which == 13 && e.ctrlKey) {
+            EditQuestion();
+        }
+    });
 }
 
 function EditQuestionFromBtn() {
@@ -494,15 +500,22 @@ function ShowQuestionDatabase() {
 
     table = $("#questionList").DataTable();
     table.clear();
+
+    if(bookId == 0){
+        $("#removeFromDB").prop("checked", true);
+        $("#removeFromDB").attr("disabled","disabled");
+    } else {
+        $("#removeFromDB").prop("checked", false);
+        $("#removeFromDB").removeAttr("disabled");
+    }
+
     for (var i = 0; i < questionList.length; i++) {
         btns = '<button type="button" class="btn btn-primary btn-sm only-group-editor-if-group-exist" onclick="ShowStatistics(' + questionList[i].questionId + ')"><i class="fa fa-chart-bar"></i></button>';
         btns += '<button type="button" class="btn btn-primary btn-sm only-group-editor-if-group-exist" onclick="EditQuestionShow(' + questionList[i].questionId + ')"><i class="fa fa-edit"></i></button>';
-        if (bookId != 0) {
-            btns += '<button type="button" class="btn btn-warning btn-sm only-group-editor-if-group-exist" onclick="RemoveFromBook(' + questionList[i].questionId + ')"><i class="fa fa-trash"></i></button>';
-        }
+        btns += '<button type="button" class="btn btn-warning btn-sm only-group-editor-if-group-exist remove-question-btn" onclick="RemoveFromBook(' + questionList[i].questionId + ')"><i class="fa fa-trash"></i></button>';
         table.row.add([
-            [questionList[i].question.replaceAll("\n","<br>")],
-            [questionList[i].answer.replaceAll("\n","<br>")],
+            [questionList[i].question.replaceAll("\n", "<br>")],
+            [questionList[i].answer.replaceAll("\n", "<br>")],
             [l[questionList[i].status]],
             [btns]
         ]).node().id = questionList[i].questionId;
@@ -597,6 +610,11 @@ function AddQuestionShow() {
     $('#modal').on('hidden.bs.modal', function () {
         $("#modal").remove();
     });
+    $("#edit-question,#edit-answer").on('keypress', function (e) {
+        if (e.which == 13 && e.ctrlKey) {
+            AddQuestion();
+        }
+    });
 }
 
 function AddQuestion() {
@@ -639,6 +657,10 @@ function RemoveFromBook(wid = -1) {
         questions = selected;
     } else {
         questions = [wid];
+    }
+    if($("#removeFromDB").is(":checked") || bookId == 0){
+        RemoveQuestionShow();
+        return;
     }
     $.ajax({
         url: '/api/book/deleteQuestion',
@@ -798,6 +820,11 @@ function BookRenameShow() {
     $('#modal').on('hidden.bs.modal', function () {
         $("#modal").remove();
     });
+    $("#book-rename").on('keypress', function (e) {
+        if (e.which == 13 || e.which == 13 && e.ctrlKey) {
+            BookRename();
+        }
+    });
 }
 
 function BookRename() {
@@ -823,11 +850,6 @@ function BookRename() {
                 bookName = newName;
                 $(".book-name").html(bookName);
                 btns = '<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-sync"></i></button>';
-                btns += '<button type="button" class="btn btn-outline-secondary" onclick="BookChart(' + bookId + ');"><i class="fa fa-chart-bar"></i></button>';
-                if (bookId == localStorage.getItem("memo-book-id"))
-                    btns += '<button type="button" class="btn btn-outline-secondary" id="select-book-btn"><i class="fa fa-check-square"></i></button>';
-                else
-                    btns += '<button type="button" class="btn btn-outline-secondary" onclick="SelectBook(' + bookId + ')" id="select-book-btn"><i class="far fa-check-square"></i></button>';
                 $(".title").html(bookName + '&nbsp;&nbsp;' + btns);
                 $("title").html(bookName + " | My Memo");
                 $("title").html(bookName + " | My Memo");
@@ -974,6 +996,11 @@ function PublishToDiscoveryShow() {
     $(".CodeMirror").css("height", "6em");
     $(".CodeMirror").css("min-height", "6em");
     $(".cursor").remove();
+    $("#discovery-title,#discovery-description").on('keypress', function (e) {
+        if (e.which == 13 && e.ctrlKey) {
+            PublishToDiscovery();
+        }
+    });
 }
 
 function PublishToDiscovery() {
@@ -1101,6 +1128,11 @@ function GroupPublishToDiscoveryShow() {
     $(".CodeMirror").css("height", "6em");
     $(".CodeMirror").css("min-height", "6em");
     $(".cursor").remove();
+    $("#group-discovery-title,#group-discovery-description").on('keypress', function (e) {
+        if (e.which == 13 && e.ctrlKey) {
+            GroupPublishToDiscovery();
+        }
+    });
 }
 
 function GroupPublishToDiscovery() {
@@ -1291,6 +1323,11 @@ function CreateGroupShow() {
     $(".CodeMirror").css("height", "6em");
     $(".CodeMirror").css("min-height", "6em");
     $(".cursor").remove();
+    $("#group-name,#group-description").on('keypress', function (e) {
+        if (e.which == 13 && e.ctrlKey) {
+            CreateGroup();
+        }
+    });
 }
 
 function CreateGroup() {
@@ -1588,11 +1625,6 @@ function GroupInfoUpdate() {
 
                         $(".book-name").html(bookName);
                         btns = '<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-sync"></i></button>';
-                        btns += '<button type="button" class="btn btn-outline-secondary" onclick="BookChart(' + bookId + ');"><i class="fa fa-chart-bar"></i></button>';
-                        if (bookId == localStorage.getItem("memo-book-id"))
-                            btns += '<button type="button" class="btn btn-outline-secondary" id="select-book-btn"><i class="fa fa-check-square"></i></button>';
-                        else
-                            btns += '<button type="button" class="btn btn-outline-secondary" onclick="SelectBook(' + bookId + ')" id="select-book-btn"><i class="far fa-check-square"></i></button>';
                         $(".title").html(bookName + '&nbsp;&nbsp;' + btns);
                         $("title").html(bookName + " | My Memo");
                         $("title").html(bookName + " | My Memo");
@@ -1716,6 +1748,11 @@ function GroupDismissShow() {
     $('#modal').on('hidden.bs.modal', function () {
         $("#modal").remove();
     });
+    $("#group-delete").on('keypress', function (e) {
+        if (e.which == 13 || e.which == 13 && e.ctrlKey) {
+            GroupDismiss();
+        }
+    });
 }
 
 function GroupDismiss() {
@@ -1832,11 +1869,6 @@ function SelectBook(bookId) {
     UpdateBookContentDisplay();
 
     btns = '<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-sync"></i></button>';
-    btns += '<button type="button" class="btn btn-outline-secondary" onclick="BookChart(' + bookId + ');"><i class="fa fa-chart-bar"></i></button>';
-    if (bookId == localStorage.getItem("memo-book-id"))
-        btns += '<button type="button" class="btn btn-outline-secondary" id="select-book-btn"><i class="fa fa-check-square"></i></button>';
-    else
-        btns += '<button type="button" class="btn btn-outline-secondary" onclick="SelectBook()" id="select-book-btn"><i class="far fa-check-square"></i></button>';
     $(".title").html(bookName + '&nbsp;&nbsp;' + btns);
     $("title").html(bookName + " | My Memo");
 }
@@ -1904,14 +1936,14 @@ function CreateBook(element) {
     });
 }
 
-function BookChart(bid) {
+function BookChart() {
     $.ajax({
         url: '/api/book/chart',
         method: 'POST',
         async: true,
         dataType: "json",
         data: {
-            bookId: bid,
+            bookId: bookId,
             userId: localStorage.getItem("userId"),
             token: localStorage.getItem("token")
         },

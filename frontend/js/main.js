@@ -1100,6 +1100,12 @@ function EditQuestionShow() {
     $('#modal').on('hidden.bs.modal', function () {
         $("#modal").remove();
     });
+
+    $("#edit-question,#edit-answer").on('keypress', function (e) {
+        if (e.which == 13 && e.ctrlKey) {
+            EditQuestion();
+        }
+    });
 }
 
 function EditQuestion() {

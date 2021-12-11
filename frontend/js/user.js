@@ -436,7 +436,7 @@ function Login() {
             }
         },
         error: function (r) {
-            if(r.status == 503){
+            if (r.status == 503) {
                 NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
             }
         }
@@ -476,7 +476,7 @@ function Register() {
             }
         },
         error: function (r) {
-            if(r.status == 503){
+            if (r.status == 503) {
                 NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
             }
         }
@@ -535,6 +535,11 @@ function UpdateProfileShow() {
     $(".cursor").remove();
     $('#modal').on('shown.bs.modal', function () {
         biomde.value(user.bio);
+    });
+    $("#update-username,#update-email,#update-bio").on('keypress', function (e) {
+        if (e.which == 13 || e.which == 13 && e.ctrlKey) {
+            UpdateUserProfile();
+        }
     });
 }
 
@@ -635,7 +640,7 @@ function ChangePassword() {
             }
         },
         error: function (r) {
-            if(r.status == 503){
+            if (r.status == 503) {
                 NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
             }
         }
@@ -682,6 +687,11 @@ function ChangePasswordShow() {
     $("#modal").modal("show");
     $('#modal').on('hidden.bs.modal', function () {
         $("#modal").remove();
+    });
+    $("#oldpwd,#newpwd,#cfmpwd").on('keypress', function (e) {
+        if (e.which == 13 || e.which == 13 && e.ctrlKey) {
+            ChangePassword();
+        }
     });
 }
 
@@ -778,6 +788,11 @@ function DeleteAccountShow() {
     $("#modal").modal("show");
     $('#modal').on('hidden.bs.modal', function () {
         $("#modal").remove();
+    });
+    $("#acknowledge-confirm,#delete-password").on('keypress', function (e) {
+        if (e.which == 13 || e.which == 13 && e.ctrlKey) {
+            DeleteAccount();
+        }
     });
 }
 
@@ -1019,7 +1034,7 @@ $(document).ready(function () {
     }
 });
 
-function ForgotPasswordShow(){
+function ForgotPasswordShow() {
     $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog"
         aria-labelledby="modalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -1052,10 +1067,23 @@ function ForgotPasswordShow(){
     $("#modal").modal("show");
     $('#modal').on('hidden.bs.modal', function () {
         $("#modal").remove();
+        $("#input-password").on('keypress', function (e) {
+            if (e.which == 13 || e.which == 13 && e.ctrlKey) {
+                Login();
+            }
+        });
+    });
+    $("#input-password").on('keypress', function (e) {
+        return;
+    });
+    $("#reset-email").on('keypress', function (e) {
+        if (e.which == 13 || e.which == 13 && e.ctrlKey) {
+            ForgotPassword();
+        }
     });
 }
 
-function ForgotPassword(){
+function ForgotPassword() {
     $.ajax({
         url: '/api/user/requestResetPassword',
         method: 'POST',

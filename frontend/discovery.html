@@ -45,29 +45,13 @@
             }
             $("#th-pin").before("<th width='0.2em'></th>")
             $("#th-pin").remove();
-
             MDTSB("discoveryList");
-
-            setInterval(function () {
-                $("#discoveryList").css("width", "");
-            }, 100);
 
             $('#questionList').DataTable({
                 pagingType: "full_numbers",
                 "scrollX": true
             });
-
             MDTSB("questionList");
-
-            setInterval(function () {
-                $("#questionList").css("width", "");
-            }, 100);
-
-            $("#discovery-title,#discovery-description").on('keypress', function (e) {
-                if (e.which == 13 && e.ctrlKey) {
-                    UpdateInformation();
-                }
-            });
 
             PageInit();
         });
@@ -171,7 +155,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo</p>
-        <p>Version: v5.5.1 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.5.2 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-brands fa-github"></i> GitHub</a></p>
         <p>Developed by <a href="www.charles14.xyz">Charles</a></p>

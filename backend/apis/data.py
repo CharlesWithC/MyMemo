@@ -272,13 +272,13 @@ async def apiImportData(request: Request, background_tasks: BackgroundTasks):
         if len(t) > 0:
             if t[0][0] != '':
                 if decode(t[0][0]) == "Failed":
-                    threading.Thread(target=clearResult,args=(userId,True,)).start()
+                    background_tasks.add_task(clearResult, userId, True)
                     return JSONResponse({"success": 0, "msg": decode(t[0][0])})
                 elif decode(t[0][0]).startswith("Progress"):
                     progress = decode(t[0][0]).replace("Progress","")
                     return JSONResponse({"success": 1, "msg": f"Still working on it ... {progress}% Finished"})
                 else:
-                    threading.Thread(target=clearResult,args=(userId,True,)).start()
+                    background_tasks.add_task(clearResult, userId, True)
                     return JSONResponse({"success": 2, "msg": decode(t[0][0])})
             else:
                 return JSONResponse({"success": 1, "msg": "Still working on it... <i class='fa fa-spinner fa-spin'></i>"})

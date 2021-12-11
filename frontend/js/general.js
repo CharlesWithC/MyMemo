@@ -381,6 +381,9 @@ function GeneralUpdateTheme() {
     navusername = $("#navusername").html();
     shortUserctrl = false;
     setInterval(function () {
+        $("table").css("width", "");
+    }, 100);
+    setInterval(function () {
         if ($(".userctrl").length != 0) {
             t = $(".userctrl").css("left");
             if (parseInt(t.slice(0, t.indexOf("px"))) / window.innerWidth < 0.6 && !shortUserctrl) {
@@ -497,7 +500,7 @@ $(document).ready(function () {
     });
     $("#create-book-name").on('keypress', function (e) {
         if (e.which == 13 || e.which == 13 && e.ctrlKey) {
-            CreateBook();
+            CreateBook("#create-book-name");
         }
     });
 

@@ -64,13 +64,18 @@
                 },
                 success: function (r) {
                     if (r.success == true) {
-                        $("#reset-box").show();
-                        $("#title").html("Update your password");
-                        $("#submit").show();
+                        $(".reset").show();
+                        $("#validate-title").hide();
+                        $(".title").show();
                     } else {
                         NotyNotification(r.msg, type = 'error');
-                        $("#msg").html(r.msg);
+                        $("#validate-title").html(r.msg);
                     }
+                }
+            });
+            $("#update-password").on('keypress', function (e) {
+                if (e.which == 13 || e.which == 13 && e.ctrlKey) {
+                    UpdatePassword();
                 }
             });
         });
@@ -97,24 +102,26 @@
 
     <div id="content" class="container">
         <div id="home" class="center">
-            <h1 id="title">Validating token...</h1>
-            <p id="msg"></p>
-            <div style="width:20em" class="center">
-                <div class="input-group mb-3" id="reset-box" style="display:none">
-                    <span class="input-group-text" id="basic-addon1">New Password</span>
-                    <input style="width:10em" type="password" class="form-control" id="update-password" aria-describedby="basic-addon1">
+            <h1 id="validate-title">Validating token...</h1>
+            <h1 class="title" style="padding-bottom: 0;display:none;">Password Recovery</h1>
+            <div class="reset" style="display:none;margin:auto;margin-top:5em;width:15em;text-align:left">
+                <p>Enter your new password:</p>
+                <div class="input-group mb-3" id="reset-box" style="width:15em">
+                    <input type="password" class="form-control" id="update-password" aria-describedby="basic-addon1">
                 </div>
-                <button style="width:6em;display:none" id="submit" type="button" class="btn btn-primary"
+                <button style="width:6em;float:right" id="submit" type="button" class="btn btn-primary"
                     onclick="UpdatePassword()">Reset</button>
             </div>
+            <p id="msg" style="margin:auto;margin-top:5em;width:15em;text-align:center;margin-top:4em"></p>
         </div>
     </div>
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo</p>
-        <p>Version: v5.5.1 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.5.2 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
-        <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-brands fa-github"></i> GitHub</a></p>
+        <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-brands fa-github"></i>
+                GitHub</a></p>
         <p>Developed by <a href="www.charles14.xyz">Charles</a></p>
     </div>
 </body>
