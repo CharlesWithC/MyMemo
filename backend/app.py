@@ -20,4 +20,4 @@ if os.path.exists("./config.json"):
     config_txt = open("./config.json","r").read()
     config = Dict2Obj(json.loads(config_txt))
     
-app = FastAPI(docs_url = "/docs")
+app = FastAPI()

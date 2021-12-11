@@ -40,10 +40,6 @@ server {
 		proxy_pass http://127.0.0.1:8888/api;
 		limit_req zone=api burst=10 nodelay;
 	}
-	location /docs {
-		proxy_pass http://127.0.0.1:8888/api;
-		limit_req zone=api burst=10 nodelay;
-	}
 	location /download {
 		proxy_pass http://127.0.0.1:8888/download;
 		limit_req zone=api burst=3 nodelay;

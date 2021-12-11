@@ -562,6 +562,8 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
         return {"success": True, "msg": f"Total user: {tot}\nActive user: {cnt - deled}\nBanned / Banned & Deleted user: {banned}\nDisabled (Pending deletion) user: {marked_deletion}\nDeleted user: {deled}"}
 
     elif command[0] == "revert_email_change":
+        return {"success": False, "msg": "This command has been disabled!"}
+        
         if len(command) != 3:
             return {"success": False, "msg": "Usage: revert_email_change [userId] [old email]\nHelp user revert their email to [old email] only if they have used that old email. | Note that you should let user send an email with old email to you for verification."}
         

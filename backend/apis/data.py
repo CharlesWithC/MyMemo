@@ -30,6 +30,8 @@ def importWork(userId, bookId, updateType, checkDuplicate, newlist):
     conn = newconn()
     cur = conn.cursor()
 
+    newlist.drop_duplicates(subset = ['Question', 'Answer'], ignore_index = True, inplace = True)
+
     importDuplicate = []
     cur.execute(f"SELECT question FROM QuestionList WHERE userId = {userId}")
     questionList = cur.fetchall()
@@ -80,13 +82,15 @@ def importWork(userId, bookId, updateType, checkDuplicate, newlist):
                 return "You are not allowed to edit this question in group as you are not an editor! Clone the book to edit!"
 
     if updateType  == "clear_overwrite":
-        cur.execute(f"SELECT questionId, question, answer, status FROM QuestionList WHERE userId = {userId}")
-        d = cur.fetchall()
-        if len(d) > 0:
-            ts = int(time.time())
+        if bookId == 0:
             cur.execute(f"DELETE FROM BookData WHERE userId = {userId}")
             cur.execute(f"DELETE FROM QuestionList WHERE userId = {userId}")
-        
+        else:
+            t = getBookData(userId, bookId)
+            cur.execute(f"DELETE FROM BookData WHERE userId = {userId} AND bookId = {bookId}")
+            for tt in t:
+                cur.execute(f"DELETE FROM QuestionList WHERE userId = {userId} AND questionId = {tt}")
+
         if groupId != -1:
             cur.execute(f"SELECT userId, questionIdOfUser FROM GroupSync WHERE groupId = {groupId}")
             t = cur.fetchall()
@@ -322,15 +326,15 @@ async def apiImportData(request: Request, background_tasks: BackgroundTasks):
 
     bookId = int(form["bookId"])
 
-    cur.execute(f"INSERT INTO DataUploadResult VALUES ({userId}, '')")
-    conn.commit()
-
     global lastop
     if userId in lastop.keys():
         if int(time.time()) - lastop[userId] <= 300:
             return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>You can only do one import each 5 minutes!</p>"
         else:
             del lastop[userId]
+
+    cur.execute(f"INSERT INTO DataUploadResult VALUES ({userId}, '')")
+    conn.commit()
 
     global threads
     if threads >= 8:

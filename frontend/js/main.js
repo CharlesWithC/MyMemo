@@ -1138,7 +1138,11 @@ function EditQuestion() {
                 $("#answer").val(memo.answer);
             }
 
-            NotyNotification('Success! Question edited!');
+            if (r.success == true) {
+                NotyNotification(r.msg);
+            } else {
+                NotyNotification(r.msg, type = 'error');
+            }
 
             $("#editQuestionModal").modal('hide');
         },

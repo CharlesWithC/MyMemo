@@ -1,5 +1,12 @@
 # Update History
 
+## v5.5.4
+
+*Date: 2021/12/11*  
+Feature Updates:  
+1.Updated clone function to copy question in book instead of simply binding them to a new book  
+2.Updated data import to drop questions completely the same in a table  
+
 ## v5.5.3  
 
 *Date: 2021/12/11*  

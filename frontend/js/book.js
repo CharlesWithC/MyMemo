@@ -204,9 +204,9 @@ function UpdateTable() {
 
     l = ["", "Default", "Tagged", "Deleted"];
 
-    if(bookId == 0){
+    if (bookId == 0) {
         $("#removeFromDB").prop("checked", true);
-        $("#removeFromDB").attr("disabled","disabled");
+        $("#removeFromDB").attr("disabled", "disabled");
     } else {
         $("#removeFromDB").prop("checked", false);
         $("#removeFromDB").removeAttr("disabled");
@@ -440,7 +440,11 @@ function EditQuestion() {
                 }
             }
 
-            NotyNotification("Success! Question edited!");
+            if (r.success == true) {
+                NotyNotification(r.msg);
+            } else {
+                NotyNotification(r.msg, type = 'error');
+            }
 
             $("#modal").modal('hide');
             UpdateTable();
@@ -501,9 +505,9 @@ function ShowQuestionDatabase() {
     table = $("#questionList").DataTable();
     table.clear();
 
-    if(bookId == 0){
+    if (bookId == 0) {
         $("#removeFromDB").prop("checked", true);
-        $("#removeFromDB").attr("disabled","disabled");
+        $("#removeFromDB").attr("disabled", "disabled");
     } else {
         $("#removeFromDB").prop("checked", false);
         $("#removeFromDB").removeAttr("disabled");
@@ -658,7 +662,7 @@ function RemoveFromBook(wid = -1) {
     } else {
         questions = [wid];
     }
-    if($("#removeFromDB").is(":checked") || bookId == 0){
+    if ($("#removeFromDB").is(":checked") || bookId == 0) {
         RemoveQuestionShow();
         return;
     }

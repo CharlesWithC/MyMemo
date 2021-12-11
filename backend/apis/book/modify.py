@@ -333,7 +333,19 @@ async def apiCloneBook(request: Request):
     else:
         bookId = d[0][0]
         cur.execute(f"UPDATE IDInfo SET nextId = {bookId + 1} WHERE type = 3 AND userId = {userId}")
-    
+
+    d = getBookData(userId, cloneFrom)
+
+    max_allow = config.max_question_per_user_allowed
+    cur.execute(f"SELECT value FROM Privilege WHERE userId = {userId} AND item = 'question_limit'")
+    pr = cur.fetchall()
+    if len(pr) != 0:
+        max_allow = pr[0][0]
+    cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {userId}")
+    d = cur.fetchall()
+    if len(d) != 0 and max_allow != -1 and d[0][0] + len(d) >= max_allow:
+        return {"success": False, "msg": f"Your max question limit is {max_allow} and after cloing the book you will exceed the limit so operation is aborted!"}
+
     cur.execute(f"SELECT progress FROM Book WHERE userId = {userId} AND bookId = {cloneFrom}")
     t = cur.fetchall()
     progress = 0
@@ -341,9 +353,26 @@ async def apiCloneBook(request: Request):
         progress = t[0][0]
     cur.execute(f"INSERT INTO Book VALUES ({userId}, {bookId}, '{name}', 0)")
     cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'create_book', {int(time.time())}, '{encode(f'Created book {decode(name)}')}')")
+    
+    cur.execute(f"SELECT * FROM QuestionList WHERE userId = {userId}")
+    l = cur.fetchall()
+    dt = {}
+    for ll in l:
+        dt[ll[1]] = ll
+
     d = getBookData(userId, cloneFrom)
     for dd in d:
-        appendBookData(userId, bookId, dd)
+        wid = 1
+        cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 2 AND userId = {userId}")
+        p = cur.fetchall()
+        if len(p) == 0:
+            cur.execute(f"INSERT INTO IDInfo VALUES (2, {userId}, 2)")
+        else:
+            wid = p[0][0]
+            cur.execute(f"UPDATE IDInfo SET nextId = {wid + 1} WHERE type = 2 AND userId = {userId}")
+        p = dt[dd]
+        cur.execute(f"INSERT INTO QuestionList VALUES ({userId}, {wid}, '{p[2]}', '{p[3]}', {p[4]}, {p[5]})")
+        appendBookData(userId, bookId, wid)
     
     conn.commit()
     return {"success": True, "msg": "Book cloned!"}

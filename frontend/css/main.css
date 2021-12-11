@@ -325,9 +325,9 @@ a:hover {
 .table-light {
     --bs-table-bg: #ffffff;
     --bs-table-active-bg: #bbbbbb;
-    --bs-table-active-color: #fff;
+    --bs-table-active-color: #000;
     --bs-table-hover-bg: #cccccc;
-    --bs-table-hover-color: #fff;
+    --bs-table-hover-color: #000;
     color: #000;
     border-color: #cccccc;
 }
@@ -335,9 +335,9 @@ a:hover {
 .table-light-subcontainer {
     --bs-table-bg: #eeeeee;
     --bs-table-active-bg: #bbbbbb;
-    --bs-table-active-color: #fff;
+    --bs-table-active-color: #000;
     --bs-table-hover-bg: #cccccc;
-    --bs-table-hover-color: #fff;
+    --bs-table-hover-color: #000;
     color: #000;
     border-color: #cccccc;
 }
