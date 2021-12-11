@@ -13,7 +13,7 @@
 **Book** - *To better organize your questions*  
 **Group** - *To sync book data & progress among group members*  
 **Discovery** - *A community function to share book with public*  
-**Users** - *Support multiple users and user security & management functions*  
+**Users** - *Support multiple users and user security & management functions, and instant data export!*  
 
 ---
 
@@ -71,6 +71,7 @@ Admins can also mute users so that they cannot create posts on Discovery. Usuall
 ### User  
 
 For normal users, the functions are like most other websites. And user security is my main concern during the development. The passwords are salt-hashed with bcrypt to prevent data leak. Sensitive operation will require email verification. And my server is highly protected, firewall applies to all ports except 80 and 443. It is be very very hard to be hacked.  
+And there is one highlight that, you can export all your user data at any time. With one click, an Excel table containing your data is generated within seconds and is available for download.  
 
 There are CLI based user management functions for admins.  
 Most user permissions are called Privilege including positive & negative permissions, such as allow_group_creation and mute. Details could be seen on CLI page.  

@@ -373,7 +373,7 @@ def nginxException(status_code):
 
 queue = []
 @app.get("/download")
-async def apiDownload(token: str, request: Request):
+async def apiDownload(token: str, request: Request, background_tasks: BackgroundTasks):
     conn = newconn()
     cur = conn.cursor()
     if not token.replace("-","").isalnum():
@@ -406,7 +406,7 @@ async def apiDownload(token: str, request: Request):
     if exportType == "xlsx":
         buf = io.BytesIO()
         df = pd.DataFrame()
-        writer = pd.ExcelWriter('temp.xlsx', engine='xlsxwriter')
+        writer = pd.ExcelWriter(f'/tmp/MyMemoTemp{userId}', engine='xlsxwriter')
         writer.book.filename = buf
 
         cur.execute(f"SELECT question, answer, status FROM QuestionList WHERE userId = {userId}")
@@ -424,13 +424,15 @@ async def apiDownload(token: str, request: Request):
 
         queue.remove(token)
 
+        background_tasks.add_task(os.system, f"rm -f /tmp/MyMemoTemp{userId}")
+
         return StreamingResponse(buf, headers={"Content-Disposition": "attachment; filename=MyMemo_Export_QuestionList.xlsx", \
             "Content-Type": "application/octet-stream"})
     
     else:
         buf = io.BytesIO()
         df = pd.DataFrame()
-        writer = pd.ExcelWriter('temp.xlsx', engine='xlsxwriter')
+        writer = pd.ExcelWriter(f'/tmp/MyMemoTemp{userId}', engine='xlsxwriter')
         writer.book.filename = buf
 
         cur.execute(f"SELECT questionId, question, answer, status FROM QuestionList WHERE userId = {userId}")
@@ -481,10 +483,10 @@ async def apiDownload(token: str, request: Request):
         df.to_excel(writer, sheet_name = 'Book Data', index = False)
         df = pd.DataFrame()
 
-        cur.execute(f"SELECT event, timestamp FROM UserEvent WHERE userId = {userId}")
+        cur.execute(f"SELECT event, msg, timestamp FROM UserEvent WHERE userId = {userId}")
         d = cur.fetchall()
         for dd in d:
-            row = pd.DataFrame([[dd[0], dd[1]]], columns = ["Event", "Timestamp"])
+            row = pd.DataFrame([[dd[0], decode(dd[1]), dd[2]]], columns = ["Event", "Message", "Timestamp"])
             df = df.append(row.astype(str))
         df.to_excel(writer, sheet_name = 'User Event', index = False)
         df = pd.DataFrame()
@@ -493,6 +495,8 @@ async def apiDownload(token: str, request: Request):
         buf.seek(0)
 
         queue.remove(token)
+        
+        background_tasks.add_task(os.system, f"rm -f /tmp/MyMemoTemp{userId}")
 
         return StreamingResponse(buf, headers={"Content-Disposition": "attachment; filename=MyMemo_Export_AllData.xlsx", \
             "Content-Type": "application/octet-stream"})
