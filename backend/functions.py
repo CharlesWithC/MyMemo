@@ -154,7 +154,7 @@ def appendBookData(userId, bookId, questionId):
     for tt in t:
         data = tt[0]
         page = tt[1]
-        if len(data) + len(toadd) < 4096000:
+        if len(data) + len(toadd) < 256:
             cur.execute(f"UPDATE BookData SET questions = '{data + toadd}' WHERE userId = {userId} AND bookId = {bookId} AND page = {page}")
             success = True
             break

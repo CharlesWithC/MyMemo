@@ -126,6 +126,10 @@ function UpdateUserInfo() {
                     window.location.href = "/user/login";
                 }
                 $("#signout-btn").hide();
+            } else if (r.status == 503) {
+                NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
@@ -438,6 +442,8 @@ function Login() {
         error: function (r) {
             if (r.status == 503) {
                 NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
@@ -478,6 +484,8 @@ function Register() {
         error: function (r) {
             if (r.status == 503) {
                 NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
@@ -507,7 +515,7 @@ function UpdateProfileShow() {
                         </div>
                         <div class="form-group">
                             <label for="update-bio" class="col-form-label">Bio:</label>
-                            <script>var biomde = new SimpleMDE({spellChecker:false,tabSize:4});</script>
+                            <script>var biomde = new SimpleMDE({autoDownloadFontAwesome:false,spellChecker:false,tabSize:4});</script>
                             <textarea class="form-control" id="update-bio"></textarea>
                         </div>
                     </form>
@@ -592,6 +600,13 @@ function UpdateUserProfile() {
             } else {
                 NotyNotification(r.msg, type = 'error');
             }
+        },
+        error: function (r) {
+            if (r.status == 503) {
+                NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
+            }
         }
     });
 }
@@ -642,6 +657,8 @@ function ChangePassword() {
         error: function (r) {
             if (r.status == 503) {
                 NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });
@@ -709,7 +726,7 @@ function DeleteAccount() {
     }
 
     $.ajax({
-        url: "/api/user/delete",
+        url: "/api/user/requestDelete",
         method: 'POST',
         async: true,
         dataType: "json",
@@ -720,27 +737,23 @@ function DeleteAccount() {
         },
         success: function (r) {
             if (r.success == true) {
-                $("#delete-password").val("");
-
-                NotyNotification("Account deactivated! It will be deleted after 14 days!", type = 'warning', timeout = 10000);
-
-                $("#modal").modal("hide");
-
-                localStorage.removeItem("userid");
-                localStorage.removeItem("username");
-                localStorage.removeItem("token");
-
-                setTimeout(function () {
-                    window.location.href = "/user/login";
-                }, 1000);
+                NotyNotification(r.msg, timeout = 10000);
+                $("#delete-msg").html(r.msg);
             } else {
                 NotyNotification(r.msg, type = 'error');
+                $("#delete-msg").html(r.msg);
+            }
+        },
+        error: function (r) {
+            if (r.status == 503) {
+                NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
             }
         }
     });
 }
 
 function DeleteAccountShow() {
+    userId = localStorage.getItem("userId");
     $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog"
         aria-labelledby="modalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -762,8 +775,8 @@ function DeleteAccountShow() {
                         <p>Deleting your account will make you unable to login permanently but all your other data will
                             be preserved.</p>
                         <p>You can delete most of the data manually such as questions and books.</p>
-                        <p>If you want a deep data wipe, you can contact administrator and provide your User ID.</p>
-                        <p>Administrators will be able to wipe your data completely when your account is deleted.</p>
+                        <p>If you want a deep data wipe, you can contact administrator and provide your User ID: ` + userId + `.</p>
+                        <p>Administrators will be able to wipe your data completely after your account is deleted.</p>
                         <br>
                         <p>Type your "I acknowledge what I'm doing" and your password to continue:</p>
                         <div class="input-group mb-3">
@@ -775,6 +788,7 @@ function DeleteAccountShow() {
                             <input type="password" class="form-control" id="delete-password"
                                 aria-describedby="basic-addon1">
                         </div>
+                        <p id="delete-msg"></p>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -820,6 +834,8 @@ function RestartServer() {
         error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 NotyNotification('Access control by NGINX: You have to enter that password to authorize!', type = 'warning', timeout = 10000);
+            } else if (r.status == 503) {
+                NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
             } else {
                 NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
@@ -870,6 +886,8 @@ function CheckIn() {
         error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else if (r.status == 503) {
+                NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
             } else {
                 NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
@@ -923,6 +941,8 @@ function UpdateGoal() {
         error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else if (r.status == 503) {
+                NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
             } else {
                 NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
@@ -1013,6 +1033,8 @@ $(document).ready(function () {
             error: function (r) {
                 if (r.status == 401) {
                     SessionExpired();
+                } else if (r.status == 503) {
+                    NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
                 } else {
                     NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
                 }
@@ -1103,6 +1125,10 @@ function ForgotPassword() {
         error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
+            } else if (r.status == 503) {
+                NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
             }
         }
     });

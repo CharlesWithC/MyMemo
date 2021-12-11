@@ -69,6 +69,8 @@ async def apiRegister(request: Request, background_tasks: BackgroundTasks):
     for tt in t:
         if tt[0].lower() == email.lower():
             return {"success": False, "msg": "Email has already been registered!"}
+        elif tt[0].startswith("!") and tt[0].lower()[1:] == email.lower():
+            return {"success": False, "msg": "The previous owner of this email has updated their email within 7 days so this email address is reserved for 7 days!"}
 
     cur.execute(f"SELECT username, email FROM UserInfo")
     t = cur.fetchall()
@@ -287,7 +289,7 @@ async def apiRequestResetPassword(request: Request, background_tasks: Background
     cur = conn.cursor()
     email = form["email"]
 
-    cur.execute(f"DELETE FROM PendingPasswordRecovery WHERE timestamp <= {int(time.time()) - 600}")
+    cur.execute(f"DELETE FROM EmailVerification WHERE operation = 'reset_password' AND expire <= {int(time.time()) - 600}")
     conn.commit()
 
     cur.execute(f"SELECT userId, username FROM UserInfo WHERE email = '{email}'")
@@ -295,10 +297,10 @@ async def apiRequestResetPassword(request: Request, background_tasks: Background
     if len(d) != 0:
         userId = d[0][0]
 
-        cur.execute(f"SELECT timestamp FROM PendingPasswordRecovery WHERE userId = {userId}")
+        cur.execute(f"SELECT expire FROM EmailVerification WHERE operation = 'reset_password' AND userId = {userId}")
         t = cur.fetchall()
         if len(t) > 0:
-            return {"success": True, "msg": "An email containing password reset link will be sent if there is an user registered with this email!"}
+            return {"success": True, "msg": "An email containing password reset link will be sent if there is an user registered with this email! Check your spam folder if you didn't receive it."}
 
     if validators.email(email) == True and not "'" in email:
         cur.execute(f"SELECT userId, username FROM UserInfo WHERE email = '{email}'")
@@ -311,10 +313,10 @@ async def apiRequestResetPassword(request: Request, background_tasks: Background
             background_tasks.add_task(sendVerification, email, decode(username), "Password recovery", \
                 f"You are recovering your password. Open the link below to continue!<br>If you didn't request that, simply ignore this email and your account will be safe.", "10 minutes", \
                     "https://memo.charles14.xyz/user/reset?token="+token)
-            cur.execute(f"INSERT INTO PendingPasswordRecovery VALUES ({userId}, '{token}', {int(time.time()+600)})")
+            cur.execute(f"INSERT INTO EmailVerification VALUES ({userId}, 'reset_password', '{token}', {int(time.time()+600)})")
             conn.commit()
             
-        return {"success": True, "msg": "An email containing password reset link will be sent if there is an user registered with this email!"}
+        return {"success": True, "msg": "An email containing password reset link will be sent if there is an user registered with this email! Check your spam folder if you didn't receive it."}
 
     else:
         return {"success": False, "msg": "Incorrect email address!"}
@@ -326,7 +328,7 @@ async def apiResetPassword(request: Request, background_tasks: BackgroundTasks):
     cur = conn.cursor()
     token = form['token']
     
-    cur.execute(f"DELETE FROM PendingPasswordRecovery WHERE timestamp <= {int(time.time()) - 600}")
+    cur.execute(f"DELETE FROM EmailVerification WHERE operation = 'reset_password' AND expire <= {int(time.time()) - 600}")
     conn.commit()
 
     token = form["token"]
@@ -335,7 +337,7 @@ async def apiResetPassword(request: Request, background_tasks: BackgroundTasks):
     if token == "" or not token.replace("-","").replace("_","").isalnum():
         return {"success": False, "msg": "Invalid or expired verification token!"}
 
-    cur.execute(f"SELECT userId FROM PendingPasswordRecovery WHERE token = '{token}'")
+    cur.execute(f"SELECT userId FROM EmailVerification WHERE operation = 'reset_password' AND token = '{token}'")
     t = cur.fetchall()
     if len(t) == 0:
         return {"success": False, "msg": "Invalid or expired verification token!"}
@@ -349,21 +351,21 @@ async def apiResetPassword(request: Request, background_tasks: BackgroundTasks):
 
     newhashed = hashpwd(newpwd)
 
-    cur.execute(f"DELETE FROM PendingPasswordRecovery WHERE token = '{token}'")
+    cur.execute(f"DELETE FROM EmailVerification WHERE operation = 'reset_password' AND token = '{token}'")
     cur.execute(f"UPDATE UserInfo SET password = '{encode(newhashed)}' WHERE userId = {userId}")
     conn.commit()
 
     cur.execute(f"SELECT username, email FROM UserInfo WHERE userId = {userId}")
     t = cur.fetchall()
-    username = t[0][0]
+    username = decode(t[0][0])
     email = t[0][1]
 
     background_tasks.add_task(sendNormal, email, username, "Password updated", f"Your password has been updated. If you didn't do this, reset your password immediately!")
     
     return {"success": True, "msg": "Password updated!"}
 
-@app.post("/api/user/delete")
-async def apiDeleteAccount(request: Request):
+@app.post("/api/user/requestDelete")
+async def apiRequestDeleteAccount(request: Request, background_tasks: BackgroundTasks):
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -386,6 +388,62 @@ async def apiDeleteAccount(request: Request):
     if not checkpwd(password,decode(pwdhash)):
         return {"success": False, "msg": "Invalid password!"}
     
+    cur.execute(f"SELECT username, email FROM UserInfo WHERE userId = {userId}")
+    d = cur.fetchall()
+    if len(d) != 0:
+        username = d[0][0]
+        email = d[0][1]
+        
+        token = str(userId).zfill(9) + "-" + str(uuid.uuid4())
+        background_tasks.add_task(sendVerification, email, decode(username), "Account deletion", \
+            f"It's sad to see you leave, open the link below to continue deleting your account.<br>\n\
+                Your account will be marked for deletion and it will be deleted after 14 days.<br>\n\
+                You can recover it by logging in at any time during that period.<br>\n\
+                After 14 days it will be deleted permanently and cannot be recovered.<br>\n\
+                <br>\n\
+                Deleting your account will make you unable to login permanently but all your other data will be preserved.<br>\n\
+                You can delete most of the data manually such as questions and books, and Discovery posts.<br>\n\
+                If you want a deep data wipe, you can contact administrator and provide your User ID: {userId}.<br>\n\
+                Administrators will be able to wipe your data completely after your account is deleted.<br>\n\
+                <br>\n\
+                If you didn't request the deletion, reset your password immediately!", "10 minutes", \
+                "https://memo.charles14.xyz/user/delete?token="+token)
+        cur.execute(f"INSERT INTO EmailVerification VALUES ({userId}, 'delete_account', '{token}', {int(time.time()+600)})")
+        conn.commit()
+        
+    return {"success": True, "msg": "An email containing confirmation link has been sent. Open the link to continue. Check your spam folder if you didn't receive it."}
+
+@app.post("/api/user/delete")
+async def apiDeleteAccount(request: Request, background_tasks: BackgroundTasks):
+    form = await request.form()
+    conn = newconn()
+    cur = conn.cursor()
+    token = form['token']
+    
+    cur.execute(f"DELETE FROM EmailVerification WHERE operation = 'delete_account' AND expire <= {int(time.time()) - 600}")
+    conn.commit()
+
+    token = form["token"]
+    token = token
+    
+    if token == "" or not token.replace("-","").replace("_","").isalnum():
+        return {"success": False, "msg": "Invalid or expired verification token!"}
+
+    cur.execute(f"SELECT userId FROM EmailVerification WHERE operation = 'delete_account' AND token = '{token}'")
+    t = cur.fetchall()
+    if len(t) == 0:
+        return {"success": False, "msg": "Invalid or expired verification token!"}
+
+    userId = t[0][0]
+    
+    email = ""
+    username = ""
+    cur.execute(f"SELECT email, username FROM UserInfo WHERE userId = {userId}")
+    t = cur.fetchall()
+    if len(t) > 0:
+        email = t[0][0]
+        username = decode(t[0][1])
+
     sessions.markDeletion(userId)
 
     ip = request.headers["CF-Connecting-Ip"]
@@ -393,7 +451,11 @@ async def apiDeleteAccount(request: Request):
     sessions.logout(userId, token)
     conn.commit()
 
-    return {"success": True}
+    if validators.email(email) == True:
+        background_tasks.add_task(sendNormal, email, username, "Account marked for deletion", f"Your account has been marked for deletion. It will be deleted after 14 days.<br>\n\
+            If you have changed your mind, login again to recover your account.")
+
+    return {"success": True, "msg": "Your account has been marked for deletion!"}
 
 @app.post("/api/user/validate")
 async def apiValidateToken(request: Request):
@@ -433,7 +495,7 @@ async def apiGetUserInfo(request: Request):
     conn.commit()
     cur.execute(f"SELECT email FROM PendingEmailChange WHERE userId = {userId}")
     t = cur.fetchall()
-    if len(t) > 0:
+    if len(t) > 0 and not t[0][0].startswith("!"):
         email = email + " -> " + t[0][0] + " (Not verified)"
 
     inviter = 0
@@ -820,12 +882,20 @@ async def apiUpdateInfo(request: Request, background_tasks: BackgroundTasks):
         token = str(userId).zfill(9) + "-" + str(uuid.uuid4())
         background_tasks.add_task(sendVerification, email, decode(username), "Email update verification", \
             f"You are changing your email address to {email}. Please open the link to verify this new address.", "10 minutes", \
-                "https://memo.charles14.xyz/verify?type=changeemail&token="+token)
+                "https://memo.charles14.xyz/user/verify?type=changeemail&token="+token)
+        cur.execute(f"SELECT email FROM PendingEmailChange WHERE userId = {userId}")
+        p = cur.fetchall()
+        for pp in p:
+            e = pp[0]
+            if not e.startswith("!"):
+                cur.execute(f"DELETE FROM PendingEmailChange WHERE userId = {userId} AND email = '{e}'")
         cur.execute(f"INSERT INTO PendingEmailChange VALUES ({userId}, '{email}', '{token}', {int(time.time()+600)})")
+        conn.commit()
         return {"success": True, "msg": "User profile updated, but email is not updated! \
             Please check the inbox of the new email and open the link in it to verify it!"}
     else:
         cur.execute(f"UPDATE UserInfo SET email = '{email}' WHERE userId = {userId}") # maybe capital case changes
+        conn.commit()
         return {"success": True, "msg": "User profile updated!"}
 
 @app.post("/api/user/changeemail/verify")
@@ -852,12 +922,23 @@ async def apiChangeEmailVerify(request: Request, background_tasks: BackgroundTas
     
     userId = t[0][0]
     newEmail = t[0][1]
+    revert = False
+    if newEmail.startswith("!"):
+        revert = True
+        newEmail = newEmail[1:]
+
     cur.execute(f"SELECT username, email FROM UserInfo WHERE userId = {userId}")
     t = cur.fetchall()
     if len(t) > 0:
-        username = t[0][0]
+        username = decode(t[0][0])
         oldEmail = t[0][1]
-        background_tasks.add_task(sendNormal, oldEmail, username, "Email updated", f"Your email has been updated to {newEmail}. If you didn't do this, please send an email to memo@charles14.xyz immediately for support!")
+        if not revert:
+            newtoken = str(userId).zfill(9) + "-" + str(uuid.uuid4())
+            background_tasks.add_task(sendNormal, oldEmail, username, "Email updated", f"Your email has been updated to {newEmail}.<br>\n\
+                If you didn't do this, open the link below to change it back, the link is valid for 7 days.<br>\n\
+                    <a href='https://memo.charles14.xyz/user/verify?token="+newtoken+"'>https://memo.charles14.xyz/user/verify?token="+newtoken+"</a>")
+            cur.execute(f"INSERT INTO PendingEmailChange VALUES ({userId}, '!{oldEmail}', '{newtoken}', {int(time.time()+86400*7)})")
+            conn.commit()
 
     cur.execute(f"INSERT INTO EmailHistory VALUES ({userId}, '{newEmail.lower()}', {int(time.time())})")
     cur.execute(f"UPDATE UserInfo SET email = '{newEmail}' WHERE userId = {userId}")

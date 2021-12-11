@@ -276,7 +276,7 @@ async def apiImportData(request: Request, background_tasks: BackgroundTasks):
                     return JSONResponse({"success": 0, "msg": decode(t[0][0])})
                 elif decode(t[0][0]).startswith("Progress"):
                     progress = decode(t[0][0]).replace("Progress","")
-                    return JSONResponse({"success": 1, "msg": f"Still working on it ... {progress}% Finished"})
+                    return JSONResponse({"success": 1, "msg": f"{progress}% Finished"})
                 else:
                     background_tasks.add_task(clearResult, userId, True)
                     return JSONResponse({"success": 2, "msg": decode(t[0][0])})

@@ -922,6 +922,7 @@ function BookDelete() {
         dataType: "json",
         data: {
             bookId: bookId,
+            removeAll: $("#removeAllFromDB").is(":checked"),
             userId: localStorage.getItem("userId"),
             token: localStorage.getItem("token")
         },
@@ -973,7 +974,7 @@ function PublishToDiscoveryShow() {
                         </div>
                         <div class="form-group">
                             <label for="discovery-description" class="col-form-label">Description:</label>
-                            <script>var descriptionMDE = new SimpleMDE({spellChecker:false,tabSize:4});</script>
+                            <script>var descriptionMDE = new SimpleMDE({autoDownloadFontAwesome:false,spellChecker:false,tabSize:4});</script>
                             <textarea class="form-control" id="discovery-description"></textarea>
                         </div>
                     </form>
@@ -1105,7 +1106,7 @@ function GroupPublishToDiscoveryShow() {
                         </div>
                         <div class="form-group">
                             <label for="group-discovery-description" class="col-form-label">Description:</label>
-                            <script>var descriptionMDE = new SimpleMDE({spellChecker:false,tabSize:4});</script>
+                            <script>var descriptionMDE = new SimpleMDE({autoDownloadFontAwesome:false,spellChecker:false,tabSize:4});</script>
                             <textarea class="form-control" id="group-discovery-description"></textarea>
                         </div>
                     </form>
@@ -1300,7 +1301,7 @@ function CreateGroupShow() {
                         </div>
                         <div class="form-group">
                             <label for="group-description" class="col-form-label">Description:</label>
-                            <script>var groupDescriptionMDE = new SimpleMDE({spellChecker:false,tabSize:4});</script>
+                            <script>var groupDescriptionMDE = new SimpleMDE({autoDownloadFontAwesome:false,spellChecker:false,tabSize:4});</script>
                             <textarea class="form-control" id="group-description"></textarea>
                         </div>
                     </form>
@@ -1503,7 +1504,7 @@ function GroupInfoUpdateShow() {
                         </div>
                         <div class="form-group">
                             <label for="group-description" class="col-form-label">Description:</label>
-                            <script>var groupDescriptionMDE = new SimpleMDE({spellChecker:false,tabSize:4});</script>
+                            <script>var groupDescriptionMDE = new SimpleMDE({autoDownloadFontAwesome:false,spellChecker:false,tabSize:4});</script>
                             <textarea class="form-control" id="group-description"></textarea>
                         </div>
                     </form>

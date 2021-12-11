@@ -1,5 +1,13 @@
 # Update History
 
+## v5.5.3  
+
+*Date: 2021/12/11*  
+Feature Updates:  
+1.Added email confirmation for account deletion  
+2.Added email update reverting operation  
+3.Added function to delete all questions from database when deleting a book  
+
 ## v5.5.2  
 
 *Date: 2021/12/11*  

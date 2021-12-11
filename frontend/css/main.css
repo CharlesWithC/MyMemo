@@ -338,7 +338,7 @@ a:hover {
     --bs-table-active-color: #fff;
     --bs-table-hover-bg: #cccccc;
     --bs-table-hover-color: #fff;
-    color: #fff;
+    color: #000;
     border-color: #cccccc;
 }
 

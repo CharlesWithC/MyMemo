@@ -104,9 +104,9 @@
 
             setInterval(function () {
                 if (bookId == localStorage.getItem("memo-book-id"))
-                    $("#select-book-btn").html("<i class='fa fa-check-square'></i> Selected");
+                    $("#select-book-btn").html("Selected <i class='fa fa-check-square'></i>");
                 else {
-                    $("#select-book-btn").html("<i class='far fa-check-square'></i> Select");
+                    $("#select-book-btn").html("Select <i class='far fa-check-square'></i>");
                     $("#select-book-btn").attr("onclick", "SelectBook(" + bookId + ");");
                 }
             }, 500);
@@ -219,20 +219,26 @@
                 <div>
                     <hr>
                     <h4><i class="fa fa-book"></i> Book</h4>
-                    <div class="not-for-all-questions" style="display:none">
-                        <button type="button" class="btn btn-primary not-for-all-questions" onclick="BookClone()">Clone
-                            <i class="fa fa-copy"></i></button>
-                        <button type="button"
-                            class="btn btn-primary not-for-all-questions only-group-owner-if-group-exist"
-                            onclick="BookRenameShow()">Rename <i class="fa fa-edit"></i></button>
+                    <button type="button" class="btn btn-primary not-for-all-questions" onclick="BookClone()">Clone
+                        <i class="fa fa-copy"></i></button>
+                    <button type="button" class="btn btn-primary not-for-all-questions only-group-owner-if-group-exist"
+                        onclick="BookRenameShow()">Rename <i class="fa fa-edit"></i></button>
+                    <button type="button" class="btn btn-primary" onclick="BookChart();">Chart <i
+                            class="fa fa-chart-bar"></i></button>
+                    <button type="button" class="btn btn-primary" id="select-book-btn">Select <i
+                            class="far fa-check-square"></i></button>
+                    <div class="not-for-all-questions">
+                        <br>
                         <button type="button" class="btn btn-danger not-for-all-questions"
                             onclick="BookDeleteShow()">Delete
                             <i class="fa fa-trash"></i></button>
+                        <div class="form-check not-for-all-questions">
+                            <input class="form-check-input" type="checkbox" value="" id="removeAllFromDB">
+                            <label class="form-check-label" for="removeAllFromDB">
+                                Remove all questions from database
+                            </label>
+                        </div>
                     </div>
-                    <button type="button" class="btn btn-primary" onclick="BookChart();"><i class="fa fa-chart-bar"></i>
-                        Chart</button>
-                    <button type="button" class="btn btn-primary" id="select-book-btn"><i
-                            class="far fa-check-square"></i> Select</button>
                 </div>
                 <div class="not-for-all-questions" style="display:none">
                     <hr>
@@ -267,16 +273,16 @@
                     <div id="manageGroup" class="only-group-owner">
                         <br>
                         <div class="card">
-                            <div class="card-header" id="manageGroupHeading" style="background-color:#555555">
+                            <div class="card-header" id="manageGroupHeading">
                                 <h5 class="mb-0">
-                                    <button id="showMGCollapse" class="btn btn-primary" data-toggle="collapse">
+                                    <button id="showMGCollapse" class="btn btn-outline-primary" data-toggle="collapse">
                                         Manage Group <i class='fa fa-arrow-down'></i>
                                     </button>
                                 </h5>
                             </div>
 
                             <div id="manageGroupCollapse" class="collapse">
-                                <div class="card card-body" style="background-color:#555555">
+                                <div class="card card-body">
                                     <button type="button" class="btn btn-primary" onclick="GroupInfoUpdateShow()">Update
                                         Information
                                         <i class="fa fa-edit"></i></button>
@@ -342,7 +348,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo</p>
-        <p>Version: v5.5.2 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.5.3 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-brands fa-github"></i>
                 GitHub</a></p>

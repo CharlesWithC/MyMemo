@@ -25,35 +25,31 @@
     <link rel="icon" href="/img/icon.png">
 
     <script>
+        var token = getUrlParameter("token");
+        
         $(document).ready(function () {
-            var vtype = getUrlParameter("type");
-            var token = getUrlParameter("token");
-
-            if (vtype == "changeemail") {
-                $("#title").html("Validating token")
-                $.ajax({
-                    url: "/api/user/changeemail/verify",
-                    method: 'POST',
-                    async: true,
-                    dataType: "json",
-                    data: {
-                        token: token
-                    },
-                    success: function (r) {
-                        if (r.success == true) {
-                            NotyNotification(r.msg, type = 'success');
-                            $("#msg").html(r.msg +
-                                "<br>You will be redirected to home page in 5 seconds...");
-                            setTimeout(function () {
-                                window.location.href = '/user';
-                            }, 5000);
-                        } else {
-                            NotyNotification(r.msg, type = 'error');
-                            $("#msg").html(r.msg);
-                        }
+            $.ajax({
+                url: "/api/user/delete",
+                method: 'POST',
+                async: true,
+                dataType: "json",
+                data: {
+                    token: token
+                },
+                success: function (r) {
+                    if (r.success == true) {
+                        NotyNotification(r.msg);
+                        $("#title").html(r.msg);
+                        setTimeout(function () {
+                            localStorage.clear();
+                            window.location.href = "/user/login";
+                        }, 5000);
+                    } else {
+                        NotyNotification(r.msg, type = 'error');
+                        $("#title").html(r.msg);
                     }
-                });
-            }
+                }
+            });
         });
     </script>
 </head>
@@ -77,17 +73,17 @@
     </div>
 
     <div id="content" class="container">
-        <div id="home" class="center">
-            <h1 id="title"></h1>
-            <h2 id="msg">Please wait a few seconds... <i class="fa fa-spinner fa-spin"></i></h2>
+        <div class="center">
+            <h1 id="title">Validating token...</h1>
         </div>
     </div>
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo</p>
-        <p>Version: v5.5.2 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.5.3 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
-        <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-brands fa-github"></i> GitHub</a></p>
+        <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-brands fa-github"></i>
+                GitHub</a></p>
         <p>Developed by <a href="www.charles14.xyz">Charles</a></p>
     </div>
 </body>

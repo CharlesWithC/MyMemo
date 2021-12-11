@@ -41,8 +41,7 @@ def PendingEmailVerificationDeletion():
         cur = conn.cursor()
 
         cur.execute(f"DELETE FROM UserPending WHERE expire < {int(time.time())}")
-        cur.execute(f"DELETE FROM PendingEmailChange WHERE expire < {int(time.time())}")
-        cur.execute(f"DELETE FROM PendingPasswordRecovery WHERE expire < {int(time.time())}")
+        cur.execute(f"DELETE FROM EmailVerification WHERE expire < {int(time.time())}")
         cur.execute(f"DELETE FROM EmailHistory WHERE expire < {int(time.time())}")
 
         conn.commit()

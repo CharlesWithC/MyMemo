@@ -323,7 +323,7 @@ function UpdateInformationShow() {
                         </div>
                         <div class="form-group">
                             <label for="discovery-description" class="col-form-label">Description:</label>
-                            <script>var descriptionMDE = new SimpleMDE({spellChecker:false,tabSize:4});</script>
+                            <script>var descriptionMDE = new SimpleMDE({autoDownloadFontAwesome:false,spellChecker:false,tabSize:4});</script>
                             <textarea class="form-control" id="discovery-description"></textarea>
                         </div>
                     </form>

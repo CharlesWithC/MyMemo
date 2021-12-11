@@ -10,6 +10,20 @@ from db import newconn
 # So automatically restart the program when there are 5 errors
 errcnt = 0
 
+def checkDeletionMark(userId):
+    try:
+        conn = newconn()
+        cur = conn.cursor()
+        cur.execute(f"SELECT * FROM PendingAccountDeletion WHERE userId = {userId}")
+        if len(cur.fetchall()) > 0:
+            return True
+        else:
+            return False
+        
+    except:
+        global errcnt
+        errcnt += 1
+
 def validateToken(userId, token):
     try:
         conn = newconn()
@@ -20,7 +34,11 @@ def validateToken(userId, token):
         cur.execute(f"SELECT loginTime, expireTime FROM ActiveUserLogin WHERE userId = {userId} AND token = '{token}'")
         d = cur.fetchall()
         if len(d) == 0:
-            
+            return False
+        
+        if checkDeletionMark(userId):
+            cur.execute(f"DELETE FROM ActiveUserLogin WHERE userId = {userId}")
+            conn.commit()
             return False
 
         loginTime = d[0][0]
@@ -189,24 +207,6 @@ def markDeletion(userId):
         cur = conn.cursor()
         cur.execute(f"INSERT INTO PendingAccountDeletion VALUES ({userId}, {int(time.time()+86401*14)})")
         conn.commit()
-        
-        
-    except:
-        global errcnt
-        errcnt += 1
-        
-
-def checkDeletionMark(userId):
-    try:
-        conn = newconn()
-        cur = conn.cursor()
-        cur.execute(f"SELECT * FROM PendingAccountDeletion WHERE userId = {userId}")
-        if len(cur.fetchall()) > 0:
-            
-            return True
-        else:
-            
-            return False
         
     except:
         global errcnt

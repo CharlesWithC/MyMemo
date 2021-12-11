@@ -117,8 +117,8 @@ if doinit:
     # encode username
     # Allow only inviting registration mode to prevent abuse
     cur.execute(f"CREATE TABLE UserPending (username VARCHAR(256), email VARCHAR(128), password VARCHAR(256), inviter INT, token CHAR(64), expire INT)")
-    cur.execute(f"CREATE TABLE PendingEmailChange (userId INT, email VARCHAR(128), token CHAR(60), expire INT)")
-    cur.execute(f"CREATE TABLE PendingPasswordRecovery (userId INT, token CHAR(60), timestamp INT)")
+    cur.execute(f"CREATE TABLE EmailVerification (userId INT, operation VARCHAR(32), token VARCHAR(60), expire INT)")
+    cur.execute(f"CREATE TABLE PendingEmailChange (userId INT, email VARCHAR(128), token VARCHAR(60), expire INT)")
     cur.execute(f"CREATE TABLE EmailHistory (userId INT, email VARCHAR(128), updateTS INT)")
     cur.execute(f"CREATE TABLE UserNameTag (userId INT, tag VARCHAR(32), tagtype VARCHAR(32))")
     # tag: encoded text, like 'Owner'

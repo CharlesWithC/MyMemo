@@ -1,7 +1,7 @@
 # My Memo
 
 **A light weight memo website based on Python FastAPI + HTML5 Bootstrap.**  
-**Current Version: v5.5.2**
+**Current Version: v5.5.3**
 
 ---
 
@@ -86,6 +86,3 @@ The project is a personal project, but not a business / commercial project. It's
 **The author**  
 The author is a high school student, currently studying at *No.2 High School of East China Normal University, Zizhu Campus* which is a boarding school. The author is busy and can only make updates at weekends.  
 The cost of the server is covered by the author himself, using the money earned by remote web development work when I was in junior middle school. I'm only spending them and not earning more as I'm really very busy. Donating will be appreciated and they will only be used to cover the server cost. By the way no ads will be added and they will never appear on my site.  
-
-**One more thing**  
-The site is currently developed in English. All frontend pages and backend API responses are in English. And so is this README. A Chinese version may be added in the future if I have time.  

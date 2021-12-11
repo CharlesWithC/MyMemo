@@ -381,9 +381,6 @@ function GeneralUpdateTheme() {
     navusername = $("#navusername").html();
     shortUserctrl = false;
     setInterval(function () {
-        $("table").css("width", "");
-    }, 100);
-    setInterval(function () {
         if ($(".userctrl").length != 0) {
             t = $(".userctrl").css("left");
             if (parseInt(t.slice(0, t.indexOf("px"))) / window.innerWidth < 0.6 && !shortUserctrl) {
@@ -436,6 +433,7 @@ function GeneralUpdateTheme() {
         $(".paginate_button").addClass("btn btn-outline-secondary btn-sm btn-paginate");
         $(".paginate_button").css("margin", "0.2em");
         $(".paginate_button").removeClass("paginate_button");
+        $("table,.dataTables_scrollHead,.dataTables_scrollHeadInner").css("width","");
         if (localStorage.getItem("settings-theme") == "dark") {
             $("body").css("color", "#ffffff");
             $("body").css("background-color", "#333333");
@@ -449,6 +447,7 @@ function GeneralUpdateTheme() {
 
             $("textarea").css("color", "#ffffff");
             $("textarea").css("background-color", "#333333");
+            $(".card,.card-body,.card-header").css("background-color", "#555555");
 
             //$(".dataTables_paginate a").css("background-color", "#d3d3d3");
             //$(".dataTables_paginate span").css("background-color", "#d3d3d3");
@@ -468,6 +467,7 @@ function GeneralUpdateTheme() {
 
             $("textarea").css("color", "#000000");
             $("textarea").css("background-color", "#ffffff");
+            $(".card,.card-body,.card-header").css("background-color", "#dddddd");
 
             //$(".dataTables_paginate a").css("background-color", "#ffffff");
             //$(".dataTables_paginate span").css("background-color", "#ffffff");

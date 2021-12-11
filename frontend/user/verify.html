@@ -25,57 +25,30 @@
     <link rel="icon" href="/img/icon.png">
 
     <script>
-        var token = getUrlParameter("token");
+        $(document).ready(function () {
+            var token = getUrlParameter("token");
 
-        function UpdatePassword() {
+            $("#title").html("Validating token");
             $.ajax({
-                url: "/api/user/resetPassword",
+                url: "/api/user/changeemail/verify",
                 method: 'POST',
                 async: true,
                 dataType: "json",
                 data: {
-                    token: token,
-                    newpwd: $("#update-password").val()
+                    token: token
                 },
                 success: function (r) {
                     if (r.success == true) {
-                        NotyNotification(r.msg);
-                        $("#msg").html(r.msg);
+                        NotyNotification(r.msg, type = 'success');
+                        $("#msg").html(r.msg +
+                            "<br>You will be redirected to home page in 5 seconds...");
                         setTimeout(function () {
-                            window.location.href = "/user/login";
+                            window.location.href = '/user';
                         }, 5000);
                     } else {
                         NotyNotification(r.msg, type = 'error');
                         $("#msg").html(r.msg);
                     }
-                }
-            });
-
-        }
-        $(document).ready(function () {
-            $.ajax({
-                url: "/api/user/resetPassword",
-                method: 'POST',
-                async: true,
-                dataType: "json",
-                data: {
-                    token: token,
-                    validate: true
-                },
-                success: function (r) {
-                    if (r.success == true) {
-                        $(".reset").show();
-                        $("#validate-title").hide();
-                        $(".title").show();
-                    } else {
-                        NotyNotification(r.msg, type = 'error');
-                        $("#validate-title").html(r.msg);
-                    }
-                }
-            });
-            $("#update-password").on('keypress', function (e) {
-                if (e.which == 13 || e.which == 13 && e.ctrlKey) {
-                    UpdatePassword();
                 }
             });
         });
@@ -101,18 +74,9 @@
     </div>
 
     <div id="content" class="container">
-        <div class="center">
-            <h1 id="validate-title">Validating token...</h1>
-            <h1 class="title" style="padding-bottom: 0;display:none;">Password Recovery</h1>
-            <div class="reset" style="display:none;margin:auto;margin-top:5em;width:15em;text-align:left">
-                <p>Enter your new password:</p>
-                <div class="input-group mb-3" id="reset-box" style="width:15em">
-                    <input type="password" class="form-control" id="update-password" aria-describedby="basic-addon1">
-                </div>
-                <button style="width:6em;float:right" id="submit" type="button" class="btn btn-primary"
-                    onclick="UpdatePassword()">Reset</button>
-            </div>
-            <p id="msg" style="margin:auto;margin-top:5em;width:15em;text-align:center;margin-top:4em"></p>
+        <div id="home" class="center">
+            <h1 id="title"></h1>
+            <h2 id="msg">Please wait a few seconds... <i class="fa fa-spinner fa-spin"></i></h2>
         </div>
     </div>
 

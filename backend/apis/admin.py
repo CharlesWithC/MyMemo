@@ -590,7 +590,7 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
         token = str(uid).zfill(9) + "-" + str(uuid.uuid4())
         background_tasks.add_task(sendVerification, email, decode(username), "Email update verification", \
             f"You are changing your email address to {email}. Please open the link to verify this new address.", "10 minutes", \
-                "https://memo.charles14.xyz/verify?type=changeemail&token="+token)
+                "https://memo.charles14.xyz/user/verify?type=changeemail&token="+token)
         cur.execute(f"INSERT INTO PendingEmailChange VALUES ({uid}, '{email}', '{token}', {int(time.time()+600)})")
         conn.commit()
 

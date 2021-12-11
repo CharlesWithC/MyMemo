@@ -393,7 +393,14 @@ async def apiDeleteBook(request: Request):
         cur.execute(f"DELETE FROM GroupSync WHERE groupId = {groupId} AND userId = {userId}")
         cur.execute(f"DELETE FROM GroupMember WHERE groupId = {groupId} AND userId = {userId}")
         cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'quit_group', {int(time.time())}, '{encode(f'Quit group {decode(name)}')}')")
-        
+    
+    removeAll = form["removeAll"]
+    if removeAll:
+        qs = getBookData(userId, bookId)
+        for q in qs:
+            removeBookData(userId, -1, q)
+            cur.execute(f"DELETE FROM QuestionList WHERE questionId = {q} AND userId = {userId}")
+
     cur.execute(f"DELETE FROM Book WHERE userId = {userId} AND bookId = {bookId}")
     cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'delete_book', {int(time.time())}, '{encode(f'Deleted book {decode(name)}')}')")
     cur.execute(f"DELETE FROM BookData WHERE userId = {userId} AND bookId = {bookId}")
