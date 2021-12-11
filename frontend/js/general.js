@@ -391,6 +391,20 @@ function GeneralUpdateTheme() {
     navusername = $("#navusername").html();
     shortUserctrl = false;
     setInterval(function () {
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            if (!shortUserctrl) {
+                shortUserctrl = true;
+                if ($("#navusername").html() != "") {
+                    navusername = $("#navusername").html();
+                }
+                $("#navusername").html("");
+                if (window.location.pathname == "/") {
+                    $("#progress-div").hide();
+                    $(".userctrl").attr("style", "");
+                }
+            }
+            return;
+        }
         if ($(".userctrl").length != 0) {
             t = $(".userctrl").css("left");
             if (parseInt(t.slice(0, t.indexOf("px"))) / window.innerWidth < 0.6 && !shortUserctrl) {
