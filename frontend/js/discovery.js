@@ -90,7 +90,7 @@ function RefreshDiscovery() {
                             break;
                         }
                     }
-                    $("#top-post").append('<div class="rect discovery-top" style="display:inline-block;padding:1em;width:30%" onclick="window.location.href=\'/discovery?discoveryId=' + discoveryId + '\';">\
+                    $("#top-post").append('<div class="rect discovery-top" style="display:inline-block;padding:1em;width:fit-content" onclick="window.location.href=\'/discovery?discoveryId=' + discoveryId + '\';">\
                     <p class="rect-title">' + title + '</p>\
                     <p class="rect-content">&nbsp;&nbsp;' + marked.parse(description) + '</p>\
                     <p class="rect-content">&nbsp;&nbsp;' + info + '</p>\
@@ -344,8 +344,6 @@ function UpdateInformationShow() {
     });
     $(".editor-toolbar").css("background-color", "white");
     $(".editor-toolbar").css("opacity", "1");
-    $(".CodeMirror").css("height", "6em");
-    $(".CodeMirror").css("min-height", "6em");
     $(".cursor").remove();
     $('#modal').on('shown.bs.modal', function () {
         descriptionMDE.value(description);

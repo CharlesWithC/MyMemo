@@ -111,7 +111,7 @@ a:hover {
 .userctrl {
     text-decoration: none;
 
-    position: absolute;
+    position: fixed;
     top: 0;
     margin-top: 0;
     right: 5%;
@@ -136,7 +136,7 @@ a:hover {
 .leftside {
     text-decoration: none;
 
-    position: absolute;
+    position: fixed;
     top: 4em;
     margin-top: 0;
     left: 0;
@@ -176,6 +176,7 @@ a:hover {
     text-align: center;
     width: 8em;
     z-index: 100;
+    margin: 0.4em;
 }
 
 .control-btn-left {
@@ -219,7 +220,7 @@ a:hover {
 }
 
 .book-side {
-    position: absolute;
+    position: fixed;
     z-index: 1000;
     top: 0;
     left: 3em;
@@ -364,4 +365,9 @@ a:hover {
 
 .selected {
     background-color: #aaaaaa;
+}
+
+#noty_layout__topRight {
+    top: 4em;
+    right: 1em;
 }

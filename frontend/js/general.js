@@ -2,7 +2,7 @@
 // Author: @Charles-1414
 // License: GNU General Public License v3.0
 
-function NotyNotification(text, type = 'success', timeout = 3000, layout = 'bottomRight') {
+function NotyNotification(text, type = 'success', timeout = 3000, layout = 'topRight') {
     new Noty({
         theme: 'mint',
         text: text,
@@ -144,7 +144,11 @@ function UpdateBookList() {
         },
         success: function (r) {
             bookList = r;
-            try{sessionStorage.setItem("book-list", JSON.stringify(bookList));}catch{console.warning("Cannot store book list to Session Storage, aborted!");}
+            try {
+                sessionStorage.setItem("book-list", JSON.stringify(bookList));
+            } catch {
+                console.warning("Cannot store book list to Session Storage, aborted!");
+            }
             UpdateBookDisplay();
         }
     });
@@ -177,11 +181,15 @@ function RefreshBookList() {
         },
         success: function (r) {
             bookList = r;
-            try{sessionStorage.setItem("book-list", JSON.stringify(bookList));}catch{console.warning("Cannot store book list to Session Storage, aborted!");}
+            try {
+                sessionStorage.setItem("book-list", JSON.stringify(bookList));
+            } catch {
+                console.warning("Cannot store book list to Session Storage, aborted!");
+            }
             UpdateBookDisplay();
             $("#book-list-refresh-btn").html('<i class="fa fa-sync"></i>');
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 SessionExpired();
             } else {
@@ -247,7 +255,7 @@ function LoadDetect() {
     }
 }
 
-setInterval(LoadDetect, 10);
+setInterval(LoadDetect, 100);
 
 var updnu_interval = -1;
 
@@ -305,31 +313,33 @@ $(document).ready(function () {
         });
     }
 
-    $("#navigate").after(`<div id="book-div" class="book-side" style="display:none">
-        <div class="book-side-content">
-            <h2 style="float:left">Books</h2>
-            <button type="button" class="btn btn-outline-secondary btn-sm" style="margin:0.5em;font-size:0.7em" onclick="RefreshBookList()"
-                id="book-list-refresh-btn"><i class="fa fa-sync"></i></button>
-            <button type="button" class="close" style="float:right;background-color:transparent;border:none" aria-label="Close"
-                onclick="$('#book-div').fadeOut()">
-                <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-            </button>
+    if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        $("#navigate").after(`<div id="book-div" class="book-side" style="display:none">
+            <div class="book-side-content">
+                <h2 style="float:left">Books</h2>
+                <button type="button" class="btn btn-outline-secondary btn-sm" style="margin:0.5em;font-size:0.7em" onclick="RefreshBookList()"
+                    id="book-list-refresh-btn"><i class="fa fa-sync"></i></button>
+                <button type="button" class="close" style="float:right;background-color:transparent;border:none" aria-label="Close"
+                    onclick="$('#book-div').fadeOut()">
+                    <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                </button>
 
-        </div>
-        <div class="book-side-content-scroll" id="book-list">
-            <div>
-                <p>Create Book: </p>
-                <div class="input-group mb-3 w-75">
-                    <span class="input-group-text" id="basic-addon1">Name</span>
-                    <input type="text" class="form-control" id="create-book-name" aria-describedby="basic-addon1">
-                    <div class="input-group-append">
-                        <button class="btn btn-outline-primary" type="button"
-                            onclick="CreateBook('#create-book-name')">Create</button>
+            </div>
+            <div class="book-side-content-scroll" id="book-list">
+                <div>
+                    <p>Create Book: </p>
+                    <div class="input-group mb-3 w-75">
+                        <span class="input-group-text" id="basic-addon1">Name</span>
+                        <input type="text" class="form-control" id="create-book-name" aria-describedby="basic-addon1">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-primary" type="button"
+                                onclick="CreateBook('#create-book-name')">Create</button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>`);
+        </div>`);
+    }
 
     $(".leftside").append(`<div class="sqbtn">
         <a id="book-btn" href="#" onclick="window.location.href='/book'"><i class="fa fa-book"></i></a><br>
@@ -433,7 +443,11 @@ function GeneralUpdateTheme() {
         $(".paginate_button").addClass("btn btn-outline-secondary btn-sm btn-paginate");
         $(".paginate_button").css("margin", "0.2em");
         $(".paginate_button").removeClass("paginate_button");
-        $("table,.dataTables_scrollHead,.dataTables_scrollHeadInner").css("width","");
+        $("table,.dataTables_scrollHeadInner").css("width", "100%");
+        if ($("table").DataTable != undefined)
+            $("table").DataTable().columns.adjust();
+        $(".fa-picture-o").addClass("fa-image");
+        $(".fa-image").removeClass("fa-picture-o");
         if (localStorage.getItem("settings-theme") == "dark") {
             $("body").css("color", "#ffffff");
             $("body").css("background-color", "#333333");
@@ -487,9 +501,12 @@ function GeneralUpdateTheme() {
             $(".sub-right").css("margin-left", "4em");
             $(".sub-right").css("width", "35%");
         }
-    }, 5);
+    }, 50);
 }
 $(document).ready(function () {
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        $('head').append('<link rel="stylesheet" href="/css/mobile.css" type="text/css" />');
+    }
     GeneralUpdateTheme();
 
     $("#book-btn").hover(function () {
@@ -514,7 +531,7 @@ $(document).ready(function () {
 
 // ModifyDataTableSearchBox
 function MDTSB(tableName) {
-    $("#" + tableName + "_length").after('<div id="tmp' + tableName + '" class="dataTables_filter input-group mb-3" style="max-width:15em">\
+    $("#" + tableName + "_length").after('<div id="tmp' + tableName + '" class="dataTables_filter input-group mb-3" style="max-max-width:15em">\
         <span class="input-group-text" id="basic-addon1">Search</span>\
     </div>');
     $("#" + tableName + "_filter > label > input").addClass("form-control");

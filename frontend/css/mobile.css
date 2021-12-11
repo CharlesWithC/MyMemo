@@ -1,0 +1,75 @@
+html,
+body {
+    height: 100%;
+    font-family: Comic Sans;
+    font-size: 1.4em;
+}
+
+.center {
+    width: 100%;
+}
+
+h1 {
+    font-size: 3em;
+    margin-left: 0em;
+    margin-right: 0em;
+}
+
+h2 {
+    font-size: 1.6em;
+}
+
+h4 {
+    font-size: 1.2em;
+}
+
+h5 {
+    font-size: 1em;
+}
+
+p {
+    font-size: 0.8em;
+}
+
+td {
+    font-size: 0.8em;
+}
+
+.noty_theme__mint.noty_bar .noty_body {
+    font-size: 0.8em;
+}
+
+#noty_layout__topRight {
+    top: 4em;
+    right: 1em;
+}
+
+input .input-group {
+    font-size: 1em;
+}
+
+.title {
+    font-size: 2em;
+    margin-top: 1.4em;
+    padding: 0.2em;
+}
+
+.btn {
+    border-radius: 0.5em;
+    font-size: 0.8em;
+}
+
+.btn-sm {
+    border-radius: 0.5em;
+    font-size: 0.7em;
+}
+
+.container {
+    padding: 0.2em;
+    margin: 0 auto;
+}
+
+.modal-dialog {
+    max-width: 800px;
+    margin: 10em auto;
+}

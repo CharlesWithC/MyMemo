@@ -337,7 +337,7 @@ function UpdateChart(tuid) {
                 setInterval(function () {
                     $("text").css("fill", "#ffffff");
                     $(".c3-tooltip tr").css("color", "black")
-                }, 1);
+                }, 50);
             }
         },
         error: function (r, textStatus, errorThrown) {
@@ -439,7 +439,7 @@ function Login() {
                 NotyNotification(r.msg, type = 'error');
             }
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 503) {
                 NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
             } else {
@@ -481,7 +481,7 @@ function Register() {
                 NotyNotification(r.msg, type = 'error');
             }
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 503) {
                 NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
             } else {
@@ -538,8 +538,6 @@ function UpdateProfileShow() {
     });
     $(".editor-toolbar").css("background-color", "white");
     $(".editor-toolbar").css("opacity", "1");
-    $(".CodeMirror").css("height", "6em");
-    $(".CodeMirror").css("min-height", "6em");
     $(".cursor").remove();
     $('#modal').on('shown.bs.modal', function () {
         biomde.value(user.bio);
@@ -601,7 +599,7 @@ function UpdateUserProfile() {
                 NotyNotification(r.msg, type = 'error');
             }
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 503) {
                 NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
             } else {
@@ -654,7 +652,7 @@ function ChangePassword() {
                 NotyNotification(r.msg, type = 'error');
             }
         },
-        error: function (r) {
+        error: function (r, textStatus, errorThrown) {
             if (r.status == 503) {
                 NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
             } else {
@@ -1030,7 +1028,7 @@ $(document).ready(function () {
                     }, 1000);
                 }
             },
-            error: function (r) {
+            error: function (r, textStatus, errorThrown) {
                 if (r.status == 401) {
                     SessionExpired();
                 } else if (r.status == 503) {

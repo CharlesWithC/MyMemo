@@ -13,11 +13,11 @@
 
     <link href="https://cdn.charles14.xyz/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.charles14.xyz/css/all.min.css" rel="stylesheet">
-    <link href="/css/main.css" rel="stylesheet">
 
     <link href="https://cdn.charles14.xyz/noty/noty.css" rel="stylesheet">
     <script src="https://cdn.charles14.xyz/noty/noty.min.js" type="text/javascript"></script>
     <link href="https://cdn.charles14.xyz/noty/themes/mint.css" rel="stylesheet">
+    <link href="/css/main.css" rel="stylesheet">
 
     <link rel="icon" href="/img/icon.png">
 
@@ -49,77 +49,77 @@
         <h2>Memo Settings</h2>
         <br>
         <p>Mode:
-            <button id="mode-practice-btn" type="button" class="btn mode-btn btn-secondary" style="margin:0"
+            <button id="mode-practice-btn" type="button" class="btn mode-btn btn-secondary"
                 onclick="UpdateMode(0)">Switch</button>
-            <button id="mode-challenge-yesno-btn" type="button" class="btn mode-btn btn-secondary" style="margin:0"
+            <button id="mode-challenge-yesno-btn" type="button" class="btn mode-btn btn-secondary"
                 onclick="UpdateMode(1)">Practice</button>
-            <button id="mode-challenge-choice-btn" type="button" class="btn mode-btn btn-secondary" style="margin:0"
+            <button id="mode-challenge-choice-btn" type="button" class="btn mode-btn btn-secondary"
                 onclick="UpdateMode(2)">Challenge</button>
-            <button id="mode-offline-btn" type="button" class="btn mode-btn btn-secondary" style="margin:0"
+            <button id="mode-offline-btn" type="button" class="btn mode-btn btn-secondary"
                 onclick="UpdateMode(3)">Offline</button>
         </p>
         <p>Display order:
-            <button id="order-sequence-btn" type="button" class="btn order-btn btn-secondary" style="margin:0"
+            <button id="order-sequence-btn" type="button" class="btn order-btn btn-secondary"
                 onclick="UpdateOrder(0)">Sequence</button>
-            <button id="order-random-btn" type="button" class="btn order-btn btn-secondary" style="margin:0"
+            <button id="order-random-btn" type="button" class="btn order-btn btn-secondary"
                 onclick="UpdateOrder(1)">Random</button>
         </p>
         <p>Display:
-            <button id="swap-question-btn" type="button" class="btn swap-btn btn-secondary" style="margin:0"
+            <button id="swap-question-btn" type="button" class="btn swap-btn btn-secondary"
                 onclick="UpdateSwap(0)">Question</button>
-            <button id="swap-answer-btn" type="button" class="btn swap-btn btn-secondary" style="margin:0"
+            <button id="swap-answer-btn" type="button" class="btn swap-btn btn-secondary"
                 onclick="UpdateSwap(1)">Answer</button>
-            <button id="swap-both-btn" type="button" class="btn swap-btn btn-secondary" style="margin:0"
+            <button id="swap-both-btn" type="button" class="btn swap-btn btn-secondary"
                 onclick="UpdateSwap(2)">Both</button>
         </p>
         <p>Range selection:
-            <button id="range-all-btn" type="button" class="btn range-btn btn-secondary" style="margin:0"
+            <button id="range-all-btn" type="button" class="btn range-btn btn-secondary"
                 onclick="UpdateRange(1)">All</button>
-            <button id="range-tagged-btn" type="button" class="btn range-btn btn-secondary" style="margin:0"
+            <button id="range-tagged-btn" type="button" class="btn range-btn btn-secondary"
                 onclick="UpdateRange(2)">Tagged</button>
-            <button id="range-deleted-btn" type="button" class="btn range-btn btn-secondary" style="margin:0"
+            <button id="range-deleted-btn" type="button" class="btn range-btn btn-secondary"
                 onclick="UpdateRange(3)">Deleted</button>
         </p>
         <p>Auto play:
-            <button id="ap-none-btn" type="button" class="btn ap-btn btn-secondary" style="margin:0"
+            <button id="ap-none-btn" type="button" class="btn ap-btn btn-secondary"
                 onclick="UpdateAutoplay(0)">Disabled</button>
-            <button id="ap-slow-btn" type="button" class="btn ap-btn btn-secondary" style="margin:0"
+            <button id="ap-slow-btn" type="button" class="btn ap-btn btn-secondary"
                 onclick="UpdateAutoplay(1)">Slow (8 sec/question)</button>
-            <button id="ap-medium-btn" type="button" class="btn ap-btn btn-secondary" style="margin:0"
+            <button id="ap-medium-btn" type="button" class="btn ap-btn btn-secondary"
                 onclick="UpdateAutoplay(2)">Medium (5 sec/question)</button>
-            <button id="ap-fast-btn" type="button" class="btn ap-btn btn-secondary" style="margin:0"
+            <button id="ap-fast-btn" type="button" class="btn ap-btn btn-secondary"
                 onclick="UpdateAutoplay(3)">Fast (3 sec/question)</button>
         </p>
         <p style="font-size:0.8em">* Select Book at home page</p>
         <hr>
         <h2>Question Management</h2>
         <br>
-        <button id="home-btn" type="button" class="btn btn-danger control-btn control-btn-top" style="width:15em"
+        <button id="home-btn" type="button" class="btn btn-danger" style="width:auto;"
             onclick="ClearDeletedQuestionsShow()"><i class="fa fa-trash"></i> Clear Deleted
             Questions</button>
         <br>
-        <button id="home-btn" type="button" class="btn btn-primary control-btn control-btn-bottom" onclick="Import()"><i
+        <button id="home-btn" type="button" class="btn btn-primary" onclick="Import()"><i
                 class="fa fa-upload"></i> Import</button>
-        <button id="home-btn" type="button" class="btn btn-primary control-btn control-btn-bottom" onclick="Export()"><i
+        <button id="home-btn" type="button" class="btn btn-primary" onclick="Export()"><i
                 class="fa fa-download"></i> Export</button>
         <hr>
         <h2>Theme</h2>
-        <button id="theme-light-btn" type="button" class="btn theme-btn btn-secondary" style="margin:0"
+        <button id="theme-light-btn" type="button" class="btn theme-btn btn-secondary"
             onclick="UpdateTheme('light')">Light</button>
-        <button id="theme-dark-btn" type="button" class="btn theme-btn btn-secondary" style="margin:0"
+        <button id="theme-dark-btn" type="button" class="btn theme-btn btn-secondary"
             onclick="UpdateTheme('dark')">Dark</button>
         <hr>
         <h2>Settings Sync</h2>
-        <button id="sync-upload-btn" type="button" class="btn btn-primary" style="margin:0"
+        <button id="sync-upload-btn" type="button" class="btn btn-primary"
             onclick="SettingsSync('upload')"><i class="fa fa-server"></i> Sync to cloud</button>
-        <button id="sync-download-btn" type="button" class="btn btn-primary" style="margin:0"
+        <button id="sync-download-btn" type="button" class="btn btn-primary"
             onclick="SettingsSync('download')"><i class="fa fa-cloud-download"></i> Sync to local</button>
         <hr>
     </div>
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo</p>
-        <p>Version: v5.5.4 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.5.5 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-brands fa-github"></i> GitHub</a></p>
         <p>Developed by <a href="www.charles14.xyz">Charles</a></p>

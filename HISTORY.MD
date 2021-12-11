@@ -1,5 +1,13 @@
 # Update History
 
+**End of project development. Only bug fixes will be applied after v5.5.5.**  
+
+## v5.5.5  
+
+*Date: 2021/12/11*  
+Feature Updates:  
+Better UI for Mobile  
+
 ## v5.5.4
 
 *Date: 2021/12/11*  

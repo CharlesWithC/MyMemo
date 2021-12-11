@@ -14,7 +14,6 @@
 
     <link href="https://cdn.charles14.xyz/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.charles14.xyz/css/all.min.css" rel="stylesheet">
-    <link href="/css/main.css" rel="stylesheet">
 
     <link href="https://cdn.charles14.xyz/css/c3.min.css" rel="stylesheet">
     <script src="https://cdn.charles14.xyz/js/d3.v5.min.js" charset="utf-8"></script>
@@ -29,6 +28,7 @@
     <link href="https://cdn.charles14.xyz/noty/noty.css" rel="stylesheet">
     <script src="https://cdn.charles14.xyz/noty/noty.min.js" type="text/javascript"></script>
     <link href="https://cdn.charles14.xyz/noty/themes/mint.css" rel="stylesheet">
+    <link href="/css/main.css" rel="stylesheet">
 
     <link rel="icon" href="/img/icon.png">
 
@@ -49,25 +49,6 @@
 
             PageInit();
 
-            setInterval(function () {
-                for (var i = 0; i < selectedQuestionList.length; i++) {
-                    if (selectedQuestionList[i].status == 2) {
-                        $("#" + selectedQuestionList[i].questionId).css("color", "#ff5555");
-                    } else if (selectedQuestionList[i].status == 3) {
-                        if (localStorage.getItem("settings-theme") == "dark") {
-                            $("#" + selectedQuestionList[i].questionId).css("color", "gray");
-                        } else {
-                            $("#" + selectedQuestionList[i].questionId).css("color", "lightgray");
-                        }
-                    } else {
-                        if (localStorage.getItem("settings-theme") == "dark") {
-                            $("#" + selectedQuestionList[i].questionId).css("color", "white");
-                        } else {
-                            $("#" + selectedQuestionList[i].questionId).css("color", "black");
-                        }
-                    }
-                }
-            }, 50);
             $('#questionList tbody').on('click', 'tr', function () {
                 wid = parseInt($(this).attr("id"));
                 if ($(this).hasClass("table-active")) {
@@ -119,7 +100,7 @@
                     $(".remove-question-btn").removeClass("btn-danger");
                     $(".remove-question-btn").addClass("btn-warning");
                 }
-            }, 5)
+            }, 100)
         });
     </script>
 </head>
@@ -146,11 +127,11 @@
         <h1 class="title" style="padding-bottom: 0;">Book&nbsp;&nbsp;<button type="button" id="refresh-btn"
                 class="btn btn-outline-secondary" onclick="UpdateBookContentList()"><i class="fa fa-sync"></i></button>
         </h1>
-        <div class="book-list-content-div container">
+        <div class="book-list-content-div">
             <div class="book-list-content" style="margin:2em;margin-top:0">
                 <div>
                     <p>Create Book: </p>
-                    <div class="input-group mb-3 w-75">
+                    <div class="input-group mb-3" style="width:fit-content">
                         <span class="input-group-text" id="basic-addon1">Name</span>
                         <input type="text" class="form-control" id="create-book-name-content"
                             aria-describedby="basic-addon1">
@@ -163,7 +144,7 @@
             </div>
         </div>
 
-        <div class="book-data-div container" style="display:none">
+        <div class="book-data-div" style="display:none">
             <div id="qlist" class="subcontainer sub-left" style="position:relative;width:55%;float:left">
                 <table class="table table-hover" id="questionList" style="text-align:center">
                     <thead>
@@ -348,7 +329,7 @@
 
     <div class="footer">
         <p>Copyright &copy; 2021 My Memo</p>
-        <p>Version: v5.5.4 <i class="fa fa-check-circle"></i></p>
+        <p>Version: v5.5.5 <i class="fa fa-check-circle"></i></p>
         <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
         <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-brands fa-github"></i>
                 GitHub</a></p>

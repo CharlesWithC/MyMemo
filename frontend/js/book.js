@@ -998,8 +998,6 @@ function PublishToDiscoveryShow() {
     });
     $(".editor-toolbar").css("background-color", "white");
     $(".editor-toolbar").css("opacity", "1");
-    $(".CodeMirror").css("height", "6em");
-    $(".CodeMirror").css("min-height", "6em");
     $(".cursor").remove();
     $("#discovery-title,#discovery-description").on('keypress', function (e) {
         if (e.which == 13 && e.ctrlKey) {
@@ -1130,8 +1128,6 @@ function GroupPublishToDiscoveryShow() {
     });
     $(".editor-toolbar").css("background-color", "white");
     $(".editor-toolbar").css("opacity", "1");
-    $(".CodeMirror").css("height", "6em");
-    $(".CodeMirror").css("min-height", "6em");
     $(".cursor").remove();
     $("#group-discovery-title,#group-discovery-description").on('keypress', function (e) {
         if (e.which == 13 && e.ctrlKey) {
@@ -1325,8 +1321,6 @@ function CreateGroupShow() {
     });
     $(".editor-toolbar").css("background-color", "white");
     $(".editor-toolbar").css("opacity", "1");
-    $(".CodeMirror").css("height", "6em");
-    $(".CodeMirror").css("min-height", "6em");
     $(".cursor").remove();
     $("#group-name,#group-description").on('keypress', function (e) {
         if (e.which == 13 && e.ctrlKey) {
@@ -1528,8 +1522,6 @@ function GroupInfoUpdateShow() {
     });
     $(".editor-toolbar").css("background-color", "white");
     $(".editor-toolbar").css("opacity", "1");
-    $(".CodeMirror").css("height", "6em");
-    $(".CodeMirror").css("min-height", "6em");
     $(".cursor").remove();
 }
 
@@ -2159,7 +2151,7 @@ function BookChart() {
                 setInterval(function () {
                     $("text").css("fill", "#ffffff");
                     $(".c3-tooltip tr").css("color", "black")
-                }, 1);
+                }, 50);
             }
 
             $("#modal").modal("show");
