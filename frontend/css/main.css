@@ -54,18 +54,20 @@ body {
 
 .container {
     position: relative;
-    margin: auto;
+    margin: 1em;
     margin-top: 1em;
     margin-bottom: 2em;
-    padding: 2em;
+    padding: 5%;
     padding-top: 0.5em;
     min-height: 105%;
-    width: 120%;
     z-index: 200;
+    width: 100%;
+    max-width: 98%;
 }
 
 .subcontainer {
     padding: 1.5em;
+    margin: auto;
     background-color: #444444;
     border: 0.05em solid #222222;
     overflow: hidden;

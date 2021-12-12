@@ -735,7 +735,7 @@ function DeleteAccount() {
         },
         success: function (r) {
             if (r.success == true) {
-                NotyNotification(r.msg, timeout = 10000);
+                NotyNotification(r.msg, type = 'success', timeout = 10000);
                 $("#delete-msg").html(r.msg);
             } else {
                 NotyNotification(r.msg, type = 'error');

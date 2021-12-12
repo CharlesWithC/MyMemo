@@ -362,6 +362,26 @@ $(document).ready(function () {
         </div>`);
     }
 
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        $(".leftside br").remove();
+        $(".leftside").css("top", "0");
+        $(".leftside").css("left", "2%");
+        $(".leftside").css("height", "3em");
+        $(".leftside").css("width", "fit-content");
+        $(".leftside").css("padding-top", "0.7em");
+        $(".leftside").css("padding-left", "0.6em");
+        $(".leftside").css("padding-right", "0.4em");
+        $(".leftside").css("padding-bottom", "0.7em");
+        $(".leftside").css("border-bottom-left-radius", "0.5em");
+        $(".leftside").css("border-top-right-radius", "0");
+        $(".leftside .icon").css("margin","0.2em");
+        $(".leftside .icon").css("margin-top","-0.7em");
+        $(".leftside .sqbtn").css("margin","0.3em");
+        $(".leftside .sqbtn").css("font-size","0.8em");
+        $(".leftside .sqbtn").css("display","inline-block");
+        $(".userctrl").css("right", "2%");
+    }
+
     $('.modal').on('hidden.bs.modal', function () {
         $(".modal").remove();
     })

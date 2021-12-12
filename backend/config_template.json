@@ -12,6 +12,9 @@
     "mysql_db": "mymemo",
 
     "postfix_host": "127.0.0.1:25",
+    "mail_domain": "noreply.charles14.xyz",
+    "mail_from": "memo@noreply.charles14.xyz",
+    "dkim_key_path": "",
 
     "max_user_allowed": -1,
     "max_question_per_user_allowed": -1,

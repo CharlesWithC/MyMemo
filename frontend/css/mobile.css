@@ -65,8 +65,14 @@ input .input-group {
 }
 
 .container {
-    padding: 0.2em;
-    margin: 0 auto;
+    padding: 1em;
+    margin: 0.5em auto;
+    margin-top: 0;
+    max-width: 100%;
+}
+
+.subcontainer {
+    padding: 1em;
 }
 
 .modal-dialog {

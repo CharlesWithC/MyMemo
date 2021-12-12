@@ -1,5 +1,12 @@
 # Update History
 
+## v5.5.6  
+
+*Date: 2021/12/12*  
+Other Updates:  
+Improved Mobile UI  
+Improved emailop to drecrease the rate of being marked as spam  
+
 **End of project development. Only bug fixes will be applied after v5.5.5.**  
 
 ## v5.5.5  
