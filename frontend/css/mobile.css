@@ -79,3 +79,15 @@ input .input-group {
     max-width: 800px;
     margin: 10em auto;
 }
+
+.center {
+    margin: auto;
+    position: relative;
+    text-align: center;
+    top: 15%;
+    width: 95%;
+}
+
+.choice {
+    width: 80%;
+}

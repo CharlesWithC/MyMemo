@@ -145,6 +145,9 @@ function UpdateBookList() {
 }
 
 function PageInit() {
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        $("#hometitle").css("font-size","5em");
+    }
     l = ["Switch", "Practice", "Challenge", "Offline"];
     $("#mode").html(l[settings.mode]);
     if (memo.fullQuestionList.length != 0) {
@@ -274,6 +277,7 @@ function ShowQuestion() {
         $(".memo-delete").html("Undelete <i class='fa fa-undo'></i>");
     }
     $("#home").hide();
+    $(".title").show();
     $("#memo").show();
     $(".control").hide();
     if (settings.mode == 0) {
@@ -1182,6 +1186,7 @@ function ResumeAutoPlayer() {
 
 function BackToHome() {
     memo.started = false;
+    $(".title").hide();
     $("#memo").hide();
     $("#home").show();
     StopAutoPlayer();
