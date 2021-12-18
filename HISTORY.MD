@@ -1,5 +1,12 @@
 # Update History
 
+## v5.5.11
+
+*Date: 2021/12/18*  
+Feature Updates:
+Improved discovery list  
+NOTE: Searching for Discovery is based on *FuzzyWuzzy*
+
 ## v5.5.10
 
 *Date: 2021/12/18*  

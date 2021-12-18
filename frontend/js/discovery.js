@@ -10,101 +10,124 @@ var distype = 1;
 var title = "";
 var description = "";
 
-function RefreshDiscovery() {
+var search = "";
+var page = 1;
+var pagelen = 10;
+var total = 1;
+
+function RefreshDiscovery(p = -1) {
+    if (p != -1) {
+        page = p;
+    }
     $("#refresh-btn").html('<i class="fa fa-sync fa-spin"></i>');
 
     table = $("#discoveryList").DataTable();
     table.clear();
-    table.row.add([
-        [""],
-        [""],
-        ["Loading <i class='fa fa-spinner fa-spin'></i>"],
-        [""],
-        [""],
-        [""]
-    ]);
-    table.draw();
+    if (p == -1) {
+        table.row.add([
+            [""],
+            [""],
+            ["Loading <i class='fa fa-spinner fa-spin'></i>"],
+            [""],
+            [""],
+            [""]
+        ]);
+        table.draw();
+    }
 
     $.ajax({
-        url: "/api/discovery",
-        method: 'POST',
-        async: true,
-        dataType: "json",
-        data: {
-            userId: localStorage.getItem("userId"),
-            token: localStorage.getItem("token")
-        },
-        success: function (r) {
-            table.clear();
-            discoveryList = r;
-            toplist = {};
-            l = ["", "Book", "Group"];
-            for (var i = 0; i < discoveryList.length; i++) {
-                btns = '';
-                if (localStorage.getItem("isAdmin") == "1" || discoveryList[i].publisher == localStorage.getItem("username")) {
-                    if (!discoveryList[i].pinned) {
-                        btns += '&nbsp;&nbsp;<button id="admin-pin-' + discoveryList[i].discoveryId + '" class="btn btn-primary btn-sm" type="button" onclick="AdminPin(' + discoveryList[i].discoveryId + ',1)"><i class="fa fa-thumbtack"></i> Pin</button>';
-                    } else {
-                        btns += '&nbsp;&nbsp;<button id="admin-pin-' + discoveryList[i].discoveryId + '" class="btn btn-primary btn-sm" type="button" onclick="AdminPin(' + discoveryList[i].discoveryId + ',0)"><i class="fa fa-thumbtack fa-rotate-180"></i> Unpin</button>';
+            url: "/api/discovery",
+            method: 'POST',
+            async: true,
+            dataType: "json",
+            data: {
+                search: search,
+                page: page,
+                pagelen: pagelen,
+                userId: localStorage.getItem("userId"),
+                token: localStorage.getItem("token")
+            },
+            success: function (r) {
+                table.clear();
+                discoveryList = r.data;
+                total = r.total;
+                l = ["", "Book", "Group"];
+                for (var i = 1; i < page; i++) {
+                    for (var j = 0; j < pagelen; j++) {
+                        table.row.add([
+                            ["&nbsp;"],
+                            [""],
+                            [""],
+                            [""],
+                            [""],
+                            [""]
+                        ]);
                     }
-                    btns += '&nbsp;&nbsp;<button id="admin-delete-' + discoveryList[i].discoveryId + '" class="btn btn-danger btn-sm" type="button" onclick="AdminUnpublishDiscoveryConfirm(' + discoveryList[i].discoveryId + ')"><i class="fa fa-trash"></i> Delete</button>';
                 }
-                pin = '';
-                if (discoveryList[i].pinned) {
-                    pin = '<i class="fa fa-thumbtack"></i> ';
+                for (var i = 0; i < discoveryList.length; i++) {
+                    btns = '';
+                    if (localStorage.getItem("isAdmin") == "1" || discoveryList[i].publisher == localStorage.getItem("username")) {
+                        if (!discoveryList[i].pinned) {
+                            btns += '&nbsp;&nbsp;<button id="admin-pin-' + discoveryList[i].discoveryId + '" class="btn btn-primary btn-sm" type="button" onclick="AdminPin(' + discoveryList[i].discoveryId + ',1)"><i class="fa fa-thumbtack"></i> Pin</button>';
+                        } else {
+                            btns += '&nbsp;&nbsp;<button id="admin-pin-' + discoveryList[i].discoveryId + '" class="btn btn-primary btn-sm" type="button" onclick="AdminPin(' + discoveryList[i].discoveryId + ',0)"><i class="fa fa-thumbtack fa-rotate-180"></i> Unpin</button>';
+                        }
+                        btns += '&nbsp;&nbsp;<button id="admin-delete-' + discoveryList[i].discoveryId + '" class="btn btn-danger btn-sm" type="button" onclick="AdminUnpublishDiscoveryConfirm(' + discoveryList[i].discoveryId + ')"><i class="fa fa-trash"></i> Delete</button>';
+                    }
+                    pin = '';
+                    if (discoveryList[i].pinned) {
+                        pin = '<i class="fa fa-thumbtack"></i> ';
+                    }
+                    table.row.add([
+                        [pin],
+                        ["<a href='#' onclick='ShowDiscovery(" + discoveryList[i].discoveryId + ")'>" + discoveryList[i].title + "</a>"],
+                        [discoveryList[i].publisher],
+                        [discoveryList[i].views],
+                        [discoveryList[i].likes],
+                        [btns]
+                    ]).node().id = discoveryList[i].discoveryId;
                 }
-                toplist[discoveryList[i].discoveryId] = discoveryList.likes;
-                table.row.add([
-                    [pin],
-                    ["<a href='#' onclick='ShowDiscovery(" + discoveryList[i].discoveryId + ")'>" + discoveryList[i].title + "</a>"],
-                    [discoveryList[i].publisher],
-                    [discoveryList[i].views],
-                    [discoveryList[i].likes],
-                    [btns]
-                ]).node().id = discoveryList[i].discoveryId;
-            }
-
-            table.draw();
-
-            sort_object(toplist);
-
-            $(".discovery-top").remove();
-            i = 1;
-            topshow = false;
-            $.each(toplist, function (discoveryId, index) {
-                if (i <= 3) {
-                    if (i == 1) {
-                        $("#top-post").show();
-                        topshow = true;
+                for (var i = page; i < total; i++) {
+                    for (var j = 0; j < pagelen; j++) {
+                        table.row.add([
+                            ["&nbsp;"],
+                            [""],
+                            [""],
+                            [""],
+                            [""],
+                            [""]
+                        ]);
                     }
-                    if (i == 2) {
-                        $("#top-post-h2").html("Top Posts");
-                    }
-                    i++;
+                }
+
+                table.draw();
+
+                for (var i = 1; i < page; i++) {
+                    $("#discoveryList_next").click();
+                }
+
+                $(".discovery-top").remove();
+                toplist = r.toplist;
+                if (toplist.length > 0) {
+                    $("#dlist").addClass("sub-left");
+                    $("#top-post").fadeIn();
+                }
+
+                for (var i = 0; i < toplist.length; i++) {
                     title = "";
                     description = "";
                     info = "";
-                    for (var j = 0; j < discoveryList.length; j++) {
-                        if (discoveryList[j].discoveryId == discoveryId) {
-                            title = discoveryList[j].title;
-                            description = discoveryList[j].description;
-                            info = discoveryList[j].views + " <i class='fa fa-eye'></i>&nbsp;&nbsp;" + discoveryList[j].likes + " <i class='fa fa-heart'></i>";
-                            break;
-                        }
-                    }
+                    title = toplist[i].title;
+                    description = toplist[i].description;
+                    info = toplist[i].views + " <i class='fa fa-eye'></i>&nbsp;&nbsp;" + toplist[i].likes + " <i class='fa fa-heart'></i>";
                     $("#top-post").append(`<div class="rect discovery-top" href="#" onclick="ShowDiscovery(` + discoveryId + `);">
-                    <p class="rect-title">` + title + `</p>
-                    <p class="rect-content">&nbsp;&nbsp;` + marked.parse(description) + `</p>
-                    <p class="rect-content">&nbsp;&nbsp;` + info + `</p>
-                    </div>`);
+                        <p class="rect-title">` + title + `</p>
+                        <p class="rect-content">&nbsp;&nbsp;` + marked.parse(description) + `</p>
+                        <p class="rect-content">&nbsp;&nbsp;` + info + `</p>
+                        </div>`);
                 }
-            });
 
             $("#refresh-btn").html('<i class="fa fa-sync"></i>');
-
-            if (!topshow) {
-                $("#dlist").removeClass("sub-left");
-            }
         }
     });
 }
@@ -187,7 +210,9 @@ function AdminUnpublishDiscovery(disid) {
 }
 
 function UpdateDiscoveryQuestionList() {
-    $(".title").html('Discovery');
+    $(".title").html(`Discovery &nbsp;&nbsp;<button type="button"
+    class="btn btn-outline-secondary" onclick="RefreshDiscovery()" id="refresh-btn"><i
+        class="fa fa-sync"></i></button>`);
     table = $("#questionList").DataTable();
     table.clear();
     table.row.add([
@@ -314,6 +339,9 @@ function ShowDiscovery(disid) {
 }
 
 function BackToList() {
+    $(".title").html(`Discovery &nbsp;&nbsp;<button type="button"
+    class="btn btn-outline-secondary" onclick="RefreshDiscovery()" id="refresh-btn"><i
+        class="fa fa-sync"></i></button>`);
     $(".discovery-detail").hide();
     $(".discovery-list").fadeIn();
     RefreshDiscovery();
@@ -456,10 +484,27 @@ function LikePost() {
     });
 }
 
+function CustomizePaginateBtn() {
+    $("#discoveryList_paginate > span > a").each(function () {
+        $(this).attr("id", $(this).text());
+        $(this).attr("onclick", "RefreshDiscovery(" + $(this).text() + ");");
+    });
+    $("#discoveryList_first").attr("onclick", "RefreshDiscovery(1);");
+    $("#discoveryList_previous").attr("onclick", "RefreshDiscovery(" + (page - 1) + ");");
+    $("#discoveryList_next").attr("onclick", "RefreshDiscovery(" + (page + 1) + ");");
+    $("#discoveryList_last").attr("onclick", "RefreshDiscovery(" + total + ");");
+}
+
+function Search() {
+    search = $("#search-content").val();
+    RefreshDiscovery(1);
+}
+
 function PageInit() {
     discoveryId = getUrlParameter("discoveryId");
     if (discoveryId == -1) {
         RefreshDiscovery();
+        setInterval(CustomizePaginateBtn, 50);
     } else {
         $(".discovery-list").hide();
         $(".discovery-detail").show();

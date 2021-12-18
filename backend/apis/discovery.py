@@ -4,7 +4,7 @@
 
 from fastapi import Request, HTTPException
 import os, sys, time, math
-import json
+import json, requests
 import validators
 
 from app import app, config
@@ -21,8 +21,85 @@ async def apiDiscovery(request: Request):
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
-    cur.execute(f"SELECT discoveryId, title, description, publisherId, type, bookId, pin FROM Discovery")
-    d = cur.fetchall()
+
+    toplist = json.loads(requests.post(f"http://{config.search_server_ip}:{config.search_server_port}/top").text)["top"]
+    top = []
+
+    for t in toplist:
+        cur.execute(f"SELECT discoveryId, title, description, publisherId, type, bookId, pin FROM Discovery WHERE discoveryId = {t}")
+        d = cur.fetchall()
+        if len(d) == 0:
+            continue
+        dd = d[0]
+        if dd[4] == 1:
+            cur.execute(f"SELECT shareCode FROM BookShare WHERE bookId = {dd[5]} AND shareType = 1")
+            if len(cur.fetchall()) == 0:
+                continue
+        elif dd[4] == 2:
+            cur.execute(f"SELECT groupCode FROM GroupInfo WHERE groupId = {dd[5]}")
+            p = cur.fetchall()
+            if len(p) > 0:
+                if p[0][0] == '' or p[0][0] == '@pvtgroup':
+                    continue
+            else:
+                continue
+        
+        if checkBanned(dd[3]): # display nothing from banned user
+            continue
+
+        publisher = "Unknown User"
+        cur.execute(f"SELECT username FROM UserInfo WHERE userId = {dd[3]}")
+        t = cur.fetchall()
+        if len(t) != 0:
+            publisher = decode(t[0][0])
+            if publisher == "@deleted":
+                publisher = "Deleted Account"
+
+        # update views
+        cur.execute(f"SELECT click FROM Discovery WHERE discoveryId = {dd[0]}")
+        views = 0
+        t = cur.fetchall()
+        if len(t) > 0:
+            views = t[0][0]
+        
+        # get views and likes
+        cur.execute(f"SELECT COUNT(likes) FROM DiscoveryLike WHERE discoveryId = {dd[0]}")
+        likes = 0
+        t = cur.fetchall()
+        if len(t) > 0:
+            likes = t[0][0]
+
+        # get imports / members
+        imports = 0
+        if dd[4] == 1:
+            cur.execute(f"SELECT importCount FROM BookShare WHERE userId = {dd[3]} AND bookId = {dd[5]} AND shareType = 1")
+            t = cur.fetchall()
+            if len(t) > 0:
+                imports = t[0][0]
+        elif dd[4] == 2:
+            cur.execute(f"SELECT COUNT(*) FROM GroupMember WHERE groupId = {dd[5]}")
+            t = cur.fetchall()
+            if len(t) > 0:
+                imports = t[0][0]
+        
+        pinned = dd[6]
+        
+        cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {dd[3]}")
+        t = cur.fetchall()
+        if len(t) > 0:
+            publisher = f"<a href='/user?userId={dd[3]}'><span style='color:{t[0][1]}'>{publisher}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
+        else:
+            publisher = f"<a href='/user?userId={dd[3]}'><span>{publisher}</span></a>"
+
+        top.append({"discoveryId": dd[0], "title": decode(dd[1]), "description": decode(dd[2]), \
+            "publisher": publisher, "type": dd[4], "views": views, "likes": likes, "imports": imports, "pinned": pinned})
+
+    limit = form["search"]
+
+    d = json.loads(requests.post(f"http://{config.search_server_ip}:{config.search_server_port}/search", data = {"limit": limit}).text)["result"]
+    if len(d) == 0:
+        return {"success": True, "data": [], "total": 0, "toplist": top}
+
     dis = []
     for dd in d:
         if dd[4] == 1:
@@ -87,8 +164,16 @@ async def apiDiscovery(request: Request):
 
         dis.append({"discoveryId": dd[0], "title": decode(dd[1]), "description": decode(dd[2]), \
             "publisher": publisher, "type": dd[4], "views": views, "likes": likes, "imports": imports, "pinned": pinned})
+
+    page = int(form["page"])
+    pagelen = int(form["pagelen"])
     
-    return dis
+    if len(dis) <= (page - 1) * pagelen:
+        return {"success": True, "data": [], "total": (len(dis) - 1) // pagelen + 1, "toplist": top}
+    elif len(dis) <= page * pagelen:
+        return {"success": True, "data": dis[(page - 1) * pagelen :],"total": (len(dis) - 1) // pagelen + 1, "toplist": top}
+    else:
+        return {"success": True, "data": dis[(page - 1) * pagelen : page * pagelen], "total": (len(dis) - 1) // pagelen + 1, "toplist": top}
 
 @app.get("/api/discovery/{discoveryId:int}")
 @app.post("/api/discovery/{discoveryId:int}")

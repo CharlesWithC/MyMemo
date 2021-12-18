@@ -275,11 +275,16 @@ function UpdateNavUsername() {
             $("#navusername").html(r.username);
             $(".only-signed-in").show();
             localStorage.setItem("username", r.username);
+            if (window.location.pathname.indexOf("/login") != -1) {
+                window.location.href = "/";
+            }
         },
         error: function (r, textStatus, errorThrown) {
-            $("#navusername").html("<a href='/user/login'>Sign in</a>&nbsp;&nbsp;  ");
-            localStorage.setItem("username", "");
-            clearInterval(updnu_interval);
+            if (r.status == 401) {
+                $("#navusername").html("<a href='/user/login'>Sign in</a>&nbsp;&nbsp;  ");
+                localStorage.setItem("username", "");
+                clearInterval(updnu_interval);
+            }
         }
     });
 }

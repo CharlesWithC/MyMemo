@@ -34,12 +34,13 @@
                 $("#discoveryList").DataTable().destroy();
             $('#discoveryList').DataTable({
                 pagingType: "full_numbers",
-                iDisplayLength: 25,
+                iDisplayLength: 10,
                 aaSorting: [
                     [0, 'desc'],
                     [4, 'desc'],
                     [3, 'desc']
                 ],
+                "bSort": false,
                 "scrollX": true
             });
             if (localStorage.getItem("isAdmin") != "1") {
@@ -48,6 +49,8 @@
             $("#th-pin").before("<th width='0.2em'></th>")
             $("#th-pin").remove();
             MDTSB("discoveryList");
+            $("#discoveryList_length").remove();
+            $("#discoveryList_filter").remove();
 
             if ($("#questionList").DataTable != undefined)
                 $("#questionList").DataTable().destroy();
@@ -58,6 +61,12 @@
             MDTSB("questionList");
 
             PageInit();
+
+            $("#search-content").on('keypress', function (e) {
+                if (e.which == 13 || e.which == 13 && e.ctrlKey) {
+                    Search();
+                }
+            });
         });
     </script>
 </head>
@@ -81,12 +90,19 @@
     </div>
 
     <div id="content" class="container">
-        <h1 class="title">Discovery &nbsp;&nbsp;<button type="button"
-                class="btn btn-outline-secondary" onclick="RefreshDiscovery()" id="refresh-btn"><i
-                    class="fa fa-sync"></i></button></h1>
+        <h1 class="title">Discovery &nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary"
+                onclick="RefreshDiscovery()" id="refresh-btn"><i class="fa fa-sync"></i></button></h1>
 
         <div class="discovery-list">
-            <div id="dlist" class="subcontainer sub-div sub-left">
+            <div id="dlist" class="subcontainer sub-div">
+                <h2 style="float:left"><i class="fa fa-table"></i>&nbsp;&nbsp;Post List</h2>
+                <div class="input-group mb-3" style="float:right;max-width:15em;">
+                    <span class="input-group-text" id="basic-addon1">Search</span>
+                    <input type="text" class="form-control" id="search-content" aria-describedby="basic-addon1">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-primary" type="button" onclick="Search()">Go</button>
+                    </div>
+                </div>
                 <table class="table table-hover" id="discoveryList" style="text-align:center">
                     <thead>
                         <tr>
@@ -101,6 +117,7 @@
                     <tbody>
                     </tbody>
                 </table>
+                <p style="font-size:0.8em;text-align:right">There might be a up-to-30-second delay on data update.</p>
             </div>
             <div id="top-post" class="subcontainer sub-div sub-right" style="display:none">
                 <h2 id="top-post-h2">Top Post</h2>
@@ -134,7 +151,8 @@
                     <p>Share code: <span id="shareCode"></span></p>
                     <button type="button" class="btn btn-primary" onclick="ImportBook()">Import</button>
                     <br>
-                    <p style="font-size:0.8em">This will clone the book of this discovery post to your book database.</p>
+                    <p style="font-size:0.8em">This will clone the book of this discovery post to your book database.
+                    </p>
                 </div>
                 <div class="user-only group-only subcontainer sub-div" style="display:none">
                     <h4>Join <i class="fa fa-userfriends"></i></h4>
@@ -147,7 +165,8 @@
                     <button type="button" class="btn btn-primary" onclick="UpdateInformationShow()">Update Information
                         <i class="fa fa-edit"></i></button>
                     <br>
-                    <p style="font-size:0.8em">You can unpublish the post or unshare the book at book management page.</p>
+                    <p style="font-size:0.8em">You can unpublish the post or unshare the book at book management page.
+                    </p>
                 </div>
             </div>
         </div>
@@ -158,11 +177,12 @@
             <img class="icon" src="/img/icon.png" style="width:3em;height:3em">
         </div>
         <div style="float:left;margin:1em">
-            <p>Version: v5.5.10 <i class="fa fa-check-circle"></i></p>
+            <p>Version: v5.5.11 <i class="fa fa-check-circle"></i></p>
             <p>Copyright &copy; 2021 My Memo</p>
         </div>
         <div style="float:right;margin:1em">
-            <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo" target="_blank" rel="noopener noreferrer"><i class="fa fa-brands fa-github"></i>
+            <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo" target="_blank"
+                    rel="noopener noreferrer"><i class="fa fa-brands fa-github"></i>
                     GitHub</a></p>
             <p>Developed by <a href="www.charles14.xyz">Charles</a></p>
         </div>

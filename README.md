@@ -1,7 +1,7 @@
 # My Memo
 
 **A light weight memo website based on Python FastAPI + HTML5 Bootstrap.**  
-**Version: v5.5.10**  
+**Version: v5.5.11**  
 *The author has finished the development on this project. Only bug fixes will be applied and no more new functions will be added.*  
 *You are welcomed to contribute to this project by helping to do bug fixes and add new features. Pull requests will be reviewed at weekends.*  
 

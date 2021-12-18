@@ -959,11 +959,11 @@ async def apiUserEvents(request: Request):
         ret.append({"timestamp": dd[0], "msg": decode(dd[1])})
     
     if len(ret) <= (page - 1) * 20:
-        return {"notifications": [], "nextpage": -1}
+        return {"success": True, "notifications": [], "nextpage": -1}
     elif len(ret) <= page * 20:
-        return {"notifications": ret[(page - 1) * 20 + 1 :], "nextpage": -1}
+        return {"success": True, "notifications": ret[(page - 1) * 20 :], "nextpage": -1}
     else:
-        return {"notifications": ret[(page - 1) * 20 + 1 : page * 20 + 1], "nextpage": page + 1}
+        return {"success": True, "notifications": ret[(page - 1) * 20 : page * 20], "nextpage": page + 1}
 
 @app.post("/api/user/sessions")
 async def apiUserSessions(request: Request):
