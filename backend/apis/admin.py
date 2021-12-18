@@ -12,7 +12,7 @@ from app import app, config
 from db import newconn
 from functions import *
 import sessions
-from emailop import sendVerification, sendNormal
+from emailop import sendVerification
 
 ##########
 # Admin API
@@ -179,7 +179,7 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
         if sessions.CheckDeletionMark(uid):
             msg += "Account deactivated! and marked for deletion\n"
 
-        return {"success": True, "msg": f"{d[0]} (UID: {uid})\nEmail: {d[1]}\nInvitation Code: {d[2]}\nInviter: {inviter} (UID: {d[3]})\nQuestion Count: {cnt}\nAccount age: {age} day(s)\n{msg}"}
+        return {"success": True, "msg": f"{d[0]} (UID: {uid})\nEmail: {decode(d[1])}\nInvitation Code: {d[2]}\nInviter: {inviter} (UID: {d[3]})\nQuestion Count: {cnt}\nAccount age: {age} day(s)\n{msg}"}
     
     elif command[0] == "create_user":
         if len(command) != 4:
@@ -196,7 +196,7 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
             return {"success": False, "msg": "Username must not contain: spaces, ( ) [ ] { } < > ! @ ' \" / \\"}
     
         username = encode(username)
-        if validators.email(email) != True:
+        if validators.email(email) != True or "'" in email or '"' in email:
             return {"success": False, "msg": "Invalid email!"}
 
         cur.execute(f"SELECT username, email FROM UserInfo")
@@ -211,9 +211,9 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
         
         token = str(uuid.uuid4())
         background_tasks.add_task(sendVerification, email, decode(username), "Account activation", \
-            f"Welcome {decode(username)}! Please verify your email to activate your account!", "20 minutes", \
+            f"Welcome {decode(username)}! Please verify your email to activate your account!", "3 hours", \
                 "https://memo.charles14.xyz/user/activate?token="+token)
-        cur.execute(f"INSERT INTO UserPending VALUES ('{username}', '{email}', '{encode(password)}', {inviter}, '{token}', {int(time.time() + 1200)})")
+        cur.execute(f"INSERT INTO UserPending VALUES ('{username}', '{email}', '{encode(password)}', {inviter}, '{token}', {int(time.time() + 3600 * 3)})")
         conn.commit()
         
         return {"success": True, "msg": f"User registered but pending email verification!"}
@@ -570,7 +570,7 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
         uid = int(command[1])
         email = command[2]
 
-        if validators.email(email) != True or "'" in email:
+        if validators.email(email) != True or "'" in email or '"' in email:
             return {"success": False, "msg": "Invalid email!"}
         
         cur.execute(f"SELECT updateTS FROM EmailHistory WHERE userId = {uid} ORDER BY updateTS DESC LIMIT 1")

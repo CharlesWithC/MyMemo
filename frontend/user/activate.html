@@ -39,8 +39,7 @@
                 success: function (r) {
                     if (r.success == true) {
                         NotyNotification(r.msg, type = 'success');
-                        $("#title").html(r.msg);
-                        $("#msg").html("<br>You will be redirected to login page in 5 seconds...");
+                        $("#msg").html(r.msg + "<br><p>You will be redirected to login page in 5 seconds...</p>");
                         setTimeout(function () {
                             window.location.href='/user/login';
                         }, 5000);
@@ -72,10 +71,10 @@
         </div>
     </div>
 
-    <div id="content" class="container">
-        <div id="home" class="center">
-            <h1 id="title">Activating your account</h1>
-            <h2 id="msg">Please wait a few seconds... <i class="fa fa-spinner fa-spin"></i></h2>
+    <div id="content" class="container" style="height:100%;width:100%;">
+        <div class="center subcontainer sub-div">
+            <h1 id="title" class="big-title">Activate your account</h1>
+            <p id="msg">Please wait a few seconds... <i class="fa fa-spinner fa-spin"></i></p>
         </div>
     </div>
 
@@ -84,11 +83,11 @@
             <img class="icon" src="/img/icon.png" style="width:3em;height:3em">
         </div>
         <div style="float:left;margin:1em">
-            <p>Version: v5.5.7 <i class="fa fa-check-circle"></i></p>
+            <p>Version: v5.5.8 <i class="fa fa-check-circle"></i></p>
             <p>Copyright &copy; 2021 My Memo</p>
         </div>
         <div style="float:right;margin:1em">
-            <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-brands fa-github"></i>
+            <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo" target="_blank" rel="noopener noreferrer"><i class="fa fa-brands fa-github"></i>
                     GitHub</a></p>
             <p>Developed by <a href="www.charles14.xyz">Charles</a></p>
         </div>

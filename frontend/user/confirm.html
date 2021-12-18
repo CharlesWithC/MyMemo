@@ -25,25 +25,59 @@
     <link rel="icon" href="/img/icon.png">
 
     <script>
-        var token = getUrlParameter("token");
+        var puserId = localStorage.getItem("puserId");
+        var ptoken = localStorage.getItem("ptoken");
 
-        $(document).ready(function () {
+        if (puserId == null || ptoken == null) {
+            window.location.href = "/user/login";
+        }
+
+        function Update(resend) {
             $.ajax({
-                url: "/api/user/delete",
+                url: "/api/user/pending/updateInfo",
                 method: 'POST',
                 async: true,
                 dataType: "json",
                 data: {
-                    token: token
+                    puserId: puserId,
+                    ptoken: ptoken,
+                    username: $("#update-username").val(),
+                    email: $("#update-email").val(),
+                    resend: resend
                 },
                 success: function (r) {
                     if (r.success == true) {
                         NotyNotification(r.msg);
                         $("#msg").html(r.msg);
-                        localStorage.clear();
                     } else {
                         NotyNotification(r.msg, type = 'error');
                         $("#msg").html(r.msg);
+                    }
+                }
+            });
+
+        }
+        $(document).ready(function () {
+            $.ajax({
+                url: "/api/user/pending/getInfo",
+                method: 'POST',
+                async: true,
+                dataType: "json",
+                data: {
+                    puserId: puserId,
+                    ptoken: ptoken
+                },
+                success: function (r) {
+                    if (r.success == true) {
+                        username = r.username;
+                        email = r.email;
+                        $("#update-username").val(username);
+                        $("#update-email").val(email);
+                    } else {
+                        NotyNotification(r.msg, type = 'error');
+                        setTimeout(function () {
+                            window.location.href = "/user/login";
+                        }, 3000);
                     }
                 }
             });
@@ -69,10 +103,27 @@
         </div>
     </div>
 
-    <div id="content" class="container" style="height:100%;width:100%;">
+    <div id="content" class="container" style="height:100%;width:100%">
         <div class="center subcontainer sub-div">
-            <h1 id="title" class="big-title">Delete your account</h1>
-            <p id="msg">Validating token...</p>
+            <h1 class="big-title" class="big-title">Confirm your account</h1>
+            <div class="reset" style="margin:auto;margin-top:5em;max-width:20em;text-align:left">
+                <p>Username: </p>
+                <div class="input-group mb-3" id="reset-box" style="max-width:20em">
+                    <input type="text" class="form-control" id="update-username" aria-describedby="basic-addon1">
+                </div>
+                <p>Email: </p>
+                <div class="input-group mb-3" id="reset-box" style="max-width:20em">
+                    <input type="text" class="form-control" id="update-email" aria-describedby="basic-addon1">
+                </div>
+                <p style="font-size:0.8em">You can change your username / email here.</p>
+                <p style="font-size:0.8em">You must activate your account before logging in, press "Resend" to get a new
+                    activation email.</p>
+                <button style="width:6em;float:left" id="submit" type="button" class="btn btn-primary"
+                    onclick="Update(0)">Update</button>
+                <button style="width:6em;float:right" id="submit" type="button" class="btn btn-primary"
+                    onclick="Update(1)">Resend</button>
+            </div>
+            <p id="msg" style="margin:auto;margin-top:5em;max-width:20em;text-align:center;margin-top:4em"></p>
         </div>
     </div>
 

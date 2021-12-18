@@ -27,6 +27,9 @@ async def apiCreateBook(request: Request):
     token = form["token"]
     if not validateToken(userId, token):
         raise HTTPException(status_code=401)
+
+    if OPLimit(request.headers['CF-Connecting-Ip'], "create_book", maxop = 10):
+        return {"success": False, "msg": "Too many requests! Try again later!"}
     
     name = str(form["name"])
 
@@ -135,7 +138,7 @@ async def apiCreateBook(request: Request):
                 cur.execute(f"INSERT INTO ChallengeData VALUES ({userId},{questionId}, 0, -1)")
 
                 updateQuestionStatus(userId, questionId, -1) # -1 is imported question
-                updateQuestionStatus(userId, questionId, 1) # 1 is default status
+                #updateQuestionStatus(userId, questionId, 1) # 1 is default status
 
                 questionId += 1
             
@@ -253,7 +256,7 @@ async def apiCreateBook(request: Request):
                 cur.execute(f"INSERT INTO GroupSync VALUES ({groupId}, {userId}, {questionId}, {tt[2]})")
 
                 updateQuestionStatus(userId, questionId, -1) # -1 is imported question
-                updateQuestionStatus(userId, questionId, 1) # 1 is default status
+                # updateQuestionStatus(userId, questionId, 1) # 1 is default status
 
                 questionId += 1
             

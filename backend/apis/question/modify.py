@@ -82,7 +82,7 @@ async def apiAddQuestion(request: Request):
     cur.execute(f"INSERT INTO QuestionList VALUES ({userId},{questionId},'{question}','{answer}',1, 0)")
     cur.execute(f"INSERT INTO ChallengeData VALUES ({userId},{questionId},0,-1)")
     updateQuestionStatus(userId, questionId, -2) # -2 is website added question
-    updateQuestionStatus(userId, questionId, 1)
+    # updateQuestionStatus(userId, questionId, 1)
 
     if bookId != -1:
         cur.execute(f"SELECT bookId FROM Book WHERE userId = {userId} AND bookId = {bookId}")
@@ -129,7 +129,7 @@ async def apiAddQuestion(request: Request):
             cur.execute(f"INSERT INTO ChallengeData VALUES ({uid},{wid},0,-1)")
             cur.execute(f"INSERT INTO GroupSync VALUES ({groupId}, {uid}, {wid}, {gquestionId})")
             updateQuestionStatus(uid, wid, -3) # -3 is group question
-            updateQuestionStatus(uid, wid, 1) # 1 is default status
+            # updateQuestionStatus(uid, wid, 1) # 1 is default status
 
     conn.commit()
 

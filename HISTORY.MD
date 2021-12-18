@@ -1,5 +1,13 @@
 # Update History
 
+## v5.5.8  
+
+*Date: 2021/12/18*  
+Feature Updates:  
+1.Updated email UI  
+2.Updated user registering mechanism and allowed user to change username & email for pending users  
+3.Added operation limiter  
+
 ## v5.5.7
 
 *Date: 2021/12/18*  

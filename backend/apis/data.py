@@ -147,17 +147,16 @@ def importWork(userId, bookId, updateType, checkDuplicate, newlist):
                     
                 continue
 
-        status = -1
         questionId += 1
-        updateQuestionStatus(userId, questionId, status)
+        updateQuestionStatus(userId, questionId, -1)
 
         status = 1
         if list(newlist.keys()).count("Status") == 1 and newlist["Status"][i] in ["Default", "Tagged", "Deleted"]:
             status = StatusTextToStatus[newlist["Status"][i]]
             updateQuestionStatus(userId, questionId, status)
-        else:
-            status = 1
-            updateQuestionStatus(userId, questionId, status)
+        # else:
+        #     status = 1
+        #     updateQuestionStatus(userId, questionId, status)
             
         if len(encode(question)) >= 40960:
             return "Question too long:" + question
@@ -208,7 +207,7 @@ def importWork(userId, bookId, updateType, checkDuplicate, newlist):
                     cur.execute(f"INSERT INTO ChallengeData VALUES ({uid},{wid},0,-1)")
                     cur.execute(f"INSERT INTO GroupSync VALUES ({groupId}, {uid}, {wid}, {gquestionId})")
                     updateQuestionStatus(uid, wid, -3) # -3 is group question
-                    updateQuestionStatus(uid, wid, 1) # 1 is default status
+                    # updateQuestionStatus(uid, wid, 1) # 1 is default status
 
     conn.commit()
     threads -= 1

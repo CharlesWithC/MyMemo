@@ -71,7 +71,7 @@ elif config["database"] == "mysql":
     conn = MySQLdb.connect(host = host, user = user, passwd = passwd, db = dbname)
     cur = conn.cursor()
     cur.execute(f"SHOW TABLES")
-    if len(cur.fetchall()) != 33:
+    if len(cur.fetchall()) != 35:
         doinit = True
 
 else:
@@ -114,12 +114,16 @@ if doinit:
     ########## NOTE: Tables related to users
 
     cur.execute(f"CREATE TABLE UserInfo (userId INT, username VARCHAR(256), bio TEXT, email VARCHAR(128), password VARCHAR(256), inviter INT, inviteCode CHAR(8), goal INT)")
-    # encode username
-    # Allow only inviting registration mode to prevent abuse
-    cur.execute(f"CREATE TABLE UserPending (username VARCHAR(256), email VARCHAR(128), password VARCHAR(256), inviter INT, token CHAR(64), expire INT)")
+    # encode username, email
+
+    cur.execute(f"CREATE TABLE UserPending (puserId INT, username VARCHAR(256), email VARCHAR(128), password VARCHAR(256), inviter INT, token CHAR(64), expire INT)")
+    # puserId means pending user id
+    cur.execute(f"CREATE TABLE UserPendingToken (puserId INT, token CHAR(64))")
+
     cur.execute(f"CREATE TABLE EmailVerification (userId INT, operation VARCHAR(32), token VARCHAR(60), expire INT)")
     cur.execute(f"CREATE TABLE PendingEmailChange (userId INT, email VARCHAR(128), token VARCHAR(60), expire INT)")
     cur.execute(f"CREATE TABLE EmailHistory (userId INT, email VARCHAR(128), updateTS INT)")
+
     cur.execute(f"CREATE TABLE UserNameTag (userId INT, tag VARCHAR(32), tagtype VARCHAR(32))")
     # tag: encoded text, like 'Owner'
     # tagtype: tag color
@@ -236,10 +240,11 @@ if doinit:
     ########## NOTE: Tables related to system data
 
     cur.execute(f"CREATE TABLE IDInfo (type INT, userId INT, nextId INT)")
+    cur.execute(f"INSERT INTO IDInfo VALUES (0, -1, 1)")
     cur.execute(f"INSERT INTO IDInfo VALUES (1, -1, 1)")
     cur.execute(f"INSERT INTO IDInfo VALUES (4, -1, 1)")
     cur.execute(f"INSERT INTO IDInfo VALUES (6, -1, 1)")
-    # To store next id of userId 1 / questionId 2 / bookId 3 / groupId 4 / groupQuestionId 5 / discoveryPostId 6
+    # To store next id of puserId 0 / userId 1 / questionId 2 / bookId 3 / groupId 4 / groupQuestionId 5 / discoveryPostId 6
 
     ########## NOTE: Temporary related to users
 
@@ -248,6 +253,7 @@ if doinit:
     # Active user login data
     # Remove data when expired / logged out
     # Token = 9-digit-userId + '-' + uuid.uuid(4)
+    cur.execute(f"CREATE TABLE OPLimit (ip VARCHAR(128), endpoint VARCHAR(128), count INT, last INT)")
 
     cur.execute(f"CREATE TABLE PendingAccountDeletion (userId INT, deletionTime INT)")
 

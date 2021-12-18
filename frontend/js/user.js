@@ -123,7 +123,7 @@ function UpdateUserInfo() {
         error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 if ((window.location).toString().indexOf("/login") == -1) {
-                    window.location.href="/user/login";
+                    window.location.href = "/user/login";
                 }
                 $("#signout-btn").hide();
             } else if (r.status == 503) {
@@ -366,7 +366,7 @@ function Login() {
             password: password
         },
         success: function (r) {
-            if (r.success == true) {
+            if (r.success == true && r.active == true) {
                 localStorage.setItem("userId", r.userId);
                 localStorage.setItem("token", r.token);
 
@@ -433,9 +433,14 @@ function Login() {
                         $("#input-username").val("");
                         $("#input-password").val("");
 
-                        window.location.href="/user";
+                        window.location.href = "/user";
                     }
                 });
+            } else if (r.success == true && r.active == false) {
+                localStorage.setItem("puserId", r.puserId);
+                localStorage.setItem("ptoken", r.ptoken);
+
+                window.location.href = "/user/confirm";
             } else {
                 NotyNotification(r.msg, type = 'error');
             }
@@ -474,8 +479,8 @@ function Register() {
         },
         success: function (r) {
             if (r.success == true) {
-                NotyNotification(r.msg);
-                $(".register").fadeOut();
+                NotyNotification(r.msg, type = 'success', timeout = 15000);
+                $(".register").hide();
                 $(".login").fadeIn();
                 $("#register-password").val("");
             } else {
@@ -647,7 +652,7 @@ function ChangePassword() {
                 localStorage.removeItem("token");
 
                 setTimeout(function () {
-                    window.location.href="/user/login";
+                    window.location.href = "/user/login";
                 }, 1000);
             } else {
                 NotyNotification(r.msg, type = 'error');
@@ -999,7 +1004,7 @@ $(document).ready(function () {
                     if (r.username == "@deleted") {
                         NotyNotification("That's a deleted user!", type = 'error');
                         setTimeout(function () {
-                            window.location.href="/user";
+                            window.location.href = "/user";
                         }, 1000);
                         return;
                     } else {
@@ -1025,7 +1030,7 @@ $(document).ready(function () {
                 } else {
                     NotyNotification(r.msg, type = 'error');
                     setTimeout(function () {
-                        window.location.href="/user";
+                        window.location.href = "/user";
                     }, 1000);
                 }
             },
@@ -1049,7 +1054,7 @@ $(document).ready(function () {
         if (localStorage.getItem("userId") == null && uid == -1) {
             $("#signout-btn").hide();
             if ((window.location).toString().indexOf("/login") == -1) {
-                window.location.href="/user/login";
+                window.location.href = "/user/login";
             }
         }
     }

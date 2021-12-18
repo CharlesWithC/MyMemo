@@ -117,7 +117,7 @@ async def apiAddToBook(request: Request):
                     cur.execute(f"INSERT INTO ChallengeData VALUES ({uid},{wid},0,-1)")
                     cur.execute(f"INSERT INTO GroupSync VALUES ({groupId}, {uid}, {wid}, {gquestionId})")
                     updateQuestionStatus(uid, wid, -3) # -3 is group question
-                    updateQuestionStatus(uid, wid, 1) # 1 is default status
+                    # updateQuestionStatus(uid, wid, 1) # 1 is default status
 
     conn.commit()
 

@@ -65,11 +65,10 @@
                 success: function (r) {
                     if (r.success == true) {
                         $(".reset").show();
-                        $("#validate-title").hide();
-                        $(".title").show();
+                        $("#validating").hide();
                     } else {
                         NotyNotification(r.msg, type = 'error');
-                        $("#validate-title").html(r.msg);
+                        $("#validate").html(r.msg);
                     }
                 }
             });
@@ -100,19 +99,19 @@
         </div>
     </div>
 
-    <div id="content" class="container">
-        <div class="center">
-            <h1 class="big-title" id="validate-title">Validating token...</h1>
-            <h1 class="big-title"display:none;">Password Recovery</h1>
-            <div class="reset" style="display:none;margin:auto;margin-top:5em;max-width:15em;text-align:left">
+    <div id="content" class="container" style="height:100%;width:100%">
+        <div class="center subcontainer sub-div">
+            <h1 class="big-title" class="big-title">Password Recovery</h1>
+            <p id="validating">Validating token... <i class="fa fa-spinner fa-spin"></i></p>
+            <div class="reset" style="display:none;margin:auto;margin-top:5em;max-width:20em;text-align:left">
                 <p>Enter your new password:</p>
-                <div class="input-group mb-3" id="reset-box" style="max-width:15em">
+                <div class="input-group mb-3" id="reset-box" style="max-width:20em">
                     <input type="password" class="form-control" id="update-password" aria-describedby="basic-addon1">
                 </div>
                 <button style="width:6em;float:right" id="submit" type="button" class="btn btn-primary"
                     onclick="UpdatePassword()">Reset</button>
             </div>
-            <p id="msg" style="margin:auto;margin-top:5em;max-width:15em;text-align:center;margin-top:4em"></p>
+            <p id="msg" style="margin:auto;margin-top:5em;max-width:20em;text-align:center;margin-top:4em"></p>
         </div>
     </div>
 
@@ -121,11 +120,11 @@
             <img class="icon" src="/img/icon.png" style="width:3em;height:3em">
         </div>
         <div style="float:left;margin:1em">
-            <p>Version: v5.5.7 <i class="fa fa-check-circle"></i></p>
+            <p>Version: v5.5.8 <i class="fa fa-check-circle"></i></p>
             <p>Copyright &copy; 2021 My Memo</p>
         </div>
         <div style="float:right;margin:1em">
-            <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-brands fa-github"></i>
+            <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo" target="_blank" rel="noopener noreferrer"><i class="fa fa-brands fa-github"></i>
                     GitHub</a></p>
             <p>Developed by <a href="www.charles14.xyz">Charles</a></p>
         </div>

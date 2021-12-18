@@ -303,3 +303,36 @@ def usernameToUid(username):
         return t[0][0]
     else:
         return 0
+
+# Allow [ip] to do at most [maxop] requests on [endpoint] within [timeout] seconds
+# Note that userid can also represent ip
+def OPLimit(ip, endpoint, maxop = 5, timeout = 300):
+    conn = newconn()
+    cur = conn.cursor()
+
+    ip = str(ip)
+
+    ip = encode(ip)
+    cur.execute(f"SELECT count, last FROM OPLimit WHERE ip = '{ip}' AND endpoint = '{endpoint}'")
+    t = cur.fetchall()
+    if len(t) == 0:
+        cur.execute(f"INSERT INTO OPLimit VALUES ('{ip}', '{endpoint}', 1, {int(time.time())})")
+        conn.commit()
+        return False
+
+    count = t[0][0]
+    last = t[0][1]
+    if last < time.time() - timeout:
+        cur.execute(f"DELETE FROM OPLimit WHERE ip = '{ip}' AND endpoint = '{endpoint}'")
+        cur.execute(f"INSERT INTO OPLimit VALUES ('{ip}', '{endpoint}', 1, {int(time.time())})")
+        conn.commit()
+        return False
+    
+    if count == maxop:
+        return True
+    
+    cur.execute(f"UPDATE OPLimit SET count = count + 1 WHERE ip = '{ip}' AND endpoint = '{endpoint}'")
+    cur.execute(f"UPDATE OPLimit SET last = '{int(time.time())}' WHERE ip = '{ip}' AND endpoint = '{endpoint}'")
+    conn.commit()
+
+    return False

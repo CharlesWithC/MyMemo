@@ -47,7 +47,7 @@ async def apiRegister(request: Request, background_tasks: BackgroundTasks):
             or "!" in username or "@" in username or "'" in username or '"' in username or "/" in username or "\\" in username :
         return {"success": False, "msg": "Username must not contain: spaces, ( ) [ ] { } < > ! @ ' \" / \\"}
     username = encode(username)
-    if validators.email(email) != True:
+    if validators.email(email) != True or "'" in email or '"' in email:
         return {"success": False, "msg": "Invalid email!"}
     if invitationCode != "" and not invitationCode.isalnum():
         return {"success": False, "msg": "Invitation code can only contain alphabets and digits!"}
@@ -102,15 +102,31 @@ async def apiRegister(request: Request, background_tasks: BackgroundTasks):
     if len(email) >= 128:
         return {"success": False, "msg": "Email too long!"}
 
+    if OPLimit(request.headers['CF-Connecting-Ip'], "register", maxop = 1):
+        return {"success": False, "msg": "Too many requests! You can only register one account with one ip each 5 minutes!"}
+
     token = str(uuid.uuid4())
     background_tasks.add_task(sendVerification, email, decode(username), "Account activation", \
-        f"Welcome {decode(username)}! Please verify your email to activate your account!", "20 minutes", \
+        f"Welcome {decode(username)}! Please verify your email to activate your account!", "3 hours", \
             "https://memo.charles14.xyz/user/activate?token="+token)
-    cur.execute(f"INSERT INTO UserPending VALUES ('{username}', '{email}', '{encode(password)}', {inviter}, '{token}', {int(time.time() + 1200)})")
     
+    puserId = 1
+    try:
+        cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 0")
+        t = cur.fetchall()
+        if len(t) > 0:
+            puserId = t[0][0]
+        cur.execute(f"UPDATE IDInfo SET nextId = {puserId + 1} WHERE type = 0")
+
+        cur.execute(f"INSERT INTO UserPending VALUES ({puserId}, '{username}', '{email}', '{encode(password)}', {inviter}, '{token}', {int(time.time() + 3600 * 3)})")
+        conn.commit()
+    except:
+        sessions.errcnt += 1
+        return {"success": False, "msg": "Unknown error occured. Try again later..."}
+
     return {"success": True, "msg": "Account registered, but pending activation! \
         Check your email and open the verification link to activate your account! \
-        The link expires in 20 minutes. After that your account will be removed and you need to register again!"}
+        The link expires in 3 hours. After that your account will be removed and you need to register again!"}
 
 @app.post("/api/user/activate")
 async def apiActivate(request: Request):
@@ -168,6 +184,107 @@ async def apiActivate(request: Request):
 
     return {"success": True, "msg": "Account activated!"}
 
+@app.post("/api/user/pending/getInfo")
+async def apiUserPendingGetInfo(request: Request):
+    form = await request.form()
+    conn = newconn()
+    cur = conn.cursor()
+    puserId = int(form["puserId"])
+    ptoken = form["ptoken"]
+
+    if not ptoken.replace("-","").isalnum():
+        return {"success": False, "msg": "Invalid token!"}
+    
+    cur.execute(f"SELECT puserId FROM UserPendingToken WHERE puserId = {puserId} AND token = '{ptoken}'")
+    t = cur.fetchall()
+    if len(t) == 0:
+        return {"success": False, "msg": "Session expired!"}
+
+    cur.execute(f"SELECT username, email FROM UserPending WHERE puserId = {puserId}")
+    t = cur.fetchall()
+    if len(t) == 0:
+        return {"success": False, "msg": "Invalid token!"}
+    username = decode(t[0][0])
+    email = t[0][1]
+
+    return {"success": True, "username": username, "email": email}
+
+@app.post("/api/user/pending/updateInfo")
+async def apiUserPendingUpdateInfo(request: Request, background_tasks: BackgroundTasks):
+    form = await request.form()
+    conn = newconn()
+    cur = conn.cursor()
+    puserId = int(form["puserId"])
+    ptoken = form["ptoken"]
+
+    if not ptoken.replace("-","").isalnum():
+        return {"success": False, "msg": "Invalid token!"}
+    
+    cur.execute(f"SELECT puserId FROM UserPendingToken WHERE puserId = {puserId} AND token = '{ptoken}'")
+    t = cur.fetchall()
+    if len(t) == 0:
+        return {"success": False, "msg": "Session expired!"}
+
+    username = form["username"]
+    email = form["email"]
+
+    if username is None or email is None\
+        or username.replace(" ","") == "" or email.replace(" ","") == "":
+        return {"success": False, "msg": "Username and email must be filled!"}
+    if " " in username or "(" in username or ")" in username or "[" in username or "]" in username or "{" in username or "}" in username \
+        or "<" in username or ">" in username \
+            or "!" in username or "@" in username or "'" in username or '"' in username or "/" in username or "\\" in username :
+        return {"success": False, "msg": "Username must not contain: spaces, ( ) [ ] { } < > ! @ ' \" / \\"}
+    username = encode(username)
+    if validators.email(email) != True or "'" in email or '"' in email:
+        return {"success": False, "msg": "Invalid email!"}
+
+    cur.execute(f"SELECT username, email FROM UserPending WHERE puserId != {puserId}")
+    t = cur.fetchall()
+    for tt in t:
+        if decode(tt[0]).lower() == decode(username).lower():
+            return {"success": False, "msg": "Username has been occupied!"}
+        if tt[1].lower() == email.lower():
+            return {"success": False, "msg": "Email has already been registered!"}
+
+    cur.execute(f"DELETE FROM PendingEmailChange WHERE expire < {int(time.time())}")
+    conn.commit()
+    cur.execute(f"SELECT email FROM PendingEmailChange")
+    t = cur.fetchall()
+    for tt in t:
+        if tt[0].lower() == email.lower():
+            return {"success": False, "msg": "Email has already been registered!"}
+        elif tt[0].startswith("!") and tt[0].lower()[1:] == email.lower():
+            return {"success": False, "msg": "The previous owner of this email has updated their email within 7 days so this email address is reserved for 7 days!"}
+
+    cur.execute(f"SELECT username, email FROM UserInfo")
+    t = cur.fetchall()
+    for tt in t:
+        if decode(tt[0]).lower() == decode(username).lower():
+            return {"success": False, "msg": "Username has been occupied!"}
+        if tt[1].lower() == email.lower():
+            return {"success": False, "msg": "Email has already been registered!"}
+
+    cur.execute(f"UPDATE UserPending SET username = '{username}' WHERE puserId = {puserId}")
+    cur.execute(f"UPDATE UserPending SET email = '{email}' WHERE puserId = {puserId}")
+    conn.commit()
+
+    resend = int(form["resend"])
+
+    if resend:
+        if OPLimit(puserId, "resend_activation", maxop = 2):
+            return {"success": False, "msg": "Too many requests! Try again later!"}
+
+        cur.execute(f"SELECT token FROM UserPending WHERE puserId = {puserId}")
+        t = cur.fetchall()
+        token = t[0][0]
+        background_tasks.add_task(sendVerification, email, decode(username), "Account activation", \
+            f"Welcome {decode(username)}! Please verify your email to activate your account!", "3 hours", \
+                "https://memo.charles14.xyz/user/activate?token="+token)
+        return {"success": True, "msg": "A new activation email has been sent! Please check your inbox and open the link to activate your account!"}
+
+    return {"success": True, "msg": "User information updated!"}
+
 @app.post("/api/user/login")
 async def apiLogin(request: Request):
     form = await request.form()
@@ -176,10 +293,37 @@ async def apiLogin(request: Request):
     username = encode(form["username"])
     password = form["password"]
 
-    cur.execute(f"SELECT token, expire FROM UserPending WHERE username = '{username}'")
+    cur.execute(f"DELETE FROM UserPending WHERE expire <= {int(time.time())}")
+    conn.commit()
+
+    ip = encode(request.headers['CF-Connecting-Ip'])
+
+    cur.execute(f"SELECT puserId, password FROM UserPending WHERE username = '{username}'")
     t = cur.fetchall()
     if len(t) > 0:
-        return {"success": False, "msg": "Please verify your email to activate your account!"}
+        puserId = t[0][0]
+        
+        # use negative userId for password trial count
+        if sessions.getPasswordTrialCount(-puserId, ip)[0] >= 5 and int(time.time()) - sessions.getPasswordTrialCount(-puserId, ip)[1] <= 600:
+            return {"success": False, "msg": "Too many attempts! Try again later..."}
+
+        if not checkpwd(password, decode(t[0][1])):
+            if sessions.getPasswordTrialCount(-puserId, ip)[0] >= 5:
+                sessions.updatePasswordTrialCount(-puserId, 3, time.time(), ip)
+            else:
+                sessions.updatePasswordTrialCount(-puserId, sessions.getPasswordTrialCount(-puserId, ip)[0] + 1, time.time(), ip)
+                
+            return {"success": False, "msg": "Incorrect username or password!"}
+
+        sessions.updatePasswordTrialCount(-puserId, 0, 0, ip)
+
+        ptoken = b62encode(int(time.time())) + "-" + str(uuid.uuid4())
+        loginTime = int(time.time())
+        expireTime = loginTime + 1800 # 30 minutes
+        cur.execute(f"INSERT INTO UserPendingToken VALUES ({puserId}, '{ptoken}')")
+        conn.commit()
+
+        return {"success": True, "active": False, "puserId": puserId, "ptoken": ptoken}
     
     d = [-1]
     try:
@@ -256,7 +400,7 @@ async def apiLogin(request: Request):
     cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'login', {int(time.time())}, '{encode(f'New login from {ip}')}')")
     conn.commit()
 
-    return {"success": True, "userId": userId, "token": token, "isAdmin": isAdmin}
+    return {"success": True, "active": True, "userId": userId, "token": token, "isAdmin": isAdmin}
 
 @app.post("/api/user/logout")
 async def apiLogout(request: Request):
@@ -302,14 +446,17 @@ async def apiRequestResetPassword(request: Request, background_tasks: Background
         if len(t) > 0:
             return {"success": True, "msg": "An email containing password reset link will be sent if there is an user registered with this email! Check your spam folder if you didn't receive it."}
 
-    if validators.email(email) == True and not "'" in email:
+    if validators.email(email) == True:
         cur.execute(f"SELECT userId, username FROM UserInfo WHERE email = '{email}'")
         d = cur.fetchall()
         if len(d) != 0:
             userId = d[0][0]
             username = d[0][1]
+
+            if OPLimit(userId, "reset_password", maxop = 1):
+                return {"success": False, "msg": "Too many requests! Try again later!"}
             
-            token = str(userId).zfill(9) + "-" + str(uuid.uuid4())
+            token = b62encode(int(time.time())) + "-" + str(uuid.uuid4())
             background_tasks.add_task(sendVerification, email, decode(username), "Password recovery", \
                 f"You are recovering your password. Open the link below to continue!<br>If you didn't request that, simply ignore this email and your account will be safe.", "10 minutes", \
                     "https://memo.charles14.xyz/user/reset?token="+token)
@@ -394,7 +541,10 @@ async def apiRequestDeleteAccount(request: Request, background_tasks: Background
         username = d[0][0]
         email = d[0][1]
         
-        token = str(userId).zfill(9) + "-" + str(uuid.uuid4())
+        if OPLimit(userId, "delete_account", maxop = 1):
+            return {"success": False, "msg": "Too many requests! Try again later!"}
+            
+        token = b62encode(int(time.time())) + "-" + str(uuid.uuid4())
         background_tasks.add_task(sendVerification, email, decode(username), "Account deletion", \
             f"It's sad to see you leave, open the link below to continue deleting your account.<br>\n\
                 Your account will be marked for deletion and it will be deleted after 14 days.<br>\n\
@@ -838,6 +988,9 @@ async def apiUpdateInfo(request: Request, background_tasks: BackgroundTasks):
     token = form["token"]
     if not validateToken(userId, token):
         raise HTTPException(status_code=401)
+
+    if OPLimit(userId, "update_info"):
+        return {"success": False, "msg": "Too many requests! Try again later!"}    
     
     username = form["username"]
     email = form["email"]
@@ -851,7 +1004,7 @@ async def apiUpdateInfo(request: Request, background_tasks: BackgroundTasks):
             or "!" in username or "@" in username or "'" in username or '"' in username or "/" in username or "\\" in username :
         return {"success": False, "msg": "Username must not contain: spaces, ( ) [ ] { } < > ! @ ' \" / \\"}
     username = encode(username)
-    if validators.email(email) != True:
+    if validators.email(email) != True or "'" in email or '"' in email:
         return {"success": False, "msg": "Invalid email!"}
     bio = encode(bio)
     
@@ -862,7 +1015,7 @@ async def apiUpdateInfo(request: Request, background_tasks: BackgroundTasks):
             continue
         if decode(tt[0]).lower() == decode(username).lower():
             return {"success": False, "msg": "Username has been occupied!"}
-        if tt[1].lower() == email.lower():
+        if decode(tt[1]).lower() == email.lower():
             return {"success": False, "msg": "Email has already been registered!"}
     
     if len(username) >= 256:
@@ -879,7 +1032,7 @@ async def apiUpdateInfo(request: Request, background_tasks: BackgroundTasks):
     cur.execute(f"SELECT email FROM UserInfo WHERE userId = {userId}")
     t = cur.fetchall()
     if len(t) > 0 and t[0][0].lower() != email.lower():
-        token = str(userId).zfill(9) + "-" + str(uuid.uuid4())
+        token = b62encode(int(time.time())) + "-" + str(uuid.uuid4())
         background_tasks.add_task(sendVerification, email, decode(username), "Email update verification", \
             f"You are changing your email address to {email}. Please open the link to verify this new address.", "10 minutes", \
                 "https://memo.charles14.xyz/user/verify?type=changeemail&token="+token)
@@ -933,7 +1086,7 @@ async def apiChangeEmailVerify(request: Request, background_tasks: BackgroundTas
         username = decode(t[0][0])
         oldEmail = t[0][1]
         if not revert:
-            newtoken = str(userId).zfill(9) + "-" + str(uuid.uuid4())
+            newtoken = b62encode(int(time.time())) + "-" + str(uuid.uuid4())
             background_tasks.add_task(sendNormal, oldEmail, username, "Email updated", f"Your email has been updated to {newEmail}.<br>\n\
                 If you didn't do this, open the link below to change it back, the link is valid for 7 days.<br>\n\
                     <a href='https://memo.charles14.xyz/user/verify?token="+newtoken+"'>https://memo.charles14.xyz/user/verify?token="+newtoken+"</a>")

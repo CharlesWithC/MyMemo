@@ -5,6 +5,7 @@
 import os, time, uuid
 from app import app, config
 from db import newconn
+from functions import b62encode
 
 # Unexpected errors often happen
 # So automatically restart the program when there are 5 errors
@@ -73,9 +74,9 @@ def login(userId, ua, ip):
     try:
         conn = newconn()
         cur = conn.cursor()
-        token = str(userId).zfill(9) + "-" + str(uuid.uuid4())
+        token = b62encode(int(time.time())) + "-" + str(uuid.uuid4())
         loginTime = int(time.time())
-        expireTime = loginTime + 21600 # 6 hours
+        expireTime = loginTime + 3 * 86400 # 3 days
 
         cur.execute(f"INSERT INTO ActiveUserLogin VALUES ({userId}, '{token}', {loginTime}, {expireTime}, '{ua}', '{ip}')")
         conn.commit()
