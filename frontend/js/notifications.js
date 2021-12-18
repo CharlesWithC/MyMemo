@@ -1,9 +1,6 @@
-var notifications = [];
-var cur = 0;
+var page = 1;
 
 function PageInit() {
-    $("#refresh-btn-noti").html('<i class="fa fa-sync fa-spin"></i>');
-    $(".notification").remove();
     $.ajax({
         url: '/api/user/events',
         method: 'POST',
@@ -11,21 +8,21 @@ function PageInit() {
         dataType: "json",
         data: {
             userId: localStorage.getItem("userId"),
-            token: localStorage.getItem("token")
+            token: localStorage.getItem("token"),
+            page: 1
         },
         success: function (r) {
-            notifications = r;
-            cur = Math.min(20, notifications.length);
-            for (var i = 0; i < cur; i++) {
+            notifications = r.notifications;
+            for (var i = 0; i < notifications.length; i++) {
                 var time = new Date(parseInt(notifications[i].timestamp) * 1000);
-                $("#content").append("<div id="+i+" class='notification subcontainer sub-div'>\
+                $("#content").append("<div id=" + ((page - 1) * 20 + i) + " class='notification subcontainer sub-div' style='padding:0.8em 0.2em 0.2em 0.8em'>\
                 <p style='font-size:1.2em'>" + notifications[i].msg + "</p>\
                 <p style='font-size:0.8em;color:#888888'>" + time.toLocaleString() + "</p>\
                 </div>");
             }
-            if(cur < notifications.length) $("#content").append("<a href='#"+(cur-1)+"' class='notification more-btn' onclick='ShowMore()'>Show More</a>");
-            else $("#content").append("<a href='#"+(cur-1)+"' class='notification more-btn'>The End</a>");
-            $("#refresh-btn-noti").html('<i class="fa fa-sync"></i>');
+            if (r.nextpage != -1) $("#content").append("<a href='#" + (page * 20) + "' class='notification more-btn' onclick='ShowMore()'>Show More</a>");
+            else $("#content").append("<a href='#" + (page * 20) + "' class='notification more-btn'>The End</a>");
+            page = r.nextpage;
         },
         error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
@@ -37,17 +34,41 @@ function PageInit() {
     });
 }
 
-function ShowMore(){
-    nxt = Math.min(cur + 20, notifications.length);
-    $(".more-btn").remove();
-    for (var i = cur; i < nxt; i++) {
-        var time = new Date(parseInt(notifications[i].timestamp) * 1000);
-        $("#content").append("<div id="+i+" class='notification subcontainer sub-div'>\
-        <p style='font-size:1.2em'>" + notifications[i].msg + "</p>\
-        <p style='font-size:0.8em;color:#888888'>" + time.toLocaleString() + "</p>\
-        </div>");
+function ShowMore() {
+    if (page == -1) {
+        return;
     }
-    cur = nxt;
-    if(cur < notifications.length) $("#content").append("<a href='#"+(cur-1)+"' class='notification more-btn' onclick='ShowMore()'>Show More</a>");
-    else $("#content").append("<a href='#"+(cur-1)+"' class='notification more-btn'>The End</a>");
+    $(".more-btn").html("Loading... <i class='fa fa-spinner fa-spin'></i>")
+    $.ajax({
+        url: '/api/user/events',
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token"),
+            page: page
+        },
+        success: function (r) {
+            notifications = r.notifications;
+            for (var i = 0; i < notifications.length; i++) {
+                var time = new Date(parseInt(notifications[i].timestamp) * 1000);
+                $("#content").append("<div id=" + ((page - 1) * 20 + i) + " class='notification subcontainer sub-div' style='padding:0.8em 0.2em 0.2em 0.8em'>\
+                <p style='font-size:1.2em'>" + notifications[i].msg + "</p>\
+                <p style='font-size:0.8em;color:#888888'>" + time.toLocaleString() + "</p>\
+                </div>");
+            }
+            $(".more-btn").remove();
+            if (r.nextpage != -1) $("#content").append("<a href='#" + (page * 20) + "' class='notification more-btn' onclick='ShowMore()'>Show More</a>");
+            else $("#content").append("<a href='#" + (page * 20) + "' class='notification more-btn'>The End</a>");
+            page = r.nextpage;
+        },
+        error: function (r, textStatus, errorThrown) {
+            if (r.status == 401) {
+                SessionExpired();
+            } else {
+                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
+            }
+        }
+    });
 }

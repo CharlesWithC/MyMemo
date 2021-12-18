@@ -286,7 +286,7 @@ async def apiUserPendingUpdateInfo(request: Request, background_tasks: Backgroun
     return {"success": True, "msg": "User information updated!"}
 
 @app.post("/api/user/login")
-async def apiLogin(request: Request):
+async def apiLogin(request: Request, background_tasks: BackgroundTasks):
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -399,6 +399,12 @@ async def apiLogin(request: Request):
     ip = request.headers["CF-Connecting-Ip"]
     cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'login', {int(time.time())}, '{encode(f'New login from {ip}')}')")
     conn.commit()
+    
+    cur.execute(f"SELECT username, email FROM UserInfo WHERE userId = {userId}")
+    t = cur.fetchall()
+    username = decode(t[0][0])
+    email = t[0][1]
+    background_tasks.add_task(sendNormal, email, username, f"New login from {ip}", f"A new login has been detected.<br>IP: {ip}<br>If this isn't you, reset your password immediately!")
 
     return {"success": True, "active": True, "userId": userId, "token": token, "isAdmin": isAdmin}
 
@@ -944,13 +950,20 @@ async def apiUserEvents(request: Request):
     if not validateToken(userId, token):
         raise HTTPException(status_code=401)
     
+    page = int(form["page"])
+    
     cur.execute(f"SELECT timestamp, msg FROM UserEvent WHERE userId = {userId} ORDER BY timestamp DESC")
     d = cur.fetchall()
     ret = []
     for dd in d:
         ret.append({"timestamp": dd[0], "msg": decode(dd[1])})
     
-    return ret
+    if len(ret) <= (page - 1) * 20:
+        return {"notifications": [], "nextpage": -1}
+    elif len(ret) <= page * 20:
+        return {"notifications": ret[(page - 1) * 20 + 1 :], "nextpage": -1}
+    else:
+        return {"notifications": ret[(page - 1) * 20 + 1 : page * 20 + 1], "nextpage": page + 1}
 
 @app.post("/api/user/sessions")
 async def apiUserSessions(request: Request):

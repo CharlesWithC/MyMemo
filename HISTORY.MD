@@ -1,5 +1,16 @@
 # Update History
 
+## v5.5.9
+
+*Date: 2021/12/18*  
+Feature Updates:  
+1.Added email notification when user log in  
+2.Added page-based requests for notifications  
+
+Other Updates:  
+1.Added [My Memo] tag before subject for all emails  
+2.Added favicon.ico and a smaller icon for emails & page icon  
+
 ## v5.5.8  
 
 *Date: 2021/12/18*  

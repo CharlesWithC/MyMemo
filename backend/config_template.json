@@ -13,7 +13,7 @@
 
     "postfix_host": "127.0.0.1:25",
     "helo": "charles14.xyz",
-    "icon_url": "https://memo.charles14.xyz/img/icon.png",
+    "icon_url": "https://memo.charles14.xyz/img/icon-sm.png",
     "mail_domain": "noreply.charles14.xyz",
     "mail_from": "memo@noreply.charles14.xyz",
     "mail_contact": "memo@charles14.xyz",

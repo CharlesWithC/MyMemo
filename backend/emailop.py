@@ -79,7 +79,7 @@ From: {mail_from_name} <{mail_from}>
 To: {mail_to_name} <{mail_to}>
 Date: {str(ts)}
 Message-ID: {utils.make_msgid()}
-Subject: {subject}
+Subject: [My Memo] {subject}
 Content-type: text/html;charset=utf-8
 DKIM-Signature: {sig[len("DKIM-Signature: ") :].decode()}
 
