@@ -26,9 +26,9 @@ def PendingAccountDeletion():
 
             sessions.deleteData(userId)
 
-            cur.execute(f"UPDATE UserInfo SET username = '{encode('@deleted')}' WHERE userId = {uid}")
-            cur.execute(f"UPDATE UserInfo SET email = '' WHERE userId = {uid}")
-            cur.execute(f"UPDATE UserInfo SET password = '' WHERE userId = {uid}")
+            cur.execute(f"UPDATE UserInfo SET username = '{encode('@deleted')}' WHERE userId = {userId}")
+            cur.execute(f"UPDATE UserInfo SET email = '' WHERE userId = {userId}")
+            cur.execute(f"UPDATE UserInfo SET password = '' WHERE userId = {userId}")
 
             conn.commit()
         
@@ -49,6 +49,6 @@ def PendingEmailVerificationDeletion():
         time.sleep(1200)
 
 
-threading.Thread(target = PendingAccountDeletion).start()
 if __name__ == "__main__":
+    threading.Thread(target = PendingAccountDeletion).start()
     uvicorn.run("app:app", host = config.server_ip, port = config.server_port)

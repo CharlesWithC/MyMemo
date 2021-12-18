@@ -97,7 +97,7 @@ async def apiAdminUserList(request: Request):
         else:
             username = f"<a href='/user?userId={dd[0]}'><span>{username}</span></a>"
         
-        users.append({"userId": dd[0], "username": dd[1], "email": dd[2], "inviter": f"{inviterUsername} (UID: {dd[3]})", "inviteCode": dd[4], "age": age, "status": status, "privilege": prv})
+        users.append({"userId": dd[0], "username": dd[1], "email": decode(dd[2]), "inviter": f"{inviterUsername} (UID: {dd[3]})", "inviteCode": dd[4], "age": age, "status": status, "privilege": prv})
 
     
     return users
@@ -196,7 +196,7 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
             return {"success": False, "msg": "Username must not contain: spaces, ( ) [ ] { } < > ! @ ' \" / \\"}
     
         username = encode(username)
-        if validators.email(email) != True or "'" in email or '"' in email:
+        if validators.email(email) != True:
             return {"success": False, "msg": "Invalid email!"}
 
         cur.execute(f"SELECT username, email FROM UserInfo")
@@ -204,7 +204,7 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
         for tt in t:
             if decode(tt[0]).lower() == decode(username).lower():
                 return {"success": False, "msg": "Username has been occupied!"}
-            if tt[1].lower() == email.lower():
+            if tt[1].lower() == decode(email).lower():
                 return {"success": False, "msg": "Email has already been registered!"}
 
         password = hashpwd(password)
@@ -213,7 +213,7 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
         background_tasks.add_task(sendVerification, email, decode(username), "Account activation", \
             f"Welcome {decode(username)}! Please verify your email to activate your account!", "3 hours", \
                 "https://memo.charles14.xyz/user/activate?token="+token)
-        cur.execute(f"INSERT INTO UserPending VALUES ('{username}', '{email}', '{encode(password)}', {inviter}, '{token}', {int(time.time() + 3600 * 3)})")
+        cur.execute(f"INSERT INTO UserPending VALUES ('{username}', '{encode(email)}', '{encode(password)}', {inviter}, '{token}', {int(time.time() + 3600 * 3)})")
         conn.commit()
         
         return {"success": True, "msg": f"User registered but pending email verification!"}
@@ -570,7 +570,7 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
         uid = int(command[1])
         email = command[2]
 
-        if validators.email(email) != True or "'" in email or '"' in email:
+        if validators.email(email) != True:
             return {"success": False, "msg": "Invalid email!"}
         
         cur.execute(f"SELECT updateTS FROM EmailHistory WHERE userId = {uid} ORDER BY updateTS DESC LIMIT 1")
@@ -580,7 +580,7 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
             if int(time.time()) - updateTS >= 86400 * 7:
                 return {"success": False, "msg": "You cannot revert email changes before 7 days! Contact super administrator for help!"}
 
-        cur.execute(f"SELECT email FROM EmailHistory WHERE userId = {uid} AND email = '{email.lower()}'")
+        cur.execute(f"SELECT email FROM EmailHistory WHERE userId = {uid} AND email = '{encode(email).lower()}'")
         if len(cur.fetchall()) == 0:
             return {"success": False, "msg": f"User hasn't used {email} before!"}
         
@@ -592,8 +592,8 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
         token = str(uid).zfill(9) + "-" + str(uuid.uuid4())
         background_tasks.add_task(sendVerification, email, decode(username), "Email update verification", \
             f"You are changing your email address to {email}. Please open the link to verify this new address.", "10 minutes", \
-                "https://memo.charles14.xyz/user/verify?type=changeemail&token="+token)
-        cur.execute(f"INSERT INTO PendingEmailChange VALUES ({uid}, '{email}', '{token}', {int(time.time()+600)})")
+                "https://memo.charles14.xyz/user/verify?token="+token)
+        cur.execute(f"INSERT INTO PendingEmailChange VALUES ({uid}, '{encode(email)}', '{token}', {int(time.time()+600)})")
         conn.commit()
 
         return {"success": True, "msg": "Email revert operation submitted! User need to open the inbox and verify the link."}

@@ -1,5 +1,11 @@
 # Update History
 
+## v5.5.10
+
+*Date: 2021/12/18*  
+Other Updates:  
+Added base64 encode for emails to prevent SQL injection  
+
 ## v5.5.9
 
 *Date: 2021/12/18*  
