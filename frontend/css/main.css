@@ -28,7 +28,6 @@ body {
     top: 1em;
     margin-top: 0.5em;
     left: 2em;
-    z-index: 1000;
 }
 
 .top-right {
@@ -36,7 +35,6 @@ body {
     top: 1em;
     margin-top: 0.5em;
     right: 2em;
-    z-index: 1000;
 }
 
 .sqbtn {
@@ -55,28 +53,58 @@ body {
 .container {
     position: relative;
     margin: 1em;
-    margin-top: 1em;
-    margin-bottom: 2em;
+    margin-top: 0;
+    margin-bottom: 0.5em;
     padding: 5%;
     padding-top: 0.5em;
-    min-height: 105%;
-    z-index: 200;
-    width: 100%;
-    max-width: 98%;
+    min-height: 100%;
+    min-width: 95%;
+    max-width: 100%;
 }
 
 .subcontainer {
     padding: 1.5em;
-    margin: auto;
+    margin: 0.5em;
     background-color: #444444;
-    border: 0.05em solid #222222;
     overflow: hidden;
+    border-radius: 0.5em;
+    box-sizing: border-box;
+    box-shadow: 0 1px 3px rgba(128, 128, 128, 0.1);
+}
+
+.sub-div {
+    display: inline-block;
+    vertical-align: top;
+    width: 100%;
+}
+
+@media all and (max-width: 999px) {
+    .sub-div {
+        width: 100%;
+        min-width: 100%;
+        max-width: 100%;
+    }
+}
+
+@media all and (min-width: 1000px) {
+    .sub-left {
+        width: calc(66.67% - 1.2em);
+        float: left;
+    }
+
+    .sub-right {
+        width: calc(33.33% - 1.2em);
+        float: right;
+    }
 }
 
 h1 {
-    font-size: 3.75em;
     font-family: Impact;
-    margin: 1.25em;
+}
+
+h2 {
+    font-size: 1.5em;
+    margin-bottom: 1em;
 }
 
 a {
@@ -89,24 +117,39 @@ a:hover {
 }
 
 .center {
-    margin: auto;
     position: relative;
+    width: calc(100% - 6em);
+    margin: auto;
+    margin-left: 3em;
+    top: calc(50% + 1.5em);
+    transform: translateY(-50%);
     text-align: center;
-    top: 15%;
-    width: 80%;
+}
+
+.center>.input-group {
+    margin: auto;
 }
 
 .title {
     margin: auto;
     position: relative;
-    text-align: center;
+    text-align: left;
     font-size: 2.2em;
-    padding-top: 0.5em;
-    padding-bottom: 1em;
-    margin-bottom: 1em;
+    top: 0;
+    left: 0.75em;
 }
 
-.title button {
+.big-title {
+    margin: auto;
+    position: relative;
+    text-align: center;
+    font-size: 3.75em;
+    padding-top: 0.5em;
+    padding-bottom: 0em;
+    margin-bottom: 1.25em;
+}
+
+button {
     margin: 0.1em;
 }
 
@@ -215,6 +258,7 @@ a:hover {
     background-color: #333333;
     border-top: #555555 solid;
     border-top-width: 0.5em;
+    line-height: 50%;
 }
 
 .footer a {

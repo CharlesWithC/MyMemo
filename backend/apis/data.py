@@ -102,7 +102,7 @@ def importWork(userId, bookId, updateType, checkDuplicate, newlist):
                 p = cur.fetchall()
                 if len(p) == 0:
                     continue
-                removeBookData(uid, p[0][0], qid)
+                cur.execute(f"DELETE FROM BookData WHERE userId = {uid} AND bookId = {p[0][0]} AND questionId = {qid}")
             cur.execute(f"DELETE FROM GroupQuestion WHERE groupId = {groupId}")
             cur.execute(f"DELETE FROM GroupSync WHERE groupId = {groupId}")
     
@@ -142,7 +142,7 @@ def importWork(userId, bookId, updateType, checkDuplicate, newlist):
                     status = StatusTextToStatus[newlist["Status"][i]]
                     cur.execute(f"UPDATE QuestionList SET status = {status} WHERE questionId = {wid} AND userId = {userId}")
                 if bookId != 0 and not questionId in bookList:
-                    appendBookData(userId, bookId, questionId)
+                    cur.execute(f"INSERT INTO BookData VALUES ({userId}, {bookId}, {questionId})")
                     bookList.append(questionId)
                     
                 continue
@@ -169,7 +169,7 @@ def importWork(userId, bookId, updateType, checkDuplicate, newlist):
         cur.execute(f"UPDATE IDInfo SET nextId = {questionId + 1} WHERE type = 2 AND userId = {userId}")
         
         if bookId != 0:
-            appendBookData(userId, bookId, questionId)
+            cur.execute(f"INSERT INTO BookData VALUES ({userId}, {bookId}, {questionId})")
 
             if groupId != -1:
                 question = encode(question)
@@ -204,7 +204,7 @@ def importWork(userId, bookId, updateType, checkDuplicate, newlist):
                         cur.execute(f"UPDATE IDInfo SET nextId = {wid + 1} WHERE type = 2 AND userId = {uid}")
 
                     cur.execute(f"INSERT INTO QuestionList VALUES ({uid}, {wid}, '{question}', '{answer}', 1, 0)")
-                    appendBookData(uid, wbid, wid)
+                    cur.execute(f"INSERT INTO BookData VALUES ({uid}, {wbid}, {wid})")
                     cur.execute(f"INSERT INTO ChallengeData VALUES ({uid},{wid},0,-1)")
                     cur.execute(f"INSERT INTO GroupSync VALUES ({groupId}, {uid}, {wid}, {gquestionId})")
                     updateQuestionStatus(uid, wid, -3) # -3 is group question

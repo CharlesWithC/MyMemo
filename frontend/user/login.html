@@ -54,10 +54,10 @@
         </div>
     </div>
 
-    <div id="content" class="container">
-        <div class="login center" style="margin:auto;">
-            <h1 style="margin-bottom:0.8em">My Memo</h1>
-            <div style="margin:auto;max-width:15em;text-align:left">
+    <div id="content" class="container" style="height:100%">
+        <div class="login center subcontainer">
+            <h1 class="big-title" style="margin-bottom:0.8em">My Memo</h1>
+            <div style="margin:auto;max-width:15em;text-align:left;height:100%;">
                 <span>Username / Email</span>
                 <div class="input-group mb-3">
                     <input type="text" class="form-control" id="input-username" aria-describedby="basic-addon1">
@@ -68,15 +68,15 @@
                 </div>
                 <a href="#" onclick="ForgotPasswordShow();" style="float:right">Forgot Password?</a>
                 <br>
-                <a href="#" onclick="$('.login').hide();$('.register').show();" style="float:right">Sign up</a>
+                <a href="#" onclick="$('.login').fadeOut();$('.register').fadeIn();" style="float:right">Sign up</a>
             </div>
             <br>
             <button id="login-btn" type="button" class="btn btn-primary"
                 style="position:relative;width:10em;margin-top:1em" onclick="Login()"> Sign in </button>
         </div>
 
-        <div class="register center" style="margin:auto;display:none">
-            <h1 style="margin-bottom:0.8em">My Memo</h1>
+        <div class="register center subcontainer" style="display:none">
+            <h1 class="big-title" style="margin-bottom:0.8em">My Memo</h1>
             <div style="margin:auto;max-width:15em;text-align:left">
                 <span>Username</span>
                 <div class="input-group mb-3">
@@ -94,7 +94,7 @@
                 <div class="input-group mb-3">
                     <input type="text" class="form-control" id="register-inviteCode" aria-describedby="basic-addon1">
                 </div>
-                <a href="#" onclick="$('.login').show();$('.register').hide();" style="float:right"> Sign in </a>
+                <a href="#" onclick="$('.register').fadeOut();$('.login').fadeIn();" style="float:right"> Sign in </a>
             </div>
             <br>
             <button id="login-btn" type="button" class="btn btn-primary"
@@ -103,12 +103,18 @@
     </div>
 
     <div class="footer">
-        <p>Copyright &copy; 2021 My Memo</p>
-        <p>Version: v5.5.6 <i class="fa fa-check-circle"></i></p>
-        <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
-        <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-brands fa-github"></i>
-                GitHub</a></p>
-        <p>Developed by <a href="www.charles14.xyz">Charles</a></p>
+        <div style="float:left;margin:1em">
+            <img class="icon" src="/img/icon.png" style="width:3em;height:3em">
+        </div>
+        <div style="float:left;margin:1em">
+            <p>Version: v5.5.7 <i class="fa fa-check-circle"></i></p>
+            <p>Copyright &copy; 2021 My Memo</p>
+        </div>
+        <div style="float:right;margin:1em">
+            <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-brands fa-github"></i>
+                    GitHub</a></p>
+            <p>Developed by <a href="www.charles14.xyz">Charles</a></p>
+        </div>
     </div>
 </body>
 

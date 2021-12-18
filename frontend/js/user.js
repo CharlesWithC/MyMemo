@@ -123,7 +123,7 @@ function UpdateUserInfo() {
         error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 if ((window.location).toString().indexOf("/login") == -1) {
-                    window.location.href = "/user/login";
+                    window.location.href="/user/login";
                 }
                 $("#signout-btn").hide();
             } else if (r.status == 503) {
@@ -342,6 +342,7 @@ function UpdateChart(tuid) {
         },
         error: function (r, textStatus, errorThrown) {
             $(".chart").hide();
+            $("#private-chart").hide();
         }
     });
 }
@@ -432,7 +433,7 @@ function Login() {
                         $("#input-username").val("");
                         $("#input-password").val("");
 
-                        window.location.href = "/user";
+                        window.location.href="/user";
                     }
                 });
             } else {
@@ -474,8 +475,8 @@ function Register() {
         success: function (r) {
             if (r.success == true) {
                 NotyNotification(r.msg);
-                $(".register").hide();
-                $(".login").show();
+                $(".register").fadeOut();
+                $(".login").fadeIn();
                 $("#register-password").val("");
             } else {
                 NotyNotification(r.msg, type = 'error');
@@ -646,7 +647,7 @@ function ChangePassword() {
                 localStorage.removeItem("token");
 
                 setTimeout(function () {
-                    window.location.href = "/user/login";
+                    window.location.href="/user/login";
                 }, 1000);
             } else {
                 NotyNotification(r.msg, type = 'error');
@@ -998,7 +999,7 @@ $(document).ready(function () {
                     if (r.username == "@deleted") {
                         NotyNotification("That's a deleted user!", type = 'error');
                         setTimeout(function () {
-                            window.location.href = "/user";
+                            window.location.href="/user";
                         }, 1000);
                         return;
                     } else {
@@ -1024,7 +1025,7 @@ $(document).ready(function () {
                 } else {
                     NotyNotification(r.msg, type = 'error');
                     setTimeout(function () {
-                        window.location.href = "/user";
+                        window.location.href="/user";
                     }, 1000);
                 }
             },
@@ -1048,7 +1049,7 @@ $(document).ready(function () {
         if (localStorage.getItem("userId") == null && uid == -1) {
             $("#signout-btn").hide();
             if ((window.location).toString().indexOf("/login") == -1) {
-                window.location.href = "/user/login";
+                window.location.href="/user/login";
             }
         }
     }

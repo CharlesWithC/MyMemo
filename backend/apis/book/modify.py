@@ -112,7 +112,7 @@ async def apiCreateBook(request: Request):
                 ctn = False
                 for pp in p:
                     if pp[1] == di[tt][1]: # question completely the same
-                        appendBookData(userId, bookId, pp[0])
+                        cur.execute(f"INSERT INTO BookData VALUES ({userId}, {bookId}, {pp[0]})")
                         cur.execute(f"SELECT memorizedTimestamp FROM QuestionList WHERE userId = {userId} AND questionId = {pp[0]}")
                         k = cur.fetchall()
                         if len(k) != 0 and k[0][0] != 0:
@@ -130,7 +130,7 @@ async def apiCreateBook(request: Request):
                     questionId = d[0][0]
                     cur.execute(f"UPDATE IDInfo SET nextId = {questionId + 1} WHERE type = 2 AND userId = {userId}")
 
-                appendBookData(userId, bookId, questionId)
+                cur.execute(f"INSERT INTO BookData VALUES ({userId}, {bookId}, {questionId})")
                 cur.execute(f"INSERT INTO QuestionList VALUES ({userId}, {questionId}, '{di[tt][0]}', '{di[tt][1]}', 1, 0)")
                 cur.execute(f"INSERT INTO ChallengeData VALUES ({userId},{questionId}, 0, -1)")
 
@@ -228,7 +228,7 @@ async def apiCreateBook(request: Request):
                 ctn = False
                 for pp in p:
                     if pp[1] == tt[1]: # question completely the same
-                        appendBookData(userId, bookId, pp[0])
+                        cur.execute(f"INSERT INTO BookData VALUES ({userId}, {bookId}, {pp[0]})")
                         cur.execute(f"SELECT memorizedTimestamp FROM QuestionList WHERE userId = {userId} AND questionId = {pp[0]}")
                         k = cur.fetchall()
                         if len(k) != 0 and k[0][0] != 0:
@@ -247,7 +247,7 @@ async def apiCreateBook(request: Request):
                     cur.execute(f"UPDATE IDInfo SET nextId = {questionId + 1} WHERE type = 2 AND userId = {userId}")
 
                 # no duplicate check as user are not allowed to edit questions in group
-                appendBookData(userId, bookId, questionId)
+                cur.execute(f"INSERT INTO BookData VALUES ({userId}, {bookId}, {questionId})")
                 cur.execute(f"INSERT INTO QuestionList VALUES ({userId}, {questionId}, '{tt[0]}', '{tt[1]}', 1, 0)")
                 cur.execute(f"INSERT INTO ChallengeData VALUES ({userId},{questionId}, 0, -1)")
                 cur.execute(f"INSERT INTO GroupSync VALUES ({groupId}, {userId}, {questionId}, {tt[2]})")
@@ -372,7 +372,7 @@ async def apiCloneBook(request: Request):
             cur.execute(f"UPDATE IDInfo SET nextId = {wid + 1} WHERE type = 2 AND userId = {userId}")
         p = dt[dd]
         cur.execute(f"INSERT INTO QuestionList VALUES ({userId}, {wid}, '{p[2]}', '{p[3]}', {p[4]}, {p[5]})")
-        appendBookData(userId, bookId, wid)
+        cur.execute(f"INSERT INTO BookData VALUES ({userId}, {bookId}, {wid})")
     
     conn.commit()
     return {"success": True, "msg": "Book cloned!"}
@@ -427,7 +427,7 @@ async def apiDeleteBook(request: Request):
     if removeAll:
         qs = getBookData(userId, bookId)
         for q in qs:
-            removeBookData(userId, -1, q)
+            cur.execute(f"DELETE FROM BookData WHERE userId = {userId} AND questionId = {q}")
             cur.execute(f"DELETE FROM QuestionList WHERE questionId = {q} AND userId = {userId}")
 
     cur.execute(f"DELETE FROM Book WHERE userId = {userId} AND bookId = {bookId}")

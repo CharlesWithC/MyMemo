@@ -104,123 +104,164 @@ def b62decode_batch(d):
         ret.append(b62decode(tt))
     return ret
 
+# def getBookData(userId, bookId):
+#     conn = newconn()
+#     cur = conn.cursor()
+#     ret = []
+#     cur.execute(f"SELECT questions FROM BookData WHERE userId = {userId} AND bookId = {bookId}")
+#     t = cur.fetchall()
+#     for tt in t:
+#         d = b62decode_batch(tt[0])
+#         for dd in d:
+#             ret.append(dd)
+#     ret = list(set(ret)) # unique
+#     ret.sort()
+#     conn.close()    
+#     return ret
+
+# def getBookId(userId, questionId):
+#     conn = newconn()
+#     cur = conn.cursor()
+#     ret = []
+#     cur.execute(f"SELECT questions, bookId FROM BookData WHERE userId = {userId}")
+#     t = cur.fetchall()
+#     for tt in t:
+#         d = b62decode_batch(tt[0])
+#         for dd in d:
+#             if dd == questionId:
+#                 ret.append(tt[1])
+#     ret = list(set(ret)) # unique
+#     ret.sort()
+#     conn.close()    
+#     return ret
+
+# def appendBookData(userId, bookId, questionId):
+#     conn = newconn()
+#     cur = conn.cursor()
+#     toadd = b62encode(questionId) + "|"
+#     cur.execute(f"SELECT questions, page FROM BookData WHERE userId = {userId} AND bookId = {bookId}")
+#     t = cur.fetchall()
+
+#     # check existence
+#     for tt in t:
+#         data = tt[0]
+#         if toadd in data:
+#             conn.close()
+#             return False
+    
+#     # append
+#     success = False
+#     for tt in t:
+#         data = tt[0]
+#         page = tt[1]
+#         if len(data) + len(toadd) < 256:
+#             cur.execute(f"UPDATE BookData SET questions = '{data + toadd}' WHERE userId = {userId} AND bookId = {bookId} AND page = {page}")
+#             success = True
+#             break
+#     if not success:
+#         cur.execute(f"INSERT INTO BookData VALUES ({userId}, {bookId}, '{toadd}', {len(t) + 1})")
+#     conn.commit()
+#     conn.close()    
+#     return True
+
+# def removeBookData(userId, bookId, questionId):
+#     for _ in range(3):
+#         try:
+#             conn = newconn()
+#             cur = conn.cursor()
+#             toremove = b62encode(questionId) + "|"
+#             t = None
+#             if bookId != -1:
+#                 cur.execute(f"SELECT questions, page FROM BookData WHERE userId = {userId} AND bookId = {bookId}")
+#             elif bookId == -1:
+#                 cur.execute(f"SELECT questions, page, bookId FROM BookData WHERE userId = {userId}")
+#             t = cur.fetchall()
+#             for tt in t:
+#                 questions = tt[0]
+#                 page = tt[1]
+#                 if toremove in questions:
+#                     questions = questions.replace(toremove, "")
+#                     if bookId != -1:
+#                         cur.execute(f"UPDATE BookData SET questions = '{questions}' WHERE userId = {userId} AND bookId = {bookId} AND page = {page}")
+#                     elif bookId == -1:
+#                         cur.execute(f"UPDATE BookData SET questions = '{questions}' WHERE userId = {userId} AND bookId = {tt[2]} AND page = {page}")
+                    
+#                     if bookId != -1:
+#                         cur.execute(f"SELECT memorizedTimestamp FROM QuestionList WHERE userId = {userId} AND questionId = {questionId}")
+#                         p = cur.fetchall()
+#                         if len(p) > 0 and p[0][0] != 0:
+#                             cur.execute(f"UPDATE Book SET progress = progress - 1 WHERE userId = {userId} AND bookId = {bookId}")
+#                     conn.commit()
+#                     conn.close()
+                    
+#                     return True
+                    
+#             conn.commit()
+#             conn.close()
+            
+#             return False
+
+#         except:
+#             conn.close()
+#             import traceback
+#             traceback.print_exc()
+#             time.sleep(3)
+#             pass
+#     return False
+
+# def getQuestionsInBook(userId, bookId, statusRequirement):
+#     if statusRequirement == "":
+#         statusRequirement = "status >= 1"
+#     conn = newconn()
+#     cur = conn.cursor()
+#     book = getBookData(userId, bookId)
+#     cur.execute(f"SELECT questionId, question, answer, status FROM QuestionList WHERE ({statusRequirement}) AND userId = {userId}")
+#     questions = cur.fetchall()
+#     d = []
+#     if bookId > 0:
+#         for question in questions:
+#             if question[0] in book:
+#                 d.append(question)
+#     else:
+#         d = questions
+#     conn.commit()
+#     conn.close()
+    
+#     return d
+
 def getBookData(userId, bookId):
     conn = newconn()
     cur = conn.cursor()
-    ret = []
-    cur.execute(f"SELECT questions FROM BookData WHERE userId = {userId} AND bookId = {bookId}")
+    cur.execute(f"SELECT questionId FROM BookData WHERE userId = {userId} AND bookId = {bookId}")
     t = cur.fetchall()
+    ret = []
     for tt in t:
-        d = b62decode_batch(tt[0])
-        for dd in d:
-            ret.append(dd)
-    ret = list(set(ret)) # unique
-    ret.sort()
-    conn.close()    
+        ret.append(tt[0])
     return ret
 
 def getBookId(userId, questionId):
     conn = newconn()
     cur = conn.cursor()
+    cur.execute(f"SELECT bookId FROM BookData WHERE userId = {userId} AND questionId = {questionId}")
+    t = cur.fetchall()
     ret = []
-    cur.execute(f"SELECT questions, bookId FROM BookData WHERE userId = {userId}")
-    t = cur.fetchall()
     for tt in t:
-        d = b62decode_batch(tt[0])
-        for dd in d:
-            if dd == questionId:
-                ret.append(tt[1])
-    ret = list(set(ret)) # unique
-    ret.sort()
-    conn.close()    
+        ret.append(tt[0])
     return ret
-
-def appendBookData(userId, bookId, questionId):
-    conn = newconn()
-    cur = conn.cursor()
-    toadd = b62encode(questionId) + "|"
-    cur.execute(f"SELECT questions, page FROM BookData WHERE userId = {userId} AND bookId = {bookId}")
-    t = cur.fetchall()
-
-    # check existence
-    for tt in t:
-        data = tt[0]
-        if toadd in data:
-            conn.close()
-            return False
     
-    # append
-    success = False
-    for tt in t:
-        data = tt[0]
-        page = tt[1]
-        if len(data) + len(toadd) < 256:
-            cur.execute(f"UPDATE BookData SET questions = '{data + toadd}' WHERE userId = {userId} AND bookId = {bookId} AND page = {page}")
-            success = True
-            break
-    if not success:
-        cur.execute(f"INSERT INTO BookData VALUES ({userId}, {bookId}, '{toadd}', {len(t) + 1})")
-    conn.commit()
-    conn.close()    
-    return True
-
-def removeBookData(userId, bookId, questionId):
-    for _ in range(3):
-        try:
-            conn = newconn()
-            cur = conn.cursor()
-            toremove = b62encode(questionId) + "|"
-            t = None
-            if bookId != -1:
-                cur.execute(f"SELECT questions, page FROM BookData WHERE userId = {userId} AND bookId = {bookId}")
-            elif bookId == -1:
-                cur.execute(f"SELECT questions, page, bookId FROM BookData WHERE userId = {userId}")
-            t = cur.fetchall()
-            for tt in t:
-                questions = tt[0]
-                page = tt[1]
-                if toremove in questions:
-                    questions = questions.replace(toremove, "")
-                    if bookId != -1:
-                        cur.execute(f"UPDATE BookData SET questions = '{questions}' WHERE userId = {userId} AND bookId = {bookId} AND page = {page}")
-                    elif bookId == -1:
-                        cur.execute(f"UPDATE BookData SET questions = '{questions}' WHERE userId = {userId} AND bookId = {tt[2]} AND page = {page}")
-                    
-                    if bookId != -1:
-                        cur.execute(f"SELECT memorizedTimestamp FROM QuestionList WHERE userId = {userId} AND questionId = {questionId}")
-                        p = cur.fetchall()
-                        if len(p) > 0 and p[0][0] != 0:
-                            cur.execute(f"UPDATE Book SET progress = progress - 1 WHERE userId = {userId} AND bookId = {bookId}")
-                    conn.commit()
-                    conn.close()
-                    
-                    return True
-                    
-            conn.commit()
-            conn.close()
-            
-            return False
-
-        except:
-            conn.close()
-            import traceback
-            traceback.print_exc()
-            time.sleep(3)
-            pass
-    return False
-
 def getQuestionsInBook(userId, bookId, statusRequirement):
     if statusRequirement == "":
         statusRequirement = "status >= 1"
     conn = newconn()
     cur = conn.cursor()
-    book = getBookData(userId, bookId)
+    cur.execute(f"SELECT questionId FROM BookData WHERE bookId = {bookId}")
+    book = cur.fetchall()
     cur.execute(f"SELECT questionId, question, answer, status FROM QuestionList WHERE ({statusRequirement}) AND userId = {userId}")
     questions = cur.fetchall()
     d = []
     if bookId > 0:
         for question in questions:
-            if question[0] in book:
+            if (question[0],) in book:
                 d.append(question)
     else:
         d = questions
@@ -228,7 +269,7 @@ def getQuestionsInBook(userId, bookId, statusRequirement):
     conn.close()
     
     return d
-    
+
 def updateQuestionStatus(userId, questionId, status):
     conn = newconn()
     cur = conn.cursor()

@@ -30,13 +30,13 @@ async def apiGetBook(request: Request):
     
     ret = []
 
-    questions = []
+    allquestions = []
     cur.execute(f"SELECT questionId FROM QuestionList WHERE userId = {userId}")
     t = cur.fetchall()
     for tt in t:
-        questions.append(tt[0])
+        allquestions.append(tt[0])
     
-    ret.append({"bookId": 0, "name": "All questions", "questions": questions, "anonymous": 0,
+    ret.append({"bookId": 0, "name": "All questions", "questions": allquestions, "anonymous": 0,
         "groupId": -1, "groupCode": "", \
             "isGroupOwner": False, "isGroupEditor": True, \
                 "discoveryId": -1, "groupDiscoveryId": -1})
@@ -45,6 +45,10 @@ async def apiGetBook(request: Request):
     d = cur.fetchall()
     for dd in d:
         questions = getBookData(userId, dd[0])
+
+        for questionId in questions:
+            if not questionId in allquestions:
+                cur.execute(f"DELETE FROM BookData WHERE userId = {userId} AND questionId = {questionId}")
         
         cur.execute(f"SELECT groupId FROM GroupMember WHERE userId = {userId} AND bookId = {dd[0]}")
         t = cur.fetchall()

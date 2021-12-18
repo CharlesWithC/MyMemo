@@ -1,12 +1,7 @@
 html,
 body {
-    height: 100%;
     font-family: Comic Sans;
-    font-size: 1.4em;
-}
-
-.center {
-    width: 100%;
+    font-size: 1.6em;
 }
 
 h1 {
@@ -16,19 +11,19 @@ h1 {
 }
 
 h2 {
-    font-size: 1.6em;
+    font-size: 1.8em;
 }
 
 h4 {
-    font-size: 1.4em;
+    font-size: 1.6em;
 }
 
 h5 {
-    font-size: 1.2em;
+    font-size: 1.4em;
 }
 
 p {
-    font-size: 1em;
+    font-size: 1.2em;
 }
 
 td {
@@ -44,14 +39,22 @@ td {
     right: 1em;
 }
 
-input .input-group {
+.input-group > input{
+    font-size: 1em;
+}
+
+.input-group > span{
     font-size: 1em;
 }
 
 .title {
-    font-size: 2em;
+    font-size: 1.8em;
     margin-top: 1.4em;
     padding: 0.2em;
+}
+
+.big-title {
+    font-size: 4em;
 }
 
 .btn {
@@ -80,14 +83,11 @@ input .input-group {
     margin: 10em auto;
 }
 
-.center {
-    margin: auto;
-    position: relative;
-    text-align: center;
-    top: 15%;
-    width: 95%;
-}
-
 .choice {
     width: 80%;
+}
+
+.center {
+    margin-left: 0;
+    margin: auto;
 }

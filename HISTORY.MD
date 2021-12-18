@@ -1,5 +1,13 @@
 # Update History
 
+## v5.5.7
+
+*Date: 2021/12/18*  
+Feature Updates:  
+1.Updated BookData Table, no longer compressing and combining data (to improve perfomance)  
+2.Updated UI  
+3.Improved front-end loading speed by reducing page requests on book & discovery queries  
+
 ## v5.5.6  
 
 *Date: 2021/12/12*  

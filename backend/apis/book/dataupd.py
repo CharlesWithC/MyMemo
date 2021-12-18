@@ -52,7 +52,7 @@ async def apiAddToBook(request: Request):
 
     for questionId in questions:
         if (questionId,) in d and not questionId in t:
-            appendBookData(userId, bookId, questionId)
+            cur.execute(f"INSERT INTO BookData VALUES ({userId}, {bookId}, {questionId})")
             t.append(questionId)
 
             if groupId != -1:
@@ -102,7 +102,7 @@ async def apiAddToBook(request: Request):
                     ctn = False
                     for pp in p:
                         if pp[1] == answer: # question completely the same
-                            appendBookData(uid, wbid, pp[0])
+                            cur.execute(f"INSERT INTO BookData VALUES ({uid}, {wbid}, {pp[0]})")
                             cur.execute(f"SELECT memorizedTimestamp FROM QuestionList WHERE userId = {uid} AND questionId = {pp[0]}")
                             k = cur.fetchall()
                             if len(k) != 0 and k[0][0] != 0:
@@ -113,7 +113,7 @@ async def apiAddToBook(request: Request):
                         continue
 
                     cur.execute(f"INSERT INTO QuestionList VALUES ({uid}, {wid}, '{question}', '{answer}', 1, 0)")
-                    appendBookData(uid, wbid, wid)
+                    cur.execute(f"INSERT INTO BookData VALUES ({uid}, {wbid}, {wid})")
                     cur.execute(f"INSERT INTO ChallengeData VALUES ({uid},{wid},0,-1)")
                     cur.execute(f"INSERT INTO GroupSync VALUES ({groupId}, {uid}, {wid}, {gquestionId})")
                     updateQuestionStatus(uid, wid, -3) # -3 is group question
@@ -156,7 +156,7 @@ async def apiDeleteFromBook(request: Request):
 
     for questionId in questions:
         if questionId in d:
-            removeBookData(userId, bookId, questionId)
+            cur.execute(f"DELETE FROM BookData WHERE userId = {userId} AND bookId = {bookId} AND questionId = {questionId}")
             cur.execute(f"SELECT memorizedTimestamp FROM QuestionList WHERE userId = {userId} AND questionId = {questionId}")
             k = cur.fetchall()
             if len(k) > 0 and k[0][0] != 0:
@@ -189,10 +189,10 @@ async def apiDeleteFromBook(request: Request):
                             bid = k[0][0]
                             cur.execute(f"UPDATE Book SET progress = progress - 1 WHERE userId = {uid} AND bookId = {bid}")
                     if len(getBookId(uid, wid)) == 1: # the question is only included in the group book
-                        removeBookData(uid, -1, wid)
+                        cur.execute(f"DELETE FROM BookData WHERE userId = {userId} AND questionId = {questionId}")
                         cur.execute(f"DELETE FROM QuestionList WHERE userId = {uid} AND questionId = {wid}")
                     else:
-                        removeBookData(uid, bid, wid)
+                        cur.execute(f"DELETE FROM BookData WHERE userId = {userId} AND bookId = {bid} AND questionId = {questionId}")
                 cur.execute(f"DELETE FROM GroupSync WHERE groupId = {groupId} AND questionIdOfGroup = {gquestionId}")
                 cur.execute(f"DELETE FROM GroupQuestion WHERE groupQuestionId = {gquestionId}")
     

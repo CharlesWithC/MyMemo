@@ -117,7 +117,7 @@
     <div id="navigate" style="z-index:100">
         <div class="leftside">
             <div class="sqbtn">
-                <a href="/"><img class="icon"  src="/img/icon.png" style="width:2.2em;height:2.2em"></a>
+                <a href="/"><img class="icon" src="/img/icon.png" style="width:2.2em;height:2.2em"></a>
             </div>
         </div>
         <div class="userctrl">
@@ -132,49 +132,64 @@
     </div>
 
     <div id="content" class="container">
-        <h1 class="title" style="padding-bottom: 0;">Admin Command Line Interface</h1>
+        <h1 class="title">Admin Command Line Interface</h1>
 
-        <div class="input-group mb-3 w-50">
-            <span class="input-group-text" id="basic-addon1">Command</span>
-            <input type="text" class="form-control" id="command" aria-describedby="basic-addon1">
-            <button id="submit" type="button" class="btn btn-outline-primary">Run</button>
+        <div class="subcontainer sub-div">
+            <div class="input-group mb-3 w-50">
+                <span class="input-group-text" id="basic-addon1">Command</span>
+                <input type="text" class="form-control" id="command" aria-describedby="basic-addon1">
+                <button id="submit" type="button" class="btn btn-outline-primary">Run</button>
+            </div>
+
+            <div class="form-group">
+                <label for="output" class="col-form-label">Output:</label>
+                <textarea class="form-control" id="output" style="height:15em"></textarea>
+            </div>
+
+            <hr>
+
+            <h2>Command List</h2>
+            <p>1. get_user_info [userId] - Get detailed user info of [userId]</p>
+            <p>2. create_user [username] [email] [password] - Create a user by admin, user will be shown as invited by
+                this
+                admin</p>
+            <p>3. delete_user [userId] - The account must be marked as deletion first, and admin will be able to bring
+                the
+                deletion schedule forward</p>
+            <p>4. delete_user_completely [userId] - Wipe all the data of [userId] (this should be requested by the user)
+            </p>
+            <p>5. mute [userId] [duration] - Mute [userId] for [duration] days | To mute forever, set [duration] to -1
+            </p>
+            <p>6. unmute [userId] - Unmute [userId]</p>
+            <p>7. set_privilege [userId] [item] [value] - Add [item] privilege for user [userId] ([item] can be
+                question_limit, book_limit, allow_group_creation, group_member_limit) | If privilege exists, then update
+                it
+            </p>
+            <p>8. remove_privilege [userId] [item] - Delete [item] privilege from user [userId]</p>
+            <p>9. set_name_tag [userId] [tag] [tag type] - Add name tag [tag] for user [userId] ([tag type] is the color
+                of
+                tag)</p>
+            <p>10. remove_name_tag [userId] - Remove nametag from [userId]</p>
+            <p>11. ban [userId] [reason] - Ban account</p>
+            <p>12. unban [userId] - Unban account</p>
+            <p>13. get_user_count - Get user count</p>
+            <p>14. restart - Restart backend server</p>
         </div>
-
-        <div class="form-group">
-            <label for="output" class="col-form-label">Output:</label>
-            <textarea class="form-control" id="output" style="height:15em"></textarea>
-        </div>
-
-        <hr>
-
-        <h2>Command List</h2>
-        <p>1. get_user_info [userId] - Get detailed user info of [userId]</p>
-        <p>2. create_user [username] [email] [password] - Create a user by admin, user will be shown as invited by this
-            admin</p>
-        <p>3. delete_user [userId] - The account must be marked as deletion first, and admin will be able to bring the
-            deletion schedule forward</p>
-        <p>4. delete_user_completely [userId] - Wipe all the data of [userId] (this should be requested by the user)</p>
-        <p>5. mute [userId] [duration] - Mute [userId] for [duration] days | To mute forever, set [duration] to -1</p>
-        <p>6. unmute [userId] - Unmute [userId]</p>
-        <p>7. set_privilege [userId] [item] [value] - Add [item] privilege for user [userId] ([item] can be
-            question_limit, book_limit, allow_group_creation, group_member_limit) | If privilege exists, then update it
-        </p>
-        <p>8. remove_privilege [userId] [item] - Delete [item] privilege from user [userId]</p>
-        <p>9. set_name_tag [userId] [tag] [tag type] - Add name tag [tag] for user [userId] ([tag type] is the color of
-            tag)</p>
-        <p>10. remove_name_tag [userId] - Remove nametag from [userId]</p>
-        <p>11. ban [userId] [reason] - Ban account</p>
-        <p>12. unban [userId] - Unban account</p>
-        <p>13. get_user_count - Get user count</p>
-        <p>14. restart - Restart backend server</p>
     </div>
 
     <div class="footer">
-        <p>Copyright &copy; 2021 My Memo</p>
-        <p>Version: v5.5.6 <i class="fa fa-check-circle"></i></p>
-        <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
-        <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-brands fa-github"></i> GitHub</a></p>
-        <p>Developed by <a href="www.charles14.xyz">Charles</a></p>
+        <div style="float:left;margin:1em">
+            <img class="icon" src="/img/icon.png" style="width:3em;height:3em">
+        </div>
+        <div style="float:left;margin:1em">
+            <p>Version: v5.5.7 <i class="fa fa-check-circle"></i></p>
+            <p>Copyright &copy; 2021 My Memo</p>
+        </div>
+        <div style="float:right;margin:1em">
+            <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-brands fa-github"></i>
+                    GitHub</a></p>
+            <p>Developed by <a href="www.charles14.xyz">Charles</a></p>
+        </div>
     </div>
 </body>
 

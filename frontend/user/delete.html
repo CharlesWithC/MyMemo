@@ -42,7 +42,7 @@
                         $("#title").html(r.msg);
                         setTimeout(function () {
                             localStorage.clear();
-                            window.location.href = "/user/login";
+                            window.location.href="/user/login";
                         }, 5000);
                     } else {
                         NotyNotification(r.msg, type = 'error');
@@ -79,12 +79,18 @@
     </div>
 
     <div class="footer">
-        <p>Copyright &copy; 2021 My Memo</p>
-        <p>Version: v5.5.6 <i class="fa fa-check-circle"></i></p>
-        <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
-        <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-brands fa-github"></i>
-                GitHub</a></p>
-        <p>Developed by <a href="www.charles14.xyz">Charles</a></p>
+        <div style="float:left;margin:1em">
+            <img class="icon" src="/img/icon.png" style="width:3em;height:3em">
+        </div>
+        <div style="float:left;margin:1em">
+            <p>Version: v5.5.7 <i class="fa fa-check-circle"></i></p>
+            <p>Copyright &copy; 2021 My Memo</p>
+        </div>
+        <div style="float:right;margin:1em">
+            <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-brands fa-github"></i>
+                    GitHub</a></p>
+            <p>Developed by <a href="www.charles14.xyz">Charles</a></p>
+        </div>
     </div>
 </body>
 

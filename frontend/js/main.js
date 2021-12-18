@@ -146,7 +146,9 @@ function UpdateBookList() {
 
 function PageInit() {
     if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-        $("#hometitle").css("font-size","5em");
+        $("#home").css("line-height","85%");
+    } else {
+        $("#home").css("line-height","65%");
     }
     l = ["Switch", "Practice", "Challenge", "Offline"];
     $("#mode").html(l[settings.mode]);
@@ -278,7 +280,7 @@ function ShowQuestion() {
     }
     $("#home").hide();
     $(".title").show();
-    $("#memo").show();
+    $("#memo").fadeIn();
     $(".control").hide();
     if (settings.mode == 0) {
         $("#practice-control").show();
@@ -1188,7 +1190,7 @@ function BackToHome() {
     memo.started = false;
     $(".title").hide();
     $("#memo").hide();
-    $("#home").show();
+    $("#home").fadeIn();
     StopAutoPlayer();
 }
 

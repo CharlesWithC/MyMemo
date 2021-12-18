@@ -34,6 +34,8 @@
 
     <script>
         $(document).ready(function () {
+            if ($("#questionList").DataTable != undefined)
+                $("#questionList").DataTable().destroy();
             $('#questionList').DataTable({
                 pagingType: "full_numbers",
                 iDisplayLength: 10,
@@ -109,7 +111,7 @@
     <div id="navigate" style="z-index:100">
         <div class="leftside">
             <div class="sqbtn">
-                <a href="/"><img class="icon"  src="/img/icon.png" style="width:2.2em;height:2.2em"></a>
+                <a href="/"><img class="icon" src="/img/icon.png" style="width:2.2em;height:2.2em"></a>
             </div>
         </div>
         <div class="userctrl">
@@ -124,28 +126,33 @@
     </div>
 
     <div id="content" class="container">
-        <h1 class="title" style="padding-bottom: 0;">Book&nbsp;&nbsp;<button type="button" id="refresh-btn"
-                class="btn btn-outline-secondary" onclick="UpdateBookContentList()"><i class="fa fa-sync"></i></button>
+        <h1 class="title">Book&nbsp;&nbsp;<button type="button" id="refresh-btn" class="btn btn-outline-secondary"
+                onclick="UpdateBookContentList()"><i class="fa fa-sync"></i></button>
         </h1>
         <div class="book-list-content-div">
-            <div class="book-list-content" style="margin:2em;margin-top:0">
+            <div class="book-list-content subcontainer sub-div sub-left">
                 <div>
-                    <p>Create Book: </p>
-                    <div class="input-group mb-3" style="width:fit-content">
-                        <span class="input-group-text" id="basic-addon1">Name</span>
-                        <input type="text" class="form-control" id="create-book-name-content"
-                            aria-describedby="basic-addon1">
-                        <div class="input-group-append">
-                            <button class="btn btn-outline-primary" type="button"
-                                onclick="CreateBook('#create-book-name-content')">Create</button>
-                        </div>
+                    <h4>My Book</h4>
+                    <p><i class="fa fa-spinner fa-spin"></i></p>
+                </div>
+            </div>
+            <div class="subcontainer sub-div sub-right">
+                <h4>Create Book</h4>
+                <div class="input-group mb-3" style="width:fit-content">
+                    <span class="input-group-text" id="basic-addon1">Name</span>
+                    <input type="text" class="form-control" id="create-book-name-content"
+                        aria-describedby="basic-addon1">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-primary" type="button"
+                            onclick="CreateBook('#create-book-name-content')">Create</button>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="book-data-div" style="display:none">
-            <div id="qlist" class="subcontainer sub-left" style="position:relative;width:55%;float:left">
+            <div id="qlist" class="subcontainer sub-div sub-left">
+                <h2><i class="fa fa-table"></i>Question List</h2>
                 <table class="table table-hover" id="questionList" style="text-align:center">
                     <thead>
                         <tr>
@@ -160,45 +167,45 @@
                 </table>
             </div>
 
-            <div id="manage" class="manage subcontainer sub-right"
-                style="position:relative;width:35%;float:left;margin-left:4em;">
-                <div>
-                    <h4><i class="fa fa-list"></i> Questions</h4>
-                    <h5><i class="fa fa-info"></i> Status</h5>
-                    <button type="button" class="btn btn-primary" onclick="BookUpdateStatus(1)">Default</button>
-                    <button type="button" class="btn btn-primary" onclick="BookUpdateStatus(2)">Tag <i
-                            class="fa fa-star"></i></button>
-                    <button type="button" class="btn btn-primary" onclick="BookUpdateStatus(3)">Delete <i
-                            class="fa fa-trash"></i></button>
-                    <div class="only-group-editor-if-group-exist">
-                        <br>
-                        <h5><i class="fa fa-edit"></i> Edit Question</h5>
-                        <button type="button" class="btn btn-primary" onclick="EditQuestionFromBtn()">Edit</button>
-                    </div>
-                    <div class="only-group-editor-if-group-exist">
-                        <br>
-                        <h5><i class="fa fa-plus"></i> Add Question</h5>
-                        <button type="button" class="btn btn-primary not-for-all-questions"
-                            onclick="ShowQuestionDatabase()" style="display:none">Add from database</button>
-                        <button type="button" class="btn btn-primary" onclick="AddQuestionShow()">Add new</button>
-                    </div>
-                    <div class="only-group-editor-if-group-exist">
-                        <br>
-                        <h5><i class="fa fa-minus"></i> Remove Question</h5>
-                        <button type="button" class="btn btn-warning remove-question-btn"
-                            onclick="RemoveFromBook()">Remove</button>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="removeFromDB">
-                            <label class="form-check-label" for="removeFromDB">
-                                Also remove from database
-                            </label>
+            <div id="manage" class="manage sub-right">
+                <div class="subcontainer sub-div">
+                    <h2><i class="fa fa-list"></i> Manage</h2>
+                    <div>
+                        <h5><i class="fa fa-marker"></i> Status</h5>
+                        <button type="button" class="btn btn-primary" onclick="BookUpdateStatus(1)">Default</button>
+                        <button type="button" class="btn btn-primary" onclick="BookUpdateStatus(2)">Tag <i
+                                class="fa fa-star"></i></button>
+                        <button type="button" class="btn btn-primary" onclick="BookUpdateStatus(3)">Delete <i
+                                class="fa fa-trash"></i></button>
+                        <div class="only-group-editor-if-group-exist">
+                            <br>
+                            <h5><i class="fa fa-edit"></i> Edit Question</h5>
+                            <button type="button" class="btn btn-primary" onclick="EditQuestionFromBtn()">Edit</button>
                         </div>
-                        <p style="font-size:0.75em">* "Remove" will only remove the question from this book, but if you
-                            check "Also remove from database", it will be removed from all books.</p>
+                        <div class="only-group-editor-if-group-exist">
+                            <br>
+                            <h5><i class="fa fa-plus"></i> Add Question</h5>
+                            <button type="button" class="btn btn-primary not-for-all-questions"
+                                onclick="ShowQuestionDatabase()" style="display:none">Add from database</button>
+                            <button type="button" class="btn btn-primary" onclick="AddQuestionShow()">Add new</button>
+                        </div>
+                        <div class="only-group-editor-if-group-exist">
+                            <br>
+                            <h5><i class="fa fa-minus"></i> Remove Question</h5>
+                            <button type="button" class="btn btn-warning remove-question-btn"
+                                onclick="RemoveFromBook()">Remove</button>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="removeFromDB">
+                                <label class="form-check-label" for="removeFromDB">
+                                    Also remove from database
+                                </label>
+                            </div>
+                            <p style="font-size:0.75em">"Remove" will only remove the question from this book, but if you
+                                check "Also remove from database", it will be removed from all books.</p>
+                        </div>
                     </div>
                 </div>
-                <div>
-                    <hr>
+                <div class="subcontainer sub-div">
                     <h4><i class="fa fa-book"></i> Book</h4>
                     <button type="button" class="btn btn-primary not-for-all-questions" onclick="BookClone()">Clone
                         <i class="fa fa-copy"></i></button>
@@ -221,8 +228,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="not-for-all-questions" style="display:none">
-                    <hr>
+                <div class="not-for-all-questions subcontainer sub-div" style="display:none">
                     <h4><i class="fa fa-paper-plane"></i> Discovery</h4>
                     <button type="button" class="btn btn-primary published-to-discovery" onclick=""
                         id="go-to-discovery-btn" style="display:none">Check on Discovery <i
@@ -234,9 +240,8 @@
                         onclick="UnpublishDiscoveryShow()" style="display:none">Unpublish <i
                             class="fa fa-trash"></i></button>
                 </div>
-                <div id="group" class="group not-for-all-questions" style="display:none">
-                    <hr>
-                    <h4><i class="fa fa-userfriends"></i> Group</h4>
+                <div id="group" class="group not-for-all-questions subcontainer sub-div" style="display:none">
+                    <h4><i class="fa fa-user-group"></i> Group</h4>
                     <button type="button" class="btn btn-primary only-group-inexist" onclick="CreateGroupShow()">Create
                         Group</button>
 
@@ -287,13 +292,13 @@
                                         class="btn btn-secondary group-anonymous-btn"
                                         onclick="GroupAnonymousSwitch(2)">Full
                                         Anonymous</button>
-                                    <p style="font-size:0.75em">*Open means members can see other members' username and
+                                    <p style="font-size:0.75em">Open means members can see other members' username and
                                         progress.
                                         Anonymous means members can see other member's progress but not username. Full
                                         Anonymous
                                         means
                                         members can see no data from other members.</p>
-                                    <p style="font-size:0.75em">*Anonymous settings will not stop the group's question
+                                    <p style="font-size:0.75em">Anonymous settings will not stop the group's question
                                         list sync.
                                     </p>
                                     <br>
@@ -316,8 +321,8 @@
                 </div>
             </div>
 
-            <div id="addExistingQuestion" class="addExistingQuestion subcontainer sub-right"
-                style="position:relative;width:35%;float:right;display:none">
+            <div id="addExistingQuestion" class="addExistingQuestion subcontainer sub-div sub-right"
+                style="display:none">
                 <p>Select questions to add to <span class="book-name"></span></p>
                 <button type="button" class="btn btn-primary not-for-all-questions"
                     onclick="AddExistingQuestion()">Add</button>
@@ -328,12 +333,18 @@
     </div>
 
     <div class="footer">
-        <p>Copyright &copy; 2021 My Memo</p>
-        <p>Version: v5.5.6 <i class="fa fa-check-circle"></i></p>
-        <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
-        <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-brands fa-github"></i>
-                GitHub</a></p>
-        <p>Developed by <a href="www.charles14.xyz">Charles</a></p>
+        <div style="float:left;margin:1em">
+            <img class="icon" src="/img/icon.png" style="width:3em;height:3em">
+        </div>
+        <div style="float:left;margin:1em">
+            <p>Version: v5.5.7 <i class="fa fa-check-circle"></i></p>
+            <p>Copyright &copy; 2021 My Memo</p>
+        </div>
+        <div style="float:right;margin:1em">
+            <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-brands fa-github"></i>
+                    GitHub</a></p>
+            <p>Developed by <a href="www.charles14.xyz">Charles</a></p>
+        </div>
     </div>
 </body>
 

@@ -87,7 +87,7 @@ async def apiAddQuestion(request: Request):
     if bookId != -1:
         cur.execute(f"SELECT bookId FROM Book WHERE userId = {userId} AND bookId = {bookId}")
         if len(cur.fetchall()) != 0:
-            appendBookData(userId, bookId, questionId)
+            cur.execute(f"INSERT INTO BookData VALUES ({userId}, {bookId}, {questionId})")
     
     if groupId != -1:
         gquestionId = 1
@@ -125,7 +125,7 @@ async def apiAddQuestion(request: Request):
                 return {"success": False, "msg": "Answer too long!"}
 
             cur.execute(f"INSERT INTO QuestionList VALUES ({uid}, {wid}, '{question}', '{answer}', 1, 0)")
-            appendBookData(uid, wbid, wid)
+            cur.execute(f"INSERT INTO BookData VALUES ({uid}, {wbid}, {wid})")
             cur.execute(f"INSERT INTO ChallengeData VALUES ({uid},{wid},0,-1)")
             cur.execute(f"INSERT INTO GroupSync VALUES ({groupId}, {uid}, {wid}, {gquestionId})")
             updateQuestionStatus(uid, wid, -3) # -3 is group question
@@ -240,7 +240,7 @@ async def apiDeleteQuestion(request: Request):
             ts = int(time.time())
             dd = d[0]
             cur.execute(f"DELETE FROM QuestionList WHERE userId = {userId} AND questionId = {questionId}")
-            removeBookData(userId, -1, questionId)
+            cur.execute(f"DELETE FROM BookData WHERE userId = {userId} AND questionId = {questionId}")
             
         if groupId != -1:
             cur.execute(f"SELECT questionIdOfGroup FROM GroupSync WHERE userId = {userId} AND questionIdOfUser = {questionId}")
@@ -257,7 +257,7 @@ async def apiDeleteQuestion(request: Request):
                     continue
                 wid = tt[1]
                 cur.execute(f"DELETE FROM QuestionList WHERE userId = {uid} AND questionId = {wid}")
-                removeBookData(uid, -1, wid)
+                cur.execute(f"DELETE FROM BookData WHERE userId = {userId} AND questionId = {wid}")
             cur.execute(f"DELETE FROM GroupSync WHERE groupId = {groupId} AND questionIdOfGroup = {gquestionId}")
             cur.execute(f"DELETE FROM GroupQuestion WHERE groupQuestionId = {gquestionId}")
 
@@ -283,7 +283,7 @@ async def apiClearDeleted(request: Request):
     ts = int(time.time())
     cur.execute(f"DELETE FROM QuestionList WHERE userId = {userId} AND status = 3")
     for dd in d:
-        removeBookData(userId, -1, dd[0])
+        cur.execute(f"DELETE FROM BookData WHERE userId = {userId} AND questionId = {dd[0]}")
     conn.commit()
 
     return {"success": True}

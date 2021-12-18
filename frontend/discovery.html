@@ -17,7 +17,7 @@
 
     <link rel="stylesheet" href="https://cdn.charles14.xyz/dataTables/jquery.dataTables.min.css">
     <script src="https://cdn.charles14.xyz/dataTables/jquery.dataTables.min.js"></script>
-    
+
     <link href="https://cdn.charles14.xyz/css/simplemde.min.css" rel="stylesheet">
     <script src="https://cdn.charles14.xyz/js/simplemde.min.js"></script>
 
@@ -30,6 +30,8 @@
 
     <script>
         $(document).ready(function () {
+            if ($("#discoveryList").DataTable != undefined)
+                $("#discoveryList").DataTable().destroy();
             $('#discoveryList').DataTable({
                 pagingType: "full_numbers",
                 iDisplayLength: 25,
@@ -47,6 +49,8 @@
             $("#th-pin").remove();
             MDTSB("discoveryList");
 
+            if ($("#questionList").DataTable != undefined)
+                $("#questionList").DataTable().destroy();
             $('#questionList').DataTable({
                 pagingType: "full_numbers",
                 "scrollX": true
@@ -62,7 +66,7 @@
     <div id="navigate" style="z-index:100">
         <div class="leftside">
             <div class="sqbtn">
-                <a href="/"><img class="icon"  src="/img/icon.png" style="width:2.2em;height:2.2em"></a>
+                <a href="/"><img class="icon" src="/img/icon.png" style="width:2.2em;height:2.2em"></a>
             </div>
         </div>
         <div class="userctrl">
@@ -77,15 +81,12 @@
     </div>
 
     <div id="content" class="container">
-        <h1 class="title" style="padding-bottom: 0;">Discovery &nbsp;&nbsp;<button type="button"
+        <h1 class="title">Discovery &nbsp;&nbsp;<button type="button"
                 class="btn btn-outline-secondary" onclick="RefreshDiscovery()" id="refresh-btn"><i
                     class="fa fa-sync"></i></button></h1>
 
         <div class="discovery-list">
-            <div id="top-post" style="position:relative;display:none">
-                <h2 id="top-post-h2">Top Post</h2>
-            </div>
-            <div style="position:relative">
+            <div id="dlist" class="subcontainer sub-div sub-left">
                 <table class="table table-hover" id="discoveryList" style="text-align:center">
                     <thead>
                         <tr>
@@ -101,10 +102,13 @@
                     </tbody>
                 </table>
             </div>
+            <div id="top-post" class="subcontainer sub-div sub-right" style="display:none">
+                <h2 id="top-post-h2">Top Post</h2>
+            </div>
         </div>
 
         <div class="discovery-detail" style="display:none">
-            <div id="qlist" class="subcontainer sub-left" style="position:relative;width:55%;float:left">
+            <div id="qlist" class="subcontainer sub-div sub-left">
                 <table class="table table-hover" id="questionList" style="text-align:center">
                     <thead>
                         <tr>
@@ -117,48 +121,51 @@
                 </table>
             </div>
 
-            <div class="subcontainer manage sub-right" id="manage"
-                style="position:relative;width:35%;float:left;margin-left:4em">
-                <div id="basic-info">
+            <div class="manage sub-right" id="manage">
+                <div id="basic-info" class="subcontainer sub-div">
                     <p>Description: <span id="detail-description"></span></p>
                     <p>Published by <span id="detail-publisher"></span></p>
                     <p style="font-size:0.8em"><span id="detail-views">0</span> Views | <span id="detail-likes">0</span>
                         Likes | <span id="detail-imports"></span> <span id="detail-imports-name"></span></p>
-                    <p>*The publisher reserves all rights of this post.</p>
+                    <p style="font-size:0.8em">The publisher reserves all rights of this post.</p>
                 </div>
-                <div class="user-only book-only" style="display:none">
-                    <hr>
+                <div class="user-only book-only subcontainer sub-div" style="display:none">
                     <h4>Import <i class="fa fa-upload"></i></h4>
                     <p>Share code: <span id="shareCode"></span></p>
                     <button type="button" class="btn btn-primary" onclick="ImportBook()">Import</button>
                     <br>
-                    <p>*This will clone the book of this discovery post to your book database.</p>
+                    <p style="font-size:0.8em">This will clone the book of this discovery post to your book database.</p>
                 </div>
-                <div class="user-only group-only" style="display:none">
-                    <hr>
+                <div class="user-only group-only subcontainer sub-div" style="display:none">
                     <h4>Join <i class="fa fa-userfriends"></i></h4>
                     <p>Group code: <span id="groupCode"></span></p>
                     <button type="button" class="btn btn-primary" onclick="ImportBook()">Join</button>
                     <br>
                 </div>
-                <div class="publisher-only" style="display:none">
-                    <hr>
+                <div class="publisher-only subcontainer sub-div" style="display:none">
                     <h4>Manage Post</h4>
                     <button type="button" class="btn btn-primary" onclick="UpdateInformationShow()">Update Information
                         <i class="fa fa-edit"></i></button>
                     <br>
-                    <p>*You can unpublish the post or unshare the book at book management page.</p>
+                    <p style="font-size:0.8em">You can unpublish the post or unshare the book at book management page.</p>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="footer">
-        <p>Copyright &copy; 2021 My Memo</p>
-        <p>Version: v5.5.6 <i class="fa fa-check-circle"></i></p>
-        <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
-        <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-brands fa-github"></i> GitHub</a></p>
-        <p>Developed by <a href="www.charles14.xyz">Charles</a></p>
+        <div style="float:left;margin:1em">
+            <img class="icon" src="/img/icon.png" style="width:3em;height:3em">
+        </div>
+        <div style="float:left;margin:1em">
+            <p>Version: v5.5.7 <i class="fa fa-check-circle"></i></p>
+            <p>Copyright &copy; 2021 My Memo</p>
+        </div>
+        <div style="float:right;margin:1em">
+            <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-brands fa-github"></i>
+                    GitHub</a></p>
+            <p>Developed by <a href="www.charles14.xyz">Charles</a></p>
+        </div>
     </div>
 </body>
 

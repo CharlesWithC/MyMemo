@@ -44,7 +44,7 @@
     <div id="navigate" style="z-index:100">
         <div class="leftside">
             <div class="sqbtn">
-                <a href="/"><img class="icon"  src="/img/icon.png" style="width:2.2em;height:2.2em"></a>
+                <a href="/"><img class="icon" src="/img/icon.png" style="width:2.2em;height:2.2em"></a>
             </div>
         </div>
         <div class="userctrl">
@@ -59,7 +59,7 @@
     </div>
 
     <div id="content" class="container">
-        <h1 class="title" style="padding-bottom: 0;">My Memo</h1>
+        <h1 class="title">My Memo</h1>
 
         <div id="charts" style="border-radius:0.5em;display:none">
             <div class="chart" id="chart1"></div>
@@ -67,32 +67,35 @@
             <div class="chart" id="chart3" style="width:49%;display:inline-block;"></div>
             <div class="chart" id="chart4" style="width:49%;display:inline-block;"></div>
         </div>
-        <div id="user-public" class="user-public" style="display:none">
+        <div id="user-public" class="user-public subcontainer sub-div" style="display:none">
             <h2><span id="username-public"></span></h2>
             <p style="font-size:0.8em">ID: <span id="userId-public"></span></p>
             <p><span id="bio-public"></span></p>
             <p>Age: <span id="age-public">0</span> days</p>
         </div>
         <div class="user">
-            <div class="basic-info subcontainer sub-left" style="width: 55%; float:left">
-                <h2><span id="username"></span></h2>
-                <p style="font-size:0.8em">ID: <span id="userId"></span></p>
-                <p><span id="bio"></span></p>
-                <div id="private-chart"></div>
-                <hr>
-                <div id="sessions">
+            <div class="basic-info sub-left">
+                <div class="subcontainer sub-div">
+                    <h2><span id="username"></span></h2>
+                    <p style="font-size:0.8em">ID: <span id="userId"></span></p>
+                    <p><span id="bio"></span></p>
+                </div>
+                <div class="subcontainer sub-div" id="private-chart"></div>
+                <div class="subcontainer sub-div" id="sessions">
                     <h2>Sessions</h2>
-                    <p style="font-size:0.8em">*If you find an unknown session, reset your password immediately.
+                    <p style="font-size:0.8em">If you find an unknown session, reset your password immediately.
                         Changing your password will log out of all sessions.</p>
                 </div>
             </div>
-            <div class="manage-account subcontainer sub-right" style="width: 35%; float:left">
-                <div id="goal">
+            <div class="manage-account sub-right">
+                <div class="subcontainer sub-div">
+                    <h2>Basic Information</h2>
                     <p>Age: <span id="age">0</span> days</p>
                     <p>Email: <span id="email"></span></p>
                     <p>Invitation Code: <span id="inviteCode"></span></p>
                     <p>Invited By: <span id="inviteBy"></span></p>
-                    <hr>
+                </div>
+                <div id="goal" class="subcontainer sub-div">
                     <h2>Goal</h2>
                     <div style="height:1.5em">
                         <div class="progress" style="display:inline-block;width:100%;height:1.7em">
@@ -108,7 +111,7 @@
                     <button id="checkin-btn" class="btn btn-primary" type="button" onclick="CheckIn()" disabled>Check
                         In</button>
                     <p id="checkin-hint" style="font-size:0.7em">Accomplish today's goal to check in!</p>
-                    <div class="input-group mb-3 w-75">
+                    <div class="input-group mb-3">
                         <span class="input-group-text" id="basic-addon1">Update Goal</span>
                         <input type="text" class="form-control" id="new-goal" aria-describedby="basic-addon1">
                         <div class="input-group-append">
@@ -116,14 +119,12 @@
                         </div>
                     </div>
                 </div>
-                <hr>
-                <h3>Manage Account</h3>
-                <h4>Basic</h4>
-                <button type="button" class="btn btn-primary" onclick="UpdateProfileShow()">Update Profile</button>
-                <button type="button" class="btn btn-primary" onclick="ChangePasswordShow()">Change Password</button>
-                <hr>
-                <div id="danger-zone">
-                    <h4>Danger Zone</h4>
+                <div class="subcontainer sub-div">
+                    <h3>Manage Account</h3>
+                    <button type="button" class="btn btn-primary" onclick="UpdateProfileShow()">Update Profile</button>
+                    <button type="button" class="btn btn-primary" onclick="ChangePasswordShow()">Change
+                        Password</button>
+                    <hr>
                     <button type="button" class="btn btn-danger" onclick="DeleteAccountShow()">Delete
                         Account</button>
                 </div>
@@ -132,12 +133,18 @@
     </div>
 
     <div class="footer">
-        <p>Copyright &copy; 2021 My Memo</p>
-        <p>Version: v5.5.6 <i class="fa fa-check-circle"></i></p>
-        <p>Contact: <a href="mailto:memo@charles14.xyz">memo@charles14.xyz</a></p>
-        <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-brands fa-github"></i>
-                GitHub</a></p>
-        <p>Developed by <a href="www.charles14.xyz">Charles</a></p>
+        <div style="float:left;margin:1em">
+            <img class="icon" src="/img/icon.png" style="width:3em;height:3em">
+        </div>
+        <div style="float:left;margin:1em">
+            <p>Version: v5.5.7 <i class="fa fa-check-circle"></i></p>
+            <p>Copyright &copy; 2021 My Memo</p>
+        </div>
+        <div style="float:right;margin:1em">
+            <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo"><i class="fa fa-brands fa-github"></i>
+                    GitHub</a></p>
+            <p>Developed by <a href="www.charles14.xyz">Charles</a></p>
+        </div>
     </div>
 </body>
 

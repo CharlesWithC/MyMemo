@@ -198,7 +198,7 @@ if doinit:
     ########## NOTE: Tables related to books
 
     cur.execute(f"CREATE TABLE Book (userId INT, bookId INT, name VARCHAR(256), progress INT)")
-    cur.execute(f"CREATE TABLE BookData (userId INT, bookId INT, questions TEXT, page INT)")
+    cur.execute(f"CREATE TABLE BookData (userId INT, bookId INT, questionId INT)")
     cur.execute(f"CREATE TABLE BookShare (userId INT, bookId INT, shareCode VARCHAR(8), importCount INT, createTS INT, shareType INT)")
     # When a new question is added, it belongs to no book
     # A question can belong to many books

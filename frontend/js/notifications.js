@@ -18,10 +18,9 @@ function PageInit() {
             cur = Math.min(20, notifications.length);
             for (var i = 0; i < cur; i++) {
                 var time = new Date(parseInt(notifications[i].timestamp) * 1000);
-                $("#content").append("<div id="+i+" class='notification'>\
+                $("#content").append("<div id="+i+" class='notification subcontainer sub-div'>\
                 <p style='font-size:1.2em'>" + notifications[i].msg + "</p>\
                 <p style='font-size:0.8em;color:#888888'>" + time.toLocaleString() + "</p>\
-                <hr>\
                 </div>");
             }
             if(cur < notifications.length) $("#content").append("<a href='#"+(cur-1)+"' class='notification more-btn' onclick='ShowMore()'>Show More</a>");
@@ -43,10 +42,9 @@ function ShowMore(){
     $(".more-btn").remove();
     for (var i = cur; i < nxt; i++) {
         var time = new Date(parseInt(notifications[i].timestamp) * 1000);
-        $("#content").append("<div id="+i+" class='notification'>\
+        $("#content").append("<div id="+i+" class='notification subcontainer sub-div'>\
         <p style='font-size:1.2em'>" + notifications[i].msg + "</p>\
         <p style='font-size:0.8em;color:#888888'>" + time.toLocaleString() + "</p>\
-        <hr>\
         </div>");
     }
     cur = nxt;

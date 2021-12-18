@@ -91,11 +91,12 @@ function RefreshQuestionList(show401 = false) {
 
 function SelectQuestions() {
     found = false;
+
     for (var i = 0; i < bookList.length; i++) {
         if (bookList[i].bookId == bookId) {
             found = true;
             $(".book-list-content-div").hide();
-            $(".book-data-div").show();
+            $(".book-data-div").fadeIn();
 
             bookName = bookList[i].name;
             btns = '<button type="button" class="btn btn-outline-secondary" onclick="RefreshQuestionList(show401=true)" id="refresh-btn"><i class="fa fa-sync"></i></button>';
@@ -183,16 +184,12 @@ function SelectQuestions() {
                         "answer": questionData.answer,
                         "status": questionData.status
                     });
-                } else {
-                    console.log(questionId);
                 }
             }
         }
     }
     if (!found) {
-        $(".book-list-content-div").show();
-        $(".book-data-div").hide();
-        UpdateBookDisplay();
+        UpdateBookContentDisplay();
     }
 }
 
@@ -244,7 +241,7 @@ function UpdateQuestionList() {
             } catch {
                 console.warning("Cannot store book list to Session Storage, aborted!");
             }
-            UpdateBookDisplay();
+            UpdateBookContentDisplay();
             MapQuestionList();
             SelectQuestions();
             UpdateTable();
@@ -934,7 +931,8 @@ function BookDelete() {
             if (r.success == true) {
                 NotyNotification('Success! Book deleted!');
                 setTimeout(function () {
-                    window.location.href = '/book';
+                    $(".book-data-div").hide();
+                    $(".book-list-content-div").fadeIn();
                 }, 3000);
             } else {
                 NotyNotification(r.msg, type = 'error');
@@ -1834,7 +1832,12 @@ function deselectAll() {
 }
 
 function UpdateBookContentDisplay() {
-    $(".book-content").remove();
+    $(".book-list-content div").remove();
+    if (bookList.length == 1) {
+        $(".book-list-content").append("<div><p>My Book</p></div>");
+    } else {
+        $(".book-list-content").append("<div><p>My Books</p></div>");
+    }
     for (var i = 0; i < bookList.length; i++) {
         book = bookList[i];
         wcnt = "";
@@ -1848,7 +1851,7 @@ function UpdateBookContentDisplay() {
             bname = "[Group] " + bname;
         }
 
-        $(".book-list-content").append('<div class="rect book-content" style="padding:1em" onclick="OpenBook(' + book.bookId + ')">\
+        $(".book-list-content").append('<div class="rect" style="padding:1em" onclick="OpenBook(' + book.bookId + ')">\
         <p class="rect-title">' + bname + '</p>\
         <p class="rect-content">&nbsp;&nbsp;' + wcnt + '</p>\
         </div>');
@@ -1914,8 +1917,6 @@ function CreateBook(element) {
         },
         success: function (r) {
             if (r.success == true) {
-                UpdateBookList();
-                UpdateBookDisplay();
                 UpdateBookContentList();
                 UpdateBookContentDisplay();
                 NotyNotification('Success! Book created!');
@@ -2167,4 +2168,46 @@ function BookChart() {
             }
         }
     });
+}
+
+function OpenBook(bid) {
+    bookId = bid;
+
+    table = $("#questionList").DataTable();
+    table.clear();
+    table.row.add([
+        [""],
+        ["Loading <i class='fa fa-spinner fa-spin'></i>"],
+        [""],
+        [""]
+    ]);
+    table.draw();
+    table.clear();
+
+    if (bookId == 0) {
+        $(".not-for-all-questions").hide();
+    } else {
+        $(".not-for-all-questions").show();
+    }
+    $(".group").hide();
+
+    if (questionList.length == 0) {
+        UpdateQuestionList();
+    } else {
+        MapQuestionList();
+        SelectQuestions();
+        UpdateTable();
+    }
+
+    window.history.pushState("My Memo", "My Memo", "/book?bookId=" + bookId);
+}
+
+function BackToList() {
+    $(".book-data-div").hide();
+    $(".book-list-content-div").fadeIn();
+    UpdateBookContentDisplay();
+
+    window.history.pushState("My Memo", "My Memo", "/book");
+    $(".title").html(`Book&nbsp;&nbsp;<button type="button" id="refresh-btn" class="btn btn-outline-secondary"
+    onclick="UpdateBookContentList()"><i class="fa fa-sync"></i></button>`);
 }

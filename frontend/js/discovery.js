@@ -56,7 +56,7 @@ function RefreshDiscovery() {
                 toplist[discoveryList[i].discoveryId] = discoveryList.likes;
                 table.row.add([
                     [pin],
-                    ["<a href='/discovery?discoveryId=" + discoveryList[i].discoveryId + "'>" + discoveryList[i].title + "</a>"],
+                    ["<a href='#' onclick='ShowDiscovery(" + discoveryList[i].discoveryId + ")'>" + discoveryList[i].title + "</a>"],
                     [discoveryList[i].publisher],
                     [discoveryList[i].views],
                     [discoveryList[i].likes],
@@ -70,10 +70,12 @@ function RefreshDiscovery() {
 
             $(".discovery-top").remove();
             i = 1;
+            topshow = false;
             $.each(toplist, function (discoveryId, index) {
                 if (i <= 3) {
                     if (i == 1) {
                         $("#top-post").show();
+                        topshow = true;
                     }
                     if (i == 2) {
                         $("#top-post-h2").html("Top Posts");
@@ -90,16 +92,19 @@ function RefreshDiscovery() {
                             break;
                         }
                     }
-                    $("#top-post").append('<div class="rect discovery-top" style="display:inline-block;padding:1em;width:fit-content" onclick="window.location.href=\'/discovery?discoveryId=' + discoveryId + '\';">\
-                    <p class="rect-title">' + title + '</p>\
-                    <p class="rect-content">&nbsp;&nbsp;' + marked.parse(description) + '</p>\
-                    <p class="rect-content">&nbsp;&nbsp;' + info + '</p>\
-                    </div>');
+                    $("#top-post").append(`<div class="rect discovery-top" href="#" onclick="ShowDiscovery(` + discoveryId + `);">
+                    <p class="rect-title">` + title + `</p>
+                    <p class="rect-content">&nbsp;&nbsp;` + marked.parse(description) + `</p>
+                    <p class="rect-content">&nbsp;&nbsp;` + info + `</p>
+                    </div>`);
                 }
             });
-            $("#top-post").append("<hr class='discovery-top'>");
 
             $("#refresh-btn").html('<i class="fa fa-sync"></i>');
+
+            if (!topshow) {
+                $("#dlist").removeClass("sub-left");
+            }
         }
     });
 }
@@ -203,9 +208,10 @@ function UpdateDiscoveryQuestionList() {
         success: function (r) {
             if (r.success == false) {
                 NotyNotification(r.msg, type = 'error');
-                $(".discovery-list").show();
                 $(".discovery-detail").hide();
-                setTimeout(function(){window.location.href='/discovery'},1000);
+                $(".discovery-list").fadeIn();
+                RefreshDiscovery();
+                window.history.pushState("My Memo", "My Memo", "/discovery");
                 return;
             }
             table.clear();
@@ -256,8 +262,8 @@ function UpdateDiscoveryQuestionList() {
 
             for (var i = 0; i < questionList.length; i++) {
                 table.row.add([
-                    [questionList[i].question.replaceAll("\n","<br>")],
-                    [questionList[i].answer.replaceAll("\n","<br>")]
+                    [questionList[i].question.replaceAll("\n", "<br>")],
+                    [questionList[i].answer.replaceAll("\n", "<br>")]
                 ]);
             }
             table.draw();
@@ -299,8 +305,19 @@ function ImportBook() {
     });
 }
 
-function ShowDiscovery(discoveryId) {
-    window.location.href = "/discovery?discoveryId=" + discoveryId
+function ShowDiscovery(disid) {
+    discoveryId = disid;
+    $(".discovery-list").hide();
+    $(".discovery-detail").fadeIn();
+    UpdateDiscoveryQuestionList();
+    window.history.pushState("My Memo", "My Memo", "/discovery?discoveryId=" + disid);
+}
+
+function BackToList() {
+    $(".discovery-detail").hide();
+    $(".discovery-list").fadeIn();
+    RefreshDiscovery();
+    window.history.pushState("My Memo", "My Memo", "/discovery");
 }
 
 function UpdateInformationShow() {

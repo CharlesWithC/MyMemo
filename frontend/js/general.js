@@ -61,7 +61,9 @@ function SessionExpired() {
     localStorage.clear();
     localStorage.setItem("first-use", "0");
     localStorage.setItem("sign-out", "1");
-    setTimeout(GoToUser, 3000);
+    setTimeout(function () {
+        window.location.href = "/user/login"
+    }, 3000);
 }
 
 function getUrlParameter(sParam) {
@@ -314,7 +316,8 @@ $(document).ready(function () {
     }
 
     if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-        $("#navigate").after(`<div id="book-div" class="book-side" style="display:none">
+        if (window.location.pathname.indexOf("/book") == -1) {
+            $("#navigate").after(`<div id="book-div" class="book-side" style="display:none">
             <div class="book-side-content">
                 <h2 style="float:left">Books</h2>
                 <button type="button" class="btn btn-outline-secondary btn-sm" style="margin:0.5em;font-size:0.7em" onclick="RefreshBookList()"
@@ -339,26 +342,38 @@ $(document).ready(function () {
                 </div>
             </div>
         </div>`);
+        }
     }
 
-    $(".leftside").append(`<div class="sqbtn">
-        <a id="book-btn" href="#" onclick="window.location.href='/book'"><i class="fa fa-book"></i></a><br>
-    </div>`);
-    if (localStorage.getItem("userId") != null && localStorage.getItem("userId") != "-1") {
+    if (window.location.pathname.indexOf("/book") == -1) {
         $(".leftside").append(`<div class="sqbtn">
-            <a href="#" onclick="window.location.href='/share'"><i class="fa fa-share-alt"></i></a><br>
+            <a id="book-btn" href="/book"><i class="fa fa-book"></i></a><br>
+        </div>`);
+    } else {
+        $(".leftside").append(`<div class="sqbtn">
+            <a id="book-btn" href="#" onclick="BackToList()"><i class="fa fa-book"></i></a><br>
         </div>`);
     }
-    $(".leftside").append(`<div class="sqbtn">
-        <a href="#" onclick="window.location.href='/discovery'"><i class="fa fa-paper-plane"></i></a><br>
-    </div>`);
+    if (localStorage.getItem("userId") != null && localStorage.getItem("userId") != "-1") {
+        $(".leftside").append(`<div class="sqbtn">
+            <a href="/share"><i class="fa fa-share-alt"></i></a><br>
+        </div>`);
+    }
+    if (window.location.pathname.indexOf("/discovery") == -1) {
+        $(".leftside").append(`<div class="sqbtn">
+            <a href="/discovery"><i class="fa fa-paper-plane"></i></a><br>
+        </div>`);
+    } else {
+        $(".leftside").append(`<div class="sqbtn">
+            <a href="#" onclick="BackToList()"><i class="fa fa-paper-plane"></i></a><br>
+        </div>`);
+    }
     if (localStorage.getItem("isAdmin") == true) {
         $(".leftside").append("<hr>");
         $(".leftside").append(`<div class="sqbtn">
-            <a href="#" onclick="window.location.href='/admin/cli'" id="book-btn"><i class="fa fa-terminal"></i></a><br>
-        </div>
-        <div class="sqbtn">
-            <a href="#" onclick="window.location.href='/admin/userlist'" id="book-btn"><i class="fa fa-address-book"></i></a><br>
+            <a href="/admin/cli" id="book-btn"><i class="fa fa-terminal"></i></a><br>
+        </div><div class="sqbtn">
+            <a href="/admin/userlist" id="book-btn"><i class="fa fa-address-book"></i></a><br>
         </div>`);
     }
 
@@ -374,12 +389,13 @@ $(document).ready(function () {
         $(".leftside").css("padding-bottom", "0.7em");
         $(".leftside").css("border-bottom-left-radius", "0.5em");
         $(".leftside").css("border-top-right-radius", "0");
-        $(".leftside .icon").css("margin","0.2em");
-        $(".leftside .icon").css("margin-top","-0.7em");
-        $(".leftside .sqbtn").css("margin","0.3em");
-        $(".leftside .sqbtn").css("font-size","0.8em");
-        $(".leftside .sqbtn").css("display","inline-block");
+        $(".leftside .icon").css("margin", "0.2em");
+        $(".leftside .icon").css("margin-top", "-0.7em");
+        $(".leftside .sqbtn").css("margin", "0.3em");
+        $(".leftside .sqbtn").css("font-size", "0.8em");
+        $(".leftside .sqbtn").css("display", "inline-block");
         $(".userctrl").css("right", "2%");
+        $(".leftside hr").remove();
     }
 
     $('.modal').on('hidden.bs.modal', function () {
@@ -412,16 +428,13 @@ function GeneralUpdateTheme() {
     shortUserctrl = false;
     setInterval(function () {
         if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-            if (!shortUserctrl) {
-                shortUserctrl = true;
-                if ($("#navusername").html() != "") {
-                    navusername = $("#navusername").html();
-                }
-                $("#navusername").html("");
-                if (window.location.pathname == "/") {
-                    $("#progress-div").hide();
-                    $(".userctrl").attr("style", "");
-                }
+            if ($("#navusername").html() != "") {
+                navusername = $("#navusername").html();
+            }
+            $("#navusername").html("");
+            if (window.location.pathname == "/") {
+                $("#progress-div").hide();
+                $(".userctrl").attr("style", "");
             }
             return;
         }
@@ -486,7 +499,6 @@ function GeneralUpdateTheme() {
             $("body").css("color", "#ffffff");
             $("body").css("background-color", "#333333");
             $(".subcontainer").css("background-color", "#444444");
-            $(".subcontainer").css("border", "0.05em solid #eeeeee");
             $("#content a,.container a").css("color", "#dddddd");
 
             $("hr").css("background-color", "#cccccc");
@@ -494,7 +506,7 @@ function GeneralUpdateTheme() {
             $(".fa-times").css("color", "white");
 
             $("textarea").css("color", "#ffffff");
-            $("textarea").css("background-color", "#333333");
+            $("textarea").css("background-color", "#444444");
             $(".card,.card-body,.card-header").css("background-color", "#555555");
 
             //$(".dataTables_paginate a").css("background-color", "#d3d3d3");
@@ -506,7 +518,6 @@ function GeneralUpdateTheme() {
             $("body").css("color", "#000000");
             $("body").css("background-color", "#ffffff");
             $(".subcontainer").css("background-color", "#eeeeee");
-            $(".subcontainer").css("border", "0.05em solid #222222");
             $("#content a,.container a").css("color", "#222222");
 
             $("hr").css("background-color", "#222222");
@@ -514,7 +525,7 @@ function GeneralUpdateTheme() {
             $(".fa-times").css("color", "black");
 
             $("textarea").css("color", "#000000");
-            $("textarea").css("background-color", "#ffffff");
+            $("textarea").css("background-color", "#eeeeee");
             $(".card,.card-body,.card-header").css("background-color", "#dddddd");
 
             //$(".dataTables_paginate a").css("background-color", "#ffffff");
@@ -522,18 +533,6 @@ function GeneralUpdateTheme() {
             $(".dataTables_info").css("color", "#000000");
             $(".dataTables_length").css("color", "#000000");
             $(".dataTables_length a").css("color", "#000000");
-        }
-
-        if (window.innerWidth < 1200) {
-            $(".sub-left").css("width", "100%");
-            $(".sub-right").css("margin-top", "2em");
-            $(".sub-right").css("margin-left", "0");
-            $(".sub-right").css("width", "100%");
-        } else {
-            $(".sub-left").css("width", "55%");
-            $(".sub-right").css("margin-top", "0em");
-            $(".sub-right").css("margin-left", "4em");
-            $(".sub-right").css("width", "35%");
         }
     }, 50);
 }
@@ -565,10 +564,12 @@ $(document).ready(function () {
 
 // ModifyDataTableSearchBox
 function MDTSB(tableName) {
-    $("#" + tableName + "_length").after('<div id="tmp' + tableName + '" class="dataTables_filter input-group mb-3" style="max-max-width:15em">\
+    $("#" + tableName + "_length").css("float", "left");
+    $("#" + tableName + "_length").after('<div id="tmp' + tableName + '" class="dataTables_filter input-group mb-3" style="float:right;max-width:15em">\
         <span class="input-group-text" id="basic-addon1">Search</span>\
     </div>');
     $("#" + tableName + "_filter > label > input").addClass("form-control");
+    $("#" + tableName + "_filter > label > input").css("max-width", "15em");
     $("#" + tableName + "_filter > label > input").appendTo("#tmp" + tableName);
     $("#" + tableName + "_filter").attr("id", "ttmp" + tableName);
     $("#tmp" + tableName).attr("id", tableName + "_filter");
