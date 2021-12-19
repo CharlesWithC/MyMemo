@@ -204,7 +204,7 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
         for tt in t:
             if decode(tt[0]).lower() == decode(username).lower():
                 return {"success": False, "msg": "Username has been occupied!"}
-            if tt[1].lower() == decode(email).lower():
+            if decode(tt[1]).lower() == email.lower():
                 return {"success": False, "msg": "Email has already been registered!"}
 
         password = hashpwd(password)

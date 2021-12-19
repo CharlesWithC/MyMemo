@@ -59,7 +59,7 @@ async def apiRegister(request: Request, background_tasks: BackgroundTasks):
     for tt in t:
         if decode(tt[0]).lower() == decode(username).lower():
             return {"success": False, "msg": "Username has been occupied!"}
-        if tt[1].lower() == decode(email).lower():
+        if decode(tt[1]).lower() == email.lower():
             return {"success": False, "msg": "Email has already been registered!"}
 
     cur.execute(f"DELETE FROM PendingEmailChange WHERE expire < {int(time.time())}")
@@ -77,7 +77,7 @@ async def apiRegister(request: Request, background_tasks: BackgroundTasks):
     for tt in t:
         if decode(tt[0]).lower() == decode(username).lower():
             return {"success": False, "msg": "Username has been occupied!"}
-        if tt[1].lower() == decode(email).lower():
+        if decode(tt[1]).lower() == email.lower():
             return {"success": False, "msg": "Email has already been registered!"}
 
     password = hashpwd(password)
@@ -244,7 +244,7 @@ async def apiUserPendingUpdateInfo(request: Request, background_tasks: Backgroun
     for tt in t:
         if decode(tt[0]).lower() == decode(username).lower():
             return {"success": False, "msg": "Username has been occupied!"}
-        if tt[1].lower() == decode(email).lower():
+        if decode(tt[1]).lower() == email.lower():
             return {"success": False, "msg": "Email has already been registered!"}
 
     cur.execute(f"DELETE FROM PendingEmailChange WHERE expire < {int(time.time())}")
@@ -262,7 +262,7 @@ async def apiUserPendingUpdateInfo(request: Request, background_tasks: Backgroun
     for tt in t:
         if decode(tt[0]).lower() == decode(username).lower():
             return {"success": False, "msg": "Username has been occupied!"}
-        if tt[1].lower() == decode(email).lower():
+        if decode(tt[1]).lower() == email.lower():
             return {"success": False, "msg": "Email has already been registered!"}
 
     cur.execute(f"UPDATE UserPending SET username = '{username}' WHERE puserId = {puserId}")
