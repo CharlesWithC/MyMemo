@@ -13,14 +13,12 @@
     "mysql_passwd": "123456",
     "mysql_db": "mymemo",
 
-    "postfix_host": "127.0.0.1:25",
-    "helo": "charles14.xyz",
+    "mail_remote": "http://mailserver.example.com",
+    "mail_remote_key": "[The same key as the one in emailremote/config.json]",
     "icon_url": "https://memo.charles14.xyz/img/icon-sm.png",
     "mail_domain": "noreply.charles14.xyz",
     "mail_from": "memo@noreply.charles14.xyz",
     "mail_contact": "memo@charles14.xyz",
-    "dkim_key_path": "",
-    "dkim_selector": "mail",
 
     "max_user_allowed": -1,
     "max_question_per_user_allowed": -1,

@@ -1,5 +1,12 @@
 # Update History
 
+## v5.5.12
+
+*Date: 2021/12/19*  
+Feature Updates:  
+Updated email sending function, abandoned insecure telnet and switched to use a custom email sending script to communicate between servers.  
+And, better configured memo.charles14.xyz's email server and added valid dkim signing function. The emails should not end up in spam or blocked any longer.  
+
 ## v5.5.11
 
 *Date: 2021/12/18*  

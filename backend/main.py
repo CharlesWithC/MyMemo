@@ -37,18 +37,34 @@ def PendingAccountDeletion():
 
 def PendingEmailVerificationDeletion():
     while 1:
-        conn = newconn()
-        cur = conn.cursor()
+        try:
+            conn = newconn()
+            cur = conn.cursor()
 
-        cur.execute(f"DELETE FROM UserPending WHERE expire < {int(time.time())}")
-        cur.execute(f"DELETE FROM EmailVerification WHERE expire < {int(time.time())}")
-        cur.execute(f"DELETE FROM EmailHistory WHERE expire < {int(time.time())}")
+            cur.execute(f"DELETE FROM UserPending WHERE expire < {int(time.time())}")
+            cur.execute(f"DELETE FROM EmailVerification WHERE expire < {int(time.time())}")
+            cur.execute(f"DELETE FROM EmailHistory WHERE expire < {int(time.time())}")
 
-        conn.commit()
+            conn.commit()
 
-        time.sleep(1200)
+            time.sleep(1200)
+        
+        except KeyboardInterrupt:
+            return
 
+def ClearOutdatedDLToken():
+    while 1:
+        try:
+            conn = newconn()
+            cur = conn.cursor()
+            cur.execute(f"DELETE FROM DataDownloadToken WHERE ts <= {int(time.time()) - 1800}")
+            conn.commit()
+            time.sleep(600)
+        
+        except KeyboardInterrupt:
+            return
 
 if __name__ == "__main__":
     threading.Thread(target = PendingAccountDeletion).start()
+    threading.Thread(target=ClearOutdatedDLToken).start()
     uvicorn.run("app:app", host = config.server_ip, port = config.server_port)

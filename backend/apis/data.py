@@ -499,13 +499,3 @@ async def apiDownload(token: str, request: Request, background_tasks: Background
 
         return StreamingResponse(buf, headers={"Content-Disposition": "attachment; filename=MyMemo_Export_AllData.xlsx", \
             "Content-Type": "application/octet-stream"})
-
-def ClearOutdatedDLToken():
-    while 1:
-        conn = newconn()
-        cur = conn.cursor()
-        cur.execute(f"DELETE FROM DataDownloadToken WHERE ts <= {int(time.time()) - 1800}")
-        conn.commit()
-        time.sleep(600)
-
-threading.Thread(target=ClearOutdatedDLToken).start()
