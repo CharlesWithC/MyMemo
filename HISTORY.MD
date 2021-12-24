@@ -1,5 +1,29 @@
 # Update History
 
+## v5.5.13  
+
+*Date: 2021/12/24*  
+Feature Updates:  
+1.Removed static frontend version, version in footer will be updated with an api request  
+2.Updated Discovery search to add publisher to matching keyword  
+
+Frontend Updates:  
+1./user moved user age from basic information to beside user id  
+2.Extended copyright to 2022  
+3.Added hover for a tags in footer  
+4.Added text border for username to make dark color visible in dark mode  
+
+Code Updates:  
+1.Removed datatase table DataUploadResult, DataDownloadToken and RequestRecoverAccount, and storing the data in memory  
+2.Splitted user.py, discovery.py to multiple parts containing different types of user operation  
+3.Changed multi-thread lib from threading to multiprocessing for better performance and support Ctrl-C to exit  
+4.Changed IP source from header to FastAPI-provided variable  
+
+Bug Fixes:  
+1.Fixed the bug that getting undefined notifications when editing questions  
+2.Fixed the bug that getting 404 errors when clicking Discovery top post  
+3.Fixed the bug that range selection does not have a default value when user is not logged in  
+
 ## v5.5.12
 
 *Date: 2021/12/19*  

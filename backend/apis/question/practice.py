@@ -18,6 +18,7 @@ import sessions
 
 @app.post("/api/question/next")
 async def apiGetNext(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()

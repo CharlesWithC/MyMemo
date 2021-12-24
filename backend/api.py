@@ -7,17 +7,16 @@ import json
 
 from app import app
 
-import apis.user
-import apis.admin
+import apis.user.main
 import apis.question.main
 import apis.book.main
+import apis.discovery.main
 import apis.group
 import apis.share
 import apis.data
-import apis.discovery
+import apis.admin
 
-@app.post("/api/ping")
-async def ping(request: Request):
-    form = await request.form()
-    msg = form["msg"]
-    return {"success": True, "msg": msg}
+@app.get("/api/version")
+async def apiGetVersion(request: Request):
+    ip = request.client.host
+    return {"success": True, "version": "v5.5.13"}

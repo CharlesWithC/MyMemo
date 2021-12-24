@@ -289,145 +289,6 @@ function UpdateNavUsername() {
     });
 }
 
-$(document).ready(function () {
-    if (localStorage.getItem("username") != null && localStorage.getItem("username") != "") {
-        username = localStorage.getItem("username");
-        $("#navusername").html(username);
-        $(".only-signed-in").show();
-        setInterval(UpdateNavUsername, 600000);
-    } else {
-        $.ajax({
-            url: "/api/user/info",
-            method: 'POST',
-            async: true,
-            dataType: "json",
-            data: {
-                userId: localStorage.getItem("userId"),
-                token: localStorage.getItem("token")
-            },
-            success: function (r) {
-                $("#navusername").html(r.username);
-                $(".only-signed-in").show();
-                localStorage.setItem("username", r.username);
-                setInterval(UpdateNavUsername, 60000);
-            },
-            error: function (r, textStatus, errorThrown) {
-                if (r.status == 401) {
-                    $("#navusername").html("<a href='/user/login'>Sign in</a>&nbsp;&nbsp;  ");
-                    localStorage.setItem("username", "");
-                }
-            }
-        });
-    }
-
-    if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-        if (window.location.pathname.indexOf("/book") == -1) {
-            $("#navigate").after(`<div id="book-div" class="book-side" style="display:none">
-            <div class="book-side-content">
-                <h2 style="float:left">Books</h2>
-                <button type="button" class="btn btn-outline-secondary btn-sm" style="margin:0.5em;font-size:0.7em" onclick="RefreshBookList()"
-                    id="book-list-refresh-btn"><i class="fa fa-sync"></i></button>
-                <button type="button" class="close" style="float:right;background-color:transparent;border:none" aria-label="Close"
-                    onclick="$('#book-div').fadeOut()">
-                    <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                </button>
-
-            </div>
-            <div class="book-side-content-scroll" id="book-list">
-                <div>
-                    <p>Create Book: </p>
-                    <div class="input-group mb-3 w-75">
-                        <span class="input-group-text" id="basic-addon1">Name</span>
-                        <input type="text" class="form-control" id="create-book-name" aria-describedby="basic-addon1">
-                        <div class="input-group-append">
-                            <button class="btn btn-outline-primary" type="button"
-                                onclick="CreateBook('#create-book-name')">Create</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>`);
-        }
-    }
-
-    if (window.location.pathname.indexOf("/book") == -1) {
-        $(".leftside").append(`<div class="sqbtn">
-            <a id="book-btn" href="/book"><i class="fa fa-book"></i></a><br>
-        </div>`);
-    } else {
-        $(".leftside").append(`<div class="sqbtn">
-            <a id="book-btn" href="#" onclick="BackToList()"><i class="fa fa-book"></i></a><br>
-        </div>`);
-    }
-    if (localStorage.getItem("userId") != null && localStorage.getItem("userId") != "-1") {
-        $(".leftside").append(`<div class="sqbtn">
-            <a href="/share"><i class="fa fa-share-alt"></i></a><br>
-        </div>`);
-    }
-    if (window.location.pathname.indexOf("/discovery") == -1) {
-        $(".leftside").append(`<div class="sqbtn">
-            <a href="/discovery"><i class="fa fa-paper-plane"></i></a><br>
-        </div>`);
-    } else {
-        $(".leftside").append(`<div class="sqbtn">
-            <a href="#" onclick="BackToList()"><i class="fa fa-paper-plane"></i></a><br>
-        </div>`);
-    }
-    if (localStorage.getItem("isAdmin") == true) {
-        $(".leftside").append("<hr>");
-        $(".leftside").append(`<div class="sqbtn">
-            <a href="/admin/cli" id="book-btn"><i class="fa fa-terminal"></i></a><br>
-        </div><div class="sqbtn">
-            <a href="/admin/userlist" id="book-btn"><i class="fa fa-address-book"></i></a><br>
-        </div>`);
-    }
-
-    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-        $(".leftside br").remove();
-        $(".leftside").css("top", "0");
-        $(".leftside").css("left", "2%");
-        $(".leftside").css("height", "3em");
-        $(".leftside").css("width", "fit-content");
-        $(".leftside").css("padding-top", "0.7em");
-        $(".leftside").css("padding-left", "0.6em");
-        $(".leftside").css("padding-right", "0.4em");
-        $(".leftside").css("padding-bottom", "0.7em");
-        $(".leftside").css("border-bottom-left-radius", "0.5em");
-        $(".leftside").css("border-top-right-radius", "0");
-        $(".leftside .icon").css("margin", "0.2em");
-        $(".leftside .icon").css("margin-top", "-0.7em");
-        $(".leftside .sqbtn").css("margin", "0.3em");
-        $(".leftside .sqbtn").css("font-size", "0.8em");
-        $(".leftside .sqbtn").css("display", "inline-block");
-        $(".userctrl").css("right", "2%");
-        $(".leftside hr").remove();
-    }
-
-    $('.modal').on('hidden.bs.modal', function () {
-        $(".modal").remove();
-    })
-});
-
-function sort_object(obj) {
-    items = Object.keys(obj).map(function (key) {
-        return [key, obj[key]];
-    });
-    items.sort(function (first, second) {
-        return second[1] - first[1];
-    });
-    sorted_obj = {}
-    $.each(items, function (k, v) {
-        use_key = v[0]
-        use_value = v[1]
-        sorted_obj[use_key] = use_value
-    })
-    return (sorted_obj)
-}
-
-function sleep(time) {
-    return new Promise((resolve) => setTimeout(resolve, time));
-}
-
 function GeneralUpdateTheme() {
     navusername = $("#navusername").html();
     shortUserctrl = false;
@@ -541,31 +402,6 @@ function GeneralUpdateTheme() {
         }
     }, 50);
 }
-$(document).ready(function () {
-    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-        $('head').append('<link rel="stylesheet" href="/css/mobile.css" type="text/css" />');
-    }
-    GeneralUpdateTheme();
-
-    $("#book-btn").hover(function () {
-        ShowBook();
-    });
-    $("#content").hover(function () {
-        $("#book-div").fadeOut();
-    });
-    $("#create-book-name").on('keypress', function (e) {
-        if (e.which == 13 || e.which == 13 && e.ctrlKey) {
-            CreateBook("#create-book-name");
-        }
-    });
-
-    $(".btn-paginate").click(function () {
-        $("#dataTables_paginate").fadeOut();
-        setTimeout(function () {
-            $("#dataTables_paginate").fadeIn();
-        }, 50);
-    })
-});
 
 // ModifyDataTableSearchBox
 function MDTSB(tableName) {
@@ -609,3 +445,159 @@ function GetUploadResult() {
         });
     }, 3500);
 }
+
+$(document).ready(function () {
+    if (localStorage.getItem("version") != null) {
+        $("#version").html(localStorage.getItem("version") + '  <i class="fa fa-check-circle"></i>');
+    }
+    if (new Date().getTime() - lsGetItem("version-last-update", 0) > 600000) {
+        $.ajax({
+            url: "/api/version",
+            method: 'GET',
+            async: true,
+            dataType: "json",
+            success: function (r) {
+                $("#version").html(r.version + '  <i class="fa fa-check-circle"></i>');
+                localStorage.setItem("version", r.version);
+                localStorage.setItem("version-last-update", new Date().getTime());
+            }
+        });
+    }
+
+    if (localStorage.getItem("username") != null && localStorage.getItem("username") != "") {
+        username = localStorage.getItem("username");
+        $("#navusername").html(username);
+        $(".only-signed-in").show();
+        setInterval(UpdateNavUsername, 600000);
+    } else {
+        $.ajax({
+            url: "/api/user/info",
+            method: 'POST',
+            async: true,
+            dataType: "json",
+            data: {
+                userId: localStorage.getItem("userId"),
+                token: localStorage.getItem("token")
+            },
+            success: function (r) {
+                $("#navusername").html(r.username);
+                $(".only-signed-in").show();
+                localStorage.setItem("username", r.username);
+                setInterval(UpdateNavUsername, 60000);
+            },
+            error: function (r, textStatus, errorThrown) {
+                if (r.status == 401) {
+                    $("#navusername").html("<a href='/user/login'>Sign in</a>&nbsp;&nbsp;  ");
+                    localStorage.setItem("username", "");
+                }
+            }
+        });
+    }
+
+    if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        if (window.location.pathname.indexOf("/book") == -1) {
+            $("#navigate").after(`<div id="book-div" class="book-side" style="display:none">
+            <div class="book-side-content">
+                <h2 style="float:left">Books</h2>
+                <button type="button" class="btn btn-outline-secondary btn-sm" style="margin:0.5em;font-size:0.7em" onclick="RefreshBookList()"
+                    id="book-list-refresh-btn"><i class="fa fa-sync"></i></button>
+                <button type="button" class="close" style="float:right;background-color:transparent;border:none" aria-label="Close"
+                    onclick="$('#book-div').fadeOut()">
+                    <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                </button>
+
+            </div>
+            <div class="book-side-content-scroll" id="book-list">
+                <div>
+                    <p>Create Book: </p>
+                    <div class="input-group mb-3 w-75">
+                        <span class="input-group-text" id="basic-addon1">Name</span>
+                        <input type="text" class="form-control" id="create-book-name" aria-describedby="basic-addon1">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-primary" type="button"
+                                onclick="CreateBook('#create-book-name')">Create</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>`);
+        }
+    }
+
+    if (window.location.pathname.indexOf("/book") == -1) {
+        $(".leftside").append(`<div class="sqbtn">
+            <a id="book-btn" href="/book"><i class="fa fa-book"></i></a><br>
+        </div>`);
+    } else {
+        $(".leftside").append(`<div class="sqbtn">
+            <a id="book-btn" href="#" onclick="BackToList()"><i class="fa fa-book"></i></a><br>
+        </div>`);
+    }
+    if (localStorage.getItem("userId") != null && localStorage.getItem("userId") != "-1") {
+        $(".leftside").append(`<div class="sqbtn">
+            <a href="/share"><i class="fa fa-share-alt"></i></a><br>
+        </div>`);
+    }
+    if (window.location.pathname.indexOf("/discovery") == -1) {
+        $(".leftside").append(`<div class="sqbtn">
+            <a href="/discovery"><i class="fa fa-paper-plane"></i></a><br>
+        </div>`);
+    } else {
+        $(".leftside").append(`<div class="sqbtn">
+            <a href="#" onclick="BackToList()"><i class="fa fa-paper-plane"></i></a><br>
+        </div>`);
+    }
+    if (localStorage.getItem("isAdmin") == true) {
+        $(".leftside").append("<hr>");
+        $(".leftside").append(`<div class="sqbtn">
+            <a href="/admin/cli" id="book-btn"><i class="fa fa-terminal"></i></a><br>
+        </div><div class="sqbtn">
+            <a href="/admin/userlist" id="book-btn"><i class="fa fa-address-book"></i></a><br>
+        </div>`);
+    }
+
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        $(".leftside br").remove();
+        $(".leftside").css("top", "0");
+        $(".leftside").css("left", "2%");
+        $(".leftside").css("height", "3em");
+        $(".leftside").css("width", "fit-content");
+        $(".leftside").css("padding-top", "0.7em");
+        $(".leftside").css("padding-left", "0.6em");
+        $(".leftside").css("padding-right", "0.4em");
+        $(".leftside").css("padding-bottom", "0.7em");
+        $(".leftside").css("border-bottom-left-radius", "0.5em");
+        $(".leftside").css("border-top-right-radius", "0");
+        $(".leftside .icon").css("margin", "0.2em");
+        $(".leftside .icon").css("margin-top", "-0.7em");
+        $(".leftside .sqbtn").css("margin", "0.3em");
+        $(".leftside .sqbtn").css("font-size", "0.8em");
+        $(".leftside .sqbtn").css("display", "inline-block");
+        $(".userctrl").css("right", "2%");
+        $(".leftside hr").remove();
+    }
+
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        $('head').append('<link rel="stylesheet" href="/css/mobile.css" type="text/css" />');
+    }
+    GeneralUpdateTheme();
+
+    $("#book-btn").hover(function () {
+        ShowBook();
+    });
+    $("#content").hover(function () {
+        $("#book-div").fadeOut();
+    });
+    $("#create-book-name").on('keypress', function (e) {
+        if (e.which == 13 || e.which == 13 && e.ctrlKey) {
+            CreateBook("#create-book-name");
+        }
+    });
+
+    $(".btn-paginate").click(function () {
+        $("#dataTables_paginate").fadeOut();
+        setTimeout(function () {
+            $("#dataTables_paginate").fadeIn();
+        }, 50);
+    })
+});

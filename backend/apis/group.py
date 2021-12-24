@@ -18,6 +18,7 @@ import sessions
 
 @app.post("/api/group")
 async def apiGroup(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -130,6 +131,7 @@ async def apiGroup(request: Request):
 
 @app.post("/api/group/quit")
 async def apiQuitGroup(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -166,6 +168,7 @@ async def apiQuitGroup(request: Request):
 
 @app.post("/api/group/code/update")
 async def apiGroupCodeUpdate(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -202,6 +205,7 @@ async def apiGroupCodeUpdate(request: Request):
 
 @app.post("/api/group/member")
 async def apiGroupMember(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -281,9 +285,9 @@ async def apiGroupMember(request: Request):
             cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {uid}")
             t = cur.fetchall()
             if len(t) > 0:
-                username = f"<a href='/user?userId={uid}'><span style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
+                username = f"<a href='/user?userId={uid}'><span class='username' style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
             else:
-                username = f"<a href='/user?userId={uid}'><span>{username}</span></a>"
+                username = f"<a href='/user?userId={uid}'><span class='username'>{username}</span></a>"
             ret.append({"userId": uid, "username": username, "progress": pgs})
         elif info[2] == 1:
             ret.append({"userId": 0, "username": "Anonymous", "progress": pgs})
@@ -294,6 +298,7 @@ async def apiGroupMember(request: Request):
 
 @app.post("/api/group/manage")
 async def apiManageGroup(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()

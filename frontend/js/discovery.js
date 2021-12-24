@@ -120,7 +120,7 @@ function RefreshDiscovery(p = -1) {
                     title = toplist[i].title;
                     description = toplist[i].description;
                     info = toplist[i].views + " <i class='fa fa-eye'></i>&nbsp;&nbsp;" + toplist[i].likes + " <i class='fa fa-heart'></i>";
-                    $("#top-post").append(`<div class="rect discovery-top" href="#" onclick="ShowDiscovery(` + discoveryId + `);">
+                    $("#top-post").append(`<div class="rect discovery-top" href="#" onclick="ShowDiscovery(` + toplist[i].discoveryId + `);">
                         <p class="rect-title">` + title + `</p>
                         <p class="rect-content">&nbsp;&nbsp;` + marked.parse(description) + `</p>
                         <p class="rect-content">&nbsp;&nbsp;` + info + `</p>

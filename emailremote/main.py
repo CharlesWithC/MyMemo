@@ -30,10 +30,12 @@ app = FastAPI()
 
 @app.get("/ping")
 async def ping():
+    ip = request.client.host
     return {"time": time.time()}
 
 @app.post("/send")
 async def sm(request: Request):
+    ip = request.client.host
     try:
         form = await request.form()
         if not checkpwd(config.key, form["key"]):

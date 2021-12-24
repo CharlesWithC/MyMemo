@@ -17,6 +17,7 @@ import sessions
 
 @app.post("/api/book/addQuestion")
 async def apiAddToBook(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -125,6 +126,7 @@ async def apiAddToBook(request: Request):
 
 @app.post("/api/book/deleteQuestion")
 async def apiDeleteFromBook(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()

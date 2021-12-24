@@ -7,13 +7,14 @@ import uvicorn
 from app import app, config
 from db import newconn
 
+from multiprocessing import Process
 import time
 import json
-import threading
 
 import sessions
 import functions
 import api
+import apis.data
 
 def PendingAccountDeletion():
     while 1:
@@ -31,40 +32,28 @@ def PendingAccountDeletion():
             cur.execute(f"UPDATE UserInfo SET password = '' WHERE userId = {userId}")
 
             conn.commit()
-        
 
         time.sleep(3600)
 
 def PendingEmailVerificationDeletion():
     while 1:
-        try:
-            conn = newconn()
-            cur = conn.cursor()
+        conn = newconn()
+        cur = conn.cursor()
 
-            cur.execute(f"DELETE FROM UserPending WHERE expire < {int(time.time())}")
-            cur.execute(f"DELETE FROM EmailVerification WHERE expire < {int(time.time())}")
-            cur.execute(f"DELETE FROM EmailHistory WHERE expire < {int(time.time())}")
+        cur.execute(f"DELETE FROM UserPending WHERE expire < {int(time.time())}")
+        cur.execute(f"DELETE FROM EmailVerification WHERE expire < {int(time.time())}")
+        cur.execute(f"DELETE FROM EmailHistory WHERE updateTS < {int(time.time())}")
 
-            conn.commit()
+        conn.commit()
 
-            time.sleep(1200)
-        
-        except KeyboardInterrupt:
-            return
-
-def ClearOutdatedDLToken():
-    while 1:
-        try:
-            conn = newconn()
-            cur = conn.cursor()
-            cur.execute(f"DELETE FROM DataDownloadToken WHERE ts <= {int(time.time()) - 1800}")
-            conn.commit()
-            time.sleep(600)
-        
-        except KeyboardInterrupt:
-            return
+        time.sleep(1200)
 
 if __name__ == "__main__":
-    threading.Thread(target = PendingAccountDeletion).start()
-    threading.Thread(target=ClearOutdatedDLToken).start()
+    padProc = Process(target = PendingAccountDeletion, daemon=True)
+    padProc.start()
+    pevdProc = Process(target = PendingEmailVerificationDeletion, daemon=True)
+    pevdProc.start()
+    corProc = Process(target = apis.data.clearOutdatedResult, daemon=True)
+    corProc.start()
+
     uvicorn.run("app:app", host = config.server_ip, port = config.server_port)

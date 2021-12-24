@@ -4,6 +4,6 @@
 
 # Question API Main
 import apis.question.info
-import apis.question.modify
+import apis.question.manage
 import apis.question.practice
 import apis.question.challenge

@@ -1,0 +1,334 @@
+# Copyright (C) 2021 Charles All rights reserved.
+# Author: @Charles-1414
+# License: GNU General Public License v3.0
+
+from fastapi import Request, HTTPException
+import os, sys, time, math
+import json, requests
+
+from app import app, config
+from db import newconn
+from functions import *
+import sessions
+
+##########
+# Discovery Info API
+
+@app.get("/api/discovery")
+@app.post("/api/discovery")
+async def apiDiscovery(request: Request):
+    ip = request.client.host
+    form = await request.form()
+    conn = newconn()
+    cur = conn.cursor()
+
+    toplist = json.loads(requests.post(f"http://{config.search_server_ip}:{config.search_server_port}/search/discoveryTop").text)["top"]
+    top = []
+
+    for t in toplist:
+        cur.execute(f"SELECT discoveryId, title, description, publisherId, type, bookId, pin FROM Discovery WHERE discoveryId = {t}")
+        d = cur.fetchall()
+        if len(d) == 0:
+            continue
+        dd = d[0]
+        if dd[4] == 1:
+            cur.execute(f"SELECT shareCode FROM BookShare WHERE bookId = {dd[5]} AND shareType = 1")
+            if len(cur.fetchall()) == 0:
+                continue
+        elif dd[4] == 2:
+            cur.execute(f"SELECT groupCode FROM GroupInfo WHERE groupId = {dd[5]}")
+            p = cur.fetchall()
+            if len(p) > 0:
+                if p[0][0] == '' or p[0][0] == '@pvtgroup':
+                    continue
+            else:
+                continue
+        
+        if checkBanned(dd[3]): # display nothing from banned user
+            continue
+
+        publisher = "Unknown User"
+        cur.execute(f"SELECT username FROM UserInfo WHERE userId = {dd[3]}")
+        t = cur.fetchall()
+        if len(t) != 0:
+            publisher = decode(t[0][0])
+            if publisher == "@deleted":
+                publisher = "Deleted Account"
+
+        # update views
+        cur.execute(f"SELECT click FROM Discovery WHERE discoveryId = {dd[0]}")
+        views = 0
+        t = cur.fetchall()
+        if len(t) > 0:
+            views = t[0][0]
+        
+        # get views and likes
+        cur.execute(f"SELECT COUNT(likes) FROM DiscoveryLike WHERE discoveryId = {dd[0]}")
+        likes = 0
+        t = cur.fetchall()
+        if len(t) > 0:
+            likes = t[0][0]
+
+        # get imports / members
+        imports = 0
+        if dd[4] == 1:
+            cur.execute(f"SELECT importCount FROM BookShare WHERE userId = {dd[3]} AND bookId = {dd[5]} AND shareType = 1")
+            t = cur.fetchall()
+            if len(t) > 0:
+                imports = t[0][0]
+        elif dd[4] == 2:
+            cur.execute(f"SELECT COUNT(*) FROM GroupMember WHERE groupId = {dd[5]}")
+            t = cur.fetchall()
+            if len(t) > 0:
+                imports = t[0][0]
+        
+        pinned = dd[6]
+        
+        cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {dd[3]}")
+        t = cur.fetchall()
+        if len(t) > 0:
+            publisher = f"<a href='/user?userId={dd[3]}'><span class='username' style='color:{t[0][1]}'>{publisher}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
+        else:
+            publisher = f"<a href='/user?userId={dd[3]}'><span class='username'>{publisher}</span></a>"
+
+        top.append({"discoveryId": dd[0], "title": decode(dd[1]), "description": decode(dd[2]), \
+            "publisher": publisher, "type": dd[4], "views": views, "likes": likes, "imports": imports, "pinned": pinned})
+
+    limit = form["search"]
+
+    d = json.loads(requests.post(f"http://{config.search_server_ip}:{config.search_server_port}/search/discovery", data = {"limit": limit}).text)["result"]
+    if len(d) == 0:
+        return {"success": True, "data": [], "total": 0, "toplist": top}
+
+    dis = []
+    for dd in d:
+        if dd[4] == 1:
+            cur.execute(f"SELECT shareCode FROM BookShare WHERE bookId = {dd[5]} AND shareType = 1")
+            if len(cur.fetchall()) == 0:
+                continue
+        elif dd[4] == 2:
+            cur.execute(f"SELECT groupCode FROM GroupInfo WHERE groupId = {dd[5]}")
+            p = cur.fetchall()
+            if len(p) > 0:
+                if p[0][0] == '' or p[0][0] == '@pvtgroup':
+                    continue
+            else:
+                continue
+        
+        if checkBanned(dd[3]): # display nothing from banned user
+            continue
+
+        publisher = "Unknown User"
+        cur.execute(f"SELECT username FROM UserInfo WHERE userId = {dd[3]}")
+        t = cur.fetchall()
+        if len(t) != 0:
+            publisher = decode(t[0][0])
+            if publisher == "@deleted":
+                publisher = "Deleted Account"
+
+        # update views
+        cur.execute(f"SELECT click FROM Discovery WHERE discoveryId = {dd[0]}")
+        views = 0
+        t = cur.fetchall()
+        if len(t) > 0:
+            views = t[0][0]
+        
+        # get views and likes
+        cur.execute(f"SELECT COUNT(likes) FROM DiscoveryLike WHERE discoveryId = {dd[0]}")
+        likes = 0
+        t = cur.fetchall()
+        if len(t) > 0:
+            likes = t[0][0]
+
+        # get imports / members
+        imports = 0
+        if dd[4] == 1:
+            cur.execute(f"SELECT importCount FROM BookShare WHERE userId = {dd[3]} AND bookId = {dd[5]} AND shareType = 1")
+            t = cur.fetchall()
+            if len(t) > 0:
+                imports = t[0][0]
+        elif dd[4] == 2:
+            cur.execute(f"SELECT COUNT(*) FROM GroupMember WHERE groupId = {dd[5]}")
+            t = cur.fetchall()
+            if len(t) > 0:
+                imports = t[0][0]
+        
+        pinned = dd[6]
+        
+        cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {dd[3]}")
+        t = cur.fetchall()
+        if len(t) > 0:
+            publisher = f"<a href='/user?userId={dd[3]}'><span class='username' style='color:{t[0][1]}'>{publisher}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
+        else:
+            publisher = f"<a href='/user?userId={dd[3]}'><span class='username'>{publisher}</span></a>"
+
+        dis.append({"discoveryId": dd[0], "title": decode(dd[1]), "description": decode(dd[2]), \
+            "publisher": publisher, "type": dd[4], "views": views, "likes": likes, "imports": imports, "pinned": pinned})
+
+    page = int(form["page"])
+    pagelen = int(form["pagelen"])
+    
+    if len(dis) <= (page - 1) * pagelen:
+        return {"success": True, "data": [], "total": (len(dis) - 1) // pagelen + 1, "toplist": top}
+    elif len(dis) <= page * pagelen:
+        return {"success": True, "data": dis[(page - 1) * pagelen :],"total": (len(dis) - 1) // pagelen + 1, "toplist": top}
+    else:
+        return {"success": True, "data": dis[(page - 1) * pagelen : page * pagelen], "total": (len(dis) - 1) // pagelen + 1, "toplist": top}
+
+@app.get("/api/discovery/{discoveryId:int}")
+@app.post("/api/discovery/{discoveryId:int}")
+async def apiDiscoveryData(discoveryId: int, request: Request):
+    ip = request.client.host
+    form = await request.form()
+    conn = newconn()
+    cur = conn.cursor()
+
+    userId = 0
+
+    if request.method == "POST":
+        loggedin = False
+        if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+            loggedin = False
+        else:
+            loggedin = True
+        
+        if loggedin:
+            loggedin = False
+            userId = int(form["userId"])
+            token = form["token"]
+            if validateToken(userId, token):
+                loggedin = True
+        
+        if not loggedin:
+            userId = 0
+    
+    cur.execute(f"SELECT publisherId, bookId, title, description, type, pin FROM Discovery WHERE discoveryId = {discoveryId}")
+    d = cur.fetchall()
+    if len(d) == 0:
+        return {"success": False, "msg": "Post not found!"}
+    d = d[0]
+
+    uid = d[0]
+    bookId = d[1]
+    title = decode(d[2])
+    description = decode(d[3])
+    distype = d[4]
+    pinned = d[5]
+
+    if checkBanned(uid):
+        return {"success": False, "msg": "Post not found!"}
+    
+    # Check share existence
+    if distype == 1:
+        cur.execute(f"SELECT * FROM Book WHERE userId = {uid} AND bookId = {bookId}")
+        t = cur.fetchall()
+        if len(t) == 0:
+            cur.execute(f"DELETE FROM Discovery WHERE discoveryId = {discoveryId}")
+            conn.commit()
+            return {"success": False, "msg": "Book not found!"}
+    
+    elif distype == 2:
+        cur.execute(f"SELECT * FROM GroupInfo WHERE groupId = {bookId}")
+        t = cur.fetchall()
+        if len(t) == 0:
+            cur.execute(f"DELETE FROM Discovery WHERE discoveryId = {discoveryId}")
+            conn.commit()
+            return {"success": False, "msg": "Group not found!"}
+
+    
+    # Check share status as books must be shared before being imported
+    # Do not clear discovery status as publisher may just want to close it temporarily
+    shareCode = ""
+    if distype == 1:
+        cur.execute(f"SELECT shareCode FROM BookShare WHERE userId = {uid} AND bookId = {bookId} AND shareType = 1")
+        t = cur.fetchall()
+        if len(t) != 0:
+            shareCode = "!"+t[0][0]
+
+        if shareCode == "":
+            return {"success": False, "msg": "Book not found!"}
+
+    elif distype == 2:
+        cur.execute(f"SELECT groupCode FROM GroupInfo WHERE groupId = {bookId}")
+        t = cur.fetchall()
+        if len(t) != 0:
+            shareCode = "@"+t[0][0]
+
+        if shareCode == "" or shareCode == "@pvtgroup":
+            return {"success": False, "msg": "Group not open to public! Maybe the publisher just closed it temporarily."}
+
+    # Get discovery publisher username
+    publisher = "Unknown User"
+    cur.execute(f"SELECT username FROM UserInfo WHERE userId = {uid}")
+    t = cur.fetchall()
+    if len(t) != 0:
+        publisher = decode(t[0][0])
+        if publisher == "@deleted":
+            publisher = "Deleted Account"
+    
+    isPublisher = False
+    if uid == userId:
+        isPublisher = True
+    
+    # get questions
+    questions = []
+    if distype == 1:
+        p = getBookData(uid, bookId)
+        for pp in p:
+            cur.execute(f"SELECT question, answer FROM QuestionList WHERE userId = {uid} AND questionId = {pp}")
+            t = cur.fetchall()
+            if len(t) == 0:
+                continue
+            questions.append({"question": decode(t[0][0]), "answer": decode(t[0][1])})
+    elif distype == 2:
+        cur.execute(f"SELECT question, answer FROM GroupQuestion WHERE groupId = {bookId}")
+        t = cur.fetchall()
+        for tt in t:
+            questions.append({"question": decode(tt[0]), "answer": decode(tt[1])})
+
+    # update views
+    cur.execute(f"SELECT click FROM Discovery WHERE discoveryId = {discoveryId}")
+    views = 1
+    t = cur.fetchall()
+    if len(t) > 0:
+        views = t[0][0] + 1
+        cur.execute(f"UPDATE Discovery SET click = click + 1 WHERE discoveryId = {discoveryId}")
+        conn.commit()
+    
+    # get views and likes
+    cur.execute(f"SELECT COUNT(likes) FROM DiscoveryLike WHERE discoveryId = {discoveryId}")
+    likes = 0
+    t = cur.fetchall()
+    if len(t) > 0:
+        likes = t[0][0]
+    
+    # get user liked
+    cur.execute(f"SELECT likes FROM DiscoveryLike WHERE discoveryId = {discoveryId} AND userId = {userId}")
+    liked = False
+    t = cur.fetchall()
+    if len(t) > 0:
+        liked = True
+    
+    # get imports / members
+    imports = 0
+    if distype == 1:
+        cur.execute(f"SELECT importCount FROM BookShare WHERE userId = {uid} AND bookId = {bookId} AND shareType = 1")
+        t = cur.fetchall()
+        if len(t) > 0:
+            imports = t[0][0]
+    elif distype == 2:
+        cur.execute(f"SELECT COUNT(*) FROM GroupMember WHERE groupId = {bookId}")
+        t = cur.fetchall()
+        if len(t) > 0:
+            imports = t[0][0]
+
+    cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {uid}")
+    t = cur.fetchall()
+    if len(t) > 0:
+        publisher = f"<a href='/user?userId={uid}'><span class='username' style='color:{t[0][1]}'>{publisher}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
+    else:
+        publisher = f"<a href='/user?userId={uid}'><span class='username'>{publisher}</span></a>"
+
+    return {"success": True, "title": title, "description": description, "questions": questions, \
+        "shareCode": shareCode, "type": distype, "publisher": publisher, "isPublisher": isPublisher, \
+            "views": views, "likes": likes, "liked": liked, "imports": imports, "pinned": pinned}

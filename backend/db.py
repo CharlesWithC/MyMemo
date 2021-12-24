@@ -71,7 +71,7 @@ elif config["database"] == "mysql":
     conn = MySQLdb.connect(host = host, user = user, passwd = passwd, db = dbname)
     cur = conn.cursor()
     cur.execute(f"SHOW TABLES")
-    if len(cur.fetchall()) != 35:
+    if len(cur.fetchall()) != 32:
         doinit = True
 
 else:
@@ -258,10 +258,6 @@ if doinit:
     cur.execute(f"CREATE TABLE PendingAccountDeletion (userId INT, deletionTime INT)")
 
     cur.execute(f"CREATE TABLE PasswordTrial (userId INT, count INT, lastts INT, ip VARCHAR(128))")
-
-    cur.execute(f"CREATE TABLE DataUploadResult (userId INT, result TEXT)")
-    cur.execute(f"CREATE TABLE DataDownloadToken (userId INT, exportType VARCHAR(10), ts INT, token VARCHAR(36))")
-    cur.execute(f"CREATE TABLE RequestRecoverAccount (userId INT)")
 
     conn.commit()
     

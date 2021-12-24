@@ -18,6 +18,7 @@ import sessions
 
 @app.post("/api/question")
 async def apiGetQuestion(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -45,6 +46,7 @@ async def apiGetQuestion(request: Request):
 
 @app.post("/api/question/id")
 async def apiGetQuestionID(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -76,6 +78,7 @@ async def apiGetQuestionID(request: Request):
 
 @app.post("/api/question/stat")
 async def apiGetQuestionStat(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -246,6 +249,7 @@ async def apiGetQuestionStat(request: Request):
 
 @app.post("/api/question/count")
 async def apiGetQuestionCount(request: Request):
+    ip = request.client.host
     form = await request.form()
     if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
         raise HTTPException(status_code=401)

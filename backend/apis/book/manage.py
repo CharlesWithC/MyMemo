@@ -13,10 +13,11 @@ import sessions
 
 ##########
 # Book API
-# Modify (Create, Clone, Delete, Rename, Share)
+# Manage (Create, Clone, Delete, Rename, Share)
 
 @app.post("/api/book/create")
 async def apiCreateBook(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -28,7 +29,7 @@ async def apiCreateBook(request: Request):
     if not validateToken(userId, token):
         raise HTTPException(status_code=401)
 
-    if OPLimit(request.headers['CF-Connecting-Ip'], "create_book", maxop = 10):
+    if OPLimit(ip, "create_book", maxop = 10):
         return {"success": False, "msg": "Too many requests! Try again later!"}
     
     name = str(form["name"])
@@ -299,6 +300,7 @@ async def apiCreateBook(request: Request):
 
 @app.post("/api/book/clone")
 async def apiCloneBook(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -383,6 +385,7 @@ async def apiCloneBook(request: Request):
 
 @app.post("/api/book/delete")
 async def apiDeleteBook(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -442,6 +445,7 @@ async def apiDeleteBook(request: Request):
 
 @app.post("/api/book/rename")
 async def apiRenameBook(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()

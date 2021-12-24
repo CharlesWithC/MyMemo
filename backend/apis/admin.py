@@ -6,7 +6,6 @@ from fastapi import Request, HTTPException, BackgroundTasks
 import os, sys, time, datetime, math
 import json, uuid
 import validators
-import threading
 
 from app import app, config
 from db import newconn
@@ -19,6 +18,7 @@ from emailop import sendVerification
 
 @app.post("/api/admin/userList")
 async def apiAdminUserList(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -93,9 +93,9 @@ async def apiAdminUserList(request: Request):
         cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {dd[3]}")
         t = cur.fetchall()
         if len(t) > 0:
-            username = f"<a href='/user?userId={dd[0]}'><span style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
+            username = f"<a href='/user?userId={dd[0]}'><span class='username' style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
         else:
-            username = f"<a href='/user?userId={dd[0]}'><span>{username}</span></a>"
+            username = f"<a href='/user?userId={dd[0]}'><span class='username'>{username}</span></a>"
         
         users.append({"userId": dd[0], "username": dd[1], "email": decode(dd[2]), "inviter": f"{inviterUsername} (UID: {dd[3]})", "inviteCode": dd[4], "age": age, "status": status, "privilege": prv})
 
@@ -109,6 +109,7 @@ def restart():
 
 @app.post("/api/admin/command")
 async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()

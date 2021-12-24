@@ -17,6 +17,7 @@ import sessions
 
 @app.post("/api/book")
 async def apiGetBook(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -112,6 +113,7 @@ async def apiGetBook(request: Request):
 
 @app.post("/api/book/questionList")
 async def apiGetQuestionList(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -133,6 +135,7 @@ async def apiGetQuestionList(request: Request):
 
 @app.post("/api/book/chart")
 async def apiGetBookChart(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()

@@ -45,7 +45,7 @@ function UpdateSettingsButtons() {
         $("#swap-both-btn").addClass("btn-primary");
     }
 
-    range = lsGetItem("settings-show-status", 0);
+    range = lsGetItem("settings-show-status", 1);
     $(".range-btn").removeClass("btn-primary btn-secondary");
     $(".range-btn").addClass("btn-secondary");
     if (range == 1) {

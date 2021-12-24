@@ -16,6 +16,7 @@ import sessions
 
 @app.post("/api/share")
 async def apiShareBook(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()

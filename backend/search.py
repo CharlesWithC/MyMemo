@@ -5,11 +5,11 @@
 from fastapi import FastAPI, Request, BackgroundTasks
 import uvicorn
 from fuzzywuzzy import process
+from multiprocessing import Process
 
 from db import newconn
 import os, time, json
 import base64
-import threading
 
 def decode(s):
     try:
@@ -37,21 +37,42 @@ app = FastAPI()
 lst = {}
 lstupd = 0
 def UpdateData():
-    conn = newconn()
-    cur = conn.cursor()
-    global lst, lstupd
-    cur.execute(f"SELECT discoveryId, title, description, publisherId, type, bookId, pin FROM Discovery ORDER BY pin DESC, click DESC")
-    t = cur.fetchall()
-    lst = {}
-    for tt in t:
-        if decode(tt[1]) in lst.keys():
-            lst[decode(tt[1])].append(tt)
-        else:
-            lst[decode(tt[1])] = [tt]
-    lstupd = time.time()
+    while 1:
+        conn = newconn()
+        cur = conn.cursor()
+        global lst, lstupd
+        cur.execute(f"SELECT discoveryId, title, description, publisherId, type, bookId, pin FROM Discovery ORDER BY pin DESC, click DESC")
+        t = cur.fetchall()
+        lst = {}
+        for tt in t:
+            if decode(tt[1]) in lst.keys():
+                lst[decode(tt[1]) + " " + decode(tt[2])].append(tt)
+            else:
+                lst[decode(tt[1]) + " " + decode(tt[2])] = [tt]
+        lstupd = time.time()
+        
+        time.sleep(30)
 
-@app.post("/search")
-async def apiSearch(request: Request, background_tasks: BackgroundTasks):
+top = []
+toplst = 0
+
+def GetTop():
+    while 1:
+        conn = newconn()
+        cur = conn.cursor()
+        global top, toplst
+        cur.execute(f"SELECT discoveryId FROM DiscoveryLike GROUP BY discoveryId ORDER BY COUNT(likes) DESC LIMIT 3")
+        t = cur.fetchall()
+        top = []
+        for tt in t:
+            top.append(tt[0])
+        toplst = int(time.time())
+
+        time.sleep(30)
+
+@app.post("/search/discovery")
+async def apiSearchDiscovery(request: Request, background_tasks: BackgroundTasks):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -82,22 +103,9 @@ async def apiSearch(request: Request, background_tasks: BackgroundTasks):
     
     return {"result": ret}
 
-top = []
-toplst = 0
-
-def GetTop():
-    conn = newconn()
-    cur = conn.cursor()
-    global top, toplst
-    cur.execute(f"SELECT discoveryId FROM DiscoveryLike GROUP BY discoveryId ORDER BY COUNT(likes) DESC LIMIT 3")
-    t = cur.fetchall()
-    top = []
-    for tt in t:
-        top.append(tt[0])
-    toplst = int(time.time())
-
-@app.post("/top")
-async def apiTop(request: Request, background_tasks: BackgroundTasks):
+@app.post("/search/discoveryTop")
+async def apiGetDiscoveryTop(request: Request, background_tasks: BackgroundTasks):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -112,4 +120,9 @@ async def apiTop(request: Request, background_tasks: BackgroundTasks):
     return {"top": top}
 
 if __name__ == "__main__":
+    updateDataProc = Process(target = UpdateData, daemon=True)
+    updateDataProc.start()
+    updateTopProc = Process(target = GetTop, daemon=True)
+    updateTopProc.start()
+
     uvicorn.run("search:app", host = config.search_server_ip, port = config.search_server_port)

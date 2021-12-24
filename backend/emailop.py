@@ -50,7 +50,7 @@ def sendVerification(mail_to, username, vtype, note, expire, link):
 
     data += f"<br><br><hr>\n"
     data += f"<p style='font-size:0.8em;color:gray'>This is an automated email. Please do not reply to it. To contact, use <a href='mailto:{mail_contact}'>{mail_contact}</a>.</p>\n"
-    data += f"<p style='font-size:0.8em;color:gray'>Copyright &copy; 2021 My Memo | Developed by Charles</a></p>\n"
+    data += f"<p style='font-size:0.8em;color:gray'>Copyright &copy; 2021-2022 My Memo | Developed by Charles</a></p>\n"
 
     data += "</body>\n</html>\n"
 
@@ -60,7 +60,7 @@ def sendVerification(mail_to, username, vtype, note, expire, link):
     plain += "The link will expire in " + expire + "\n"
     plain += "\n"
     plain += f"This is an automated email. Please do not reply to it. To contact, use {mail_contact} .\n"
-    plain += "Copyright &copy; 2021 My Memo | Developed by Charles."
+    plain += "Copyright &copy; 2021-2022 My Memo | Developed by Charles."
 
     sendMail(mail_from, mail_to, "My Memo", username, vtype, plain, data)
 
@@ -76,7 +76,7 @@ def sendNormal(mail_to, username, subject, content):
 
     data += f"<br><br><hr>\n"
     data += f"<p style='font-size:0.8em;color:gray'>This is an automated email. Please do not reply to it. To contact, use <a href='mailto:{mail_contact}'>{mail_contact}</a>.</p>\n"
-    data += f"<p style='font-size:0.8em;color:gray'>Copyright &copy; 2021 My Memo | Developed by Charles</a></p>\n"
+    data += f"<p style='font-size:0.8em;color:gray'>Copyright &copy; 2021-2022 My Memo | Developed by Charles</a></p>\n"
     
     data += "</body>\n</html>\n"
     
@@ -85,6 +85,6 @@ def sendNormal(mail_to, username, subject, content):
     plain += content.replace("<br>","\n").replace("\n\n","\n") + "\n"
     plain += "\n"
     plain += f"This is an automated email. Please do not reply to it. To contact, use {mail_contact} .\n"
-    plain += "Copyright &copy; 2021 My Memo | Developed by Charles."
+    plain += "Copyright &copy; 2021-2022 My Memo | Developed by Charles."
     
     sendMail(mail_from, mail_to, "My Memo", username, subject, plain, data)    

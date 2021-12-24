@@ -15,12 +15,28 @@
 html,
 body {
     height: 100%;
+    width: 100%;
     font-family: Comic Sans;
     font-size: 1.1em;
 }
 
+h1 {
+    font-family: Impact;
+}
+
+h2 {
+    font-size: 1.5em;
+    margin-bottom: 1em;
+}
+
+
+
 .btn {
     margin: 0.2em;
+}
+
+button {
+    margin: 0.1em;
 }
 
 .top-left {
@@ -50,6 +66,8 @@ body {
     font-size: 1.8em;
 }
 
+
+
 .container {
     position: relative;
     margin: 1em;
@@ -69,7 +87,7 @@ body {
     overflow: hidden;
     border-radius: 0.5em;
     box-sizing: border-box;
-    box-shadow: 0 1px 3px rgba(128, 128, 128, 0.1);
+    box-shadow: 0 0.5px 3px rgba(128, 128, 128, 0.1);
 }
 
 .sub-div {
@@ -98,24 +116,6 @@ body {
     }
 }
 
-h1 {
-    font-family: Impact;
-}
-
-h2 {
-    font-size: 1.5em;
-    margin-bottom: 1em;
-}
-
-a {
-    color: #444444;
-    text-decoration: none;
-}
-
-a:hover {
-    color: #777777;
-}
-
 .center {
     position: relative;
     width: calc(100% - 6em);
@@ -129,6 +129,8 @@ a:hover {
 .center>.input-group {
     margin: auto;
 }
+
+
 
 .title {
     margin: auto;
@@ -149,9 +151,53 @@ a:hover {
     margin-bottom: 1.25em;
 }
 
-button {
-    margin: 0.1em;
+.username {
+    text-shadow: 0.5px 0 0 #fff, -0.5px 0 0 #fff, 0 0.5px 0 #fff, 0 -0.5px 0 #fff, 0.5px 0.5px #fff, -0.5px -0.5px 0 #fff, 0.5px -0.5px 0 #fff, -0.5px 0.5px 0 #fff;
 }
+
+.nametag {
+    color: white;
+    font-size: 0.6em;
+    text-shadow: 0.05em 0.05em 0.05em #777777;
+    padding: 0.3em;
+    border-radius: 0.25em;
+}
+
+.question {
+    font-size: 1.875em;
+    height: 2em;
+    border: none;
+    resize: none;
+}
+
+.answer {
+    font-size: 1.25em;
+    height: 8em;
+    border: none;
+    resize: none;
+}
+
+.choice {
+    margin: auto;
+    margin-bottom: 0.5em;
+    padding: 0.4em;
+    text-align: center;
+    width: 60%;
+    border: #aaaaaa solid;
+    border-radius: 0.5em;
+}
+
+.choice-circle {
+    float: left;
+    width: 1em;
+    height: 1em;
+    margin: 0.25em;
+    border: #aaaaaa solid;
+    background: #dddddd solid;
+    border-radius: 100%;
+}
+
+
 
 .userctrl {
     text-decoration: none;
@@ -171,11 +217,6 @@ button {
     color: #333333;
     border-bottom-left-radius: 0.5em;
     border-bottom-right-radius: 0.5em;
-}
-
-.userctrl a {
-    color: #333333;
-    text-decoration: none;
 }
 
 .leftside {
@@ -198,71 +239,8 @@ button {
     border-bottom-right-radius: 0.5em;
 }
 
-.leftside a {
-    color: #333333;
-    text-decoration: none;
-}
-
-.question {
-    font-size: 1.875em;
-    height: 2em;
-    border: none;
-    resize: none;
-}
-
-.answer {
-    font-size: 1.25em;
-    height: 8em;
-    border: none;
-    resize: none;
-}
-
-.control-btn {
-    text-align: center;
-    width: 8em;
-    z-index: 100;
-    margin: 0.4em;
-}
-
-.control-btn-left {
-    margin-right: 3.75em;
-}
-
-.control-btn-right {
-    margin-left: 3.75em;
-}
-
-.control-btn-top {
-    margin-bottom: 0.625em;
-}
-
-.control-btn-center {
-    margin-top: 0.625em;
-    margin-bottom: 0.625em;
-}
-
-.control-btn-bottom {
-    margin-top: 0.625em;
-}
-
-.footer {
-    z-index: 100;
-    position: relative;
-    float: left;
-    width: 100%;
-    text-align: left;
-    font-size: 0.75em;
-    margin-top: 4em;
-    padding: 4em;
-    color: #ffffff;
-    background-color: #333333;
-    border-top: #555555 solid;
-    border-top-width: 0.5em;
-    line-height: 50%;
-}
-
-.footer a {
-    color: #ffffff;
+.book {
+    padding: 1em;
 }
 
 .book-side {
@@ -299,9 +277,55 @@ button {
     overflow-y: auto;
 }
 
-.book {
-    padding: 1em;
+
+
+.control-btn {
+    text-align: center;
+    width: 8em;
+    z-index: 100;
+    margin: 0.4em;
 }
+
+.control-btn-left {
+    margin-right: 3.75em;
+}
+
+.control-btn-right {
+    margin-left: 3.75em;
+}
+
+.control-btn-top {
+    margin-bottom: 0.625em;
+}
+
+.control-btn-center {
+    margin-top: 0.625em;
+    margin-bottom: 0.625em;
+}
+
+.control-btn-bottom {
+    margin-top: 0.625em;
+}
+
+
+
+.footer {
+    z-index: 100;
+    position: relative;
+    float: left;
+    width: 100%;
+    text-align: left;
+    font-size: 0.75em;
+    margin-top: 4em;
+    padding: 4em;
+    color: #ffffff;
+    background-color: #333333;
+    border-top: #555555 solid;
+    border-top-width: 0.5em;
+    line-height: 50%;
+}
+
+
 
 .loader {
     position: fixed;
@@ -316,6 +340,8 @@ button {
     opacity: 0.8;
     border-bottom-right-radius: 0.5em;
 }
+
+
 
 .rect {
     margin: 0.5em;
@@ -341,33 +367,7 @@ button {
     font-size: 0.8em;
 }
 
-.nametag {
-    color: white;
-    font-size: 0.6em;
-    text-shadow: 0.05em 0.05em 0.05em black;
-    padding: 0.3em;
-    border-radius: 0.25em;
-}
 
-.choice {
-    margin: auto;
-    margin-bottom: 0.5em;
-    padding: 0.4em;
-    text-align: center;
-    width: 60%;
-    border: #aaaaaa solid;
-    border-radius: 0.5em;
-}
-
-.choice-circle {
-    float: left;
-    width: 1em;
-    height: 1em;
-    margin: 0.25em;
-    border: #aaaaaa solid;
-    background: #dddddd solid;
-    border-radius: 100%;
-}
 
 .table-light {
     --bs-table-bg: #ffffff;
@@ -409,11 +409,36 @@ button {
     border-color: #cccccc;
 }
 
-.selected {
-    background-color: #aaaaaa;
-}
-
 #noty_layout__topRight {
     top: 4em;
     right: 1em;
+}
+
+
+
+a {
+    color: #444444;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #777777;
+}
+
+.userctrl a {
+    color: #333333;
+    text-decoration: none;
+}
+
+.leftside a {
+    color: #333333;
+    text-decoration: none;
+}
+
+.footer a {
+    color: #ffffff;
+}
+
+.footer a:hover {
+    color: #777777;
 }

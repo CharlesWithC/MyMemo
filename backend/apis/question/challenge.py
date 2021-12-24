@@ -105,6 +105,7 @@ def getChallengeQuestionId(userId, bookId, nofour = False):
 
 @app.post("/api/question/challenge/next")
 async def apiGetNextChallenge(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -147,6 +148,7 @@ async def apiGetNextChallenge(request: Request):
 addtime = [300, 1200, 3600, 10800, 28800, 86401, 172800, 432000, 864010]
 @app.post("/api/question/challenge/update")
 async def apiUpdateChallengeRecord(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()

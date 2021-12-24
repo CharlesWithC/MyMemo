@@ -14,11 +14,12 @@ import sessions
 
 ##########
 # Question API
-# Modify (Add, Edit, Delete, Status Update)
+# Manage (Add, Edit, Delete, Status Update)
 
 duplicate = []
 @app.post("/api/question/add")
 async def apiAddQuestion(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -137,6 +138,7 @@ async def apiAddQuestion(request: Request):
 
 @app.post("/api/question/edit")
 async def apiEditQuestion(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -203,10 +205,11 @@ async def apiEditQuestion(request: Request):
 
     conn.commit()
 
-    return {"success":True}
+    return {"success":True, "msg": "Question edited!"}
 
 @app.post("/api/question/delete")
 async def apiDeleteQuestion(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -267,6 +270,7 @@ async def apiDeleteQuestion(request: Request):
 
 @app.post("/api/question/clearDeleted")
 async def apiClearDeleted(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -290,6 +294,7 @@ async def apiClearDeleted(request: Request):
     
 @app.post("/api/question/status/update")
 async def apiUpdateQuestionStatus(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()

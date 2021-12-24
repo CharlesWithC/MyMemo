@@ -9,7 +9,6 @@ import random, uuid
 import json
 import pandas as pd
 import xlrd
-import threading
 import io
 
 from app import app, config
@@ -22,6 +21,8 @@ import sessions
 
 lastop = {}
 threads = 0
+dataUploadResult = {}
+dataDownloadToken = {}
 
 def importWork(userId, bookId, updateType, checkDuplicate, newlist):
     global threads
@@ -119,13 +120,13 @@ def importWork(userId, bookId, updateType, checkDuplicate, newlist):
     qlist = cur.fetchall()
 
     progress = 0
+    global dataUploadResult
     for i in range(0, len(newlist)):
         question = str(newlist['Question'][i]).replace("\\n","\n")
         answer = str(newlist['Answer'][i]).replace("\\n","\n")
         if int(i / len(newlist) * 100) > progress:
             progress = int(i / len(newlist) * 100)
-            cur.execute(f"UPDATE DataUploadResult SET result = '{encode(f'Progress{progress}')}' WHERE userId = {userId}")
-            conn.commit()
+            dataUploadResult[userId] = (f'Progress{progress}', time.time())
 
         if question in importDuplicate and updateType == "overwrite":
             wid = -1
@@ -213,14 +214,6 @@ def importWork(userId, bookId, updateType, checkDuplicate, newlist):
     threads -= 1
     return "Success!"
 
-def clearResult(userId, deleteNow = False, deleteAfter = 30):
-    if not deleteNow:
-        time.sleep(deleteAfter)
-    conn = newconn()
-    cur = conn.cursor()
-    cur.execute(f"DELETE FROM DataUploadResult WHERE userId = {userId}")
-    conn.commit()
-
 def importWorkGate(userId, bookId, updateType, checkDuplicate, newlist):
     conn = newconn()
     cur = conn.cursor()
@@ -236,28 +229,12 @@ def importWorkGate(userId, bookId, updateType, checkDuplicate, newlist):
         if userId in lastop.keys():
             del lastop[userId]
     
-    conn = newconn()
-    cur = conn.cursor()
-    
-    for _ in range(3):
-        try:
-            cur.execute(f"SELECT * FROM DataUploadResult WHERE userId = {userId}")
-            if len(cur.fetchall()) > 0:
-                cur.execute(f"UPDATE DataUploadResult SET result = '{encode(res)}' WHERE userId = {userId}")
-            else:
-                cur.execute(f"INSERT INTO DataUploadResult VALUES ({userId}, '{encode(res)}')")
-            conn.commit()
-            break
-        except:
-            import traceback
-            traceback.print_exc()
-            conn = newconn()
-            cur = conn.cursor()
-    
-    threading.Thread(target=clearResult,args=(userId,)).start()
+    global dataUploadResult
+    dataUploadResult[userId] = (res, time.time())
 
 @app.post("/api/data/import", response_class=HTMLResponse)
 async def apiImportData(request: Request, background_tasks: BackgroundTasks):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -270,26 +247,21 @@ async def apiImportData(request: Request, background_tasks: BackgroundTasks):
         raise HTTPException(status_code=401)
     
     if "getResult" in form.keys():
-        cur.execute(f"SELECT result FROM DataUploadResult WHERE userId = {userId}")
-        t = cur.fetchall()
-        if len(t) > 0:
-            if t[0][0] != '':
-                if decode(t[0][0]) == "Failed":
-                    background_tasks.add_task(clearResult, userId, True)
-                    return JSONResponse({"success": 0, "msg": decode(t[0][0])})
-                elif decode(t[0][0]).startswith("Progress"):
-                    progress = decode(t[0][0]).replace("Progress","")
+        if userId in dataUploadResult.keys():
+            t = dataUploadResult[userId]
+            if t[0] != '':
+                if decode(t[0]) == "Failed":
+                    return JSONResponse({"success": 0, "msg": decode(t[0])})
+                elif decode(t[0]).startswith("Progress"):
+                    progress = decode(t[0]).replace("Progress","")
                     return JSONResponse({"success": 1, "msg": f"{progress}% Finished"})
                 else:
-                    background_tasks.add_task(clearResult, userId, True)
-                    return JSONResponse({"success": 2, "msg": decode(t[0][0])})
+                    return JSONResponse({"success": 2, "msg": decode(t[0])})
             else:
                 return JSONResponse({"success": 1, "msg": "Still working on it... <i class='fa fa-spinner fa-spin'></i>"})
         return JSONResponse({"success": 0, "msg": "Upload result has been cleared!"})
 
-    cur.execute(f"SELECT result FROM DataUploadResult WHERE userId = {userId}")
-    t = cur.fetchall()
-    if len(t) > 0:
+    if userId in dataUploadResult.keys():
         return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>Another upload task is running!</p>"
 
     # Do file check
@@ -332,8 +304,7 @@ async def apiImportData(request: Request, background_tasks: BackgroundTasks):
         else:
             del lastop[userId]
 
-    cur.execute(f"INSERT INTO DataUploadResult VALUES ({userId}, '')")
-    conn.commit()
+    dataUploadResult[userId] = ('', time.time())
 
     global threads
     if threads >= 8:
@@ -341,7 +312,6 @@ async def apiImportData(request: Request, background_tasks: BackgroundTasks):
     else:
         lastop[userId] = int(time.time())
         background_tasks.add_task(importWorkGate, userId, bookId, updateType, checkDuplicate, newlist)
-        background_tasks.add_task(clearResult, userId, False, 300)
 
     return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><script>GetUploadResult()</script>\
         <link href='https://cdn.charles14.xyz/css/all.min.css' rel='stylesheet'><link href='/css/main.css' rel='stylesheet'>\
@@ -349,6 +319,7 @@ async def apiImportData(request: Request, background_tasks: BackgroundTasks):
 
 @app.post("/api/data/export")
 async def apiExportData(request: Request):
+    ip = request.client.host
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
@@ -362,8 +333,8 @@ async def apiExportData(request: Request):
     
     exportType = form["exportType"]
     tk = str(uuid.uuid4())
-    cur.execute(f"INSERT INTO DataDownloadToken VALUES ({userId}, '{exportType}', {int(time.time())}, '{tk}')")
-    conn.commit()
+    global dataDownloadToken
+    dataDownloadToken[tk] = (userId, exportType, int(time.time()), tk)
 
     return {"success": True, "token": tk}
 
@@ -373,14 +344,14 @@ def nginxException(status_code):
 queue = []
 @app.get("/download")
 async def apiDownload(token: str, request: Request, background_tasks: BackgroundTasks):
+    ip = request.client.host
     conn = newconn()
     cur = conn.cursor()
     if not token.replace("-","").isalnum():
         return RedirectResponse(nginxException(404))
     
-    cur.execute(f"SELECT * FROM DataDownloadToken WHERE token = '{token}'")
-    d = cur.fetchall()
-    if len(d) == 0:
+    global dataDownloadToken
+    if not token in dataDownloadToken:
         return RedirectResponse(nginxException(404))
     
     if config.max_concurrent_download != -1 and len(queue) > config.max_concurrent_download:
@@ -391,8 +362,7 @@ async def apiDownload(token: str, request: Request, background_tasks: Background
     userId = d[0][0]
     exportType = d[0][1]
     ts = d[0][2]
-    cur.execute(f"DELETE FROM DataDownloadToken WHERE token = '{token}'")
-    conn.commit()
+    del dataDownloadToken[token]
 
     if int(time.time()) - ts > 1800: # 10 minutes
         return RedirectResponse(nginxException(404))
@@ -499,3 +469,11 @@ async def apiDownload(token: str, request: Request, background_tasks: Background
 
         return StreamingResponse(buf, headers={"Content-Disposition": "attachment; filename=MyMemo_Export_AllData.xlsx", \
             "Content-Type": "application/octet-stream"})
+
+def clearOutdatedResult():
+    global dataUploadResult
+    while 1:
+        for userId in dataUploadResult.keys():
+            if time.time() - dataUploadResult[userId][1] >= 120:
+                del dataUploadResult[userId]
+        time.sleep(300)
