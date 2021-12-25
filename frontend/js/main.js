@@ -47,12 +47,21 @@ memo.bookList = JSON.parse(lsGetItem("book-list", JSON.stringify([])));
 memo.bookName = lsGetItem("memo-book-name", "");
 setInterval(function () {
     memo.bookList = JSON.parse(lsGetItem("book-list", JSON.stringify([])));
+    found = false;
     for (var i = 0; i < memo.bookList.length; i++) {
         if (memo.bookList[i].bookId == memo.bookId) {
             memo.bookName = memo.bookList[i].name;
             $("#book-name").html(memo.bookName);
             localStorage.setItem("memo-book-name", memo.bookName);
+            found = true;
         }
+    }
+    if (!found) {
+        memo.bookId = 0;
+        localStorage.setItem("memo-book-id", 0);
+        memo.bookName = memo.bookList[0].name;
+        $("#book-name").html(memo.bookName);
+        localStorage.setItem("memo-book-name", memo.bookName);
     }
 }, 5000); // this will be updated by general.js
 
@@ -723,7 +732,7 @@ function EditQuestionShow() {
         $("#modal").remove();
     });
 
-    $("#edit-question,#edit-answer").on('keypress', function (e) {
+    $("#edit-question,#edit-answer").keypress(function (e) {
         if (e.which == 13 && e.ctrlKey) {
             EditQuestion();
         }

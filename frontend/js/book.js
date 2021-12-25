@@ -404,7 +404,7 @@ function EditQuestionShow(wid) {
     $('#modal').on('hidden.bs.modal', function () {
         $("#modal").remove();
     });
-    $("#edit-question,#edit-answer").on('keypress', function (e) {
+    $("#edit-question,#edit-answer").keypress(function (e) {
         if (e.which == 13 && e.ctrlKey) {
             EditQuestion();
         }
@@ -572,7 +572,7 @@ function AddQuestionShow() {
     $('#modal').on('hidden.bs.modal', function () {
         $("#modal").remove();
     });
-    $("#edit-question,#edit-answer").on('keypress', function (e) {
+    $("#edit-question,#edit-answer").keypress(function (e) {
         if (e.which == 13 && e.ctrlKey) {
             AddQuestion();
         }
@@ -766,7 +766,7 @@ function BookRenameShow() {
     $('#modal').on('hidden.bs.modal', function () {
         $("#modal").remove();
     });
-    $("#book-rename").on('keypress', function (e) {
+    $("#book-rename").keypress(function (e) {
         if (e.which == 13 || e.which == 13 && e.ctrlKey) {
             BookRename();
         }
@@ -937,7 +937,7 @@ function PublishToDiscoveryShow() {
     $(".editor-toolbar").css("background-color", "white");
     $(".editor-toolbar").css("opacity", "1");
     $(".cursor").remove();
-    $("#discovery-title,#discovery-description").on('keypress', function (e) {
+    $("#discovery-title,#discovery-description").keypress(function (e) {
         if (e.which == 13 && e.ctrlKey) {
             PublishToDiscovery();
         }
@@ -1063,7 +1063,7 @@ function GroupPublishToDiscoveryShow() {
     $(".editor-toolbar").css("background-color", "white");
     $(".editor-toolbar").css("opacity", "1");
     $(".cursor").remove();
-    $("#group-discovery-title,#group-discovery-description").on('keypress', function (e) {
+    $("#group-discovery-title,#group-discovery-description").keypress(function (e) {
         if (e.which == 13 && e.ctrlKey) {
             GroupPublishToDiscovery();
         }
@@ -1244,7 +1244,7 @@ function CreateGroupShow() {
     $(".editor-toolbar").css("background-color", "white");
     $(".editor-toolbar").css("opacity", "1");
     $(".cursor").remove();
-    $("#group-name,#group-description").on('keypress', function (e) {
+    $("#group-name,#group-description").keypress(function (e) {
         if (e.which == 13 && e.ctrlKey) {
             CreateGroup();
         }
@@ -1622,7 +1622,7 @@ function GroupDismissShow() {
     $('#modal').on('hidden.bs.modal', function () {
         $("#modal").remove();
     });
-    $("#group-delete").on('keypress', function (e) {
+    $("#group-delete").keypress(function (e) {
         if (e.which == 13 || e.which == 13 && e.ctrlKey) {
             GroupDismiss();
         }

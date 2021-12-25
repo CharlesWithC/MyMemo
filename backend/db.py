@@ -71,7 +71,7 @@ elif config["database"] == "mysql":
     conn = MySQLdb.connect(host = host, user = user, passwd = passwd, db = dbname)
     cur = conn.cursor()
     cur.execute(f"SHOW TABLES")
-    if len(cur.fetchall()) != 33:
+    if len(cur.fetchall()) != 34:
         doinit = True
 
 else:
@@ -261,6 +261,8 @@ if doinit:
     cur.execute(f"CREATE TABLE PendingAccountDeletion (userId INT, deletionTime INT)")
 
     cur.execute(f"CREATE TABLE PasswordTrial (userId INT, count INT, lastts INT, ip VARCHAR(128))")
+
+    cur.execute(f"CREATE TABLE Captcha (token VARCHAR(64), answer CHAR(6), expire INT)")
 
     conn.commit()
     

@@ -36,7 +36,7 @@
                 if ($("#answer").val() == "") DisplayAnswer();
                 SpeakAnswer();
             });
-            $("#start-from").on('keypress', function (e) {
+            $("#start-from").keypress(function (e) {
                 if (e.which == 13 || e.which == 13 && e.ctrlKey) {
                     MemoGo();
                 }

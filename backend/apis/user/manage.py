@@ -73,11 +73,19 @@ async def apiUpdateInfo(request: Request, background_tasks: BackgroundTasks):
     cur.execute(f"SELECT email FROM UserInfo WHERE userId = {userId}")
     t = cur.fetchall()
     if len(t) > 0 and decode(t[0][0]).lower() != email.lower():
+        if not "captchaToken" in form.keys() or not "captchaAnswer" in form.keys():
+            return {"success": False, "captcha": True}
+        captchaToken = form["captchaToken"]
+        captchaAnswer = form["captchaAnswer"]
+        captchaResult = validateCaptcha(captchaToken, captchaAnswer)
+        if captchaResult != True:
+            return captchaResult
+
         token = b62encode(int(time.time())) + "-" + str(uuid.uuid4())
         background_tasks.add_task(sendVerification, email, decode(username), "Email update verification", \
             f"You are changing your email address to {email}. Please open the link to verify this new address.", "10 minutes", \
                 "https://memo.charles14.xyz/user/verify?token="+token)
-        cur.execute(f"DELETE FROM PendingEmailChange WHERE email LIKE '!%'")
+        cur.execute(f"DELETE FROM PendingEmailChange WHERE userId = {userId}")
         cur.execute(f"INSERT INTO PendingEmailChange VALUES ({userId}, '{encode(email)}', '{token}', {int(time.time()+600)})")
         conn.commit()
         return {"success": True, "msg": "User profile updated, but email is not updated! \
@@ -215,6 +223,9 @@ async def apiChangePassword(request: Request):
     token = form["token"]
     if not validateToken(userId, token):
         raise HTTPException(status_code=401)
+
+    if OPLimit(userId, "change_password", 3):
+        return {"success": False, "msg": "Too many requests! Try again later!"}    
     
     oldpwd = form["oldpwd"]
     newpwd = form["newpwd"]
@@ -311,6 +322,9 @@ async def apiRequestDeleteAccount(request: Request, background_tasks: Background
     if len(cur.fetchall()) != 0:
         return {"success": False, "msg": "Admins cannot delete their account on website! Contact super administrator for help!"}
     
+    if OPLimit(userId, "account_deletion", 1):
+        return {"success": False, "msg": "Too many requests! Try again later!"}    
+
     password = form["password"]
     cur.execute(f"SELECT password FROM UserInfo WHERE userId = {userId}")
     d = cur.fetchall()

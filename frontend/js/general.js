@@ -16,9 +16,9 @@ function AjaxErrorHandler(r, textStatus, errorThrown) {
     if (r.status == 401) {
         $("#refresh-btn").html('<i class="fa fa-sync"></i>');
         SessionExpired();
-    } else if(r.status == 503) {
+    } else if (r.status == 503) {
         NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge. Otherwise server is down.", type = 'error', timeout = 5000);
-    }else {
+    } else {
         NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
     }
 }
@@ -158,7 +158,9 @@ function UpdateBookList(async = true) {
 }
 
 UpdateBookList();
-setInterval(function(){UpdateBookList();}, 300000);
+setInterval(function () {
+    UpdateBookList();
+}, 300000);
 
 function OpenBook(bookId) {
     window.location.href = '/book?bookId=' + bookId;
@@ -549,9 +551,85 @@ $(document).ready(function () {
     $("#content").hover(function () {
         $("#book-div").fadeOut();
     });
-    $("#create-book-name").on('keypress', function (e) {
+    $("#create-book-name").keypress(function (e) {
         if (e.which == 13 || e.which == 13 && e.ctrlKey) {
             CreateBook("#create-book-name");
         }
     });
 });
+
+var captchaToken = undefined;
+
+function RefreshCaptcha(submitfunc) {
+    $.ajax({
+        url: "/api/captcha",
+        method: 'GET',
+        async: true,
+        success: function (r) {
+            if (r.success == true) {
+                captchaToken = r.captchaToken;
+                captchaBase64 = r.captchaBase64;
+                $("#captcha").html("<img style='height:2em' src='data:image/png;base64," + captchaBase64 + "'>");
+            }
+        },
+        error: function (r, textStatus, errorThrown) {
+            AjaxErrorHandler(r, textStatus, errorThrown);
+        }
+    });
+}
+
+function ShowCaptcha(submitfunc) {
+    $("#content").after(`<div class="modal fade" id="captchaModal" tabindex="-1" role="dialog"
+        aria-labelledby="modalLabel" aria-hidden="true" style="z-index:10000">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLabel"><i class="fa fa-robot"></i>  Captcha</h5>
+                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
+                        onclick="$('#modal').modal('hide')">
+                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Please solve this captcha to prove that you are not a robot:</p>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="captcha-answer" aria-describedby="captcha">
+                        <span class="input-group-text" id="captcha">Fetching captcha <i class='fa fa-spinner fa-spin'></i></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                        onclick="$('#modal').modal('hide')">Close</button>
+                    <button type="button" class="btn btn-primary" id="captcha-submit">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>`);
+    $("#captchaModal").modal("show");
+    $('#captchaModal').on('hidden.bs.modal', function () {
+        $("#captchaModal").remove();
+        captchaToken = undefined;
+    });
+    $("#captcha-answer").keypress(function (e) {
+        if (e.which == 13 || e.which == 13 && e.ctrlKey) {
+            $("#captcha-submit").click();
+        }
+    });
+    $.ajax({
+        url: "/api/captcha",
+        method: 'GET',
+        async: true,
+        success: function (r) {
+            if (r.success == true) {
+                captchaToken = r.captchaToken;
+                captchaBase64 = r.captchaBase64;
+                $("#captcha").html("<img style='height:2em' src='data:image/png;base64," + captchaBase64 + "'>");
+                $("#captcha").attr("onclick", "RefreshCaptcha()");
+                $("#captcha-submit").attr("onclick", submitfunc + "()");
+            }
+        },
+        error: function (r, textStatus, errorThrown) {
+            AjaxErrorHandler(r, textStatus, errorThrown);
+        }
+    });
+}

@@ -336,3 +336,26 @@ def OPLimit(ip, endpoint, maxop = 5, timeout = 300):
     conn.commit()
 
     return False
+
+def validateCaptcha(captchaToken, captchaAnswer):
+    conn = newconn()
+    cur = conn.cursor()
+        
+    cur.execute(f"DELETE FROM Captcha WHERE expire < {int(time.time())}")
+    conn.commit()
+    
+    if not captchaToken.replace("-", "").isalnum():
+        return {"success": False, "captcha": True, "msg": "Invalid captcha token!"}
+    cur.execute(f"SELECT answer, expire FROM Captcha WHERE token = '{captchaToken}'")
+    t = cur.fetchall()
+    
+    if len(t) == 0 or t[0][1] < int(time.time()):
+        return {"success": False, "captcha": True, "msg": "Captcha expired!"}
+
+    cur.execute(f"DELETE FROM Captcha WHERE token = '{captchaToken}'")
+    conn.commit()
+    
+    if t[0][0].lower() != captchaAnswer.lower():
+        return {"success": False, "captcha": True, "msg": "Incorrect captcha!"}
+
+    return True

@@ -72,7 +72,7 @@
                     }
                 }
             });
-            $("#update-password").on('keypress', function (e) {
+            $("#update-password").keypress(function (e) {
                 if (e.which == 13 || e.which == 13 && e.ctrlKey) {
                     UpdatePassword();
                 }

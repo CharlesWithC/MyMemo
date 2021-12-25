@@ -328,7 +328,7 @@ function UpdateInformationShow() {
         descriptionMDE.value(description);
     });
 
-    $("#discovery-title,#discovery-description").on('keypress', function (e) {
+    $("#discovery-title,#discovery-description").keypress(function (e) {
         if (e.which == 13 && e.ctrlKey) {
             UpdateInformation();
         }

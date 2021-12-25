@@ -94,7 +94,6 @@ button {
     display: inline-block;
     vertical-align: top;
     width: 100%;
-    overflow-x: auto;
 }
 
 @media all and (max-width: 999px) {
@@ -372,6 +371,20 @@ button {
 
 .sorting-ctrl {
     cursor: pointer;
+}
+
+.table_scroll {
+    overflow-x: auto;
+    display: inline-block;
+    width: 100%;
+}
+
+.table_range {
+    float: left;
+}
+
+.table_search {
+    float: right;
 }
 
 .table-light {

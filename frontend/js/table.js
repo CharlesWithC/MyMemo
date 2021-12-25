@@ -12,25 +12,30 @@ function InitTable(table, select_val, select_default, select_func, search_func) 
         else
             select_content += "<option value=" + select_val[i] + " onclick='" + select_func + "(" + select_val[i] + ")'>" + select_val[i] + "</option>";
     }
-    $("#" + table).before(`<div id="` + table + `_range" style="float:left;">
+    $("#" + table).before("<div id='" + table + "_wrap' class='table_wrap'></div>");
+    $("#" + table).appendTo("#" + table + "_wrap");
+    $("#" + table).before(`<div id="` + table + `_range" class="table_range">
     <p>Show 
         <select name="` + table + `_range_select" id="` + table + `_range_select" class="form-select" style="display:inline-block;max-width:5em">
             ` + select_content + `
         </select>
         entries
     </p></div>`);
-    $("#" + table).before(`<div id="` + table + `_search" class="input-group mb-3" style="float:right;max-width:15em;">
+    $("#" + table).before(`<div id="` + table + `_search" class="table_search input-group mb-3" style="max-width:15em;">
         <span class="input-group-text" id="basic-addon1">Search</span>
         <input type="text" class="form-control" id="search-content" aria-describedby="basic-addon1">
         <div class="input-group-append">
             <button class="btn btn-outline-primary" type="button" onclick="` + search_func + `()">Go</button>
         </div>
     </div>`);
-    $("#search-content").on('keypress', function (e) {
+    $("#search-content").keypress(function (e) {
         if (e.which == 13 || e.which == 13 && e.ctrlKey) {
             Search();
         }
     });
+
+    $("#" + table).before("<div id='" + table + "_scroll' class='table_scroll'></div>");
+    $("#" + table).appendTo("#" + table + "_scroll");
 }
 
 function InitSorting(table, sort_index, default_sort, func) {
@@ -93,7 +98,7 @@ function AppendTableData(table, data, id, colspan) {
 
 function PaginateTable(table, current, total, func) {
     if ($("#" + table + "_paginate").length == 0) {
-        $("#" + table).after("<div id='" + table + "_paginate' style='float:right'></div>");
+        $("#" + table + "_wrap").append("<div id='" + table + "_paginate' style='float:right'></div>");
         paginate = $("#" + table + "_paginate");
         paginate.append('<button id="table-first" type="button" class="btn btn-outline-primary btn-sm" onclick="' +
             func + '(1)"><i class="fa fa-angles-left"></i></button>');
@@ -152,7 +157,7 @@ function PaginateTable(table, current, total, func) {
 function SetTableInfo(table, content) {
     if ($("#" + table + "_info").length != 0)
         $("#" + table + "_info").remove();
-    $("#" + table).after("<div id='" + table + "_info' style='float:left'></div>");
+    $("#" + table + "_paginate").before("<div id='" + table + "_info' style='float:left;font-size:0.8em'></div>");
     info = $("#" + table + "_info");
     info.append(content);
 }

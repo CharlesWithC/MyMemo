@@ -1,5 +1,12 @@
 # Update History
 
+## v5.6.4  
+
+*Date: 2021/12/26*  
+Feature Updates:  
+1.Implemented Image Captcha protection for /login, /register, /updateInfo  
+2.Improved UI  
+
 ## v5.6.3
 
 *Date: 2021/12/25*  

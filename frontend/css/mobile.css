@@ -5,7 +5,7 @@ body {
 }
 
 h1 {
-    font-size: 3em;
+    font-size: 2.8em;
     margin-left: 0em;
     margin-right: 0em;
 }
@@ -54,7 +54,7 @@ td {
 }
 
 .big-title {
-    font-size: 4em;
+    font-size: 3.8em;
 }
 
 .btn {
@@ -90,4 +90,15 @@ td {
 .center {
     margin-left: 0;
     margin: auto;
+    width: 95%;
+}
+
+.table_search {
+    font-size: 1em;
+    float:none;
+}
+
+.table_range {
+    font-size: 1em;
+    float:none;
 }

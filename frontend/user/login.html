@@ -27,7 +27,7 @@
 
     <script>
         $(document).ready(function () {
-            $("#input-password").on('keypress', function (e) {
+            $("#input-password").keypress(function (e) {
                 if (e.which == 13 || e.which == 13 && e.ctrlKey) {
                     Login();
                 }

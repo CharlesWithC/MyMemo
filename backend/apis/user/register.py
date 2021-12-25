@@ -26,6 +26,12 @@ async def apiRegister(request: Request, background_tasks: BackgroundTasks):
     conn = newconn()
     cur = conn.cursor()
 
+    captchaToken = form["captchaToken"]
+    captchaAnswer = form["captchaAnswer"]
+    captchaResult = validateCaptcha(captchaToken, captchaAnswer)
+    if captchaResult != True:
+        return captchaResult
+
     userCnt = 0
     cur.execute(f"SELECT COUNT(*) FROM UserInfo WHERE userId > 0") # banned users are not counted
     t = cur.fetchall()

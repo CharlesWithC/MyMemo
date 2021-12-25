@@ -213,7 +213,6 @@ async def apiDiscovery(request: Request):
         ret = ret[::-1]
     
     dis = ret
-    dis *= 100 # NOTE TEST
 
     page = int(form["page"])
     pageLimit = int(form["pageLimit"])

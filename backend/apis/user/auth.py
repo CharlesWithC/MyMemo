@@ -24,6 +24,13 @@ async def apiLogin(request: Request, background_tasks: BackgroundTasks):
     form = await request.form()
     conn = newconn()
     cur = conn.cursor()
+
+    captchaToken = form["captchaToken"]
+    captchaAnswer = form["captchaAnswer"]
+    captchaResult = validateCaptcha(captchaToken, captchaAnswer)
+    if captchaResult != True:
+        return captchaResult
+
     username = encode(form["username"])
     password = form["password"]
 

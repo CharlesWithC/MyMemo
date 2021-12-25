@@ -34,7 +34,7 @@
         $(document).ready(function () {
             PageInit();
 
-            $("#search-content").on('keypress', function (e) {
+            $("#search-content").keypress(function (e) {
                 if (e.which == 13 || e.which == 13 && e.ctrlKey) {
                     Search();
                 }
@@ -53,7 +53,7 @@
                 $(this).toggleClass('table-active');
             });
 
-            $("#create-book-name-content").on('keypress', function (e) {
+            $("#create-book-name-content").keypress(function (e) {
                 if (e.which == 13 || e.which == 13 && e.ctrlKey) {
                     CreateBook("#create-book-name-content");
                 }

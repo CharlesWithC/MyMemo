@@ -126,10 +126,8 @@ function UpdateUserInfo() {
                     window.location.href = "/user/login";
                 }
                 $("#signout-btn").hide();
-            } else if (r.status == 503) {
-                NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
             } else {
-                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
+                AjaxErrorHandler(r, textStatus, errorThrown);
             }
         }
     });
@@ -356,6 +354,11 @@ function Login() {
         return;
     }
 
+    if (captchaToken == undefined) {
+        ShowCaptcha("Login");
+        return;
+    }
+
     $.ajax({
         url: "/api/user/login",
         method: 'POST',
@@ -363,9 +366,19 @@ function Login() {
         dataType: "json",
         data: {
             username: username,
-            password: password
+            password: password,
+            captchaToken: captchaToken,
+            captchaAnswer: $("#captcha-answer").val()
         },
         success: function (r) {
+            if (r.captcha == true) {
+                NotyNotification(r.msg, "warning");
+                RefreshCaptcha();
+                return;
+            }
+
+            $("#captchaModal").modal("hide");
+
             if (r.success == true && r.active == true) {
                 localStorage.setItem("userId", r.userId);
                 localStorage.setItem("token", r.token);
@@ -444,11 +457,7 @@ function Login() {
             }
         },
         error: function (r, textStatus, errorThrown) {
-            if (r.status == 503) {
-                NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
-            } else {
-                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-            }
+            AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
 }
@@ -464,6 +473,11 @@ function Register() {
         return;
     }
 
+    if (captchaToken == undefined) {
+        ShowCaptcha("Register");
+        return;
+    }
+
     $.ajax({
         url: "/api/user/register",
         method: 'POST',
@@ -473,9 +487,19 @@ function Register() {
             username: username,
             password: password,
             email: email,
-            invitationCode: invitationCode
+            invitationCode: invitationCode,
+            captchaToken: captchaToken,
+            captchaAnswer: $("#captcha-answer").val()
         },
         success: function (r) {
+            if (r.captcha == true) {
+                NotyNotification(r.msg, "warning");
+                RefreshCaptcha();
+                return;
+            }
+
+            $("#captchaModal").modal("hide");
+
             if (r.success == true) {
                 NotyNotification(r.msg, type = 'success', timeout = 15000);
                 $(".register").hide();
@@ -486,11 +510,7 @@ function Register() {
             }
         },
         error: function (r, textStatus, errorThrown) {
-            if (r.status == 503) {
-                NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
-            } else {
-                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-            }
+            AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
 }
@@ -546,7 +566,7 @@ function UpdateProfileShow() {
     $('#modal').on('shown.bs.modal', function () {
         biomde.value(user.bio);
     });
-    $("#update-username,#update-email,#update-bio").on('keypress', function (e) {
+    $("#update-username,#update-email,#update-bio").keypress(function (e) {
         if (e.which == 13 || e.which == 13 && e.ctrlKey) {
             UpdateUserProfile();
         }
@@ -572,11 +592,24 @@ function UpdateUserProfile() {
             username: username,
             email: email,
             bio: bio,
+            captchaToken: captchaToken,
+            captchaAnswer: $("#captcha-answer").val(),
             userId: localStorage.getItem("userId"),
             token: localStorage.getItem("token")
         },
         success: function (r) {
+            if (r.captcha == true) {
+                if ($("#captchaModal").length == 0) {
+                    ShowCaptcha("UpdateUserProfile");
+                } else {
+                    NotyNotification(r.msg, "warning");
+                    RefreshCaptcha();
+                }
+                return;
+            }
+
             if (r.success == true) {
+                $("#captchaModal").modal("hide");
                 $.ajax({
                     url: "/api/user/info",
                     method: 'POST',
@@ -604,11 +637,7 @@ function UpdateUserProfile() {
             }
         },
         error: function (r, textStatus, errorThrown) {
-            if (r.status == 503) {
-                NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
-            } else {
-                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-            }
+            AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
 }
@@ -657,11 +686,7 @@ function ChangePassword() {
             }
         },
         error: function (r, textStatus, errorThrown) {
-            if (r.status == 503) {
-                NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
-            } else {
-                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-            }
+            AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
 }
@@ -707,7 +732,7 @@ function ChangePasswordShow() {
     $('#modal').on('hidden.bs.modal', function () {
         $("#modal").remove();
     });
-    $("#oldpwd,#newpwd,#cfmpwd").on('keypress', function (e) {
+    $("#oldpwd,#newpwd,#cfmpwd").keypress(function (e) {
         if (e.which == 13 || e.which == 13 && e.ctrlKey) {
             ChangePassword();
         }
@@ -803,7 +828,7 @@ function DeleteAccountShow() {
     $('#modal').on('hidden.bs.modal', function () {
         $("#modal").remove();
     });
-    $("#acknowledge-confirm,#delete-password").on('keypress', function (e) {
+    $("#acknowledge-confirm,#delete-password").keypress(function (e) {
         if (e.which == 13 || e.which == 13 && e.ctrlKey) {
             DeleteAccount();
         }
@@ -1069,16 +1094,16 @@ function ForgotPasswordShow() {
     $("#modal").modal("show");
     $('#modal').on('hidden.bs.modal', function () {
         $("#modal").remove();
-        $("#input-password").on('keypress', function (e) {
+        $("#input-password").keypress(function (e) {
             if (e.which == 13 || e.which == 13 && e.ctrlKey) {
                 Login();
             }
         });
     });
-    $("#input-password").on('keypress', function (e) {
+    $("#input-password").keypress(function (e) {
         return;
     });
-    $("#reset-email").on('keypress', function (e) {
+    $("#reset-email").keypress(function (e) {
         if (e.which == 13 || e.which == 13 && e.ctrlKey) {
             ForgotPassword();
         }
