@@ -26,6 +26,11 @@ function InitTable(table, select_val, select_default, select_func, search_func) 
             <button class="btn btn-outline-primary" type="button" onclick="` + search_func + `()">Go</button>
         </div>
     </div>`);
+    $("#search-content").on('keypress', function (e) {
+        if (e.which == 13 || e.which == 13 && e.ctrlKey) {
+            Search();
+        }
+    });
 }
 
 function InitSorting(table, sort_index, default_sort, func) {
@@ -46,7 +51,7 @@ function InitSorting(table, sort_index, default_sort, func) {
 }
 
 function SortTable(id) {
-    ctrl = $("#" + id + " i");
+    ctrl = $("#sorting_" + id);
     order = "asc";
     if (ctrl.hasClass("sorting-both") || ctrl.hasClass("sorting-desc")) {
         order = "asc";

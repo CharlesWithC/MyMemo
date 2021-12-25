@@ -34,6 +34,31 @@ async def apiAdminUserList(request: Request):
     if len(cur.fetchall()) == 0:
         raise HTTPException(status_code=401)
 
+    page = int(form["page"])
+    if page <= 0:
+        page = 1
+
+    pageLimit = int(form["pageLimit"])
+    if pageLimit <= 0:
+        pageLimit = 20
+    
+    if pageLimit > 100:
+        return {"success": True, "data": [], "total": 0}
+
+    orderBy = form["orderBy"] # userId, username, email, inviter, inviteCode, age, status, privilege
+    if not orderBy in ["userId", "username", "email", "inviter", "inviteCode", "age", "status", "privilege"]:
+        orderBy = "userId"
+    if orderBy == "username":
+        orderBy = "plain_username"
+
+    order = form["order"]
+    if not order in ["asc", "desc"]:
+        order = "asc"
+    l = {"asc": 0, "desc": 1}
+    order = l[order]
+
+    search = form["search"]
+
     cur.execute(f"SELECT userId FROM AdminList")
     admins = cur.fetchall()
         
@@ -90,17 +115,93 @@ async def apiAdminUserList(request: Request):
             prv = prv[:-2]
 
         username = dd[1]
-        cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {dd[3]}")
-        t = cur.fetchall()
-        if len(t) > 0:
-            username = f"<a href='/user?userId={dd[0]}'><span class='username' style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
-        else:
-            username = f"<a href='/user?userId={dd[0]}'><span class='username'>{username}</span></a>"
-        
-        users.append({"userId": dd[0], "username": dd[1], "email": decode(dd[2]), "inviter": f"{inviterUsername} (UID: {dd[3]})", "inviteCode": dd[4], "age": age, "status": status, "privilege": prv})
+        plain_username = dd[1]
+        if username != "@deleted" and dd[0] != 0:
+            cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {dd[0]}")
+            t = cur.fetchall()
+            if len(t) > 0:
+                username = f"<a href='/user?userId={dd[0]}'><span class='username' style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
+            else:
+                username = f"<a href='/user?userId={dd[0]}'><span class='username'>{username}</span></a>"
 
+        if dd[3] != 0:
+            cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {dd[3]}")
+            t = cur.fetchall()
+            if len(t) > 0:
+                inviterUsername = f"<a href='/user?userId={dd[3]}'><span class='username' style='color:{t[0][1]}'>{inviterUsername}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
+            else:
+                inviterUsername = f"<a href='/user?userId={dd[3]}'><span class='username'>{inviterUsername}</span></a>"
+        
+        email = "/"
+        if dd[0] != 0 and username != "@deleted":
+            email = decode(dd[2])
+        
+        inviteCode = dd[4]
+        if inviteCode == "":
+            inviteCode = "/"
+
+        users.append({"userId": str(dd[0]), "username": username, "plain_username": plain_username, "email": email, "inviter": f"{inviterUsername} (UID: {dd[3]})", "inviteCode": inviteCode, "age": age, "status": status, "privilege": prv})
+        
+    cur.execute(f"SELECT puserId, username, email, inviter FROM UserPending")
+    d = cur.fetchall()
+    users_pending = []
+    for dd in d:
+        dd = list(dd)
+        
+        inviterUsername = "Unknown"
+        cur.execute(f"SELECT username FROM UserInfo WHERE userId = {dd[3]}")
+        t = cur.fetchall()
+        if len(t) != 0:
+            inviterUsername = decode(t[0][0])
+
+        users_pending.append({"userId": str(dd[0]) + "*", "username": decode(dd[1]), "plain_username": decode(dd[1]), "email": decode(dd[2]), "inviter": f"{inviterUsername} (UID: {dd[3]})", "inviteCode": "/", "age": -1, "status": "Pending Activation", "privilege": "/"})
+
+    t = {}
+    for dd in users:
+        ok = False
+        for tt in dd.keys():
+            if search == "" or search in str(dd[tt]):
+                ok = True
+                break
+        if not ok:
+            continue
+        if orderBy == "userId":
+            t[int(dd["userId"])] = dd
+        else:
+            t[str(dd[orderBy]) + str(dd["userId"])] = dd
+    ret1 = []
+    for key in sorted(t.keys()):
+        ret1.append(t[key])
+    if order == 1:
+        ret1 = ret1[::-1]
+
+    t = {}
+    for dd in users_pending:
+        ok = False
+        for tt in dd.keys():
+            if search == "" or search in str(dd[tt]):
+                ok = True
+                break
+        if not ok:
+            continue
+        if orderBy == "userId":
+            t[int(dd["userId"].replace("*",""))] = dd
+        else:
+            t[str(dd[orderBy]) + str(dd["userId"].replace("*",""))] = dd
+    ret2 = []
+    for key in sorted(t.keys()):
+        ret2.append(t[key])
+    if order == 1:
+        ret2 = ret2[::-1]
+
+    ret = ret1 + ret2
     
-    return users
+    if len(ret) <= (page - 1) * pageLimit:
+        return {"success": True, "data": [], "total": (len(ret) - 1) // pageLimit + 1, "totalUser": len(ret)}
+    elif len(ret) <= page * pageLimit:
+        return {"success": True, "data": ret[(page - 1) * pageLimit :], "total": (len(ret) - 1) // pageLimit + 1, "totalUser": len(ret)}
+    else:
+        return {"success": True, "data": ret[(page - 1) * pageLimit : page * pageLimit], "total": (len(ret) - 1) // pageLimit + 1, "totalUser": len(ret)}
 
 def restart():
     time.sleep(5)

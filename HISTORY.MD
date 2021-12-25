@@ -1,5 +1,15 @@
 # Update History
 
+## v5.6.3
+
+*Date: 2021/12/25*  
+Feature Updates:  
+1.Implemented My Memo tabling for Discovery List, Admin User List, Share List and Group Member List  
+2.For Discovery posts, only 20 questions of preview will be shown  
+3.Added Pending Users to Admin User List  
+
+NOTE: DataTables is completely abandoned since this update  
+
 ## v5.6.2  
 
 *Date: 2021/12/25*  

@@ -165,11 +165,7 @@ function ClearDeletedQuestion() {
             $('#modal').modal('hide');
         },
         error: function (r, textStatus, errorThrown) {
-            if (r.status == 401) {
-                SessionExpired();
-            } else {
-                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-            }
+            AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
 }
@@ -200,11 +196,7 @@ function SettingsSync(operation) {
                 }
             },
             error: function (r, textStatus, errorThrown) {
-                if (r.status == 401) {
-                    SessionExpired();
-                } else {
-                    NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-                }
+                AjaxErrorHandler(r, textStatus, errorThrown);
             }
         });
     } else if (operation == "download") {
@@ -234,11 +226,7 @@ function SettingsSync(operation) {
                 }
             },
             error: function (r, textStatus, errorThrown) {
-                if (r.status == 401) {
-                    SessionExpired();
-                } else {
-                    NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-                }
+                AjaxErrorHandler(r, textStatus, errorThrown);
             }
         });
     }

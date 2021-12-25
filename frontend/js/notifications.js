@@ -25,11 +25,7 @@ function PageInit() {
             page = r.nextpage;
         },
         error: function (r, textStatus, errorThrown) {
-            if (r.status == 401) {
-                SessionExpired();
-            } else {
-                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-            }
+            AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
 }
@@ -64,11 +60,7 @@ function ShowMore() {
             page = r.nextpage;
         },
         error: function (r, textStatus, errorThrown) {
-            if (r.status == 401) {
-                SessionExpired();
-            } else {
-                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-            }
+            AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
 }

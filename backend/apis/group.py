@@ -262,6 +262,7 @@ async def apiGroupMember(request: Request):
             continue
         
         username = decode(t[0][0])
+        plain_username = username
 
         if owner == uid:
             username = username + " (Owner)"
@@ -288,13 +289,60 @@ async def apiGroupMember(request: Request):
                 username = f"<a href='/user?userId={uid}'><span class='username' style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
             else:
                 username = f"<a href='/user?userId={uid}'><span class='username'>{username}</span></a>"
-            ret.append({"userId": uid, "username": username, "progress": pgs})
+            ret.append({"userId": uid, "username": username, "plain_username": plain_username, "progress": pgs})
         elif info[2] == 1:
-            ret.append({"userId": 0, "username": "Anonymous", "progress": pgs})
+            ret.append({"userId": 0, "username": "Anonymous", "plain_username": "Anonymous", "progress": pgs})
         elif info[2] == 2:
-            ret.append({"userId": 0, "username": "Anonymous", "progress": "Unknown"})
+            ret.append({"userId": 0, "username": "Anonymous", "plain_username": "Anonymous", "progress": "Unknown"})
+
+    page = int(form["page"])
+    if page <= 0:
+        page = 1
+
+    pageLimit = int(form["pageLimit"])
+    if pageLimit <= 0:
+        pageLimit = 20
     
-    return {"success": True, "name": decode(info[0]), "description": decode(info[1]), "member": ret, "isOwner": isOwner}
+    if pageLimit > 100:
+        return {"success": True, "data": [], "total": 0}
+
+    orderBy = form["orderBy"]
+    if not orderBy in ["username", "progress"]:
+        orderBy = "progress"
+    if orderBy == "username":
+        orderBy = "plain_username"
+
+    order = form["order"]
+    if not order in ["asc", "desc"]:
+        order = "asc"
+    l = {"asc": 0, "desc": 1}
+    order = l[order]
+
+    search = form["search"]
+
+    t = {}
+    i = 0
+    for dd in ret:
+        if search != "" and not search in str(dd["plain_username"]):
+            continue
+        i += 1
+        t[str(dd[orderBy]) + str(dd["userId"]) + str(i)] = dd
+        
+    ret = []
+    for key in sorted(t.keys()):
+        ret.append(t[key])
+    if order == 1:
+        ret = ret[::-1]
+
+    if len(ret) <= (page - 1) * pageLimit:
+        return {"success": True, "data": [], "total": (len(ret) - 1) // pageLimit + 1, "totalMember": len(ret),\
+             "name": decode(info[0]), "description": decode(info[1]), "isOwner": isOwner}
+    elif len(ret) <= page * pageLimit:
+        return {"success": True, "data": ret[(page - 1) * pageLimit :], "total": (len(ret) - 1) // pageLimit + 1, "totalMember": len(ret),\
+             "name": decode(info[0]), "description": decode(info[1]), "isOwner": isOwner}
+    else:
+        return {"success": True, "data": ret[(page - 1) * pageLimit : page * pageLimit], "total": (len(ret) - 1) // pageLimit + 1, "totalMember": len(ret),\
+             "name": decode(info[0]), "description": decode(info[1]), "isOwner": isOwner}
 
 @app.post("/api/group/manage")
 async def apiManageGroup(request: Request):

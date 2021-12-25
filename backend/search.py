@@ -37,38 +37,37 @@ app = FastAPI()
 lst = {}
 lstupd = 0
 def UpdateData():
-    while 1:
-        conn = newconn()
-        cur = conn.cursor()
-        global lst, lstupd
-        cur.execute(f"SELECT discoveryId, title, description, publisherId, type, bookId, pin FROM Discovery ORDER BY pin DESC, click DESC")
-        t = cur.fetchall()
-        lst = {}
-        for tt in t:
-            if decode(tt[1]) in lst.keys():
-                lst[decode(tt[1]) + " " + decode(tt[2])].append(tt)
-            else:
-                lst[decode(tt[1]) + " " + decode(tt[2])] = [tt]
-        lstupd = time.time()
-        
-        time.sleep(30)
+    conn = newconn()
+    cur = conn.cursor()
+    global lst, lstupd
+    cur.execute(f"SELECT discoveryId, title, description, publisherId, type, bookId, pin, views, likes FROM Discovery ORDER BY pin DESC, likes DESC, views DESC")
+    t = cur.fetchall()
+    lst = {}
+    for tt in t:
+        cur.execute(f"SELECT username FROM UserInfo WHERE userId = {tt[3]}")
+        p = cur.fetchall()
+        username = ""
+        if len(p) > 0 and not p[0][0] == "@deleted" and not decode(p[0][0]) == "@deleted":
+            username = p[0][0]
+        if decode(tt[1]) in lst.keys():
+            lst[decode(tt[1]) + " " + username].append(tt)
+        else:
+            lst[decode(tt[1]) + " " + username] = [tt]
+    lstupd = time.time()
 
 top = []
 toplst = 0
 
 def GetTop():
-    while 1:
-        conn = newconn()
-        cur = conn.cursor()
-        global top, toplst
-        cur.execute(f"SELECT discoveryId FROM DiscoveryLike GROUP BY discoveryId ORDER BY COUNT(likes) DESC LIMIT 3")
-        t = cur.fetchall()
-        top = []
-        for tt in t:
-            top.append(tt[0])
-        toplst = int(time.time())
-
-        time.sleep(30)
+    conn = newconn()
+    cur = conn.cursor()
+    global top, toplst
+    cur.execute(f"SELECT discoveryId FROM Discovery ORDER BY likes DESC LIMIT 3")
+    t = cur.fetchall()
+    top = []
+    for tt in t:
+        top.append(tt[0])
+    toplst = int(time.time())
 
 @app.post("/search/discovery")
 async def apiSearchDiscovery(request: Request, background_tasks: BackgroundTasks):
@@ -85,7 +84,7 @@ async def apiSearchDiscovery(request: Request, background_tasks: BackgroundTasks
         else:
             background_tasks.add_task(UpdateData)
         
-    limit = form["limit"][:32]
+    limit = form["search"][:32]
     limit = ''.join(e for e in limit if e.isalnum())
     limit = limit.replace(" ","")
 
@@ -120,9 +119,4 @@ async def apiGetDiscoveryTop(request: Request, background_tasks: BackgroundTasks
     return {"top": top}
 
 if __name__ == "__main__":
-    updateDataProc = Process(target = UpdateData, daemon=True)
-    updateDataProc.start()
-    updateTopProc = Process(target = GetTop, daemon=True)
-    updateTopProc.start()
-
     uvicorn.run("search:app", host = config.search_server_ip, port = config.search_server_port)

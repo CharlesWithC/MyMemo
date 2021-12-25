@@ -86,9 +86,11 @@ async def apiDiscoveryLike(request: Request):
     cur.execute(f"SELECT * FROM DiscoveryLike WHERE discoveryId = {discoveryId} AND userId = {userId} AND likes = 1")
     if len(cur.fetchall()) != 0:
         cur.execute(f"DELETE FROM DiscoveryLike WHERE discoveryId = {discoveryId} AND userId = {userId} AND likes = 1")
+        cur.execute(f"UPDATE Discovery SET likes = likes - 1 WHERE discoveryId = {discoveryId}")
         conn.commit()
         return {"success": True, "msg": "Unliked!", "liked": False}
     else:
         cur.execute(f"INSERT INTO DiscoveryLike VALUES ({discoveryId}, {userId}, 1)")
+        cur.execute(f"UPDATE Discovery SET likes = likes + 1 WHERE discoveryId = {discoveryId}")
         conn.commit()
         return {"success": True, "msg": "Liked!", "liked": True}

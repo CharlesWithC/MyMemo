@@ -101,7 +101,7 @@ async def apiDiscoveryPublish(request: Request):
     if len(description) >= 2048:
         return {"success": False, "msg": "Description too long!"}
 
-    cur.execute(f"INSERT INTO Discovery VALUES ({discoveryId}, {userId}, {bookId}, '{title}', '{description}', {distype}, 0, 0)")
+    cur.execute(f"INSERT INTO Discovery VALUES ({discoveryId}, {userId}, {bookId}, '{title}', '{description}', {distype}, 0, 0, 0)")
     conn.commit()
 
     msg = "Book published to Discovery. People will be able to find it and import it. All your updates made within this book will be synced to Discovery."

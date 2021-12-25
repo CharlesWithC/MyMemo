@@ -87,13 +87,14 @@ button {
     overflow: hidden;
     border-radius: 0.5em;
     box-sizing: border-box;
-    box-shadow: 0 0.5px 3px rgba(128, 128, 128, 0.1);
+    box-shadow: 0 0.1px 3px rgba(128, 128, 128, 0.1);
 }
 
 .sub-div {
     display: inline-block;
     vertical-align: top;
     width: 100%;
+    overflow-x: auto;
 }
 
 @media all and (max-width: 999px) {
@@ -149,10 +150,6 @@ button {
     padding-top: 0.5em;
     padding-bottom: 0em;
     margin-bottom: 1.25em;
-}
-
-.username {
-    text-shadow: 0.5px 0 0 #fff, -0.5px 0 0 #fff, 0 0.5px 0 #fff, 0 -0.5px 0 #fff, 0.5px 0.5px #fff, -0.5px -0.5px 0 #fff, 0.5px -0.5px 0 #fff, -0.5px 0.5px 0 #fff;
 }
 
 .nametag {

@@ -10,13 +10,11 @@
     <script src="https://cdn.charles14.xyz/js/popper.min.js"></script>
     <script src="https://cdn.charles14.xyz/js/marked.min.js"></script>
     <script src="/js/general.js"></script>
+    <script src="/js/table.js"></script>
     <script src="/js/group.js"></script>
 
     <link href="https://cdn.charles14.xyz/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.charles14.xyz/css/all.min.css" rel="stylesheet">
-
-    <link rel="stylesheet" href="https://cdn.charles14.xyz/dataTables/jquery.dataTables.min.css">
-    <script src="https://cdn.charles14.xyz/dataTables/jquery.dataTables.min.js"></script>
 
     <link href="https://cdn.charles14.xyz/noty/noty.css" rel="stylesheet">
     <script src="https://cdn.charles14.xyz/noty/noty.min.js" type="text/javascript"></script>
@@ -27,41 +25,12 @@
 
     <script>
         $(document).ready(function () {
-            if ($("#memberList").DataTable != undefined)
-                $("#memberList").DataTable().destroy();
-            $('#memberList').DataTable({
-                pagingType: "full_numbers",
-                aaSorting: [
-                    [0, 'asc']
-                ],
-                "scrollX": true
-            });
-            $('#memberList').DataTable().column(2).visible(false);
-            MDTSB("memberList");
-
-            setInterval(function () {
-                for (var i = 0; i < member.length; i++) {
-                    if (member[i].username.indexOf("(Owner)") != -1) {
-                        $("#" + member[i].userId).css("color", "#ff5555");
-                    } else if (member[i].username.indexOf("(Editor)") != -1) {
-                        $("#" + member[i].userId).css("color", "yellow");
-                    }
-                }
-            }, 100);
+            InitTable("memberList", [10, 25, 50, 100], 10, "UpdatePageLimit", "Search");
+            InitSorting("memberList",
+                ["username", "progress"],
+                [undefined, "desc"],
+                "MemberListSort");
             PageInit();
-
-            $('#memberList tbody').on('click', 'tr', function () {
-                uid = parseInt($(this).attr("id"));
-                if ($(this).hasClass("table-active")) {
-                    idx = selected.indexOf(uid);
-                    if (idx > -1) {
-                        selected.splice(idx, 1);
-                    }
-                } else {
-                    selected.push(uid);
-                }
-                $(this).toggleClass('table-active');
-            });
         });
     </script>
 </head>
@@ -93,8 +62,8 @@
             <table class="table table-hover" id="memberList" style="text-align:center">
                 <thead>
                     <tr>
-                        <th id="username">Username</th>
-                        <th id="progress">Progress</th>
+                        <th id="username" class="sorting">Username</th>
+                        <th id="progress" class="sorting">Progress</th>
                         <th id="operation">Operation</th>
                     </tr>
                 </thead>

@@ -255,11 +255,7 @@ function MemoMove(direction) {
                 }
             },
             error: function (r, textStatus, errorThrown) {
-                if (r.status == 401) {
-                    SessionExpired();
-                } else {
-                    NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-                }
+                AjaxErrorHandler(r, textStatus, errorThrown);
             }
         });
     }
@@ -318,11 +314,7 @@ function MemoStart() {
                         ShowQuestion();
                     },
                     error: function (r, textStatus, errorThrown) {
-                        if (r.status == 401) {
-                            SessionExpired();
-                        } else {
-                            NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-                        }
+                        AjaxErrorHandler(r, textStatus, errorThrown);
                     }
                 });
             },
@@ -332,10 +324,8 @@ function MemoStart() {
                 if (r.status == 404) {
                     NotyNotification("Question to start from not found!", type = 'warning');
                     DisplayRandomQuestion();
-                } else if (r.status == 401) {
-                    SessionExpired();
                 } else {
-                    NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
+                    AjaxErrorHandler(r, textStatus, errorThrown);
                 }
             }
         });
@@ -403,10 +393,8 @@ function MemoStart() {
                 if (r.status == 404) {
                     NotyNotification("Question to start from not found!", type = 'warning');
                     DisplayRandomQuestion();
-                } else if (r.status == 401) {
-                    SessionExpired();
                 } else {
-                    NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
+                    AjaxErrorHandler(r, textStatus, errorThrown);
                 }
             }
         });
@@ -447,11 +435,7 @@ function MemoStart() {
                 ShowQuestion();
             },
             error: function (r, textStatus, errorThrown) {
-                if (r.status == 401) {
-                    SessionExpired();
-                } else {
-                    NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-                }
+                AjaxErrorHandler(r, textStatus, errorThrown);
             }
         });
     }
@@ -491,11 +475,7 @@ function MemoTag() {
             else $(".memo-tag").html("Untag <i class='fa fa-star-o'></i>");
         },
         error: function (r, textStatus, errorThrown) {
-            if (r.status == 401) {
-                SessionExpired();
-            } else {
-                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-            }
+            AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
 }
@@ -520,11 +500,7 @@ function MemoDelete() {
             else $(".memo-delete").html("Undelete <i class='fa fa-undo'></i>");
         },
         error: function (r, textStatus, errorThrown) {
-            if (r.status == 401) {
-                SessionExpired();
-            } else {
-                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-            }
+            AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
 }
@@ -660,11 +636,7 @@ function ChallengeChoice(choiceid) {
             }
         },
         error: function (r, textStatus, errorThrown) {
-            if (r.status == 401) {
-                SessionExpired();
-            } else {
-                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-            }
+            AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
 }
@@ -707,11 +679,7 @@ function Statistics() {
             });
         },
         error: function (r, textStatus, errorThrown) {
-            if (r.status == 401) {
-                SessionExpired();
-            } else {
-                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-            }
+            AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
 }
@@ -801,11 +769,7 @@ function EditQuestion() {
             $("#editQuestionModal").modal('hide');
         },
         error: function (r, textStatus, errorThrown) {
-            if (r.status == 401) {
-                SessionExpired();
-            } else {
-                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-            }
+            AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
 }
@@ -875,11 +839,7 @@ function CheckIn() {
             }
         },
         error: function (r, textStatus, errorThrown) {
-            if (r.status == 401) {
-                SessionExpired();
-            } else {
-                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-            }
+            AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
 }

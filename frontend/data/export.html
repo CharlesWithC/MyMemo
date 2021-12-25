@@ -34,18 +34,15 @@
                 },
                 success: function (r) {
                     token = r.token;
-                    setTimeout(function(){window.location.href="/download?token=" + token;}, 3000);
+                    setTimeout(function () {
+                        window.location.href = "/download?token=" + token;
+                    }, 3000);
                     NotyNotification("Success!");
                     NotyNotification("Please be patient while the download is being prepared.",
                         type = 'info', timeout = 5000);
                 },
                 error: function (r, textStatus, errorThrown) {
-                    if (r.status == 401) {
-                        SessionExpired();
-                    } else {
-                        NotyNotification("Error: " + r.status + " " + errorThrown, type =
-                            'error');
-                    }
+                    AjaxErrorHandler(r, textStatus, errorThrown);
                 }
             });
         }
@@ -56,7 +53,7 @@
     <div id="navigate" style="z-index:100">
         <div class="leftside">
             <div class="sqbtn">
-                <a href="/"><img class="icon"  src="/img/icon.png" style="width:2.2em;height:2.2em"></a>
+                <a href="/"><img class="icon" src="/img/icon.png" style="width:2.2em;height:2.2em"></a>
             </div>
         </div>
         <div class="userctrl">
@@ -102,9 +99,11 @@
             <p>Copyright &copy; 2021-2022 My Memo</p>
         </div>
         <div style="float:right;margin:1em">
-            <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo" target="_blank" rel="noopener noreferrer"><i class="fa fa-brands fa-github"></i>
+            <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo" target="_blank"
+                    rel="noopener noreferrer"><i class="fa fa-brands fa-github"></i>
                     GitHub</a></p>
-            <p>Developed by <a href="https://www.charles14.xyz" target="_blank" rel="noopener noreferrer">Charles</a></p>
+            <p>Developed by <a href="https://www.charles14.xyz" target="_blank" rel="noopener noreferrer">Charles</a>
+            </p>
         </div>
     </div>
 </body>

@@ -232,7 +232,7 @@ if doinit:
 
     ########## NOTE: Tables related to discovery
 
-    cur.execute(f"CREATE TABLE Discovery (discoveryId INT, publisherId INT, bookId INT, title VARCHAR(256), description TEXT, type INT, click INT, pin INT)")
+    cur.execute(f"CREATE TABLE Discovery (discoveryId INT, publisherId INT, bookId INT, title VARCHAR(256), description TEXT, type INT, views INT, likes INT, pin INT)")
     # title is discovery title
     # description is discovery description
     # type: 1: share | 2: group

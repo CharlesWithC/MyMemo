@@ -9,17 +9,14 @@ var selected = [];
 var member = [];
 var isOwner = false;
 
+var page = 1;
+var pageLimit = 10;
+var orderBy = "progress";
+var order = "desc";
+var search = "";
+
 function UpdateGroupMember() {
     $("#refresh-btn").html('<i class="fa fa-sync fa-spin"></i>');
-
-    table = $("#memberList").DataTable();
-    table.clear();
-    table.row.add([
-        [""],
-        ["Loading... <i class='fa fa-spinner fa-spin'></i>"],
-        [""],
-    ]);
-    table.draw();
 
     $.ajax({
         url: "/api/group/member",
@@ -27,68 +24,107 @@ function UpdateGroupMember() {
         async: true,
         dataType: "json",
         data: {
+            groupId: groupId,
+            page: page,
+            pageLimit: pageLimit,
+            orderBy: orderBy,
+            order: order,
+            search: search,
             userId: localStorage.getItem("userId"),
-            token: localStorage.getItem("token"),
-            groupId: groupId
+            token: localStorage.getItem("token")
         },
         success: function (r) {
-            table.clear();
             bookName = r.name;
-            member = r.member;
-
+            member = r.data;
             isOwner = r.isOwner;
-
-            if (isOwner) {
-                $('#memberList').DataTable().column(2).visible(true);
-            } else {
-                $('#memberList').DataTable().column(2).visible(false);
-            }
+            total = r.total;
+            totalMember = r.totalMember;
+            $("tbody tr").remove();
 
             $("title").html(bookName + " | My Memo");
             $(".title").html(bookName + '&nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="UpdateGroupMember()" id="refresh-btn"><i class="fa fa-sync"></i></button>');
 
             $("#groupDescription").html(marked.parse(r.description.replaceAll("\n", "<br>")));
 
-            for (var i = 0; i < r.member.length; i++) {
+            for (var i = 0; i < member.length; i++) {
                 btns = '';
                 if (isOwner) {
-                    if (r.member[i].username.indexOf("(Editor)") != -1) {
-                        btns += '&nbsp;&nbsp;<button class="btn btn-primary btn-sm" type="button" onclick="GroupOperation(2, ' + r.member[i].userId + ')"><i class="fa fa-edit"></i> Undo make editor</button>';
-                    } else if (r.member[i].username.indexOf("(Owner)") == -1) {
-                        btns += '&nbsp;&nbsp;<button class="btn btn-primary btn-sm" type="button" onclick="GroupOperation(2, ' + r.member[i].userId + ')"><i class="fa fa-edit"></i> Make editor</button>';
+                    if (member[i].username.indexOf("(Editor)") != -1) {
+                        btns += '&nbsp;&nbsp;<button class="btn btn-primary btn-sm" type="button" onclick="GroupOperation(2, ' + member[i].userId + ')"><i class="fa fa-edit"></i> Undo make editor</button>';
+                    } else if (member[i].username.indexOf("(Owner)") == -1) {
+                        btns += '&nbsp;&nbsp;<button class="btn btn-primary btn-sm" type="button" onclick="GroupOperation(2, ' + member[i].userId + ')"><i class="fa fa-edit"></i> Make editor</button>';
                     }
-                    if (r.member[i].username.indexOf("(Owner)") == -1) {
-                        btns += '&nbsp;&nbsp;<button class="btn btn-warning btn-sm" type="button" onclick="GroupOperation(1, ' + r.member[i].userId + ')"><i class="fa fa-ban"></i> Kick</button>';
+                    if (member[i].username.indexOf("(Owner)") == -1) {
+                        btns += '&nbsp;&nbsp;<button class="btn btn-warning btn-sm" type="button" onclick="GroupOperation(1, ' + member[i].userId + ')"><i class="fa fa-ban"></i> Kick</button>';
                     }
-                    if (r.member[i].username.indexOf("(Owner)") == -1) {
-                        btns += '&nbsp;&nbsp;<button class="btn btn-danger btn-sm" type="button" onclick="TransferOwnershipShow(' + r.member[i].userId + ')"><i class="fa fa-random"></i> Transfer ownership</button>';
+                    if (member[i].username.indexOf("(Owner)") == -1) {
+                        btns += '&nbsp;&nbsp;<button class="btn btn-danger btn-sm" type="button" onclick="TransferOwnershipShow(' + member[i].userId + ')"><i class="fa fa-random"></i> Transfer ownership</button>';
                     }
                 }
-                r.member[i].username = r.member[i].username.replaceAll("(Owner)", '<i class="fa fa-crown"></i>');
-                r.member[i].username = r.member[i].username.replaceAll("(Editor)", '<i class="fa fa-edit"></i>');
-                table.row.add([
-                    [r.member[i].username],
-                    [r.member[i].progress],
-                    [btns]
-                ]).node().id = r.member[i].userId;
+                member[i].username = member[i].username.replaceAll("(Owner)", '<i class="fa fa-crown"></i>');
+                member[i].username = member[i].username.replaceAll("(Editor)", '<i class="fa fa-edit"></i>');
+                AppendTableData("memberList", [member[i].username, member[i].progress, btns], member[i].userId);
             }
-            table.draw();
+            l = (page - 1) * pageLimit + 1;
+            r = l + member.length - 1;
+            if (member.length == 0) {
+                AppendTableData("memberList", ["No data available"], undefined, "100%");
+                l = 0;
+            }
+
+            SetTableInfo("memberList", "<p style='opacity:80%'>Showing " + l + " - " +
+                r + " / " + totalMember);
+            PaginateTable("memberList", page, total, "MemberListPage");
+
+            if (!isOwner) {
+                $("#memberList tr > *:nth-child(3)").hide();
+            } else {
+                $("#memberList tr > *:nth-child(3)").show();
+            }
+            for (var i = 0; i < member.length; i++) {
+                if (member[i].username.indexOf("(Owner)") != -1) {
+                    $("#" + member[i].userId).css("color", "#ff5555");
+                } else if (member[i].username.indexOf("(Editor)") != -1) {
+                    $("#" + member[i].userId).css("color", "yellow");
+                }
+            }
 
             $("#refresh-btn").html('<i class="fa fa-sync"></i>');
         },
         error: function (r, textStatus, errorThrown) {
-            ([
-                [""],
-                ["Failed to fetch group member list"],
-                [""],
-            ]);
-            table.draw();
-
-            $("#refresh-btn").html('<i class="fa fa-sync"></i>');
+            AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
 
     selected = [];
+}
+
+function MemberListPage(p) {
+    page = p;
+    UpdateGroupMember();
+}
+
+function Search() {
+    search = $("#search-content").val();
+    UpdateGroupMember();
+}
+
+function MemberListSort(id) {
+    orderBy = id;
+    if ($("#sorting_" + id).hasClass("sorting-desc")) {
+        order = "desc";
+    } else {
+        order = "asc";
+    }
+    UpdateGroupMember();
+}
+
+function UpdatePageLimit(pl) {
+    if (pageLimit != pl) {
+        page = Math.ceil((page - 1) * pageLimit / pl + 1);
+        pageLimit = pl;
+        UpdateGroupMember();
+    }
 }
 
 function TransferOwnershipShow(uid) {
@@ -165,11 +201,7 @@ function GroupOperation(operation, uid = -1) {
                 }
             },
             error: function (r, textStatus, errorThrown) {
-                if (r.status == 401) {
-                    SessionExpired();
-                } else {
-                    NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-                }
+                AjaxErrorHandler(r, textStatus, errorThrown);
             }
         });
     }

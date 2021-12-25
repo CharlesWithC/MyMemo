@@ -3,21 +3,14 @@
 // License: GNU General Public License v3.0
 
 var shareList = [];
-var bookList = [];
+var page = 1;
+var pageLimit = 10;
+var orderBy = "name";
+var order = "asc";
+var search = "";
 
 function UpdateShareList() {
     $("#refresh-btn").html('<i class="fa fa-sync fa-spin"></i>');
-    table = $("#shareList").DataTable();
-    table.clear();
-    table.row.add([
-        [""],
-        [""],
-        ["Loading <i class='fa fa-spinner fa-spin'></i>"],
-        [""],
-        [""]
-    ]);
-    table.draw();
-
     $.ajax({
         url: "/api/share",
         method: 'POST',
@@ -25,37 +18,70 @@ function UpdateShareList() {
         dataType: "json",
         data: {
             operation: "list",
+            page: page,
+            pageLimit: pageLimit,
+            orderBy: orderBy,
+            order: order,
+            search: search,
             userId: localStorage.getItem("userId"),
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            shareList = r;
-            table.clear();
+            shareList = r.data;
+            total = r.total;
+            totalShare = r.totalShare;
+            $("tbody tr").remove();
 
             for (var i = 0; i < shareList.length; i++) {
                 btns = '<button type="button" class="btn btn-warning btn-sm" onclick="Unshare(\'' + shareList[i].shareCode + '\')"><i class="fa fa-trash"></i></button>';
                 var time = new Date(parseInt(shareList[i].timestamp) * 1000);
-                table.row.add([
-                    [shareList[i].name],
-                    [shareList[i].shareCode],
-                    [shareList[i].importCount],
-                    [btns],
-                    [time.toLocaleString()]
-                ]).node().id = shareList[i].bookId;
+                AppendTableData("shareList", [shareList[i].name, shareList[i].shareCode, shareList[i].importCount, time.toLocaleString(), btns], shareList[i].bookId);
             }
-            table.draw();
+            l = (page - 1) * pageLimit + 1;
+            r = l + shareList.length - 1;
+            if (shareList.length == 0) {
+                AppendTableData("shareList", ["No data available"], undefined, "100%");
+                l = 0;
+            }
+
+            SetTableInfo("shareList", "<p style='opacity:80%'>Showing " + l + " - " +
+                r + " / " + totalShare);
+            PaginateTable("shareList", page, total, "ShareListPage");
 
             $("#refresh-btn").html('<i class="fa fa-sync"></i>');
         },
         error: function (r, textStatus, errorThrown) {
-            if (r.status == 401) {
-                $("#refresh-btn").html('<i class="fa fa-sync"></i>');
-                SessionExpired();
-            } else {
-                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-            }
+            AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
+}
+
+function ShareListPage(p) {
+    page = p;
+    UpdateShareList();
+}
+
+function Search() {
+    search = $("#search-content").val();
+    UpdateShareList();
+}
+
+function UserListSort(id) {
+    orderBy = id;
+    if ($("#sorting_" + id).hasClass("sorting-desc")) {
+        order = "desc";
+    } else {
+        order = "asc";
+    }
+    UpdateShareList();
+}
+
+function UpdatePageLimit(pl) {
+    if (pageLimit != pl) {
+        page = Math.ceil((page - 1) * pageLimit / pl + 1);
+        pageLimit = pl;
+        UpdateShareList();
+    }
 }
 
 function PageInit() {
@@ -83,12 +109,7 @@ function Unshare(shareCode) {
             }
         },
         error: function (r, textStatus, errorThrown) {
-            if (r.status == 401) {
-                $("#refresh-btn").html('<i class="fa fa-sync"></i>');
-                SessionExpired();
-            } else {
-                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-            }
+            AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
 }
@@ -169,12 +190,7 @@ function Share() {
             }
         },
         error: function (r, textStatus, errorThrown) {
-            if (r.status == 401) {
-                $("#refresh-btn").html('<i class="fa fa-sync"></i>');
-                SessionExpired();
-            } else {
-                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-            }
+            AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
 }

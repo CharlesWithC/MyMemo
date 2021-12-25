@@ -9,12 +9,10 @@
     <script src="https://cdn.charles14.xyz/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.charles14.xyz/js/popper.min.js"></script>
     <script src="/js/general.js"></script>
+    <script src="/js/table.js"></script>
 
     <link href="https://cdn.charles14.xyz/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.charles14.xyz/css/all.min.css" rel="stylesheet">
-
-    <link rel="stylesheet" href="https://cdn.charles14.xyz/dataTables/jquery.dataTables.min.css">
-    <script src="https://cdn.charles14.xyz/dataTables/jquery.dataTables.min.js"></script>
 
     <link href="https://cdn.charles14.xyz/noty/noty.css" rel="stylesheet">
     <script src="https://cdn.charles14.xyz/noty/noty.min.js" type="text/javascript"></script>
@@ -24,103 +22,139 @@
     <link rel="icon" href="/img/icon-sm.png">
 
     <script>
-        $(document).ready(function () {
-            if ($("#userList").DataTable != undefined)
-                $("#userList").DataTable().destroy();
-            $('#userList').DataTable({
-                pagingType: "full_numbers",
-                iDisplayLength: 25,
-                "scrollX": true
-            });
-            MDTSB("userList");
+        var page = 1;
+        var pageLimit = 10;
+        var orderBy = "userId";
+        var order = "asc";
+        var search = "";
+        var userList = [];
 
-            userList = [];
+        function UpdateTable() {
+            $("#refresh-btn").html('<i class="fa fa-sync fa-spin"></i>');
+            $.ajax({
+                url: "/api/admin/userList",
+                method: 'POST',
+                async: true,
+                dataType: "json",
+                data: {
+                    page: page,
+                    pageLimit: pageLimit,
+                    orderBy: orderBy,
+                    order: order,
+                    search: search,
+                    userId: localStorage.getItem("userId"),
+                    token: localStorage.getItem("token"),
+                },
+                success: function (r) {
+                    $("tbody tr").remove();
+                    userList = r.data;
+                    total = r.total;
+                    totalUser = r.totalUser;
 
-            function UpdateTable() {
-                $("#refresh-btn").html('<i class="fa fa-sync fa-spin"></i>');
-                table = $("#userList").DataTable();
-                table.clear();
-                table.row.add([
-                    [""],
-                    [""],
-                    [""],
-                    ["Loading <i class='fa fa-spinner fa-spin'></i>"],
-                    [""],
-                    [""],
-                    [""],
-                    [""],
-                ]);
-                table.draw();
-                $.ajax({
-                    url: "/api/admin/userList",
-                    method: 'POST',
-                    async: true,
-                    dataType: "json",
-                    data: {
-                        userId: localStorage.getItem("userId"),
-                        token: localStorage.getItem("token"),
-                    },
-                    success: function (r) {
-                        userList = r;
-                        table.clear();
-
-                        for (var i = 0; i < userList.length; i++) {
-                            if (userList[i].userId < 0) {
-                                userList[i].userId = -userList[i].userId;
-                            }
-                            table.row.add([
-                                [userList[i].userId],
-                                [userList[i].username],
-                                [userList[i].email],
-                                [userList[i].inviter],
-                                [userList[i].inviteCode],
-                                [userList[i].age],
-                                [userList[i].status],
-                                [userList[i].privilege]
-                            ]).node().id = userList[i].userId;
-                        }
-
-                        table.draw();
-
-                        for (var i = 0; i < userList.length; i++) {
-                            if (userList[i].status.indexOf("Active") != -1) {
-                                if (localStorage.getItem("settings-theme") == "dark") {
-                                    $("#" + userList[i].userId).attr("style", "color:lightgreen");
-                                } else {
-                                    $("#" + userList[i].userId).attr("style", "color:green");
-                                }
-                            }
-                            if (userList[i].status.indexOf("Deleted") != -1) {
-                                if (localStorage.getItem("settings-theme") == "dark") {
-                                    $("#" + userList[i].userId).attr("style", "color:lightgray");
-                                } else {
-                                    $("#" + userList[i].userId).attr("style", "color:gray");
-                                }
-                            }
-                            if (userList[i].status.indexOf("Deactivated") != -1) {
-                                if (localStorage.getItem("settings-theme") == "dark") {
-                                    $("#" + userList[i].userId).attr("style", "color:orange");
-                                } else {
-                                    $("#" + userList[i].userId).attr("style", "color:orange");
-                                }
-                            }
-                            if (userList[i].status.indexOf("Banned") != -1) {
-                                $("#" + userList[i].userId).attr("style", "color:red");
-                            }
-                            if (userList[i].status.indexOf("Muted") != -1) {
-                                $("#" + userList[i].userId).attr("style", "color:yellow");
-                            }
-                            if (userList[i].status.indexOf("Admin") != -1) {
-                                $("#" + userList[i].userId).attr("style", "color:purple");
-                            }
-                        }
-                        $("#refresh-btn").html('<i class="fa fa-sync"></i>');
-                    },
-                    error: function (r, textStatus, errorThrown) {
-                        window.location.href = "/";
+                    for (var i = 0; i < userList.length; i++) {
+                        if (userList[i].userId < 0)
+                            userList[i].userId = -userList[i].userId;
+                        AppendTableData("userList", [userList[i].userId, userList[i].username,
+                                userList[i].email, userList[i].inviter, userList[i]
+                                .inviteCode, userList[i].age, userList[i].status, userList[
+                                    i].privilege
+                            ],
+                            userList[i].userId.replaceAll("*", "P"));
+                        userList[i].userId = userList[i].userId.replaceAll("*", "P");
                     }
-                });
+                    l = (page - 1) * pageLimit + 1;
+                    r = l + userList.length - 1;
+                    if (userList.length == 0) {
+                        AppendTableData("userList", ["No data available"], undefined,
+                            "100%");
+                        l = 0;
+                    }
+
+                    SetTableInfo("userList", "<p style='opacity:80%'>Showing " + l + " - " +
+                        r + " / " + totalUser);
+                    PaginateTable("userList", page, total, "UserListPage");
+
+                    for (var i = 0; i < userList.length; i++) {
+                        if (userList[i].status.indexOf("Active") != -1) {
+                            if (localStorage.getItem("settings-theme") == "dark") {
+                                $("#" + userList[i].userId).attr("style", "color:lightgreen");
+                            } else {
+                                $("#" + userList[i].userId).attr("style", "color:green");
+                            }
+                        }
+                        if (userList[i].status.indexOf("Deleted") != -1) {
+                            if (localStorage.getItem("settings-theme") == "dark") {
+                                $("#" + userList[i].userId).attr("style", "color:lightgray");
+                            } else {
+                                $("#" + userList[i].userId).attr("style", "color:gray");
+                            }
+                        }
+                        if (userList[i].status.indexOf("Pending Activation") != -1) {
+                            if (localStorage.getItem("settings-theme") == "dark") {
+                                $("#" + userList[i].userId).attr("style", "color:lightblue");
+                            } else {
+                                $("#" + userList[i].userId).attr("style", "color:blue");
+                            }
+                        }
+                        if (userList[i].status.indexOf("Deactivated") != -1) {
+                            if (localStorage.getItem("settings-theme") == "dark") {
+                                $("#" + userList[i].userId).attr("style", "color:orange");
+                            } else {
+                                $("#" + userList[i].userId).attr("style", "color:orange");
+                            }
+                        }
+                        if (userList[i].status.indexOf("Banned") != -1) {
+                            $("#" + userList[i].userId).attr("style", "color:red");
+                        }
+                        if (userList[i].status.indexOf("Muted") != -1) {
+                            $("#" + userList[i].userId).attr("style", "color:yellow");
+                        }
+                        if (userList[i].status.indexOf("Admin") != -1) {
+                            $("#" + userList[i].userId).attr("style", "color:purple");
+                        }
+                    }
+                    $("#refresh-btn").html('<i class="fa fa-sync"></i>');
+                },
+                error: function (r, textStatus, errorThrown) {
+                    window.location.href = "/";
+                }
+            });
+        }
+
+        function UserListPage(p) {
+            page = p;
+            UpdateTable();
+        }
+
+        function Search() {
+            search = $("#search-content").val();
+            UpdateTable();
+        }
+
+        function UserListSort(id) {
+            orderBy = id;
+            if ($("#sorting_" + id).hasClass("sorting-desc")) {
+                order = "desc";
+            } else {
+                order = "asc";
             }
+            UpdateTable();
+        }
+
+        function UpdatePageLimit(pl) {
+            if (pageLimit != pl) {
+                page = Math.ceil((page - 1) * pageLimit / pl + 1);
+                pageLimit = pl;
+                UpdateTable();
+            }
+        }
+
+        $(document).ready(function () {
+            InitTable("userList", [10, 25, 50, 100], 10, "UpdatePageLimit", "Search");
+            InitSorting("userList",
+                ["userId", "username", "email", "inviter", "inviteCode", "age", "status", "privilege"],
+                ["asc", undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+                "UserListSort");
 
             UpdateTable();
 
@@ -156,14 +190,14 @@
             <table class="table table-hover" id="userList" style="text-align:center">
                 <thead>
                     <tr>
-                        <th id="table-userId">User ID</th>
-                        <th id="table-username">Username</th>
-                        <th id="table-email">Email</th>
-                        <th id="table-inviter">Inviter</th>
-                        <th id="table-inviteCode">Invitation Code</th>
-                        <th id="table-inviteCode">Age</th>
-                        <th id="table-status">Status</th>
-                        <th id="table-privilege">Privilege</th>
+                        <th id="table-userId" class="sorting">User ID</th>
+                        <th id="table-username" class="sorting">Username</th>
+                        <th id="table-email" class="sorting">Email</th>
+                        <th id="table-inviter" class="sorting">Inviter</th>
+                        <th id="table-inviteCode" class="sorting">Invitation Code</th>
+                        <th id="table-age" class="sorting">Age</th>
+                        <th id="table-status" class="sorting">Status</th>
+                        <th id="table-privilege" class="sorting">Privilege</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -182,9 +216,11 @@
             <p>Copyright &copy; 2021-2022 My Memo</p>
         </div>
         <div style="float:right;margin:1em">
-            <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo" target="_blank" rel="noopener noreferrer"><i class="fa fa-brands fa-github"></i>
+            <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo" target="_blank"
+                    rel="noopener noreferrer"><i class="fa fa-brands fa-github"></i>
                     GitHub</a></p>
-            <p>Developed by <a href="https://www.charles14.xyz" target="_blank" rel="noopener noreferrer">Charles</a></p>
+            <p>Developed by <a href="https://www.charles14.xyz" target="_blank" rel="noopener noreferrer">Charles</a>
+            </p>
         </div>
     </div>
 </body>

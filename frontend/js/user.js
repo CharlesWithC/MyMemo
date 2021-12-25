@@ -423,9 +423,7 @@ function Login() {
                                     }
                                 },
                                 error: function (r, textStatus, errorThrown) {
-                                    if (r.status == 401) {
-                                        SessionExpired();
-                                    }
+                                    AjaxErrorHandler(r, textStatus, errorThrown);
                                 }
                             });
                         }
@@ -748,10 +746,8 @@ function DeleteAccount() {
                 $("#delete-msg").html(r.msg);
             }
         },
-        error: function (r) {
-            if (r.status == 503) {
-                NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
-            }
+        error: function (r, textStatus, errorThrown) {
+            AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
 }
@@ -838,10 +834,8 @@ function RestartServer() {
         error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 NotyNotification('Access control by NGINX: You have to enter that password to authorize!', type = 'warning', timeout = 10000);
-            } else if (r.status == 503) {
-                NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
             } else {
-                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
+                AjaxErrorHandler(r, textStatus, errorThrown);
             }
         }
     });
@@ -888,13 +882,7 @@ function CheckIn() {
             }
         },
         error: function (r, textStatus, errorThrown) {
-            if (r.status == 401) {
-                SessionExpired();
-            } else if (r.status == 503) {
-                NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
-            } else {
-                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-            }
+            AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
 }
@@ -943,13 +931,7 @@ function UpdateGoal() {
             }
         },
         error: function (r, textStatus, errorThrown) {
-            if (r.status == 401) {
-                SessionExpired();
-            } else if (r.status == 503) {
-                NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
-            } else {
-                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-            }
+            AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
 }
@@ -1035,13 +1017,7 @@ $(document).ready(function () {
                 }
             },
             error: function (r, textStatus, errorThrown) {
-                if (r.status == 401) {
-                    SessionExpired();
-                } else if (r.status == 503) {
-                    NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
-                } else {
-                    NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-                }
+                AjaxErrorHandler(r, textStatus, errorThrown);
             }
         });
     } else {
@@ -1127,13 +1103,7 @@ function ForgotPassword() {
             }
         },
         error: function (r, textStatus, errorThrown) {
-            if (r.status == 401) {
-                SessionExpired();
-            } else if (r.status == 503) {
-                NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge.", type = 'error');
-            } else {
-                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-            }
+            AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
 }

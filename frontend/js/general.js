@@ -16,7 +16,9 @@ function AjaxErrorHandler(r, textStatus, errorThrown) {
     if (r.status == 401) {
         $("#refresh-btn").html('<i class="fa fa-sync"></i>');
         SessionExpired();
-    } else {
+    } else if(r.status == 503) {
+        NotyNotification("503 Service Unavailable. Try refreshing your page and pass the CloudFlare's JS Challenge. Otherwise server is down.", type = 'error', timeout = 5000);
+    }else {
         NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
     }
 }
@@ -194,11 +196,7 @@ function RefreshBookList() {
             $("#book-list-refresh-btn").html('<i class="fa fa-sync"></i>');
         },
         error: function (r, textStatus, errorThrown) {
-            if (r.status == 401) {
-                SessionExpired();
-            } else {
-                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-            }
+            AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
 }
@@ -230,11 +228,7 @@ function CreateBook(element) {
             }
         },
         error: function (r, textStatus, errorThrown) {
-            if (r.status == 401) {
-                SessionExpired();
-            } else {
-                NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
-            }
+            AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
 }
@@ -352,15 +346,6 @@ function GeneralUpdateTheme() {
 
     setInterval(function () {
         $("thead tr").removeClass("table-active");
-        $(".dataTables_paginate > span > span").removeClass("ellipsis");
-        $(".dataTables_paginate > span > span").addClass("btn btn-outline-secondary btn-sm btn-paginate");
-        $(".dataTables_paginate > span > span").css("margin", "0.2em");
-        $(".paginate_button").addClass("btn btn-outline-secondary btn-sm btn-paginate");
-        $(".paginate_button").css("margin", "0.2em");
-        $(".paginate_button").removeClass("paginate_button");
-        $("table,.dataTables_scrollHeadInner").css("width", "100%");
-        if ($("table").DataTable != undefined)
-            $("table").DataTable().columns.adjust();
         $(".fa-picture-o").addClass("fa-image");
         $(".fa-image").removeClass("fa-picture-o");
         if (localStorage.getItem("settings-theme") == "dark") {
@@ -376,12 +361,6 @@ function GeneralUpdateTheme() {
             $("textarea").css("color", "#ffffff");
             $("textarea").css("background-color", "#444444");
             $(".card,.card-body,.card-header").css("background-color", "#555555");
-
-            //$(".dataTables_paginate a").css("background-color", "#d3d3d3");
-            //$(".dataTables_paginate span").css("background-color", "#d3d3d3");
-            $(".dataTables_info").css("color", "#ffffff");
-            $(".dataTables_length").css("color", "#ffffff");
-            $(".dataTables_length a").css("color", "#ffffff");
         } else {
             $("body").css("color", "#000000");
             $("body").css("background-color", "#ffffff");
@@ -395,28 +374,8 @@ function GeneralUpdateTheme() {
             $("textarea").css("color", "#000000");
             $("textarea").css("background-color", "#eeeeee");
             $(".card,.card-body,.card-header").css("background-color", "#dddddd");
-
-            //$(".dataTables_paginate a").css("background-color", "#ffffff");
-            //$(".dataTables_paginate span").css("background-color", "#ffffff");
-            $(".dataTables_info").css("color", "#000000");
-            $(".dataTables_length").css("color", "#000000");
-            $(".dataTables_length a").css("color", "#000000");
         }
     }, 50);
-}
-
-// ModifyDataTableSearchBox
-function MDTSB(tableName) {
-    $("#" + tableName + "_length").css("float", "left");
-    $("#" + tableName + "_length").after('<div id="tmp' + tableName + '" class="dataTables_filter input-group mb-3" style="float:right;max-width:15em">\
-        <span class="input-group-text" id="basic-addon1">Search</span>\
-    </div>');
-    $("#" + tableName + "_filter > label > input").addClass("form-control");
-    $("#" + tableName + "_filter > label > input").css("max-width", "15em");
-    $("#" + tableName + "_filter > label > input").appendTo("#tmp" + tableName);
-    $("#" + tableName + "_filter").attr("id", "ttmp" + tableName);
-    $("#tmp" + tableName).attr("id", tableName + "_filter");
-    $("#ttmp" + tableName).remove();
 }
 
 function GetUploadResult() {
@@ -595,11 +554,4 @@ $(document).ready(function () {
             CreateBook("#create-book-name");
         }
     });
-
-    $(".btn-paginate").click(function () {
-        $("#dataTables_paginate").fadeOut();
-        setTimeout(function () {
-            $("#dataTables_paginate").fadeIn();
-        }, 50);
-    })
 });

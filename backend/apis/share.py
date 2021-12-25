@@ -31,6 +31,29 @@ async def apiShareBook(request: Request):
     op = form["operation"]
 
     if op == "list":
+        page = int(form["page"])
+        if page <= 0:
+            page = 1
+
+        pageLimit = int(form["pageLimit"])
+        if pageLimit <= 0:
+            pageLimit = 20
+        
+        if pageLimit > 100:
+            return {"success": True, "data": [], "total": 0}
+
+        orderBy = form["orderBy"]
+        if not orderBy in ["name", "shareCode", "importCount", "timestamp"]:
+            orderBy = "name"
+
+        order = form["order"]
+        if not order in ["asc", "desc"]:
+            order = "asc"
+        l = {"asc": 0, "desc": 1}
+        order = l[order]
+
+        search = form["search"]
+
         ret = []
         i2n = {}
         cur.execute(f"SELECT bookId, shareCode, importCount, createTS FROM BookShare WHERE userId = {userId} AND shareType = 0")
@@ -49,9 +72,31 @@ async def apiShareBook(request: Request):
             
             ret.append({"bookId": dd[0], "name": name, "shareCode": "!" + dd[1], "importCount": dd[2], "timestamp": dd[3]})
         
-        del i2n
+        t = {}
+        i = 0
+        for dd in ret:
+            ok = False
+            for tt in dd.keys():
+                if search == "" or search in str(dd[tt]):
+                    ok = True
+                    break
+            if not ok:
+                continue
+            i += 1
+            t[str(dd[orderBy]) + str(dd["bookId"]) + str(i)] = dd
+            
+        ret = []
+        for key in sorted(t.keys()):
+            ret.append(t[key])
+        if order == 1:
+            ret = ret[::-1]
 
-        return ret
+        if len(ret) <= (page - 1) * pageLimit:
+            return {"success": True, "data": [], "total": (len(ret) - 1) // pageLimit + 1, "totalShare": len(ret)}
+        elif len(ret) <= page * pageLimit:
+            return {"success": True, "data": ret[(page - 1) * pageLimit :], "total": (len(ret) - 1) // pageLimit + 1, "totalShare": len(ret)}
+        else:
+            return {"success": True, "data": ret[(page - 1) * pageLimit : page * pageLimit], "total": (len(ret) - 1) // pageLimit + 1, "totalShare": len(ret)}
 
     elif op == "create":
         bookId = int(form["bookId"])

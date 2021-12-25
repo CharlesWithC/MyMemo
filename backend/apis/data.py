@@ -164,7 +164,7 @@ def importWork(userId, bookId, updateType, checkDuplicate, newlist):
         if len(encode(answer)) >= 40960:
             return "Answer too long:" + answer
         
-        cur.execute(f"INSERT INTO QuestionList VALUES ({userId},{questionId}, '{encode(question)}', '{encode(answer)}', {status}, 0)")
+        cur.execute(f"INSERT INTO QuestionList VALUES ({userId},{questionId}, '{encode(question)}', '{encode(answer)}', {status}, {memorizedTS})")
         cur.execute(f"INSERT INTO ChallengeData VALUES ({userId},{questionId}, 0, -1)")
         cur.execute(f"UPDATE IDInfo SET nextId = {questionId + 1} WHERE type = 2 AND userId = {userId}")
         
@@ -250,13 +250,13 @@ async def apiImportData(request: Request, background_tasks: BackgroundTasks):
         if userId in dataUploadResult.keys():
             t = dataUploadResult[userId]
             if t[0] != '':
-                if decode(t[0]) == "Failed":
-                    return JSONResponse({"success": 0, "msg": decode(t[0])})
-                elif decode(t[0]).startswith("Progress"):
-                    progress = decode(t[0]).replace("Progress","")
+                if t[0] == "Failed":
+                    return JSONResponse({"success": 0, "msg": t[0]})
+                elif t[0].startswith("Progress"):
+                    progress = t[0].replace("Progress","")
                     return JSONResponse({"success": 1, "msg": f"{progress}% Finished"})
                 else:
-                    return JSONResponse({"success": 2, "msg": decode(t[0])})
+                    return JSONResponse({"success": 2, "msg": t[0]})
             else:
                 return JSONResponse({"success": 1, "msg": "Still working on it... <i class='fa fa-spinner fa-spin'></i>"})
         return JSONResponse({"success": 0, "msg": "Upload result has been cleared!"})

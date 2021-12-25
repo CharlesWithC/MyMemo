@@ -56,7 +56,7 @@ async def apiDiscovery(request: Request):
                 publisher = "Deleted Account"
 
         # update views
-        cur.execute(f"SELECT click FROM Discovery WHERE discoveryId = {dd[0]}")
+        cur.execute(f"SELECT views FROM Discovery WHERE discoveryId = {dd[0]}")
         views = 0
         t = cur.fetchall()
         if len(t) > 0:
@@ -94,9 +94,30 @@ async def apiDiscovery(request: Request):
         top.append({"discoveryId": dd[0], "title": decode(dd[1]), "description": decode(dd[2]), \
             "publisher": publisher, "type": dd[4], "views": views, "likes": likes, "imports": imports, "pinned": pinned})
 
-    limit = form["search"]
+    page = int(form["page"])
+    if page <= 0:
+        page = 1
 
-    d = json.loads(requests.post(f"http://{config.search_server_ip}:{config.search_server_port}/search/discovery", data = {"limit": limit}).text)["result"]
+    pageLimit = int(form["pageLimit"])
+    if pageLimit <= 0:
+        pageLimit = 20
+    
+    if pageLimit > 100:
+        return {"success": True, "data": [], "total": 0}
+
+    orderBy = form["orderBy"] # title / publisher / views / likes NOTE: pin should stick on top
+    if not orderBy in ["title", "publisher", "views", "likes"]:
+        orderBy = "title"
+
+    order = form["order"]
+    if not order in ["asc", "desc"]:
+        order = "asc"
+    l = {"asc": 0, "desc": 1}
+    order = l[order]
+
+    search = form["search"]
+
+    d = json.loads(requests.post(f"http://{config.search_server_ip}:{config.search_server_port}/search/discovery", data = {"search": search}).text)["result"]
     if len(d) == 0:
         return {"success": True, "data": [], "total": 0, "toplist": top}
 
@@ -127,7 +148,7 @@ async def apiDiscovery(request: Request):
                 publisher = "Deleted Account"
 
         # update views
-        cur.execute(f"SELECT click FROM Discovery WHERE discoveryId = {dd[0]}")
+        cur.execute(f"SELECT views FROM Discovery WHERE discoveryId = {dd[0]}")
         views = 0
         t = cur.fetchall()
         if len(t) > 0:
@@ -165,15 +186,44 @@ async def apiDiscovery(request: Request):
         dis.append({"discoveryId": dd[0], "title": decode(dd[1]), "description": decode(dd[2]), \
             "publisher": publisher, "type": dd[4], "views": views, "likes": likes, "imports": imports, "pinned": pinned})
 
-    page = int(form["page"])
-    pagelen = int(form["pagelen"])
+    t = {}
+    ret = []
+    for dd in dis:
+        if dd["pinned"]:
+            if order == 0:
+                ret.append(dd) # put them on top
+            continue
+
+        if orderBy == "title":
+            t[dd["title"] + str(dd["discoveryId"])] = dd
+        elif orderBy == "publisher":
+            t[dd["publisher"] + dd["title"] + str(dd["discoveryId"])] = dd
+        elif orderBy == "views":
+            t[str(dd["views"]) + dd["title"] + str(dd["discoveryId"])] = dd
+        elif orderBy == "likes":
+            t[str(dd["likes"]) + dd["title"] + str(dd["discoveryId"])] = dd
     
-    if len(dis) <= (page - 1) * pagelen:
-        return {"success": True, "data": [], "total": (len(dis) - 1) // pagelen + 1, "toplist": top}
-    elif len(dis) <= page * pagelen:
-        return {"success": True, "data": dis[(page - 1) * pagelen :],"total": (len(dis) - 1) // pagelen + 1, "toplist": top}
+    for key in sorted(t.keys()):
+        ret.append(t[key])
+        
+    if order == 1:
+        for dd in dis:
+            if dd["pinned"]:
+                ret.append(dd)
+        ret = ret[::-1]
+    
+    dis = ret
+    dis *= 100 # NOTE TEST
+
+    page = int(form["page"])
+    pageLimit = int(form["pageLimit"])
+    
+    if len(dis) <= (page - 1) * pageLimit:
+        return {"success": True, "data": [], "total": (len(dis) - 1) // pageLimit + 1, "totalD": len(dis), "toplist": top}
+    elif len(dis) <= page * pageLimit:
+        return {"success": True, "data": dis[(page - 1) * pageLimit :], "total": (len(dis) - 1) // pageLimit + 1, "totalD": len(dis), "toplist": top}
     else:
-        return {"success": True, "data": dis[(page - 1) * pagelen : page * pagelen], "total": (len(dis) - 1) // pagelen + 1, "toplist": top}
+        return {"success": True, "data": dis[(page - 1) * pageLimit : page * pageLimit], "total": (len(dis) - 1) // pageLimit + 1, "totalD": len(dis), "toplist": top}
 
 @app.get("/api/discovery/{discoveryId:int}")
 @app.post("/api/discovery/{discoveryId:int}")
@@ -287,12 +337,12 @@ async def apiDiscoveryData(discoveryId: int, request: Request):
             questions.append({"question": decode(tt[0]), "answer": decode(tt[1])})
 
     # update views
-    cur.execute(f"SELECT click FROM Discovery WHERE discoveryId = {discoveryId}")
+    cur.execute(f"SELECT views FROM Discovery WHERE discoveryId = {discoveryId}")
     views = 1
     t = cur.fetchall()
     if len(t) > 0:
         views = t[0][0] + 1
-        cur.execute(f"UPDATE Discovery SET click = click + 1 WHERE discoveryId = {discoveryId}")
+        cur.execute(f"UPDATE Discovery SET views = views + 1 WHERE discoveryId = {discoveryId}")
         conn.commit()
     
     # get views and likes
@@ -329,6 +379,6 @@ async def apiDiscoveryData(discoveryId: int, request: Request):
     else:
         publisher = f"<a href='/user?userId={uid}'><span class='username'>{publisher}</span></a>"
 
-    return {"success": True, "title": title, "description": description, "questions": questions, \
+    return {"success": True, "title": title, "description": description, "questions": questions[:20], \
         "shareCode": shareCode, "type": distype, "publisher": publisher, "isPublisher": isPublisher, \
             "views": views, "likes": likes, "liked": liked, "imports": imports, "pinned": pinned}

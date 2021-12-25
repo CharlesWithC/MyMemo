@@ -65,14 +65,15 @@ function UpdateTable() {
             $("#" + data[i].questionId).addClass("table-active");
         }
     }
+    l = (page - 1) * pageLimit + 1;
+    r = l + data.length - 1;
     if (data.length == 0) {
+        l = 0;
         AppendTableData("questionList", ["No data available"], undefined, "100%");
     }
     if (showDB) {
         $("#questionList tr > *:nth-child(4)").hide();
     }
-    l = (page - 1) * pageLimit + 1;
-    r = l + data.length - 1;
     content = "<p style='opacity:80%'>Showing " + l + " - " + r + " / " + totalQ + " | ";
     content += "<span style='cursor:pointer' onclick='SelectAll()'>Select All</span> | ";
     content += "<span style='cursor:pointer' onclick='DeselectAll()'>Deselect All</span></p>";

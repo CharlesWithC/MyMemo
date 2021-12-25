@@ -111,20 +111,18 @@ async def apiCreateBook(request: Request):
             
             questionId = 1
             for tt in t:
+                # do not use same question to prevent accidental question deletion when new book is deleted
+                memorizedTS = 0
                 cur.execute(f"SELECT questionId, answer FROM QuestionList WHERE userId = {userId} AND question = '{di[tt][0]}'")
                 p = cur.fetchall()
-                ctn = False
                 for pp in p:
                     if pp[1] == di[tt][1]: # question completely the same
-                        cur.execute(f"INSERT INTO BookData VALUES ({userId}, {bookId}, {pp[0]})")
                         cur.execute(f"SELECT memorizedTimestamp FROM QuestionList WHERE userId = {userId} AND questionId = {pp[0]}")
                         k = cur.fetchall()
                         if len(k) != 0 and k[0][0] != 0:
+                            memorizedTS = k[0][0]
                             cur.execute(f"UPDATE Book SET progress = progress + 1 WHERE userId = {userId} AND bookId = {bookId}")
-                        ctn = True
                         break
-                if ctn:
-                    continue
 
                 cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 2 AND userId = {userId}")
                 d = cur.fetchall()
@@ -135,7 +133,7 @@ async def apiCreateBook(request: Request):
                     cur.execute(f"UPDATE IDInfo SET nextId = {questionId + 1} WHERE type = 2 AND userId = {userId}")
 
                 cur.execute(f"INSERT INTO BookData VALUES ({userId}, {bookId}, {questionId})")
-                cur.execute(f"INSERT INTO QuestionList VALUES ({userId}, {questionId}, '{di[tt][0]}', '{di[tt][1]}', 1, 0)")
+                cur.execute(f"INSERT INTO QuestionList VALUES ({userId}, {questionId}, '{di[tt][0]}', '{di[tt][1]}', 1, {memorizedTS})")
                 cur.execute(f"INSERT INTO ChallengeData VALUES ({userId},{questionId}, 0, -1)")
 
                 updateQuestionStatus(userId, questionId, -1) # -1 is imported question
@@ -227,20 +225,18 @@ async def apiCreateBook(request: Request):
 
             questionId = 1
             for tt in t:
+                # do not use same question to prevent accidental question deletion when new book is deleted
                 cur.execute(f"SELECT questionId, answer FROM QuestionList WHERE userId = {userId} AND question = '{tt[0]}'")
                 p = cur.fetchall()
-                ctn = False
+                memorizedTS = 0
                 for pp in p:
                     if pp[1] == tt[1]: # question completely the same
-                        cur.execute(f"INSERT INTO BookData VALUES ({userId}, {bookId}, {pp[0]})")
                         cur.execute(f"SELECT memorizedTimestamp FROM QuestionList WHERE userId = {userId} AND questionId = {pp[0]}")
                         k = cur.fetchall()
                         if len(k) != 0 and k[0][0] != 0:
+                            memorizedTS = k[0][0]
                             cur.execute(f"UPDATE Book SET progress = progress + 1 WHERE userId = {userId} AND bookId = {bookId}")
-                        ctn = True
                         break
-                if ctn:
-                    continue
 
                 cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 2 AND userId = {userId}")
                 d = cur.fetchall()
@@ -252,7 +248,7 @@ async def apiCreateBook(request: Request):
 
                 # no duplicate check as user are not allowed to edit questions in group
                 cur.execute(f"INSERT INTO BookData VALUES ({userId}, {bookId}, {questionId})")
-                cur.execute(f"INSERT INTO QuestionList VALUES ({userId}, {questionId}, '{tt[0]}', '{tt[1]}', 1, 0)")
+                cur.execute(f"INSERT INTO QuestionList VALUES ({userId}, {questionId}, '{tt[0]}', '{tt[1]}', 1, {memorizedTS})")
                 cur.execute(f"INSERT INTO ChallengeData VALUES ({userId},{questionId}, 0, -1)")
                 cur.execute(f"INSERT INTO GroupSync VALUES ({groupId}, {userId}, {questionId}, {tt[2]})")
 
