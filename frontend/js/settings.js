@@ -15,9 +15,6 @@ function UpdateSettingsButtons() {
     } else if (mode == 2) {
         $("#mode-challenge-choice-btn").removeClass("btn-secondary");
         $("#mode-challenge-choice-btn").addClass("btn-primary");
-    } else if (mode == 3) {
-        $("#mode-offline-btn").removeClass("btn-secondary");
-        $("#mode-offline-btn").addClass("btn-primary");
     }
 
     random = lsGetItem("settings-random", 0);

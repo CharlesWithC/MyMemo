@@ -12,6 +12,15 @@ function NotyNotification(text, type = 'success', timeout = 3000, layout = 'topR
     }).show();
 }
 
+function AjaxErrorHandler(r, textStatus, errorThrown) {
+    if (r.status == 401) {
+        $("#refresh-btn").html('<i class="fa fa-sync"></i>');
+        SessionExpired();
+    } else {
+        NotyNotification("Error: " + r.status + " " + errorThrown, type = 'error');
+    }
+}
+
 function GoToUser() {
     window.location.href = "/user"
 }
@@ -91,27 +100,17 @@ function lsGetItem(lsItemName, defaultValue = 0) {
     }
 }
 
-function ssGetItem(lsItemName, defaultValue = 0) {
-    if (sessionStorage.getItem(lsItemName) == null || sessionStorage.getItem(lsItemName) == "undefined") {
-        sessionStorage.setItem(lsItemName, defaultValue);
-        return defaultValue;
-    } else {
-        return sessionStorage.getItem(lsItemName);
-    }
-}
-
-
-bookList = JSON.parse(ssGetItem("book-list", JSON.stringify([])));
+gbookList = JSON.parse(lsGetItem("book-list", JSON.stringify([])));
 
 function UpdateBookDisplay() {
     $(".book").remove();
-    for (var i = 0; i < bookList.length; i++) {
-        book = bookList[i];
+    for (var i = 0; i < gbookList.length; i++) {
+        book = gbookList[i];
         wcnt = "";
         if (book.bookId == 0) {
-            wcnt = book.questions.length + ' questions';
+            wcnt = book.total + ' questions';
         } else {
-            wcnt = book.progress + ' memorized / ' + book.questions.length + ' questions';
+            wcnt = book.progress + ' memorized / ' + book.total + ' questions';
         }
         btn = "";
         if (book.bookId != localStorage.getItem("memo-book-id")) {
@@ -134,22 +133,22 @@ function UpdateBookDisplay() {
     }
 }
 
-function UpdateBookList() {
+function UpdateBookList(async = true) {
     $.ajax({
         url: "/api/book",
         method: 'POST',
-        async: true,
+        async: async,
         dataType: "json",
         data: {
             userId: localStorage.getItem("userId"),
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            bookList = r;
+            gbookList = r;
             try {
-                sessionStorage.setItem("book-list", JSON.stringify(bookList));
+                localStorage.setItem("book-list", JSON.stringify(gbookList));
             } catch {
-                console.warning("Cannot store book list to Session Storage, aborted!");
+                console.warning("Cannot store book list in local storage, gave up!");
             }
             UpdateBookDisplay();
         }
@@ -182,11 +181,11 @@ function RefreshBookList() {
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            bookList = r;
+            gbookList = r;
             try {
-                sessionStorage.setItem("book-list", JSON.stringify(bookList));
+                localStorage.setItem("book-list", JSON.stringify(gbookList));
             } catch {
-                console.warning("Cannot store book list to Session Storage, aborted!");
+                console.warning("Cannot store book list in local storage, gave up!");
             }
             UpdateBookDisplay();
             $("#book-list-refresh-btn").html('<i class="fa fa-sync"></i>');

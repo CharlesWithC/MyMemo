@@ -12,15 +12,14 @@
     <script src="/js/general.js"></script>
     <script src="/js/book.js"></script>
 
+    <script src="/js/table.js"></script>
+
     <link href="https://cdn.charles14.xyz/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.charles14.xyz/css/all.min.css" rel="stylesheet">
 
     <link href="https://cdn.charles14.xyz/css/c3.min.css" rel="stylesheet">
     <script src="https://cdn.charles14.xyz/js/d3.v5.min.js" charset="utf-8"></script>
     <script src="https://cdn.charles14.xyz/js/c3.min.js"></script>
-
-    <link rel="stylesheet" href="https://cdn.charles14.xyz/dataTables/jquery.dataTables.min.css">
-    <script src="https://cdn.charles14.xyz/dataTables/jquery.dataTables.min.js"></script>
 
     <link href="https://cdn.charles14.xyz/css/simplemde.min.css" rel="stylesheet">
     <script src="https://cdn.charles14.xyz/js/simplemde.min.js"></script>
@@ -34,22 +33,13 @@
 
     <script>
         $(document).ready(function () {
-            if ($("#questionList").DataTable != undefined)
-                $("#questionList").DataTable().destroy();
-            $('#questionList').DataTable({
-                pagingType: "full_numbers",
-                iDisplayLength: 10,
-                scrollX: true
-            });
-
-            MDTSB("questionList");
-
-            $("#questionList_length").append(
-                '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="selectAll();" href="#">Select All</a>');
-            $("#questionList_length").append(
-                '&nbsp;&nbsp;|&nbsp;&nbsp;<a onClick="deselectAll();" href="#">Deselect All</a>');
-
             PageInit();
+
+            $("#search-content").on('keypress', function (e) {
+                if (e.which == 13 || e.which == 13 && e.ctrlKey) {
+                    Search();
+                }
+            });
 
             $('#questionList tbody').on('click', 'tr', function () {
                 wid = parseInt($(this).attr("id"));
@@ -156,9 +146,9 @@
                 <table class="table table-hover" id="questionList" style="text-align:center">
                     <thead>
                         <tr>
-                            <th id="question">Question</th>
-                            <th id="answer">Answer</th>
-                            <th id="status">Status</th>
+                            <th id="question" class="sorting">Question</th>
+                            <th id="answer" class="sorting">Answer</th>
+                            <th id="status" class="sorting">Status</th>
                             <th id="operation">Operation</th>
                         </tr>
                     </thead>
@@ -200,7 +190,8 @@
                                     Also remove from database
                                 </label>
                             </div>
-                            <p style="font-size:0.75em">"Remove" will only remove the question from this book, but if you
+                            <p style="font-size:0.75em">"Remove" will only remove the question from this book, but if
+                                you
                                 check "Also remove from database", it will be removed from all books.</p>
                         </div>
                     </div>
@@ -341,9 +332,11 @@
             <p>Copyright &copy; 2021-2022 My Memo</p>
         </div>
         <div style="float:right;margin:1em">
-            <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo" target="_blank" rel="noopener noreferrer"><i class="fa fa-brands fa-github"></i>
+            <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo" target="_blank"
+                    rel="noopener noreferrer"><i class="fa fa-brands fa-github"></i>
                     GitHub</a></p>
-            <p>Developed by <a href="https://www.charles14.xyz" target="_blank" rel="noopener noreferrer">Charles</a></p>
+            <p>Developed by <a href="https://www.charles14.xyz" target="_blank" rel="noopener noreferrer">Charles</a>
+            </p>
         </div>
     </div>
 </body>

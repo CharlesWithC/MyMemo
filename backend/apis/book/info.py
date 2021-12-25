@@ -37,7 +37,7 @@ async def apiGetBook(request: Request):
     for tt in t:
         allquestions.append(tt[0])
     
-    ret.append({"bookId": 0, "name": "All questions", "questions": allquestions, "anonymous": 0,
+    ret.append({"bookId": 0, "name": "All questions", "total": len(allquestions), "anonymous": 0,
         "groupId": -1, "groupCode": "", \
             "isGroupOwner": False, "isGroupEditor": True, \
                 "discoveryId": -1, "groupDiscoveryId": -1})
@@ -104,7 +104,7 @@ async def apiGetBook(request: Request):
         if len(t) != 0:
             groupDiscoveryId = t[0][0]
 
-        ret.append({"bookId": dd[0], "name": decode(dd[1]), "questions": questions, "progress": progress, \
+        ret.append({"bookId": dd[0], "name": decode(dd[1]), "total": len(questions), "progress": progress, \
             "anonymous": anonymous, "groupId": groupId, "groupCode": gcode, \
                 "isGroupOwner": isGroupOwner, "isGroupEditor": isGroupEditor, \
                 "discoveryId": discoveryId, "groupDiscoveryId": groupDiscoveryId})
@@ -125,13 +125,64 @@ async def apiGetQuestionList(request: Request):
     if not validateToken(userId, token):
         raise HTTPException(status_code=401)
     
-    ret = []
+    bookId = int(form["bookId"])
+    if bookId <= 0:
+        bookId = 0
+
+    page = int(form["page"])
+    if page <= 0:
+        page = 1
+
+    pageLimit = int(form["pageLimit"])
+    if pageLimit <= 0:
+        pageLimit = 20
+    
+    if pageLimit > 100:
+        return {"success": True, "data": [], "total": 0}
+
+    orderBy = form["orderBy"] # question / answer / status
+    if not orderBy in ["question", "answer", "status"]:
+        orderBy = "question"
+
+    order = form["order"]
+    if not order in ["asc", "desc"]:
+        order = "asc"
+    l = {"asc": 0, "desc": 1}
+    order = l[order]
+
+    search = form["search"]
+
+    bookData = getBookData(userId, bookId)
+    
+    t = {}
     cur.execute(f"SELECT questionId, question, answer, status FROM QuestionList WHERE userId = {userId}")
     d = cur.fetchall()
     for dd in d:
-        ret.append({"questionId": dd[0], "question": decode(dd[1]), "answer": decode(dd[2]), "status": dd[3]})
+        if bookId != 0 and not dd[0] in bookData:
+            continue
+        question = decode(dd[1])
+        answer = decode(dd[2])
+        if search != "" and not search in question + answer:
+            continue
+        if orderBy == "question":
+            t[question + str(dd[0])] = {"questionId": dd[0], "question": question, "answer": answer, "status": dd[3]}
+        elif orderBy == "answer":
+            t[answer + question + str(dd[0])] = {"questionId": dd[0], "question": question, "answer": answer, "status": dd[3]}
+        elif orderBy == "status":
+            t[str(dd[3]) + question + str(dd[0])] = {"questionId": dd[0], "question": question, "answer": answer, "status": dd[3]}
     
-    return ret
+    ret = []
+    for key in sorted(t.keys()):
+        ret.append(t[key])
+    if order == 1:
+        ret = ret[::-1]
+    
+    if len(ret) <= (page - 1) * pageLimit:
+        return {"success": True, "data": [], "total": (len(ret) - 1) // pageLimit + 1}
+    elif len(ret) <= page * pageLimit:
+        return {"success": True, "data": ret[(page - 1) * pageLimit :], "total": (len(ret) - 1) // pageLimit + 1}
+    else:
+        return {"success": True, "data": ret[(page - 1) * pageLimit : page * pageLimit], "total": (len(ret) - 1) // pageLimit + 1}
 
 @app.post("/api/book/chart")
 async def apiGetBookChart(request: Request):

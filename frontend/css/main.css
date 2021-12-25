@@ -369,6 +369,14 @@ button {
 
 
 
+.sorting {
+    white-space: nowrap;
+}
+
+.sorting-ctrl {
+    cursor: pointer;
+}
+
 .table-light {
     --bs-table-bg: #ffffff;
     --bs-table-active-bg: #bbbbbb;

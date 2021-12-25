@@ -1,7 +1,7 @@
 # My Memo
 
 **A light weight memo website based on Python FastAPI + HTML5 Bootstrap.**  
-**Version: v5.5.12**  
+**Version: v5.6.1**  
 *The author has finished the development on this project. Only bug fixes will be applied and no more new functions will be added.*  
 *You are welcomed to contribute to this project by helping to do bug fixes and add new features. Pull requests will be reviewed at weekends.*  
 
@@ -9,7 +9,7 @@
 
 ## Highlights
 
-**4 Modes** - *Switch, Practice, Challenge and Offline*  
+**3 Modes** - *Switch, Practice and Challenge*  
 **Book** - *To better organize your questions*  
 **Group** - *To sync book data & progress among group members*  
 **Discovery** - *A community function to share book with public*  
@@ -30,13 +30,12 @@ It's December 2021 when I write this README, and this project is coming to its o
 
 ## Features  
 
-### 4 Modes
+### 3 Modes
 
-The 4 modes include switch, practice, challenge and offline mode.  
+The 3 modes include switch, practice and challenge mode.  
 i) **Switch mode**. In switch mode, you will switch between questions and you can click the page to get the answer. Statistics can be shown and you can edit this question. You can also tag / delete the question. Random settings can be applied (Showing questions in the order of question id / randomly)  
 ii) **Practice mode**. In practice mode, you will receive questions based on a special random algorithm (it will be introduced later). You can tell whether you memorized the question by clicking Yes and No. Your choice will NOT affect the random algorithm.  
 iii) **Challenge mode**. In challenge mode, you will receive questions based on a special random algorithm. Four answers will be displayed and you will be asked to choose the correct one. Your choice will affect the random algorithm.  
-iv) **Offline mode**. It's the same as Switch mode but you cannot tag / delete the questions. No communication with server is done. But please be aware that this function may not work if your question list is too large. The list is stored on your local device and some browsers do not support data more than 5 MB to be stored. (As I know, Firefox do support unlimited data to be stored).  
 
 **Random algorithm**  
 35% rate to display tagged questions  

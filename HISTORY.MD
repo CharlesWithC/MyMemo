@@ -1,5 +1,17 @@
 # Update History
 
+## v5.6.1  
+
+*Date: 2021/12/24*  
+Feature Updates:  
+1.Introduced My Memo's own tabling function, abandoning DataTables  
+  The function supports paginating, entry limit, sorting and searching with backend requests!  
+  Which means only partial data need to be requested from the server!  
+  (Currently it's only used on Question List, and searching for questions does not support fuzzy matching)  
+2.Updated /api/question/id, when given question is "", a random questionId will be returned  
+
+Unfortunately, Offline Mode has been removed since this update due to the partial data update for question list and book list. But I think the benefit from partial data update is bigger than offline mode as the requests are smaller and faster, and there is no need to worry that the list might not be able to be stored in browser storage.  
+
 ## v5.5.13  
 
 *Date: 2021/12/24*  

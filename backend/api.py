@@ -19,4 +19,4 @@ import apis.admin
 @app.get("/api/version")
 async def apiGetVersion(request: Request):
     ip = request.client.host
-    return {"success": True, "version": "v5.5.13"}
+    return {"success": True, "version": "v5.6.1"}

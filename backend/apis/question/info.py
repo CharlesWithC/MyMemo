@@ -60,21 +60,36 @@ async def apiGetQuestionID(request: Request):
     
     question = form["question"].replace("\n","\\n")
     bookId = int(form["bookId"])
-    cur.execute(f"SELECT questionId FROM QuestionList WHERE question = '{encode(question)}' AND userId = {userId}")
-    d = cur.fetchall()
-    if len(d) != 0:
+    bookData = getBookData(userId, bookId)
+
+    if question == "":
+        cur.execute(f"SELECT questionId FROM QuestionList WHERE userId = {userId}")
+        d = cur.fetchall()
+        if len(d) == 0:
+            raise HTTPException(status_code=404)
+        
+        l = []
+        for dd in d:
+            if bookId == 0 or dd[0] in bookData:
+                l.append(dd[0])
+        random.shuffle(l)
+
+        return {"success": True, "questionId": l[0]}
+    
+    else:
+        cur.execute(f"SELECT questionId FROM QuestionList WHERE question = '{encode(question)}' AND userId = {userId}")
+        d = cur.fetchall()
+        if len(d) == 0:
+            raise HTTPException(status_code=404)
+            
         for dd in d:
             questionId = dd[0]
-            if bookId > 0:
-                bookData = getBookData(userId, bookId)
-                if not questionId in bookData:
-                    continue
+            if bookId > 0 and not questionId in bookData:
+                continue
 
             # If there are multiple records, then return the first one
-            # NOTE: The user is warned when they try to insert multiple records with the same question
+            # The user is warned when they try to insert multiple records with the same question
             return {"success": True, "questionId" : questionId}
-            
-    raise HTTPException(status_code=404)
 
 @app.post("/api/question/stat")
 async def apiGetQuestionStat(request: Request):

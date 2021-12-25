@@ -12,11 +12,7 @@ class MemoClass {
 
         this.bookId = 0;
         this.bookName = "";
-
-        this.fullQuestionList = [];
-        this.questionListMap = new Map();
         this.bookList = [];
-        this.selectedQuestionList = [];
 
         this.started = false;
         this.displayingAnswer = false;
@@ -46,8 +42,7 @@ var chtoday = 0;
 memo = new MemoClass();
 memo.questionId = parseInt(lsGetItem("memo-question-id", 0));
 memo.bookId = parseInt(lsGetItem("memo-book-id", 0));
-memo.fullQuestionList = JSON.parse(ssGetItem("question-list", JSON.stringify([])));
-memo.bookList = JSON.parse(ssGetItem("book-list", JSON.stringify([])));
+memo.bookList = [];
 
 settings = new SettingsClass();
 settings.random = parseInt(lsGetItem("settings-random", 0));
@@ -61,89 +56,6 @@ settings.firstuse = parseInt(lsGetItem("first-use", 1));
 var ccCorrectAudio = new Audio('/audio/correct.mp3');
 var ccWrongAudio = new Audio('/audio/wrong.mp3');
 
-function MapQuestionList() {
-    memo.questionListMap = new Map();
-    for (var i = 0; i < memo.fullQuestionList.length; i++) {
-        memo.questionListMap.set(memo.fullQuestionList[i].questionId, {
-            "question": memo.fullQuestionList[i].question,
-            "answer": memo.fullQuestionList[i].answer,
-            "status": memo.fullQuestionList[i].status
-        });
-    }
-}
-
-MapQuestionList();
-
-function UpdateSelectedQuestionList() {
-    for (var i = 0; i < memo.bookList.length; i++) {
-        if (memo.bookList[i].bookId == memo.bookId) {
-            memo.bookName = memo.bookList[i].name;
-            $("#book-name").html(memo.bookName);
-            memo.selectedQuestionList = [];
-            for (this.j = 0; j < memo.bookList[i].questions.length; j++) {
-                questionId = memo.bookList[i].questions[j];
-                questionData = memo.questionListMap.get(questionId);
-                memo.selectedQuestionList.push({
-                    "questionId": questionId,
-                    "question": questionData.question,
-                    "answer": questionData.answer,
-                    "status": questionData.status
-                });
-            }
-        }
-    }
-}
-
-function UpdateBookDisplay() {
-    $(".book").remove();
-    for (var i = 0; i < memo.bookList.length; i++) {
-        book = memo.bookList[i];
-        wcnt = "";
-        if (book.bookId == 0) {
-            wcnt = book.questions.length + ' questions';
-        } else {
-            wcnt = book.progress + ' memorized / ' + book.questions.length + ' questions';
-        }
-        btn = "";
-        if (book.bookId != memo.bookId) {
-            btn = '<button type="button" class="btn btn-primary " onclick="SelectBook(' + book.bookId + ')">Select</button>';
-        } else {
-            btn = '<button type="button" class="btn btn-secondary">Selected</button>'
-        }
-        bname = book.name;
-        if (book.groupId != -1) {
-            bname = "[Group] " + bname;
-        }
-
-        $("#book-list").append('<div class="book">\
-        <p>' + bname + '</p>\
-        <p>' + wcnt + '</p>\
-        <button type="button" class="btn btn-primary " onclick="OpenBook(' + book.bookId + ')">Open</button>\
-        ' + btn + '\
-        <hr>\
-        </div>');
-    }
-}
-
-function UpdateBookList() {
-    $.ajax({
-        url: "/api/book",
-        method: 'POST',
-        async: true,
-        dataType: "json",
-        data: {
-            userId: localStorage.getItem("userId"),
-            token: localStorage.getItem("token")
-        },
-        success: function (r) {
-            memo.bookList = r;
-            try{sessionStorage.setItem("book-list", JSON.stringify(memo.bookList));}catch{console.warning("Cannot store book list to Session Storage, aborted!");}
-            UpdateSelectedQuestionList();
-            UpdateBookDisplay();
-        }
-    });
-}
-
 function PageInit() {
     if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
         $("#home").css("line-height","85%");
@@ -152,46 +64,7 @@ function PageInit() {
     }
     l = ["Switch", "Practice", "Challenge", "Offline"];
     $("#mode").html(l[settings.mode]);
-    if (memo.fullQuestionList.length != 0) {
-        UpdateSelectedQuestionList();
-        $("#book-name").html(memo.bookName);
-    }
-
-    $.ajax({
-        url: "/api/book/questionList",
-        method: 'POST',
-        async: true,
-        dataType: "json",
-        data: {
-            userId: localStorage.getItem("userId"),
-            token: localStorage.getItem("token")
-        },
-        success: function (r) {
-            memo.fullQuestionList = r;
-            try {
-                sessionStorage.setItem("question-list", JSON.stringify(memo.fullQuestionList));
-            } catch {
-                console.warning("Session storage cannot store question-list, aborted!");
-            }
-            MapQuestionList();
-            $.ajax({
-                url: "/api/book",
-                method: 'POST',
-                async: true,
-                dataType: "json",
-                data: {
-                    userId: localStorage.getItem("userId"),
-                    token: localStorage.getItem("token")
-                },
-                success: function (r) {
-                    memo.bookList = r;
-                    try{sessionStorage.setItem("book-list", JSON.stringify(memo.bookList));}catch{console.warning("Cannot store book list to Session Storage, aborted!");}
-                    UpdateSelectedQuestionList();
-                    $("#book-name").html(memo.bookName);
-                }
-            });
-        }
-    });
+    $("#book-name").html(memo.bookName);
 
     if (lsGetItem("userId", -1) != -1) {
         $.ajax({
@@ -237,19 +110,6 @@ function PageInit() {
     }
 }
 
-function DisplayRandomQuestion() {
-    if (!$("#start-from").is(":focus") && !memo.started && memo.selectedQuestionList.length != 0) {
-        index = parseInt(Math.random() * memo.selectedQuestionList.length);
-        memo.questionId = memo.selectedQuestionList[index].questionId;
-        memo.question = memo.selectedQuestionList[index].question;
-        memo.answer = memo.selectedQuestionList[index].answer;
-        memo.questionStatus = memo.selectedQuestionList[index].status;
-
-        $("#start-from").val(memo.question);
-    }
-}
-setInterval(DisplayRandomQuestion, 3000);
-
 function ShowQuestion() {
     if (settings.firstuse) {
         NotyNotification('Hint: Click question or double click answer to let your device speak it!', type = 'info', timeout = 10000);
@@ -294,10 +154,6 @@ function ShowQuestion() {
         $("#challenge-choice-control").show();
         $("#statistics-btn").hide();
         $("#edit-btn").hide();
-    } else if (settings.mode == 3) {
-        $("#offline-control").show();
-        $("#statistics-btn").hide();
-        $("#edit-btn").hide();
     }
 
     memo.displayingAnswer = 0;
@@ -324,7 +180,7 @@ function ShowQuestion() {
 
 function DisplayAnswer() {
     if (memo.started) {
-        if (settings.mode == 0 || settings.mode == 3) {
+        if (settings.mode == 0) {
             if (settings.swap == 0) {
                 if (!memo.displayingAnswer) $("#answer").val(memo.answer);
                 else $("#answer").val("");
@@ -386,66 +242,6 @@ function MemoMove(direction) {
                 }
             }
         });
-    } else if (settings.mode == 3) {
-        moveType = 0;
-        if (direction == "previous") {
-            moveType = -1;
-        } else if (direction == "next") {
-            moveType = 1;
-        }
-        if (settings.random) {
-            moveType = 0;
-        }
-
-        memo.displayingAnswer = 0;
-
-        requiredList = [];
-        for (var i = 0; i < memo.selectedQuestionList.length; i++) {
-            if (settings.showStatus == 1 && (memo.selectedQuestionList[i].status == 1 || memo.selectedQuestionList[i].status == 2)) {
-                requiredList.push(memo.selectedQuestionList[i]);
-            } else if (settings.showStatus == 2 && memo.selectedQuestionList[i].status == 2) {
-                requiredList.push(memo.selectedQuestionList[i]);
-            } else if (settings.showStatus == 3 && memo.selectedQuestionList[i].status == 3) {
-                requiredList.push(memo.selectedQuestionList[i]);
-            }
-        }
-
-        if (moveType == 0) {
-            index = parseInt(Math.random() * requiredList.length);
-            memo.questionId = requiredList[index].questionId;
-            memo.question = requiredList[index].question;
-            memo.answer = requiredList[index].answer;
-            memo.questionStatus = requiredList[index].status;
-        } else if (moveType == 1 || moveType == -1) {
-            index = -1;
-            for (var i = 0; i < requiredList.length; i++) {
-                if (requiredList[i].questionId == memo.questionId) {
-                    index = i;
-                    break;
-                }
-            }
-            if (index == -1) {
-                memo.question = "";
-                memo.answer = "Unknown error";
-                ShowQuestion();
-                return;
-            }
-
-            if (moveType == -1 && index > 0 || moveType == 1 && index < requiredList.length - 1) {
-                index += moveType;
-            } else if (moveType == -1 && index == 0) {
-                index = requiredList.length - 1;
-            } else if (moveType == 1 && index == requiredList.length - 1) {
-                index = 0;
-            }
-
-            memo.questionId = requiredList[index].questionId;
-            memo.question = requiredList[index].question;
-            memo.answer = requiredList[index].answer;
-            memo.questionStatus = requiredList[index].status;
-        }
-
-        setTimeout(ShowQuestion, 100);
     }
 }
 
@@ -460,10 +256,6 @@ function MemoStart() {
     $("#statisticsDetail").html("");
     if (settings.mode == 0) { // Switch mode
         startquestion = $("#start-from").val();
-        if (startquestion == "") {
-            DisplayRandomQuestion();
-            startquestion = memo.question;
-        }
 
         // User decided a question to start from
         // Get its question id
@@ -622,37 +414,6 @@ function MemoStart() {
                 }
             }
         });
-    } else if (settings.mode == 3) { // Offline Mode
-        if (memo.selectedQuestionList == []) {
-            alert("Unable to start offline mode: No data in question list!");
-            return;
-        }
-
-        if ($("#start-from").val() != "") {
-            startquestion = $("#start-from").val();
-            found = false;
-            for (var i = 0; i < memo.selectedQuestionList.length; i++) {
-                if (memo.selectedQuestionList[i].question == startquestion) {
-                    memo.questionId = memo.selectedQuestionList[i].questionId;
-                    memo.question = memo.selectedQuestionList[i].question;
-                    memo.answer = memo.selectedQuestionList[i].answer;
-                    memo.questionStatus = memo.selectedQuestionList[i].status;
-
-                    found = true;
-                }
-            }
-            if (!found) {
-                $("#start-from").val("Not found!");
-            }
-        } else {
-            index = parseInt(Math.random() * memo.selectedQuestionList.length);
-            memo.questionId = memo.selectedQuestionList[index].questionId;
-            memo.question = memo.selectedQuestionList[index].question;
-            memo.answer = memo.selectedQuestionList[index].answer;
-            memo.questionStatus = memo.selectedQuestionList[index].status;
-        }
-
-        ShowQuestion();
     }
 
     if (settings.mode != 1 && settings.mode != 2 && settings.autoPlay != 0) {
@@ -1197,7 +958,12 @@ function BackToHome() {
 function SelectBook(bookId) {
     memo.bookId = bookId;
     localStorage.setItem("memo-book-id", memo.bookId);
-    UpdateSelectedQuestionList();
+    for (var i = 0; i < memo.bookList.length; i++) {
+        if (memo.bookList[i].bookId == memo.bookId) {
+            memo.bookName = memo.bookList[i].name;
+            $("#book-name").html(memo.bookName);
+        }
+    }
     UpdateBookDisplay();
 }
 
