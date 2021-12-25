@@ -29,6 +29,10 @@ async def apiGetNext(request: Request):
     token = form["token"]
     if not validateToken(userId, token):
         raise HTTPException(status_code=401)
+    
+    cur.execute(f"SELECT * FROM Challenge WHERE userId = {userId} AND expire >= {int(time.time())}")
+    if len(cur.fetchall()) != 0:
+        return {"success": False, "msg": "An ongoing challenge is detected, you cannot start another mode by the time!"}
 
     questionId = -1
 

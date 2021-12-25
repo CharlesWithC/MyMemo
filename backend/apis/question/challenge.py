@@ -118,35 +118,56 @@ async def apiGetNextChallenge(request: Request):
         raise HTTPException(status_code=401)
 
     bookId = int(form["bookId"])
+    qs = list(getQuestionsInBook(userId, bookId, "status >= 0"))
+    mixcnt = 4
+    if len(qs) < mixcnt:
+        return {"success": False, "msg": "There isn't enough question to fill in disturbance choices"}
+    for _ in range(mixcnt):
+        random.shuffle(qs)
+
     questionId = getChallengeQuestionId(userId, bookId)
-    mixcnt = int(form["mixcnt"])
-
     if questionId == -1:
-        mix = []
-        for _ in range(mixcnt):
-            mix.append({"question": "No more challenge", "answer": "No more challenge"})
-        return {"success": True, "questionId": questionId, "question": "No more challenge", "answer": "No more challenge", "status": 1, "mix": mix}
-
+        return {"success": False, "msg": "No more challenge!"}
     cur.execute(f"SELECT question, answer, status FROM QuestionList WHERE questionId = {questionId} AND userId = {userId}")
     d = cur.fetchall()
     (question, answer, status) = d[0]
     question = decode(question)
     answer = decode(answer)
+    choices = []
+    for i in range(mixcnt - 1):
+        if decode(qs[i][1]) == question:
+            continue
+        choices.append((qs[i][0], decode(qs[i][1]), decode(qs[i][2])))
+    choices.append((questionId, question, answer))
+    random.shuffle(choices)
 
-    mix = []
-    qs = list(getQuestionsInBook(userId, bookId, "status >= 0"))
-    while len(qs) <= mixcnt:
-        qs.append((-1,encode("No more choice"),encode("No more choice")))
-    for _ in range(mixcnt):
-        random.shuffle(qs)
+    key = 0
+    swapqa = int(form["swapqa"])
+    ret = []
     for i in range(mixcnt):
-        mix.append({"question": decode(qs[i][1]), "answer": decode(qs[i][2])})
+        if choices[i][0] == questionId:
+            key = i + 1
+        if swapqa:
+            ret.append(choices[i][1])
+        else:
+            ret.append(choices[i][2])
+    
+    token = random.randint(0, 1000000)
+    cur.execute(f"SELECT * FROM Challenge WHERE userId = {userId}")
+    t = cur.fetchall()
+    if len(t) != 0:
+        cur.execute(f"DELETE FROM Challenge WHERE userId = {userId}")
+    cur.execute(f"INSERT INTO Challenge VALUES ({userId}, {token}, {bookId}, {questionId}, {key}, {int(time.time()) + 60})")
+    conn.commit()
 
-    return {"success": True, "questionId": questionId, "question": question, "answer": answer, "status": status, "mix": mix}
+    if swapqa:
+        return {"success": True, "challengeToken": token, "question": answer, "status": status, "choices": ret}
+    else:
+        return {"success": True, "challengeToken": token, "question": question, "status": status, "choices": ret}
 
 # addtime = [20 minute, 1 hour, 3 hour, 8 hour, 1 day, 2 day, 5 day, 10 day]
 addtime = [300, 1200, 3600, 10800, 28800, 86401, 172800, 432000, 864010]
-@app.post("/api/question/challenge/update")
+@app.post("/api/question/challenge/check")
 async def apiUpdateChallengeRecord(request: Request):
     ip = request.client.host
     form = await request.form()
@@ -159,19 +180,34 @@ async def apiUpdateChallengeRecord(request: Request):
     token = form["token"]
     if not validateToken(userId, token):
         raise HTTPException(status_code=401)
+    
+    cur.execute(f"DELETE FROM Challenge WHERE expire <= {int(time.time()) - 600}")
+    conn.commit()
 
-    questionId = int(form["questionId"])
-    memorized = int(form["memorized"])
-    getNext = int(form["getNext"])
-    ts = int(time.time())
+    token = int(form["challengeToken"])
+    cur.execute(f"SELECT bookId, questionId, answer, expire FROM Challenge WHERE userId = {userId} AND token = {token}")
+    t = cur.fetchall()
+    if len(t) == 0:
+        return {"success": False, "msg": "Challenge expired!"}
 
-    cur.execute(f"SELECT memorized, timestamp FROM ChallengeRecord WHERE questionId = {questionId} AND userId = {userId} ORDER BY timestamp DESC")
-    d = cur.fetchall()
+    bookId = t[0][0]
+    questionId = t[0][1]
+    correct = t[0][2]
+    expire = t[0][3]
+    expired = (expire <= int(time.time()))
+    memorized = False
+    if correct == int(form["answer"]):
+        memorized = True
+    cur.execute(f"DELETE FROM Challenge WHERE userId = {userId} AND token = {token}")
+    conn.commit()
+    
+    if not expired:
+        ts = int(time.time())
 
-    if questionId != -1:
+        cur.execute(f"SELECT memorized, timestamp FROM ChallengeRecord WHERE questionId = {questionId} AND userId = {userId} ORDER BY timestamp DESC")
+        d = cur.fetchall()
         cur.execute(f"INSERT INTO ChallengeRecord VALUES ({userId}, {questionId}, {memorized}, {ts})")
         cur.execute(f"UPDATE ChallengeData SET lastChallenge = {ts} WHERE questionId = {questionId}  AND userId = {userId}")
-
         tot = 0
         if memorized == 1:
             tot = 1
@@ -181,66 +217,83 @@ async def apiUpdateChallengeRecord(request: Request):
             if tot > 8:
                 tot = 8
             cur.execute(f"UPDATE ChallengeData SET nextChallenge = {ts + addtime[tot]} WHERE questionId = {questionId} AND userId = {userId}")
-
         elif memorized == 0:
             cur.execute(f"UPDATE ChallengeData SET nextChallenge = {ts + addtime[0]} WHERE questionId = {questionId} AND userId = {userId}")
-    
-    cur.execute(f"SELECT memorized, timestamp FROM ChallengeRecord WHERE questionId = {questionId} AND userId = {userId} ORDER BY timestamp DESC")
-    d = cur.fetchall()
+        
+        cur.execute(f"SELECT memorized, timestamp FROM ChallengeRecord WHERE questionId = {questionId} AND userId = {userId} ORDER BY timestamp DESC")
+        d = cur.fetchall()
+        s = []
+        s.append(0)
+        i = 1
+        for dd in d:
+            if dd[0] == 1:
+                s.append(s[i-1] + 1)
+            else:
+                s.append(0)
+            i += 1
+        for i in range(0,len(s)):
+            if s[i] >= 2:
+                cur.execute(f"SELECT memorizedTimestamp FROM QuestionList WHERE userId = {userId} AND questionId = {questionId}")
+                t = cur.fetchall()
+                if len(t) != 0 and t[0][0] == 0:
+                    cur.execute(f"UPDATE QuestionList SET memorizedTimestamp = {int(time.time())} WHERE userId = {userId} AND questionId = {questionId}")
 
-    s = []
-    s.append(0)
-    i = 1
-    for dd in d:
-        if dd[0] == 1:
-            s.append(s[i-1] + 1)
-        else:
-            s.append(0)
-        i += 1
-    for i in range(0,len(s)):
-        if s[i] >= 2:
-            cur.execute(f"SELECT memorizedTimestamp FROM QuestionList WHERE userId = {userId} AND questionId = {questionId}")
-            t = cur.fetchall()
-            if len(t) != 0 and t[0][0] == 0:
-                cur.execute(f"UPDATE QuestionList SET memorizedTimestamp = {int(time.time())} WHERE userId = {userId} AND questionId = {questionId}")
+                    books = getBookId(userId, questionId)
+                    for bookId in books:
+                        cur.execute(f"SELECT progress FROM Book WHERE bookId = {bookId} AND userId = {userId}")
+                        p = cur.fetchall()
+                        if len(p) > 0:
+                            cur.execute(f"UPDATE Book SET progress = progress + 1 WHERE bookId = {bookId} AND userId = {userId}")
+        conn.commit()
 
-                books = getBookId(userId, questionId)
-                for bookId in books:
-                    cur.execute(f"SELECT progress FROM Book WHERE bookId = {bookId} AND userId = {userId}")
-                    p = cur.fetchall()
-                    if len(p) > 0:
-                        cur.execute(f"UPDATE Book SET progress = progress + 1 WHERE bookId = {bookId} AND userId = {userId}")
+    if not "getNext" in form.keys():
+        return {"success": True, "result": memorized, "expired": expired, "correct": key}
 
-    conn.commit()
-
-    if getNext == 1:
+    else:
         bookId = int(form["bookId"])
-        mixcnt = int(form["mixcnt"])
+        qs = list(getQuestionsInBook(userId, bookId, "status >= 0"))
+        mixcnt = 4
+        if len(qs) < mixcnt:
+            return {"success": False, "msg": "There isn't enough question to fill in disturbance choices"}
+        for _ in range(mixcnt):
+            random.shuffle(qs)
 
         questionId = getChallengeQuestionId(userId, bookId)
-
         if questionId == -1:
-            mix = []
-            for _ in range(mixcnt):
-                mix.append({"question": "No more challenge", "answer": "No more challenge"})
-            return {"success": True, "questionId": questionId, "question": "No more challenge", "answer": "No more challenge", "status": 1, "mix": mix}
-
+            return {"success": False, "msg": "No more challenge!"}
         cur.execute(f"SELECT question, answer, status FROM QuestionList WHERE questionId = {questionId} AND userId = {userId}")
         d = cur.fetchall()
         (question, answer, status) = d[0]
         question = decode(question)
         answer = decode(answer)
+        choices = []
+        for i in range(mixcnt - 1):
+            if decode(qs[i][1]) == question:
+                continue
+            choices.append((qs[i][0], decode(qs[i][1]), decode(qs[i][2])))
+        choices.append((questionId, question, answer))
+        random.shuffle(choices)
 
-        mix = []
-        qs = list(getQuestionsInBook(userId, bookId, "status >= 0"))
-        while len(qs) <= mixcnt:
-            qs.append((-1,encode("No more choice"),encode("No more choice")))
-        for _ in range(mixcnt):
-            random.shuffle(qs)
+        key = 0
+        swapqa = int(form["swapqa"])
+        ret = []
         for i in range(mixcnt):
-            mix.append({"question": decode(qs[i][1]), "answer": decode(qs[i][2])})
-
-        return {"success": True, "questionId": questionId, "question": question, "answer": answer, "status": status, "mix": mix}
-
-    else:
-        return {"success": True}
+            if choices[i][0] == questionId:
+                key = i + 1
+            if swapqa:
+                ret.append(choices[i][1])
+            else:
+                ret.append(choices[i][2])
+        
+        token = random.randint(0, 1000000)
+        cur.execute(f"SELECT * FROM Challenge WHERE userId = {userId}")
+        t = cur.fetchall()
+        if len(t) != 0:
+            cur.execute(f"DELETE FROM Challenge WHERE userId = {userId}")
+        cur.execute(f"INSERT INTO Challenge VALUES ({userId}, {token}, {bookId}, {questionId}, {key}, {int(time.time()) + 60})")
+        conn.commit()
+        
+        if swapqa:
+            return {"success": True, "result": memorized, "expired": expired, "correct": correct, "challengeToken": token, "question": answer, "status": status, "choices": ret}
+        else:
+            return {"success": True, "result": memorized, "expired": expired, "correct": correct, "challengeToken": token, "question": question, "status": status, "choices": ret}

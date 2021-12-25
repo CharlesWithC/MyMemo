@@ -29,7 +29,7 @@
             PageInit();
             UpdateBookDisplay();
 
-            $("#content,#answer").click(function () {
+            $("textarea").click(function () {
                 DisplayAnswer();
             });
             $("#question").click(function () {
@@ -65,7 +65,7 @@
             <div style="text-align:right;float:right;">
                 <a class="only-signed-in" href='#' onclick="UserEvents()" style="display:none"><i
                         class="fa fa-bell"></i></a>
-                <a href='#' onclick="window.location.href='/settings'"><i class="fa fa-cogs"></i></a>
+                <a href='/settings'><i class="fa fa-cogs"></i></a>
                 <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i
                         class="fa fa-arrow-right-from-bracket"></i></a>
             </div>
@@ -103,7 +103,9 @@
         </div>
 
         <div id="memo" style="display:none;height:100%;width:100%">
-            <div class="center subcontainer sub-div">
+            <h1 class="title" style="margin-left:1em">My Memo</h1>
+
+            <div class="center subcontainer sub-div" style="top: calc(50% - 1.5em)">
                 <div id="navigate2">
                     <div class="top-right">
                         <button id="statistics-btn" type="button" class="btn btn-info control-btn control-btn-top"
@@ -121,7 +123,6 @@
                 <div id="qa1" style="width:80%;max-width:80%;margin:auto;">
                     <textarea class="form-control question" id="question"
                         style="max-height:10em;margin-bottom:0.5em;text-align:center" readonly=true></textarea>
-                    <br><br>
                     <textarea class="form-control answer" id="answer"
                         style="max-height:20em;margin-bottom:0.5em;text-align:center" readonly=true></textarea>
                 </div>
@@ -147,7 +148,7 @@
                     </div>
                 </div>
 
-                <div id="practice-control" class="control" style="display:none">
+                <div id="switch-control" class="control" style="display:none">
                     <button type="button" class="btn btn-primary control-btn control-btn-left control-btn-top memo-tag"
                         onclick="MemoTag()">Tag <i class='fa fa-star'></i></button>
                     <button type="button"
@@ -162,14 +163,14 @@
                         onclick="MemoMove('next')">Next <i class="fa fa-arrow-circle-right"></i></button>
                 </div>
 
-                <div id="challenge-yesno-control" class="control" style="display:none">
-                    <p style="padding-bottom:1em"><span id="challenge-msg">Do you remember it?</span></p>
+                <div id="practice-control" class="control" style="display:none">
+                    <p style="padding-bottom:1em"><span id="practice-msg">Do you remember it?</span></p>
                     <button type="button"
-                        class="btn btn-primary control-btn control-btn-left control-btn-top memo-challenge-yes"
-                        onclick="MemoChallenge('yes')">Yes <i class='fa fa-check'></i></button>
+                        class="btn btn-primary control-btn control-btn-left control-btn-top memo-practice-yes"
+                        onclick="MemoPractice('yes')">Yes <i class='fa fa-check'></i></button>
                     <button type="button"
-                        class="btn btn-primary control-btn control-btn-right control-btn-top memo-challenge-no"
-                        onclick="MemoChallenge('no')">No <i class='fa fa-times'></i></button>
+                        class="btn btn-primary control-btn control-btn-right control-btn-top memo-practice-no"
+                        onclick="MemoPractice('no')">No <i class='fa fa-times'></i></button>
                     <br>
                     <button type="button" class="btn btn-primary control-btn control-btn-left control-btn-top memo-tag"
                         onclick="MemoTag()">Tag <i class='fa fa-star'></i></button>
@@ -178,14 +179,8 @@
                         onclick="MemoDelete()">Delete <i class="fa fa-trash"></i></button>
                 </div>
 
-                <div id="challenge-choice-control" class="control" style="display:none;padding-top:1em">
-                    <button type="button" id="challenge-choice-continue"
-                        class="btn btn-primary control-btn control-btn-left control-btn-top challenge-choice-continue"
-                        onclick="ChallengeChoice(-1)">Continue <i class='fa fa-arrow-circle-right'></i></button>
-                    <button type="button" id="challenge-choice-continue"
-                        class="btn btn-primary control-btn control-btn-right control-btn-top challenge-choice-continue"
-                        onclick="ChallengeChoice(-1)">Continue <i class='fa fa-arrow-circle-right'></i></button>
-                    <br>
+                <div id="challenge-control" class="control" style="display:none;padding-top:1em">
+                    <p style="margin:0"><span id="challenge-msg">Select your answer <i class='fa fa-arrow-up'></i></span></p>
                     <button type="button" class="btn btn-primary control-btn control-btn-left control-btn-top memo-tag"
                         onclick="MemoTag()">Tag <i class='fa fa-star'></i></button>
                     <button type="button"

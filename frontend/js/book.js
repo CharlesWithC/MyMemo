@@ -11,6 +11,9 @@ var isGroupEditor = false;
 var discoveryId = -1;
 var groupDiscoveryId = -1;
 var bookList = JSON.parse(lsGetItem("book-list", JSON.stringify([])));
+setInterval(function () {
+    bookList = JSON.parse(lsGetItem("book-list", JSON.stringify([])));
+}, 5000); // this will be updated by general.js
 var selected = [];
 
 var page = 1;
@@ -102,10 +105,18 @@ function UpdateQuestionList() {
             token: localStorage.getItem("token")
         },
         success: function (r) {
+            $("#refresh-btn").html('<i class="fa fa-sync"></i>');
+            if (!r.success) {
+                NotyNotification(r.msg, 'warning', 5000);
+                $("#questionList tbody tr").remove();
+                AppendTableData("questionList", [r.msg], undefined, "100%");
+                SetTableInfo("questionList", "Forbidden");
+                PaginateTable("questionList", 1, 1, "BookPage");
+                return;
+            }
             data = r.data;
             total = r.total;
             UpdateTable();
-            $("#refresh-btn").html('<i class="fa fa-sync"></i>');
         },
         error: function (r, textStatus, errorThrown) {
             AjaxErrorHandler(r, textStatus, errorThrown);

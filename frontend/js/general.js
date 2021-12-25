@@ -100,12 +100,12 @@ function lsGetItem(lsItemName, defaultValue = 0) {
     }
 }
 
-gbookList = JSON.parse(lsGetItem("book-list", JSON.stringify([])));
+bookList = JSON.parse(lsGetItem("book-list", JSON.stringify([])));
 
 function UpdateBookDisplay() {
     $(".book").remove();
-    for (var i = 0; i < gbookList.length; i++) {
-        book = gbookList[i];
+    for (var i = 0; i < bookList.length; i++) {
+        book = bookList[i];
         wcnt = "";
         if (book.bookId == 0) {
             wcnt = book.total + ' questions';
@@ -144,9 +144,9 @@ function UpdateBookList(async = true) {
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            gbookList = r;
+            bookList = r;
             try {
-                localStorage.setItem("book-list", JSON.stringify(gbookList));
+                localStorage.setItem("book-list", JSON.stringify(bookList));
             } catch {
                 console.warning("Cannot store book list in local storage, gave up!");
             }
@@ -154,6 +154,9 @@ function UpdateBookList(async = true) {
         }
     });
 }
+
+UpdateBookList();
+setInterval(function(){UpdateBookList();}, 300000);
 
 function OpenBook(bookId) {
     window.location.href = '/book?bookId=' + bookId;
@@ -181,9 +184,9 @@ function RefreshBookList() {
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            gbookList = r;
+            bookList = r;
             try {
-                localStorage.setItem("book-list", JSON.stringify(gbookList));
+                localStorage.setItem("book-list", JSON.stringify(bookList));
             } catch {
                 console.warning("Cannot store book list in local storage, gave up!");
             }

@@ -30,6 +30,10 @@ async def apiGetQuestion(request: Request):
     if not validateToken(userId, token):
         raise HTTPException(status_code=401)
     
+    cur.execute(f"SELECT * FROM Challenge WHERE userId = {userId} AND expire >= {int(time.time())}")
+    if len(cur.fetchall()) != 0:
+        return {"success": False, "msg": "An ongoing challenge is detected, you cannot start another mode by the time!"}
+    
     questionId = int(form["questionId"])
     
     cur.execute(f"SELECT question, answer, status FROM QuestionList WHERE questionId = {questionId} AND userId = {userId}")
@@ -57,6 +61,10 @@ async def apiGetQuestionID(request: Request):
     token = form["token"]
     if not validateToken(userId, token):
         raise HTTPException(status_code=401)
+        
+    cur.execute(f"SELECT * FROM Challenge WHERE userId = {userId} AND expire >= {int(time.time())}")
+    if len(cur.fetchall()) != 0:
+        return {"success": False, "msg": "An ongoing challenge is detected, you cannot start another mode by the time!"}
     
     question = form["question"].replace("\n","\\n")
     bookId = int(form["bookId"])
@@ -73,6 +81,9 @@ async def apiGetQuestionID(request: Request):
             if bookId == 0 or dd[0] in bookData:
                 l.append(dd[0])
         random.shuffle(l)
+
+        if len(l) == 0:
+            raise HTTPException(status_code=404)
 
         return {"success": True, "questionId": l[0]}
     

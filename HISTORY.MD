@@ -1,5 +1,12 @@
 # Update History
 
+## v5.6.2  
+
+*Date: 2021/12/25*  
+Feature Update:  
+Improved Challenge Mode, checking answer backend to increase the difficulty of cheating  
+When an ongoing challenge is detected, requests for question list are blocked  
+
 ## v5.6.1  
 
 *Date: 2021/12/24*  

@@ -71,7 +71,7 @@ elif config["database"] == "mysql":
     conn = MySQLdb.connect(host = host, user = user, passwd = passwd, db = dbname)
     cur = conn.cursor()
     cur.execute(f"SHOW TABLES")
-    if len(cur.fetchall()) != 32:
+    if len(cur.fetchall()) != 33:
         doinit = True
 
 else:
@@ -176,6 +176,9 @@ if doinit:
     # EXAMPLE: Book 1 has questionId 1,2 and Book 2 has questionId 3
     # question and answer are encoded with base64 to prevent datalose
     # status is a status code while 1 refers to Default, 2 refers to Tagged and 3 refers to removed
+
+    cur.execute(f"CREATE TABLE Challenge (userId INT, token INT, bookId INT, questionId INT, answer INT, expire INT)")
+    # one user can have at most one ongoing challenge
 
     cur.execute(f"CREATE TABLE ChallengeData (userId INT, questionId INT, nextChallenge INT, lastChallenge INT)")
     # Challenge Data is a table that tells when to display the question next time

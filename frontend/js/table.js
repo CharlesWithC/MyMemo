@@ -103,13 +103,13 @@ function PaginateTable(table, current, total, func) {
         $("#table-previous").attr("onclick", func + '(' + Math.max(1, current - 1) + ')');
         $("#table-next").attr("onclick", func + '(' + Math.max(1, current + 1) + ')');
         $("#table-last").attr("onclick", func + '(' + total + ')');
-        if (current == 1) {
-            $("#table-previous").attr("disabled", "disabled");
-            $("#table-first").attr("disabled", "disabled");
-        } else {
-            $("#table-previous").removeAttr("disabled");
-            $("#table-first").removeAttr("disabled");
-        }
+    }
+    if (current == 1) {
+        $("#table-previous").attr("disabled", "disabled");
+        $("#table-first").attr("disabled", "disabled");
+    } else {
+        $("#table-previous").removeAttr("disabled");
+        $("#table-first").removeAttr("disabled");
     }
     if (current == total) {
         $("#table-next").attr("disabled", "disabled");

@@ -40,7 +40,7 @@
                     in</a>&nbsp;&nbsp; </span>
             <a class="only-signed-in" href='#' onclick="UserEvents()" style="display:none"><i
                     class="fa fa-bell"></i></a>
-            <a href='#' onclick="window.location.href='/settings'"><i class="fa fa-cogs"></i></a>
+            <a href='/settings'><i class="fa fa-cogs"></i></a>
             <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i
                     class="fa fa-arrow-right-from-bracket"></i></a>
         </div>
@@ -54,11 +54,11 @@
                 <h2>Memo Settings</h2>
                 <br>
                 <p>Mode:
-                    <button id="mode-practice-btn" type="button" class="btn mode-btn btn-secondary"
+                    <button id="mode-switch-btn" type="button" class="btn mode-btn btn-secondary"
                         onclick="UpdateMode(0)">Switch</button>
-                    <button id="mode-challenge-yesno-btn" type="button" class="btn mode-btn btn-secondary"
+                    <button id="mode-practice-btn" type="button" class="btn mode-btn btn-secondary"
                         onclick="UpdateMode(1)">Practice</button>
-                    <button id="mode-challenge-choice-btn" type="button" class="btn mode-btn btn-secondary"
+                    <button id="mode-challenge-btn" type="button" class="btn mode-btn btn-secondary"
                         onclick="UpdateMode(2)">Challenge</button>
                 </p>
                 <p>Display order:

@@ -7,14 +7,14 @@ function UpdateSettingsButtons() {
     $(".mode-btn").removeClass("btn-primary btn-secondary");
     $(".mode-btn").addClass("btn-secondary");
     if (mode == 0) {
+        $("#mode-switch-btn").removeClass("btn-secondary");
+        $("#mode-switch-btn").addClass("btn-primary");
+    } else if (mode == 1) {
         $("#mode-practice-btn").removeClass("btn-secondary");
         $("#mode-practice-btn").addClass("btn-primary");
-    } else if (mode == 1) {
-        $("#mode-challenge-yesno-btn").removeClass("btn-secondary");
-        $("#mode-challenge-yesno-btn").addClass("btn-primary");
     } else if (mode == 2) {
-        $("#mode-challenge-choice-btn").removeClass("btn-secondary");
-        $("#mode-challenge-choice-btn").addClass("btn-primary");
+        $("#mode-challenge-btn").removeClass("btn-secondary");
+        $("#mode-challenge-btn").addClass("btn-primary");
     }
 
     random = lsGetItem("settings-random", 0);
