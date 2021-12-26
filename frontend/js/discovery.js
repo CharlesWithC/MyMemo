@@ -267,6 +267,7 @@ function ImportBook() {
 function ShowDiscovery(disid) {
     discoveryId = disid;
     $(".discovery-list").hide();
+    $("#top-post").hide();
     $(".discovery-detail").fadeIn();
     UpdateDiscoveryQuestionList();
     window.history.pushState("My Memo", "My Memo", "/discovery?discoveryId=" + disid);

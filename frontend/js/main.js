@@ -45,8 +45,14 @@ memo.questionId = parseInt(lsGetItem("memo-question-id", 0));
 memo.bookId = parseInt(lsGetItem("memo-book-id", 0));
 memo.bookList = JSON.parse(lsGetItem("book-list", JSON.stringify([])));
 memo.bookName = lsGetItem("memo-book-name", "");
-setInterval(function () {
+function UpdateBookName(){
     memo.bookList = JSON.parse(lsGetItem("book-list", JSON.stringify([])));
+    if(memo.bookList == []){
+        memo.bookId = 0;
+        memo.bookName = "All questions";
+        $("#book-name").html(memo.bookName);
+        return;
+    }
     found = false;
     for (var i = 0; i < memo.bookList.length; i++) {
         if (memo.bookList[i].bookId == memo.bookId) {
@@ -63,6 +69,10 @@ setInterval(function () {
         $("#book-name").html(memo.bookName);
         localStorage.setItem("memo-book-name", memo.bookName);
     }
+}
+UpdateBookName();
+setInterval(function () {
+    UpdateBookName();
 }, 5000); // this will be updated by general.js
 
 settings = new SettingsClass();

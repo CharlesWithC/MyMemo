@@ -697,6 +697,7 @@ function RemoveQuestion() {
                 NotyNotification('Success! Removed ' + selected.length + ' question(s) from database!');
 
                 $("#modal").modal('hide');
+                localStorage.setItem("memo-book-id","0");
 
                 UpdateQuestionList();
             } else {

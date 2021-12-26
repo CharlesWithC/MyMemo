@@ -73,62 +73,62 @@
                     <tbody>
                     </tbody>
                 </table>
-                <p style="font-size:0.8em;display:inline-block;width:100%;text-align:right">There might be a up-to-30-second delay on
+                <p style="font-size:0.8em;display:inline-block;width:100%;text-align:right">There might be a
+                    up-to-30-second delay on
                     data update.</p>
             </div>
         </div>
         <div id="top-post" class="subcontainer sub-div sub-right" style="display:none">
             <h2 id="top-post-h2"><i class="fa fa-star"></i>&nbsp;&nbsp;Top Post</h2>
         </div>
-    </div>
 
-    <div class="discovery-detail" style="display:none">
-        <div id="qlist" class="subcontainer sub-div sub-left">
-            <h2><i class="fa fa-newspaper"></i>&nbsp;&nbsp;Preview</h2>
-            <table class="table table-hover" id="questionList" style="text-align:center">
-                <thead>
-                    <tr>
-                        <th id="question">Question</th>
-                        <th id="answer">Answer</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-        </div>
+        <div class="discovery-detail" style="display:none">
+            <div id="qlist" class="subcontainer sub-div sub-left">
+                <h2><i class="fa fa-newspaper"></i>&nbsp;&nbsp;Preview</h2>
+                <table class="table table-hover" id="questionList" style="text-align:center">
+                    <thead>
+                        <tr>
+                            <th id="question">Question</th>
+                            <th id="answer">Answer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
 
-        <div class="manage sub-right" id="manage">
-            <div id="basic-info" class="subcontainer sub-div">
-                <p>Description: <span id="detail-description"></span></p>
-                <p>Published by <span id="detail-publisher"></span></p>
-                <p style="font-size:0.8em"><span id="detail-views">0</span> Views | <span id="detail-likes">0</span>
-                    Likes | <span id="detail-imports"></span> <span id="detail-imports-name"></span></p>
-                <p style="font-size:0.8em">The publisher reserves all rights of this post.</p>
-            </div>
-            <div class="user-only book-only subcontainer sub-div" style="display:none">
-                <h4>Import <i class="fa fa-upload"></i></h4>
-                <p>Share code: <span id="shareCode"></span></p>
-                <button type="button" class="btn btn-primary" onclick="ImportBook()">Import</button>
-                <br>
-                <p style="font-size:0.8em">This will clone the book of this discovery post to your book database.
-                </p>
-            </div>
-            <div class="user-only group-only subcontainer sub-div" style="display:none">
-                <h4>Join <i class="fa fa-userfriends"></i></h4>
-                <p>Group code: <span id="groupCode"></span></p>
-                <button type="button" class="btn btn-primary" onclick="ImportBook()">Join</button>
-                <br>
-            </div>
-            <div class="publisher-only subcontainer sub-div" style="display:none">
-                <h4>Manage Post</h4>
-                <button type="button" class="btn btn-primary" onclick="UpdateInformationShow()">Update Information
-                    <i class="fa fa-edit"></i></button>
-                <br>
-                <p style="font-size:0.8em">You can unpublish the post or unshare the book at book management page.
-                </p>
+            <div class="manage sub-right" id="manage">
+                <div id="basic-info" class="subcontainer sub-div">
+                    <p>Description: <span id="detail-description"></span></p>
+                    <p>Published by <span id="detail-publisher"></span></p>
+                    <p style="font-size:0.8em"><span id="detail-views">0</span> Views | <span id="detail-likes">0</span>
+                        Likes | <span id="detail-imports"></span> <span id="detail-imports-name"></span></p>
+                    <p style="font-size:0.8em">The publisher reserves all rights of this post.</p>
+                </div>
+                <div class="user-only book-only subcontainer sub-div" style="display:none">
+                    <h4>Import <i class="fa fa-upload"></i></h4>
+                    <p>Share code: <span id="shareCode"></span></p>
+                    <button type="button" class="btn btn-primary" onclick="ImportBook()">Import</button>
+                    <br>
+                    <p style="font-size:0.8em">This will clone the book of this discovery post to your book database.
+                    </p>
+                </div>
+                <div class="user-only group-only subcontainer sub-div" style="display:none">
+                    <h4>Join <i class="fa fa-userfriends"></i></h4>
+                    <p>Group code: <span id="groupCode"></span></p>
+                    <button type="button" class="btn btn-primary" onclick="ImportBook()">Join</button>
+                    <br>
+                </div>
+                <div class="publisher-only subcontainer sub-div" style="display:none">
+                    <h4>Manage Post</h4>
+                    <button type="button" class="btn btn-primary" onclick="UpdateInformationShow()">Update Information
+                        <i class="fa fa-edit"></i></button>
+                    <br>
+                    <p style="font-size:0.8em">You can unpublish the post or unshare the book at book management page.
+                    </p>
+                </div>
             </div>
         </div>
-    </div>
     </div>
 
     <div class="footer">
