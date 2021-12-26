@@ -267,7 +267,7 @@ function UpdatePageLimit(pl) {
 }
 
 function PageInit() {
-    InitTable("questionList", [10, 25, 50, 100], 10, "UpdatePageLimit", "Search");
+    InitTable("questionList", [10, 25, 50, 100], 10, UpdatePageLimit, Search);
     InitSorting("questionList", ["question", "answer", "status"], ["asc", undefined, undefined], "BookListSort");
     bookId = getUrlParameter("bookId");
 

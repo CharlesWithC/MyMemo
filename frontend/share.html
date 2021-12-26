@@ -24,7 +24,7 @@
 
     <script>
         $(document).ready(function () {
-            InitTable("shareList", [10, 25, 50, 100], 10, "UpdatePageLimit", "Search");
+            InitTable("shareList", [10, 25, 50, 100], 10, UpdatePageLimit, Search);
             InitSorting("shareList",
                 ["name", "shareCode", "importCount", "timestamp"],
                 ["asc", undefined, undefined, undefined],

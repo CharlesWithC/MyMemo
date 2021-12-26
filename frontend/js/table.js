@@ -8,9 +8,9 @@ function InitTable(table, select_val, select_default, select_func, search_func) 
     select_content = "";
     for (var i = 0; i < select_val.length; i++) {
         if (select_val[i] == select_default)
-            select_content += "<option value=" + select_val[i] + " onclick='" + select_func + "(" + select_val[i] + ")' selected>" + select_val[i] + "</option>";
+            select_content += "<option value=" + select_val[i] + " selected>" + select_val[i] + "</option>";
         else
-            select_content += "<option value=" + select_val[i] + " onclick='" + select_func + "(" + select_val[i] + ")'>" + select_val[i] + "</option>";
+            select_content += "<option value=" + select_val[i] + ">" + select_val[i] + "</option>";
     }
     $("#" + table).before("<div id='" + table + "_wrap' class='table_wrap'></div>");
     $("#" + table).appendTo("#" + table + "_wrap");
@@ -21,16 +21,19 @@ function InitTable(table, select_val, select_default, select_func, search_func) 
         </select>
         entries
     </p></div>`);
+    $('#' + table + "_range_select").change(function () {
+        select_func($(this).val());
+    });
     $("#" + table).before(`<div id="` + table + `_search" class="table_search input-group mb-3" style="max-width:15em;">
         <span class="input-group-text" id="basic-addon1">Search</span>
         <input type="text" class="form-control" id="search-content" aria-describedby="basic-addon1">
         <div class="input-group-append">
-            <button class="btn btn-outline-primary" type="button" onclick="` + search_func + `()">Go</button>
+            <button class="btn btn-outline-primary" type="button" onclick="` + search_func.name + `()">Go</button>
         </div>
     </div>`);
     $("#search-content").keypress(function (e) {
         if (e.which == 13 || e.which == 13 && e.ctrlKey) {
-            Search();
+            search_func();
         }
     });
 

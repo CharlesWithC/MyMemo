@@ -381,10 +381,12 @@ button {
 
 .table_range {
     float: left;
+    width: calc(min(40%, 100% - 15em));
 }
 
 .table_search {
     float: right;
+    width: calc(min(60%, 15em));
 }
 
 .table-light {

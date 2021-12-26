@@ -439,7 +439,7 @@ function UpdatePageLimit(pl) {
 }
 
 function PageInit() {
-    InitTable("discoveryList", [10, 25, 50, 100], 10, "UpdatePageLimit", "Search");
+    InitTable("discoveryList", [10, 25, 50, 100], 10, UpdatePageLimit, Search);
     InitSorting("discoveryList", ["title", "publisher", "views", "likes"], ["asc", undefined, undefined, undefined], "DiscoveryListSort");
 
     discoveryId = getUrlParameter("discoveryId");
