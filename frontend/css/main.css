@@ -275,6 +275,17 @@ button {
 
 
 
+.notification {
+    max-width: 45%;
+    display: inline-block;
+}
+
+.more-btn {
+    display: block;
+}
+
+
+
 .control-btn {
     text-align: center;
     width: 8em;

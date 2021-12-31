@@ -304,7 +304,7 @@ function UpdateInformationShow() {
                         <div class="form-group">
                             <label for="discovery-description" class="col-form-label">Description:</label>
                             <script>var descriptionMDE = new SimpleMDE({autoDownloadFontAwesome:false,spellChecker:false,tabSize:4});</script>
-                            <textarea class="form-control" id="discovery-description"></textarea>
+                            <textarea class="form-control" id="discovery-description" style="height:10em"></textarea>
                         </div>
                     </form>
                 </div>
@@ -417,6 +417,8 @@ function LikePost() {
 
 function Search() {
     search = $("#search-content").val();
+    orderBy = "none";
+    SortTable(orderBy);
     RefreshDiscovery(1);
 }
 

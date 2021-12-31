@@ -13,7 +13,7 @@ import base64
 
 def decode(s):
     try:
-        return base64.b64decode(s.encode()).decode()
+        return base64.b64decode(s.encode()).decode().replace("<br>","\n").replace("<n>","\\n")
     except:
         print(f"Unable to decode {s}")
         return ""

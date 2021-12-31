@@ -74,14 +74,16 @@ function SortTable(id) {
     $(".sorting-both").addClass("fa-sort");
     $(".sorting-both").removeClass("fa-sort-up");
     $(".sorting-both").removeClass("fa-sort-down");
-    // set sort
-    ctrl.removeClass("sorting-both");
-    ctrl.removeClass("fa-sort");
-    ctrl.addClass("sorting-" + order);
-    if (ctrl.hasClass("sorting-desc")) {
-        ctrl.addClass("fa-sort-down");
-    } else if (ctrl.hasClass("sorting-asc")) {
-        ctrl.addClass("fa-sort-up");
+    if (id != "none") {
+        // set sort
+        ctrl.removeClass("sorting-both");
+        ctrl.removeClass("fa-sort");
+        ctrl.addClass("sorting-" + order);
+        if (ctrl.hasClass("sorting-desc")) {
+            ctrl.addClass("fa-sort-down");
+        } else if (ctrl.hasClass("sorting-asc")) {
+            ctrl.addClass("fa-sort-up");
+        }
     }
 }
 

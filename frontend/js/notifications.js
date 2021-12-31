@@ -1,4 +1,5 @@
 var page = 1;
+var lstmd = "";
 
 function PageInit() {
     $.ajax({
@@ -15,6 +16,10 @@ function PageInit() {
             notifications = r.notifications;
             for (var i = 0; i < notifications.length; i++) {
                 var time = new Date(parseInt(notifications[i].timestamp) * 1000);
+                if (time.toLocaleDateString() != lstmd) {
+                    lstmd = time.toLocaleDateString();
+                    $("#content").append(`<h4><br>` + lstmd + `&nbsp;&nbsp;</h4>`);
+                }
                 $("#content").append("<div id=" + ((page - 1) * 20 + i) + " class='notification subcontainer sub-div' style='padding:0.8em 0.2em 0.2em 0.8em'>\
                 <p style='font-size:1.2em'>" + notifications[i].msg + "</p>\
                 <p style='font-size:0.8em;color:#888888'>" + time.toLocaleString() + "</p>\
@@ -49,6 +54,10 @@ function ShowMore() {
             notifications = r.notifications;
             for (var i = 0; i < notifications.length; i++) {
                 var time = new Date(parseInt(notifications[i].timestamp) * 1000);
+                if (time.toLocaleDateString() != lstmd) {
+                    lstmd = time.toLocaleDateString();
+                    $("#content").append(`<h4><br>` + lstmd + `&nbsp;&nbsp;</h4>`);
+                }
                 $("#content").append("<div id=" + ((page - 1) * 20 + i) + " class='notification subcontainer sub-div' style='padding:0.8em 0.2em 0.2em 0.8em'>\
                 <p style='font-size:1.2em'>" + notifications[i].msg + "</p>\
                 <p style='font-size:0.8em;color:#888888'>" + time.toLocaleString() + "</p>\

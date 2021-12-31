@@ -141,7 +141,7 @@ async def apiGetQuestionList(request: Request):
         return {"success": True, "data": [], "total": 0}
 
     orderBy = form["orderBy"] # question / answer / status
-    if not orderBy in ["question", "answer", "status"]:
+    if not orderBy in ["none", "question", "answer", "status"]:
         orderBy = "question"
 
     order = form["order"]
@@ -164,16 +164,20 @@ async def apiGetQuestionList(request: Request):
         answer = decode(dd[2])
         if search != "" and not search in question + answer:
             continue
-        if orderBy == "question":
-            t[question + str(dd[0])] = {"questionId": dd[0], "question": question, "answer": answer, "status": dd[3]}
+        if orderBy == "question" or orderBy == "none":
+            t[question + "<id>" + str(dd[0])] = {"questionId": dd[0], "question": question, "answer": answer, "status": dd[3]}
         elif orderBy == "answer":
-            t[answer + question + str(dd[0])] = {"questionId": dd[0], "question": question, "answer": answer, "status": dd[3]}
+            t[answer + question + "<id>" + str(dd[0])] = {"questionId": dd[0], "question": question, "answer": answer, "status": dd[3]}
         elif orderBy == "status":
-            t[str(dd[3]) + question + str(dd[0])] = {"questionId": dd[0], "question": question, "answer": answer, "status": dd[3]}
+            t[str(dd[3]) + question + "<id>" + str(dd[0])] = {"questionId": dd[0], "question": question, "answer": answer, "status": dd[3]}
     
     ret = []
-    for key in sorted(t.keys()):
-        ret.append(t[key])
+    if orderBy != "none":
+        for key in sorted(t.keys()):
+            ret.append(t[key])
+    else:
+        for key in t.keys():
+            ret.append(t[key])
     if order == 1:
         ret = ret[::-1]
     

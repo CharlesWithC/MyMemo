@@ -43,7 +43,7 @@ async def apiShareBook(request: Request):
             return {"success": True, "data": [], "total": 0}
 
         orderBy = form["orderBy"]
-        if not orderBy in ["name", "shareCode", "importCount", "timestamp"]:
+        if not orderBy in ["none", "name", "shareCode", "importCount", "timestamp"]:
             orderBy = "name"
 
         order = form["order"]
@@ -83,11 +83,15 @@ async def apiShareBook(request: Request):
             if not ok:
                 continue
             i += 1
-            t[str(dd[orderBy]) + str(dd["bookId"]) + str(i)] = dd
+            t[str(dd[orderBy]) + "<id>" + str(dd["bookId"]) + str(i)] = dd
             
         ret = []
-        for key in sorted(t.keys()):
-            ret.append(t[key])
+        if orderBy != "none":
+            for key in sorted(t.keys()):
+                ret.append(t[key])
+        else:
+            for key in t.keys():
+                ret.append(t[key])
         if order == 1:
             ret = ret[::-1]
 

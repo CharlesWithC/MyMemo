@@ -30,8 +30,8 @@
                 ["asc", undefined, undefined, undefined],
                 "UserListSort");
 
-            $("#shareList_range").after(
-                '<div style="float:left">&nbsp;&nbsp;<button type="button" class="btn btn-primary btn-sm" onclick="CreateShareShow()">Create New Share</button></div>'
+            $("#shareList_range").before(
+                '<div>&nbsp;&nbsp;<button type="button" class="btn btn-primary" onclick="CreateShareShow()">Create New Share</button></div><br>'
             );
 
             PageInit();
@@ -85,7 +85,7 @@
         </div>
         <div style="float:left;margin:1em">
             <p>Version: <span id="version">v5</span></p>
-            <p>Copyright &copy; 2021-2022 My Memo</p>
+            <p>Copyright &copy; 2022 My Memo</p>
         </div>
         <div style="float:right;margin:1em">
             <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo" target="_blank"

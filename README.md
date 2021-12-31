@@ -1,7 +1,7 @@
 # My Memo
 
 **A light weight memo website based on Python FastAPI + HTML5 Bootstrap.**  
-**Version: v5.6.4**  
+**Version: v5.6.5**  
 *The author has finished the development on this project. Only bug fixes will be applied and no more new functions will be added.*  
 *You are welcomed to contribute to this project by helping to do bug fixes and add new features. Pull requests will be reviewed at weekends.*  
 
@@ -25,6 +25,8 @@ To be honest, the project was only an experiment at that time, testing my skills
 Until September 2021, after being noticed that I may take part in a contest with this project, I started updating it again. During Mid-Autumn Festival, I worked days and nights and added more than 2k lines of code, adding multi-user system, more memorizing modes and some other functions. Since then, I started maintaining it frequently. Updates are made every weekend (I'm at boarding school so no update can be made during weekday) and new functions are coming out all the time.  
 My Memo v5 is a milestone. The appearance changed completely and MySQL database is implemented. The website is becoming a real "website". Group, discovery and many important functions were introduced after that. Better user security, enhanced database performance are also being implemented.  
 It's December 2021 when I write this README, and this project is coming to its one year birthday. But I think it's time to complete all the stuff. Main functions and community functions are already added and I don't want to make the site too heavy. Anyhow this is a personal project instead of a business, commercial website.  
+
+**\*Update**: It's 00:00 1st Janurary 2022 when this update is committed. I'd like to say goodbye to 2021 and hello to 2022. I have finished all I want till now. Maybe, that "only bug fixes will be committed in the future" will come true.  
 
 ---
 

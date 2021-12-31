@@ -46,7 +46,7 @@ async def apiAdminUserList(request: Request):
         return {"success": True, "data": [], "total": 0}
 
     orderBy = form["orderBy"] # userId, username, email, inviter, inviteCode, age, status, privilege
-    if not orderBy in ["userId", "username", "email", "inviter", "inviteCode", "age", "status", "privilege"]:
+    if not orderBy in ["none", "userId", "username", "email", "inviter", "inviteCode", "age", "status", "privilege"]:
         orderBy = "userId"
     if orderBy == "username":
         orderBy = "plain_username"
@@ -165,13 +165,17 @@ async def apiAdminUserList(request: Request):
                 break
         if not ok:
             continue
-        if orderBy == "userId":
+        if orderBy == "userId" or orderBy == "none":
             t[int(dd["userId"])] = dd
         else:
-            t[str(dd[orderBy]) + str(dd["userId"])] = dd
+            t[str(dd[orderBy]) + "<id>" + str(dd["userId"])] = dd
     ret1 = []
-    for key in sorted(t.keys()):
-        ret1.append(t[key])
+    if orderBy != "none":
+        for key in sorted(t.keys()):
+            ret1.append(t[key])
+    else:
+        for key in t.keys():
+            ret1.append(t[key])
     if order == 1:
         ret1 = ret1[::-1]
 
@@ -184,10 +188,10 @@ async def apiAdminUserList(request: Request):
                 break
         if not ok:
             continue
-        if orderBy == "userId":
+        if orderBy == "userId" or orderBy == "none":
             t[int(dd["userId"].replace("*",""))] = dd
         else:
-            t[str(dd[orderBy]) + str(dd["userId"].replace("*",""))] = dd
+            t[str(dd[orderBy]) + "<id>" + str(dd["userId"].replace("*",""))] = dd
     ret2 = []
     for key in sorted(t.keys()):
         ret2.append(t[key])

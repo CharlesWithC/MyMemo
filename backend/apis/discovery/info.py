@@ -106,7 +106,7 @@ async def apiDiscovery(request: Request):
         return {"success": True, "data": [], "total": 0}
 
     orderBy = form["orderBy"] # title / publisher / views / likes NOTE: pin should stick on top
-    if not orderBy in ["title", "publisher", "views", "likes"]:
+    if not orderBy in ["none", "title", "publisher", "views", "likes"]:
         orderBy = "title"
 
     order = form["order"]
@@ -194,17 +194,21 @@ async def apiDiscovery(request: Request):
                 ret.append(dd) # put them on top
             continue
 
-        if orderBy == "title":
-            t[dd["title"] + str(dd["discoveryId"])] = dd
+        if orderBy == "title" or orderBy == "none":
+            t[dd["title"] + "<id>" + str(dd["discoveryId"])] = dd
         elif orderBy == "publisher":
-            t[dd["publisher"] + dd["title"] + str(dd["discoveryId"])] = dd
+            t[dd["publisher"] + dd["title"] + "<id>" + str(dd["discoveryId"])] = dd
         elif orderBy == "views":
-            t[str(dd["views"]) + dd["title"] + str(dd["discoveryId"])] = dd
+            t[str(dd["views"]) + dd["title"] + "<id>" + str(dd["discoveryId"])] = dd
         elif orderBy == "likes":
-            t[str(dd["likes"]) + dd["title"] + str(dd["discoveryId"])] = dd
+            t[str(dd["likes"]) + dd["title"] + "<id>" + str(dd["discoveryId"])] = dd
     
-    for key in sorted(t.keys()):
-        ret.append(t[key])
+    if orderBy != "none":
+        for key in sorted(t.keys()):
+            ret.append(t[key])
+    else:
+        for key in t.keys():
+            ret.append(t[key])
         
     if order == 1:
         for dd in dis:
@@ -320,6 +324,7 @@ async def apiDiscoveryData(discoveryId: int, request: Request):
         isPublisher = True
     
     # get questions
+    qt = {}
     questions = []
     if distype == 1:
         p = getBookData(uid, bookId)
@@ -328,12 +333,20 @@ async def apiDiscoveryData(discoveryId: int, request: Request):
             t = cur.fetchall()
             if len(t) == 0:
                 continue
-            questions.append({"question": decode(t[0][0]), "answer": decode(t[0][1])})
+            qt[decode(t[0][0]) + "<id>" + str(pp)] = {"question": decode(t[0][0]), "answer": decode(t[0][1])}
     elif distype == 2:
         cur.execute(f"SELECT question, answer FROM GroupQuestion WHERE groupId = {bookId}")
         t = cur.fetchall()
+        i = 0
         for tt in t:
-            questions.append({"question": decode(tt[0]), "answer": decode(tt[1])})
+            i += 1
+            qt[decode(tt[0]) + "<id>" + str(i)] = {"question": decode(tt[0]), "answer": decode(tt[1])}
+    qcnt = 0
+    for key in sorted(qt.keys()):
+        qcnt += 1
+        if qcnt > 20:
+            break
+        questions.append(qt[key])
 
     # update views
     cur.execute(f"SELECT views FROM Discovery WHERE discoveryId = {discoveryId}")
@@ -378,6 +391,6 @@ async def apiDiscoveryData(discoveryId: int, request: Request):
     else:
         publisher = f"<a href='/user?userId={uid}'><span class='username'>{publisher}</span></a>"
 
-    return {"success": True, "title": title, "description": description, "questions": questions[:20], \
+    return {"success": True, "title": title, "description": description, "questions": questions, \
         "shareCode": shareCode, "type": distype, "publisher": publisher, "isPublisher": isPublisher, \
             "views": views, "likes": likes, "liked": liked, "imports": imports, "pinned": pinned}

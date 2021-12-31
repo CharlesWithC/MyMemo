@@ -125,16 +125,44 @@
                     <p><i class="fa fa-spinner fa-spin"></i></p>
                 </div>
             </div>
-            <div class="subcontainer sub-div sub-right">
-                <h4>Create Book</h4>
-                <div class="input-group mb-3" style="width:fit-content">
-                    <span class="input-group-text" id="basic-addon1">Name</span>
-                    <input type="text" class="form-control" id="create-book-name-content"
-                        aria-describedby="basic-addon1">
-                    <div class="input-group-append">
-                        <button class="btn btn-outline-primary" type="button"
-                            onclick="CreateBook('#create-book-name-content')">Create</button>
+            <div class="sub-right">
+                <div class="subcontainer sub-div">
+                    <h4>Create Book</h4>
+                    <div class="input-group mb-3" style="width:fit-content">
+                        <span class="input-group-text" id="basic-addon1">Name</span>
+                        <input type="text" class="form-control" id="page-create-book"
+                            aria-describedby="basic-addon1">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-primary" type="button"
+                                onclick="CreateBook('#page-create-book')">Create</button>
+                        </div>
                     </div>
+                </div>
+                <div class="subcontainer sub-div">
+                    <h4>Import share</h4>
+                    <div class="input-group mb-3" style="width:fit-content">
+                        <span class="input-group-text" id="basic-addon1">Share Code</span>
+                        <input type="text" class="form-control" id="page-import-share"
+                            aria-describedby="basic-addon1">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-primary" type="button"
+                                onclick="CreateBook('#page-import-share')">Import</button>
+                        </div>
+                    </div>
+                    <p style="font-size:0.8em">A share code starts with '!'</p>
+                </div>
+                <div class="subcontainer sub-div">
+                    <h4>Join Group</h4>
+                    <div class="input-group mb-3" style="width:fit-content">
+                        <span class="input-group-text" id="basic-addon1">Group Code</span>
+                        <input type="text" class="form-control" id="page-join-group"
+                            aria-describedby="basic-addon1">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-primary" type="button"
+                                onclick="CreateBook('#page-import-share')">Join</button>
+                        </div>
+                    </div>
+                    <p style="font-size:0.8em">A group code starts with '@'</p>
                 </div>
             </div>
         </div>
@@ -328,7 +356,7 @@
         </div>
         <div style="float:left;margin:1em">
             <p>Version: <span id="version">v5</span></p>
-            <p>Copyright &copy; 2021-2022 My Memo</p>
+            <p>Copyright &copy; 2022 My Memo</p>
         </div>
         <div style="float:right;margin:1em">
             <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo" target="_blank"

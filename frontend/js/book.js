@@ -28,11 +28,13 @@ var totalQ = 0;
 
 function GenOPBtn(questionId) {
     btns = '<button type="button" class="btn btn-primary btn-sm" onclick="ShowStatistics(' + questionId + ')"><i class="fa fa-chart-bar"></i></button>';
-    btns += '<button type="button" class="btn btn-primary btn-sm" onclick="EditQuestionShow(' + questionId + ')"><i class="fa fa-edit"></i></button>';
-    if ($("#removeFromDB").is(":checked") || bookId == 0) {
-        btns += '<button type="button" class="btn btn-danger btn-sm remove-question-btn" onclick="RemoveFromBook(' + questionId + ')"><i class="fa fa-trash"></i></button>';
-    } else {
-        btns += '<button type="button" class="btn btn-warning btn-sm remove-question-btn" onclick="RemoveFromBook(' + questionId + ')"><i class="fa fa-trash"></i></button>';
+    if (groupId == -1 || groupId != -1 && isGroupOwner) {
+        btns += '<button type="button" class="btn btn-primary btn-sm" onclick="EditQuestionShow(' + questionId + ')"><i class="fa fa-edit"></i></button>';
+        if ($("#removeFromDB").is(":checked") || bookId == 0) {
+            btns += '<button type="button" class="btn btn-danger btn-sm remove-question-btn" onclick="RemoveFromBook(' + questionId + ')"><i class="fa fa-trash"></i></button>';
+        } else {
+            btns += '<button type="button" class="btn btn-warning btn-sm remove-question-btn" onclick="RemoveFromBook(' + questionId + ')"><i class="fa fa-trash"></i></button>';
+        }
     }
     return btns;
 }
@@ -132,6 +134,8 @@ function BookPage(p) {
 
 function Search() {
     search = $("#search-content").val();
+    orderBy = "none";
+    SortTable(orderBy);
     UpdateQuestionList();
 }
 
@@ -385,7 +389,7 @@ function EditQuestionShow(wid) {
                         </div>
                         <div class="form-group">
                             <label for="edit-answer" class="col-form-label">Answer:</label>
-                            <textarea class="form-control" id="edit-answer"></textarea>
+                            <textarea class="form-control" id="edit-answer" style="height:10em"></textarea>
                         </div>
                     </form>
                 </div>
@@ -555,7 +559,7 @@ function AddQuestionShow() {
                         </div>
                         <div class="form-group">
                             <label for="edit-answer" class="col-form-label">Answer:</label>
-                            <textarea class="form-control" id="edit-answer"></textarea>
+                            <textarea class="form-control" id="edit-answer" style="height:10em"></textarea>
                         </div>
                     </form>
                 </div>
@@ -697,7 +701,7 @@ function RemoveQuestion() {
                 NotyNotification('Success! Removed ' + selected.length + ' question(s) from database!');
 
                 $("#modal").modal('hide');
-                localStorage.setItem("memo-book-id","0");
+                localStorage.setItem("memo-book-id", "0");
 
                 UpdateQuestionList();
             } else {
@@ -918,7 +922,7 @@ function PublishToDiscoveryShow() {
                         <div class="form-group">
                             <label for="discovery-description" class="col-form-label">Description:</label>
                             <script>var descriptionMDE = new SimpleMDE({autoDownloadFontAwesome:false,spellChecker:false,tabSize:4});</script>
-                            <textarea class="form-control" id="discovery-description"></textarea>
+                            <textarea class="form-control" id="discovery-description" style="height:10em"></textarea>
                         </div>
                     </form>
                 </div>
@@ -1044,7 +1048,7 @@ function GroupPublishToDiscoveryShow() {
                         <div class="form-group">
                             <label for="group-discovery-description" class="col-form-label">Description:</label>
                             <script>var descriptionMDE = new SimpleMDE({autoDownloadFontAwesome:false,spellChecker:false,tabSize:4});</script>
-                            <textarea class="form-control" id="group-discovery-description"></textarea>
+                            <textarea class="form-control" id="group-discovery-description" style="height:10em"></textarea>
                         </div>
                     </form>
                 </div>
@@ -1225,7 +1229,7 @@ function CreateGroupShow() {
                         <div class="form-group">
                             <label for="group-description" class="col-form-label">Description:</label>
                             <script>var groupDescriptionMDE = new SimpleMDE({autoDownloadFontAwesome:false,spellChecker:false,tabSize:4});</script>
-                            <textarea class="form-control" id="group-description"></textarea>
+                            <textarea class="form-control" id="group-description" style="height:10em"></textarea>
                         </div>
                     </form>
                 </div>
@@ -1408,7 +1412,7 @@ function GroupInfoUpdateShow() {
                         <div class="form-group">
                             <label for="group-description" class="col-form-label">Description:</label>
                             <script>var groupDescriptionMDE = new SimpleMDE({autoDownloadFontAwesome:false,spellChecker:false,tabSize:4});</script>
-                            <textarea class="form-control" id="group-description"></textarea>
+                            <textarea class="form-control" id="group-description" style="height:10em"></textarea>
                         </div>
                     </form>
                 </div>

@@ -63,6 +63,8 @@ function ShareListPage(p) {
 
 function Search() {
     search = $("#search-content").val();
+    orderBy = "none";
+    SortTable(orderBy);
     UpdateShareList();
 }
 

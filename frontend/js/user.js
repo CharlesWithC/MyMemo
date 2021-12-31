@@ -1030,7 +1030,7 @@ $(document).ready(function () {
                         $("#username-public").html(user.username);
                         $("#bio-public").html(marked.parse(user.bio));
                         $("#userId-public").html(uid);
-                        $("#age").html(user.age);
+                        $("#age-public").html(user.age);
 
                         UpdateChart(uid);
                     }

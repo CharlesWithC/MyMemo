@@ -29,6 +29,8 @@ def encode(s, removeHTMLTag = True):
     try:
         if removeHTMLTag:
             s = re.sub("\\<.*?\\>", "<HTML_REMOVED>", s)
+        s = s.replace("\\n","<n>")
+        s = s.replace("\n","<br>")
         return base64.b64encode(s.encode()).decode()
     except:
         print(f"Unable to encode {s}")
@@ -36,7 +38,7 @@ def encode(s, removeHTMLTag = True):
 
 def decode(s):
     try:
-        return base64.b64decode(s.encode()).decode()
+        return base64.b64decode(s.encode()).decode().replace("<br>","\n").replace("<n>","\\n")
     except:
         print(f"Unable to decode {s}")
         return ""

@@ -100,7 +100,7 @@ async def apiGroup(request: Request):
         
         conn.commit()
 
-        return {"success": True, "msg": f"Group created! Group code: @{gcode}. Tell your friends to create a book with this code and they will join your group automatically.", \
+        return {"success": True, "msg": f"Group created! Group code: @{gcode}.", \
             "groupId": groupId, "groupCode": f"@{gcode}", "isGroupOwner": True}
 
     elif op == "dismiss":
@@ -307,7 +307,7 @@ async def apiGroupMember(request: Request):
         return {"success": True, "data": [], "total": 0}
 
     orderBy = form["orderBy"]
-    if not orderBy in ["username", "progress"]:
+    if not orderBy in ["none", "username", "progress"]:
         orderBy = "progress"
     if orderBy == "username":
         orderBy = "plain_username"
@@ -326,11 +326,15 @@ async def apiGroupMember(request: Request):
         if search != "" and not search in str(dd["plain_username"]):
             continue
         i += 1
-        t[str(dd[orderBy]) + str(dd["userId"]) + str(i)] = dd
+        t[str(dd[orderBy]) + "<id>" + str(dd["userId"]) + str(i)] = dd
         
     ret = []
-    for key in sorted(t.keys()):
-        ret.append(t[key])
+    if orderBy != "none":
+        for key in sorted(t.keys()):
+            ret.append(t[key])
+    else:
+        for key in t.keys():
+            ret.append(t[key])
     if order == 1:
         ret = ret[::-1]
 

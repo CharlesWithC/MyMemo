@@ -567,6 +567,8 @@ function RefreshCaptcha(submitfunc) {
         async: true,
         success: function (r) {
             if (r.success == true) {
+                $("#captcha-answer").val("");
+                setTimeout(function(){$("#captcha-answer").focus();},300);
                 captchaToken = r.captchaToken;
                 captchaBase64 = r.captchaBase64;
                 $("#captcha").html("<img style='height:2em' src='data:image/png;base64," + captchaBase64 + "'>");
@@ -594,7 +596,7 @@ function ShowCaptcha(submitfunc) {
                     <p>Please solve this captcha to prove that you are not a robot:</p>
                     <div class="input-group mb-3">
                         <input type="text" class="form-control" id="captcha-answer" aria-describedby="captcha">
-                        <span class="input-group-text" id="captcha">Fetching captcha <i class='fa fa-spinner fa-spin'></i></span>
+                        <span class="input-group-text" id="captcha">Fetching captcha&nbsp;&nbsp;<i class='fa fa-spinner fa-spin'></i></span>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -621,6 +623,7 @@ function ShowCaptcha(submitfunc) {
         async: true,
         success: function (r) {
             if (r.success == true) {
+                setTimeout(function(){$("#captcha-answer").focus();},300);
                 captchaToken = r.captchaToken;
                 captchaBase64 = r.captchaBase64;
                 $("#captcha").html("<img style='height:2em' src='data:image/png;base64," + captchaBase64 + "'>");

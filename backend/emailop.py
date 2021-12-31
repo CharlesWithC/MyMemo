@@ -15,7 +15,6 @@ if os.path.exists("./config.json"):
 host = config["mail_remote"]
 if host.endswith("/"):
     host = host[:-1]
-icon_url = config["icon_url"]
 mail_domain = config["mail_domain"]
 mail_from = config["mail_from"]
 mail_contact = config["mail_contact"]
@@ -33,14 +32,12 @@ def hashpwd(password):
 
 def sendMail(mail_from, mail_to, mail_from_name, mail_to_name, subject, plain, html):
     key = hashpwd(config["mail_remote_key"])
-    r = requests.post(host + "/send", data = {"key": key, "plain": plain, "html": html, "from": f"{mail_from_name} <{mail_from}>", "to": f"{mail_to_name} <{mail_to}>", "subject": subject})
+    r = requests.post(host + "/send", data = {"key": key, "plain": plain, "html": html, "from": f"{mail_from_name} <{mail_from}>", "to": f"{mail_to_name} <{mail_to}>", "subject": "[My Memo] " + subject})
 
 def sendVerification(mail_to, username, vtype, note, expire, link):
     data = "<!DOCTYPE html><html>\n"
-    data += "<head><style>h2{font-size:1.6em}</style></head>\n"
+    data += "<head><style>p{margin:1em}h1{font-size:3.2em}h2{font-size:1.6em}.footer{font-size:0.8em;color:gray;margin:0}</style></head>\n"
     data += "<body>\n"
-
-    data += f"<img src='{icon_url}' style='width:2em;height:2em;float:right' alt='My Memo'>\n"
 
     data += f"<h2>{vtype}</h2>\n"
     data += f"<p>{note}</p>\n"
@@ -49,8 +46,8 @@ def sendVerification(mail_to, username, vtype, note, expire, link):
     data += f"<p>Verification link: <a href='{link}'>{link}</a></p>\n"
 
     data += f"<br><br><hr>\n"
-    data += f"<p style='font-size:0.8em;color:gray'>This is an automated email. Please do not reply to it. To contact, use <a href='mailto:{mail_contact}'>{mail_contact}</a>.</p>\n"
-    data += f"<p style='font-size:0.8em;color:gray'>Copyright &copy; 2021-2022 My Memo | Developed by Charles</a></p>\n"
+    data += f"<p class='footer'>This is an automated email. Please do not reply to it. To contact, use <a href='mailto:{mail_contact}'>{mail_contact}</a>.</p>\n"
+    data += f"<p class='footer'>Copyright &copy; 2022 My Memo | Developed by Charles</a></p>\n"
 
     data += "</body>\n</html>\n"
 
@@ -60,23 +57,21 @@ def sendVerification(mail_to, username, vtype, note, expire, link):
     plain += "The link will expire in " + expire + "\n"
     plain += "\n"
     plain += f"This is an automated email. Please do not reply to it. To contact, use {mail_contact} .\n"
-    plain += "Copyright &copy; 2021-2022 My Memo | Developed by Charles."
+    plain += "Copyright &copy; 2022 My Memo | Developed by Charles."
 
     sendMail(mail_from, mail_to, "My Memo", username, vtype, plain, data)
 
 def sendNormal(mail_to, username, subject, content):
     data = "<!DOCTYPE html><html>\n"
-    data += "<head><style>h2{font-size:1.6em}</style></head>\n"
+    data += "<head><style>p{margin:1em}h1{font-size:3.2em}h2{font-size:1.6em}.footer{font-size:0.8em;color:gray;margin:0}</style></head>\n"
     data += "<body>\n"
-
-    data += f"<img src='{icon_url}' style='width:2em;height:2em;float:right' alt='My Memo'>\n"
 
     data += f"<h2>{subject}</h2>\n"
     data += f"<p>{content}</p>\n"
 
     data += f"<br><br><hr>\n"
-    data += f"<p style='font-size:0.8em;color:gray'>This is an automated email. Please do not reply to it. To contact, use <a href='mailto:{mail_contact}'>{mail_contact}</a>.</p>\n"
-    data += f"<p style='font-size:0.8em;color:gray'>Copyright &copy; 2021-2022 My Memo | Developed by Charles</a></p>\n"
+    data += f"<p class='footer'>This is an automated email. Please do not reply to it. To contact, use <a href='mailto:{mail_contact}'>{mail_contact}</a>.</p>\n"
+    data += f"<p class='footer'>Copyright &copy; 2022 My Memo | Developed by Charles</a></p>\n"
     
     data += "</body>\n</html>\n"
     
@@ -85,6 +80,6 @@ def sendNormal(mail_to, username, subject, content):
     plain += content.replace("<br>","\n").replace("\n\n","\n") + "\n"
     plain += "\n"
     plain += f"This is an automated email. Please do not reply to it. To contact, use {mail_contact} .\n"
-    plain += "Copyright &copy; 2021-2022 My Memo | Developed by Charles."
+    plain += "Copyright &copy; 2022 My Memo | Developed by Charles."
     
     sendMail(mail_from, mail_to, "My Memo", username, subject, plain, data)    

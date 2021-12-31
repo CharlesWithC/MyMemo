@@ -1,5 +1,14 @@
 # Update History
 
+**Goodbye 2021**  
+**Hello 2022**
+
+## v5.6.5
+
+*Date: 2022/1/1*  
+Fixed some bugs  
+Improved UI  
+
 ## v5.6.4  
 
 *Date: 2021/12/26*  
