@@ -64,25 +64,23 @@ async def apiLogin(request: Request, background_tasks: BackgroundTasks):
 
         return {"success": True, "active": False, "puserId": puserId, "ptoken": ptoken}
     
-    d = [-1]
-    try:
-        cur.execute(f"SELECT userId, password FROM UserInfo WHERE username = '{username}'")
-        d = cur.fetchall()
-        if len(d) == 0:
-            username = decode(username)
-            if validators.email(username) == True:
-                cur.execute(f"SELECT userId, password FROM UserInfo WHERE email = '{encode(username)}'")
-                d = cur.fetchall()
-                if len(d) == 0:
-                    return {"success": False, "msg": "Incorrect username or password!"}
-            else:
-                return {"success": False, "msg": "Incorrect username or password!"}
-        d = d[0]
-    except:
-        sessions.errcnt += 1
-        return {"success": False, "msg": "Unknown error occured. Try again later..."}
-        
-    userId = d[0]
+    userId = 0
+    passwdhsh = ""
+    found = False
+    cur.execute(f"SELECT username, email, userId, password FROM UserInfo")
+    t = cur.fetchall()
+    for tt in t:
+        if decode(tt[0]).lower() == decode(username).lower() or decode(tt[1]).lower() == decode(username).lower():
+            username = tt[0]
+            userId = tt[2]
+            passwdhsh = tt[3]
+            found = True
+            break
+    
+    if not found:
+        return {"success": False, "msg": "Incorrect username or password!"}
+    
+    d = [userId, passwdhsh]
 
     if userId == 0:
         cur.execute(f"SELECT email FROM UserInfo WHERE userId = 0")

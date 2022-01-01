@@ -53,6 +53,8 @@ async def apiUpdateInfo(request: Request, background_tasks: BackgroundTasks):
     t = cur.fetchall()
     for tt in t:
         if tt[2] == userId:
+            if decode(tt[0]).lower() != decode(username).lower():
+                cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'update_username', {int(time.time())}, '{encode(f'Updated username to {username}')}')")
             continue
         if decode(tt[0]).lower() == decode(username).lower():
             return {"success": False, "msg": "Username has been occupied!"}
@@ -206,6 +208,7 @@ async def apiChangeEmailVerify(request: Request, background_tasks: BackgroundTas
     cur.execute(f"INSERT INTO EmailHistory VALUES ({userId}, '{newEmail.lower()}', {int(time.time())})")
     cur.execute(f"UPDATE UserInfo SET email = '{encode(newEmail)}' WHERE userId = {userId}")
     cur.execute(f"DELETE FROM PendingEmailChange WHERE token = '{token}'")
+    cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'update_email', {int(time.time())}, '{encode(f'Updated email to {newEmail}')}')")
     conn.commit()
 
     return {"success": True, "msg": f"Email updated to {newEmail}"}

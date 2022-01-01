@@ -39,10 +39,6 @@ function Export() {
     window.location.href = '/data/export';
 }
 
-function UserEvents() {
-    window.location.href = '/notifications';
-}
-
 function SignOut() {
     $.ajax({
         url: "/api/user/logout",

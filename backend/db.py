@@ -132,7 +132,7 @@ if doinit:
     cur.execute(f"CREATE TABLE UserSettings (userId INT, sRandom INT, sSwap INT, sShowStatus INT, sMode INT, sAutoPlay INT, sTheme VARCHAR(16))")
     cur.execute(f"CREATE TABLE UserEvent (userId INT, event VARCHAR(32), timestamp INT, msg TEXT)")
     # Available event: register, login, change_password, delete_account, create_book, delete_book, create_group, 
-    # delete_group, join_group, quit_group
+    # delete_group, join_group, quit_group, update_email, update_username, execute_admin_command
 
     cur.execute(f"CREATE TABLE UserSessionHistory (userId INT, loginTime INT, logoutTime INT, expire INT, ip VARCHAR(128))")
     # User Session History, updated when user logs out

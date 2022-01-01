@@ -229,8 +229,18 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
     cur.execute(f"SELECT userId FROM AdminList WHERE userId = {userId}")
     if len(cur.fetchall()) == 0:
         raise HTTPException(status_code=401)
-    
-    command = form["command"].split()
+
+    command = form["command"]
+    command = decode(encode(command)) # remove html element
+    if command == "check_admin":
+        cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'execute_admin_command', {int(time.time())}, '{encode(f'Opened Admin CLI Panel')}')")
+        conn.commit()
+        return {"success": True}
+    else:
+        cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'execute_admin_command', {int(time.time())}, '{encode(f'Executed admin command: {command}')}')")
+        conn.commit()
+
+    command = command.split()
     if command[0] == "get_user_info":
         if len(command) != 2:
             return {"success": False, "msg": f"Usage: get_user_info [userId]\nGet detailed user info of [userId]"}
