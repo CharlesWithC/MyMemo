@@ -212,7 +212,7 @@ async def apiGetQuestionStat(request: Request):
     elif astatus == -2:
         res += f"Added at {ts2dt(ats)} on website.\n"  
     elif astatus == -3:
-        res += f"Imported from a group's book."
+        res += f"Imported from a group's book.\n"
 
     if tagcnt > 0:
         res += f"Tagged for {tagcnt} times\n(Last time: {ts2dt(lsttag)}),\n"

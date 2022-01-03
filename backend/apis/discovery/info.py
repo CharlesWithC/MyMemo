@@ -116,6 +116,8 @@ async def apiDiscovery(request: Request):
     order = l[order]
 
     search = form["search"]
+    if search == "" and orderBy == "none":
+        orderBy = "title"
 
     d = json.loads(requests.post(f"http://{config.search_server_ip}:{config.search_server_port}/search/discovery", data = {"search": search}).text)["result"]
     if len(d) == 0:

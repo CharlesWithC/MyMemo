@@ -34,14 +34,11 @@
         $(document).ready(function () {
             PageInit();
 
-            $("#search-content").keypress(function (e) {
-                if (e.which == 13 || e.which == 13 && e.ctrlKey) {
-                    Search();
+            $('#questionList tbody').on('click', 'td', function () {
+                if($(this).html().indexOf("<button") != -1){
+                    return;
                 }
-            });
-
-            $('#questionList tbody').on('click', 'tr', function () {
-                wid = parseInt($(this).attr("id"));
+                wid = parseInt($(this).parent().attr("id"));
                 if ($(this).hasClass("table-active")) {
                     idx = selected.indexOf(wid);
                     if (idx > -1) {
@@ -50,7 +47,7 @@
                 } else {
                     selected.push(wid);
                 }
-                $(this).toggleClass('table-active');
+                $(this).parent().toggleClass('table-active');
             });
 
             $("#create-book-name-content").keypress(function (e) {
@@ -159,7 +156,7 @@
                             aria-describedby="basic-addon1">
                         <div class="input-group-append">
                             <button class="btn btn-outline-primary" type="button"
-                                onclick="CreateBook('#page-import-share')">Join</button>
+                                onclick="CreateBook('#page-join-group')">Join</button>
                         </div>
                     </div>
                     <p style="font-size:0.8em">A group code starts with '@'</p>

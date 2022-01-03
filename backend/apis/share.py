@@ -53,6 +53,8 @@ async def apiShareBook(request: Request):
         order = l[order]
 
         search = form["search"]
+        if search == "" and orderBy == "none":
+            orderBy = "name"
 
         ret = []
         i2n = {}

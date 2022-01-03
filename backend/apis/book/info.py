@@ -151,6 +151,8 @@ async def apiGetQuestionList(request: Request):
     order = l[order]
 
     search = form["search"]
+    if search == "" and orderBy == "none":
+        orderBy = "question"
 
     bookData = getBookData(userId, bookId)
     

@@ -319,6 +319,8 @@ async def apiGroupMember(request: Request):
     order = l[order]
 
     search = form["search"]
+    if search == "" and orderBy == "none":
+        orderBy = "plain_username"
 
     t = {}
     i = 0

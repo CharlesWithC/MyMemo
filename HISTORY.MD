@@ -1,8 +1,13 @@
 # Update History
 
+## v5.6.7
+
+*Date: 2022/1/2*  
+Fixed some bugs
+
 ## v5.6.6
 
-*Date: 2021/1/1*  
+*Date: 2022/1/1*  
 1.Fixed the bug that login username / email must have correct case  
 (Now the case of username / email is no longer sensitive for login)  
 2.Added more user event  

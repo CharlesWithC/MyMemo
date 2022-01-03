@@ -58,6 +58,8 @@ async def apiAdminUserList(request: Request):
     order = l[order]
 
     search = form["search"]
+    if search == "" and orderBy == "none":
+        orderBy = "plain_username"
 
     cur.execute(f"SELECT userId FROM AdminList")
     admins = cur.fetchall()

@@ -23,20 +23,8 @@ function AjaxErrorHandler(r, textStatus, errorThrown) {
     }
 }
 
-function GoToUser() {
-    window.location.href = "/user"
-}
-
 function BackToHome() {
     window.location.href = '/';
-}
-
-function Import() {
-    window.location.href = '/data/import';
-}
-
-function Export() {
-    window.location.href = '/data/export';
 }
 
 function SignOut() {
