@@ -65,7 +65,7 @@ function RefreshDiscovery(p = -1) {
                 l = 0;
                 AppendTableData("discoveryList", ["No data available"], undefined, "100%");
             }
-            SetTableInfo("discoveryList", "<p style='opacity:80%'>Showing " + l + " - " + r + " / " + totalD);
+            SetTableInfo("discoveryList", "<p style='opacity:80%'>Showing " + l + " - " + r + " / " + totalD + "</p>");
 
             $(".discovery-top").remove();
             if (toplist.length > 0) {
@@ -230,7 +230,7 @@ function UpdateDiscoveryQuestionList() {
             questionList = r.questions;
 
             for (var i = 0; i < questionList.length; i++)
-                AppendTableData("questionList", [questionList[i].question, questionList[i].answer]);
+                AppendTableData("questionList", [marked.parse(questionList[i].question), marked.parse(questionList[i].answer)]);
         },
         error: function (r, textStatus, errorThrown) {
             NotyNotification('Error ' + r.status + ": " + errorThrown, type = 'error');

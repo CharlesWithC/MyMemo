@@ -21,9 +21,31 @@ import sessions
 
 lastop = {}
 threads = 0
+dlthreads = 0
 dataUploadResult = {}
 dataDownloadToken = {}
+dataPreparation = {}
 
+def clearOutdated():
+    global dataUploadResult
+    global dataPreparation
+    
+    t = list(dataUploadResult.keys())
+    for userId in t:
+        if not token in dataUploadResult.keys():
+            continue
+        if time.time() - dataUploadResult[userId][1] >= 120:
+            del dataUploadResult[userId]
+            
+    t = list(dataDownloadToken.keys())
+    for token in t:
+        if not token in dataDownloadToken.keys():
+            continue
+        ts = dataDownloadToken[token][3]
+        if time.time() - ts >= 300 and dataPreparation[token] != "Wait":
+            del dataDownloadToken[token]
+            del dataPreparation[token]
+                
 def importWork(userId, bookId, updateType, checkDuplicate, newlist):
     global threads
     threads += 1
@@ -164,8 +186,8 @@ def importWork(userId, bookId, updateType, checkDuplicate, newlist):
         if len(encode(answer)) >= 40960:
             return "Answer too long:" + answer
         
-        cur.execute(f"INSERT INTO QuestionList VALUES ({userId},{questionId}, '{encode(question)}', '{encode(answer)}', {status}, {memorizedTS})")
-        cur.execute(f"INSERT INTO ChallengeData VALUES ({userId},{questionId}, 0, -1)")
+        cur.execute(f"INSERT INTO QuestionList VALUES ({userId}, {questionId}, '{encode(question)}', '{encode(answer)}', {status}, 0)")
+        cur.execute(f"INSERT INTO ChallengeData VALUES ({userId}, {questionId}, 0, -1)")
         cur.execute(f"UPDATE IDInfo SET nextId = {questionId + 1} WHERE type = 2 AND userId = {userId}")
         
         if bookId != 0:
@@ -212,28 +234,33 @@ def importWork(userId, bookId, updateType, checkDuplicate, newlist):
 
     conn.commit()
     threads -= 1
-    return "Success!"
+    return "Success"
 
 def importWorkGate(userId, bookId, updateType, checkDuplicate, newlist):
     conn = newconn()
     cur = conn.cursor()
+    
+    global lastop
 
     res = ""
     try:
         res = importWork(userId, bookId, updateType, checkDuplicate, newlist)
+            
+        if not "Success" in res:
+            res = "Failed<br>" + res
+            if userId in lastop.keys():
+                del lastop[userId]
     except:
-        import traceback
-        traceback.print_exc()
         res = "Failed"
-        global lastop
         if userId in lastop.keys():
             del lastop[userId]
     
     global dataUploadResult
     dataUploadResult[userId] = (res, time.time())
 
-@app.post("/api/data/import", response_class=HTMLResponse)
+@app.post("/api/data/import")
 async def apiImportData(request: Request, background_tasks: BackgroundTasks):
+    clearOutdated()
     ip = request.client.host
     form = await request.form()
     conn = newconn()
@@ -250,28 +277,31 @@ async def apiImportData(request: Request, background_tasks: BackgroundTasks):
         if userId in dataUploadResult.keys():
             t = dataUploadResult[userId]
             if t[0] != '':
-                if t[0] == "Failed":
-                    return JSONResponse({"success": 0, "msg": t[0]})
+                if t[0].find("Failed") != -1:
+                    del dataUploadResult[userId]
+                    return {"success": True, "status": 0, "msg": t[0]}
+                elif t[0] == "Success":
+                    del dataUploadResult[userId]
+                    return {"success": True, "status": 1, "msg": "Success"}
                 elif t[0].startswith("Progress"):
                     progress = t[0].replace("Progress","")
-                    return JSONResponse({"success": 1, "msg": f"{progress}% Finished"})
+                    return {"success": True, "status": 2, "msg": f"{progress}% Finished"}
                 else:
-                    return JSONResponse({"success": 2, "msg": t[0]})
+                    return {"success": True, "status": 2, "msg": t[0]}
             else:
-                return JSONResponse({"success": 1, "msg": "Still working on it... <i class='fa fa-spinner fa-spin'></i>"})
-        return JSONResponse({"success": 0, "msg": "Upload result has been cleared!"})
+                return {"status": 2, "msg": "Still working on it... <i class='fa fa-spinner fa-spin'></i>"}
+        return {"status": 0, "msg": "Upload result has been cleared!"}
 
     if userId in dataUploadResult.keys():
-        return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>Another upload task is running!</p>"
+        return {"success": False, "msg": "Another upload task is running!"}
 
     # Do file check
-    form = await request.form()
     f = form["file"]
     if f.filename == '':
-        return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>Invalid import! E2: Empty file name</p>"
+        return {"success": False, "msg": "Invalid import! E2: Empty file name"}
 
     if not f.filename.endswith(".xlsx"):
-        return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>Only .xlsx files are supported!</p>"
+        return {"success": False, "msg": "Only .xlsx files are supported!"}
     
     ts = int(time.time())
 
@@ -284,11 +314,9 @@ async def apiImportData(request: Request, background_tasks: BackgroundTasks):
     try:
         newlist = pd.read_excel(buf, engine = "openpyxl")
         if list(newlist.keys()).count("Question") != 1 or list(newlist.keys()).count("Answer")!=1:
-            return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>Invalid format! The columns must contain 'Question','Answer'!</p>"
+            return {"success": False, "msg": "Invalid format! The columns must contain 'Question','Answer'!"}
     except:
-        import traceback
-        traceback.print_exc()
-        return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>Invalid format! The columns must contain 'Question','Answer'!</p>"
+        return {"success": False, "msg": "Invalid format! The columns must contain 'Question','Answer'!"}
     
     updateType = form["updateType"]
     yesno = {"yes": True, "no": False}
@@ -296,11 +324,11 @@ async def apiImportData(request: Request, background_tasks: BackgroundTasks):
     checkDuplicate = yesno[checkDuplicate]
 
     bookId = int(form["bookId"])
-
+    
     global lastop
     if userId in lastop.keys():
         if int(time.time()) - lastop[userId] <= 300:
-            return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>You can only do one import each 5 minutes!</p>"
+            return {"success": False, "msg": "You can only do one import each 5 minutes!"}
         else:
             del lastop[userId]
 
@@ -308,79 +336,51 @@ async def apiImportData(request: Request, background_tasks: BackgroundTasks):
 
     global threads
     if threads >= 8:
-        return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><link href='/css/main.css' rel='stylesheet'><p>The server is handling too many data import requests at this time... Please try again later!</p>"
+        return {"success": False, "msg": "The server is handling too many data import requests at this time... Please try again later!"}
     else:
         lastop[userId] = int(time.time())
         background_tasks.add_task(importWorkGate, userId, bookId, updateType, checkDuplicate, newlist)
-
-    return "<script src='https://cdn.charles14.xyz/js/jquery-3.6.0.min.js'></script><script src='/js/general.js'></script><script>GetUploadResult()</script>\
-        <link href='https://cdn.charles14.xyz/css/all.min.css' rel='stylesheet'><link href='/css/main.css' rel='stylesheet'>\
-            <p id='result'>Working on it... <i class='fa fa-spinner fa-spin'></i></p>"
-
-@app.post("/api/data/export")
-async def apiExportData(request: Request):
-    ip = request.client.host
-    form = await request.form()
-    conn = newconn()
-    cur = conn.cursor()
-    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
-        raise HTTPException(status_code=401)
-
-    userId = int(form["userId"])
-    token = form["token"]
-    if not validateToken(userId, token):
-        raise HTTPException(status_code=401)
     
-    exportType = form["exportType"]
-    tk = str(uuid.uuid4())
+    return {"success": True, "msg": "Working on it... <i class='fa fa-spinner fa-spin'></i>"}
+
+def prepareData(token):
     global dataDownloadToken
-    dataDownloadToken[tk] = (userId, exportType, int(time.time()), tk)
+    global dataPreparation
+    global dlthreads
 
-    return {"success": True, "token": tk}
+    dlthreads += 1
 
-def nginxException(status_code):
-    return "/error?code=" + str(status_code)
+    dataPreparation[token] = "Wait"
 
-queue = []
-@app.get("/download")
-async def apiDownload(token: str, request: Request, background_tasks: BackgroundTasks):
-    ip = request.client.host
-    conn = newconn()
-    cur = conn.cursor()
-    if not token.replace("-","").isalnum():
-        return RedirectResponse(nginxException(404))
-    
-    global dataDownloadToken
-    if not token in dataDownloadToken:
-        return RedirectResponse(nginxException(404))
-    
-    if config.max_concurrent_download != -1 and len(queue) > config.max_concurrent_download:
-        return RedirectResponse(nginxException(503))
-    
-    queue.append(token)
-    
     d = dataDownloadToken[token]
     userId = d[0]
     exportType = d[1]
-    ts = d[2]
-    del dataDownloadToken[token]
-
-    if int(time.time()) - ts > 1800: # 10 minutes
-        return RedirectResponse(nginxException(404))
+    bookId = d[2]
     
     StatusToStatusText = {-3: "Question bound to group", -2: "Added from website", -1: "File imported", 0: "None", 1: "Default", 2: "Tagged", 3: "Deleted"}
 
     conn = newconn()
     cur = conn.cursor()
 
+    tempfile = f"/tmp/MyMemoTemp{userId}{int(time.time())}"
+
     if exportType == "xlsx":
         buf = io.BytesIO()
         df = pd.DataFrame()
-        writer = pd.ExcelWriter(f'/tmp/MyMemoTemp{userId}', engine='xlsxwriter')
+        writer = pd.ExcelWriter(tempfile, engine='xlsxwriter')
         writer.book.filename = buf
 
-        cur.execute(f"SELECT question, answer, status FROM QuestionList WHERE userId = {userId}")
-        d = cur.fetchall()
+        cur.execute(f"SELECT questionId, question, answer, status FROM QuestionList WHERE userId = {userId}")
+        t = cur.fetchall()
+        d = []
+        if bookId == 0:
+            for tt in t:
+                d.append((tt[1], tt[2], tt[3]))
+        else:
+            p = getBookData(userId, bookId)
+            for tt in t:
+                if tt[0] in p:
+                    d.append((tt[1], tt[2], tt[3]))
 
         if len(d) == 0:
             df = df.append(pd.DataFrame([["","",""]], columns = ["Question", "Answer", "Status"]).astype(str))
@@ -391,18 +391,15 @@ async def apiDownload(token: str, request: Request, background_tasks: Background
         df.to_excel(writer, sheet_name = 'Question List', index = False)
         writer.save()
         buf.seek(0)
+        
+        dataPreparation[token] = buf
 
-        queue.remove(token)
-
-        background_tasks.add_task(os.system, f"rm -f /tmp/MyMemoTemp{userId}")
-
-        return StreamingResponse(buf, headers={"Content-Disposition": "attachment; filename=MyMemo_Export_QuestionList.xlsx", \
-            "Content-Type": "application/octet-stream"})
+        os.system(f"rm -f {tempfile}")
     
     else:
         buf = io.BytesIO()
         df = pd.DataFrame()
-        writer = pd.ExcelWriter(f'/tmp/MyMemoTemp{userId}', engine='xlsxwriter')
+        writer = pd.ExcelWriter(tempfile, engine='xlsxwriter')
         writer.book.filename = buf
 
         cur.execute(f"SELECT questionId, question, answer, status FROM QuestionList WHERE userId = {userId}")
@@ -464,17 +461,77 @@ async def apiDownload(token: str, request: Request, background_tasks: Background
         writer.save()
         buf.seek(0)
 
-        queue.remove(token)
-        
-        background_tasks.add_task(os.system, f"rm -f /tmp/MyMemoTemp{userId}")
+        dataPreparation[token] = buf
 
-        return StreamingResponse(buf, headers={"Content-Disposition": "attachment; filename=MyMemo_Export_AllData.xlsx", \
+        os.system(f"rm -f {tempfile}")
+    
+    dlthreads -= 1
+
+@app.post("/api/data/export")
+async def apiExportData(request: Request, background_tasks: BackgroundTasks):
+    clearOutdated()
+    ip = request.client.host
+    form = await request.form()
+    conn = newconn()
+    cur = conn.cursor()
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
+
+    userId = int(form["userId"])
+    token = form["token"]
+    if not validateToken(userId, token):
+        raise HTTPException(status_code=401)
+    
+    global dlthreads
+    if dlthreads >= 8:
+        return {"success": False, "msg": "The server is handling too many download requests at this time! Try again later..."}
+    
+    exportType = form["exportType"]
+    bookId = int(form["bookId"])
+    tk = str(uuid.uuid4())
+    global dataDownloadToken
+    dataDownloadToken[tk] = (userId, exportType, bookId, int(time.time()), tk)
+    background_tasks.add_task(prepareData, tk)
+
+    return {"success": True, "token": tk}
+
+@app.post("/api/data/export/status")
+async def apiExportStatus(request: Request):
+    clearOutdated()
+    ip = request.client.host
+    conn = newconn()
+    cur = conn.cursor()
+    form = await request.form()
+
+    token = form["token"]
+    
+    if not token in dataPreparation.keys():
+        return {"success": False, "status": -1, "msg": "Invalid token!"}
+    
+    if dataPreparation[token] == "Wait":
+        return {"success": True, "status": 0, "msg": "Please wait until the download is ready! <i class='fa fa-spinner fa-spin'></i>"}
+    else:
+        return {"success": True, "status": 1, "msg": "Download is ready!"}
+
+def nginxException(status_code):
+    return "/error?code=" + str(status_code)
+
+@app.get("/download")
+async def apiDownload(token: str, request: Request):
+    clearOutdated()
+    ip = request.client.host
+    conn = newconn()
+    cur = conn.cursor()
+    if not token.replace("-","").isalnum():
+        return RedirectResponse(nginxException(404))
+
+    if not token in dataPreparation.keys():
+        return "Invalid token!"
+    
+    buf = dataPreparation[token]
+    if buf == "Wait":
+        return "Download is still being prepared! Wait some seconds and refresh your page!"
+    del dataPreparation[token]
+
+    return StreamingResponse(buf, headers={"Content-Disposition": "attachment; filename=MyMemo_Export.xlsx", \
             "Content-Type": "application/octet-stream"})
-
-def clearOutdatedResult():
-    global dataUploadResult
-    while 1:
-        for userId in dataUploadResult.keys():
-            if time.time() - dataUploadResult[userId][1] >= 120:
-                del dataUploadResult[userId]
-        time.sleep(300)

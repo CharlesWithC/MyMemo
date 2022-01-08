@@ -50,6 +50,8 @@ async def apiAdminUserList(request: Request):
         orderBy = "userId"
     if orderBy == "username":
         orderBy = "plain_username"
+    if orderBy == "age":
+        orderBy = "int_age"
 
     order = form["order"]
     if not order in ["asc", "desc"]:
@@ -87,7 +89,8 @@ async def apiAdminUserList(request: Request):
             status = "Deactivated"
 
         for mm in muted:
-            if mm[0] == dd[0]:
+            if abs(mm[0]) == abs(dd[0]):
+                userType = 2
                 if int(mm[1]) == -1:
                     status += " , Muted forever"
                 else:
@@ -106,13 +109,13 @@ async def apiAdminUserList(request: Request):
             inviterUsername = decode(t[0][0])
 
         regts = 0
-        cur.execute(f"SELECT timestamp FROM UserEvent WHERE userId = {dd[0]} AND event = 'register'")
+        cur.execute(f"SELECT timestamp FROM UserEvent WHERE userId = {abs(dd[0])} AND event = 'register'")
         t = cur.fetchall()
         if len(t) > 0:
             regts = t[0][0]
 
         prv = ""
-        cur.execute(f"SELECT item, value FROM Privilege WHERE userId = {dd[0]}")
+        cur.execute(f"SELECT item, value FROM Privilege WHERE userId = {abs(dd[0])}")
         t = cur.fetchall()
         if len(t) == 0:
             prv = "/"
@@ -125,7 +128,7 @@ async def apiAdminUserList(request: Request):
         username = dd[1]
         plain_username = dd[1]
         if username != "@deleted" and dd[0] != 0:
-            cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {dd[0]}")
+            cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {abs(dd[0])}")
             t = cur.fetchall()
             if len(t) > 0:
                 username = f"<a href='/user?userId={dd[0]}'><span class='username' style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
@@ -133,13 +136,17 @@ async def apiAdminUserList(request: Request):
                 username = f"<a href='/user?userId={dd[0]}'><span class='username'>{username}</span></a>"
 
         if dd[3] != 0:
-            cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {dd[3]}")
+            cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {abs(dd[3])}")
             t = cur.fetchall()
             if len(t) > 0:
                 inviterUsername = f"<a href='/user?userId={dd[3]}'><span class='username' style='color:{t[0][1]}'>{inviterUsername}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
             else:
                 inviterUsername = f"<a href='/user?userId={dd[3]}'><span class='username'>{inviterUsername}</span></a>"
         
+        inviterInfo = f"{inviterUsername} (UID: {dd[3]})"
+        if inviterUsername == "default":
+            inviterInfo = "/"
+
         email = "/"
         if dd[0] != 0 and username != "@deleted":
             email = decode(dd[2])
@@ -148,7 +155,7 @@ async def apiAdminUserList(request: Request):
         if inviteCode == "":
             inviteCode = "/"
 
-        users.append({"userId": str(dd[0]), "username": username, "plain_username": plain_username, "email": email, "inviter": f"{inviterUsername} (UID: {dd[3]})", "inviteCode": inviteCode, "age": CalculateAge(regts), "userType": userType, "isAdmin": isAdmin, "status": status, "privilege": prv})
+        users.append({"userId": str(dd[0]), "username": username, "plain_username": plain_username, "email": email, "inviter": inviterInfo, "inviteCode": inviteCode, "int_age": int(time.time() - regts), "age": CalculateAge(regts), "userType": userType, "isAdmin": isAdmin, "status": status, "privilege": prv})
         
     cur.execute(f"SELECT puserId, username, email, inviter FROM UserPending")
     d = cur.fetchall()
@@ -162,7 +169,7 @@ async def apiAdminUserList(request: Request):
         if len(t) != 0:
             inviterUsername = decode(t[0][0])
 
-        users_pending.append({"userId": str(dd[0]) + "*", "username": decode(dd[1]), "plain_username": decode(dd[1]), "email": decode(dd[2]), "inviter": f"{inviterUsername} (UID: {dd[3]})", "inviteCode": "/", "age": -1, "userType": 5, "isAdmin": False, "status": "Pending Activation", "privilege": "/"})
+        users_pending.append({"userId": str(dd[0]) + "*", "username": decode(dd[1]), "plain_username": decode(dd[1]), "email": decode(dd[2]), "inviter": f"{inviterUsername} (UID: {dd[3]})", "inviteCode": "/", "int_age": 0, "age": "0 day", "userType": 5, "isAdmin": False, "status": "Pending Activation", "privilege": "/"})
 
     t = {}
     for dd in users:
@@ -174,7 +181,9 @@ async def apiAdminUserList(request: Request):
         if not ok:
             continue
         if orderBy == "userId" or orderBy == "none":
-            t[int(dd["userId"])] = dd
+            t[abs(int(dd["userId"]))] = dd
+        elif orderBy == "int_age":
+            t[str(dd["int_age"]).zfill(20) + str(dd["userId"].replace("*","")).zfill(20)] = dd
         else:
             t[str(dd[orderBy]) + "<id>" + str(dd["userId"])] = dd
     ret1 = []
@@ -196,7 +205,7 @@ async def apiAdminUserList(request: Request):
                 break
         if not ok:
             continue
-        if orderBy == "userId" or orderBy == "none":
+        if orderBy == "userId" or orderBy == "int_age" or orderBy == "none":
             t[int(dd["userId"].replace("*",""))] = dd
         else:
             t[str(dd[orderBy]) + "<id>" + str(dd["userId"].replace("*",""))] = dd
@@ -282,6 +291,8 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
         t = cur.fetchall()
         if len(t) > 0:
             inviter = decode(t[0][0])
+        if inviter == "default":
+            inviter = "/"
 
         cnt = 0
         cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {abs(uid)}")
@@ -294,7 +305,6 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
         t = cur.fetchall()
         if len(t) > 0:
             regts = t[0][0]
-        age = math.ceil((time.time() - regts) / 86400)
 
         msg = ""
         if banned:
@@ -303,7 +313,7 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
         if sessions.CheckDeletionMark(uid):
             msg += "Account deactivated! and marked for deletion\n"
 
-        return {"success": True, "msg": f"{d[0]} (UID: {uid})\nEmail: {decode(d[1])}\nInvitation Code: {d[2]}\nInviter: {inviter} (UID: {d[3]})\nQuestion Count: {cnt}\nAccount age: {age} day(s)\n{msg}"}
+        return {"success": True, "msg": f"{d[0]} (UID: {uid})\nEmail: {decode(d[1])}\nInvitation Code: {d[2]}\nInviter: {inviter} (UID: {d[3]})\nQuestion Count: {cnt}\nAccount age: {CalculateAge(regts)} day(s)\n{msg}"}
     
     elif command[0] == "create_user":
         if len(command) != 4:
@@ -323,6 +333,26 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
         if validators.email(email) != True:
             return {"success": False, "msg": "Invalid email!"}
 
+        cur.execute(f"DELETE FROM UserPending WHERE expire < {int(time.time())}")
+        conn.commit()
+        cur.execute(f"SELECT username, email FROM UserPending")
+        t = cur.fetchall()
+        for tt in t:
+            if decode(tt[0]).lower() == decode(username).lower():
+                return {"success": False, "msg": "Username has been occupied!"}
+            if decode(tt[1]).lower() == email.lower():
+                return {"success": False, "msg": "Email has already been registered!"}
+                
+        cur.execute(f"DELETE FROM PendingEmailChange WHERE expire < {int(time.time())}")
+        conn.commit()
+        cur.execute(f"SELECT email FROM PendingEmailChange")
+        t = cur.fetchall()
+        for tt in t:
+            if decode(tt[0]).lower() == email.lower():
+                return {"success": False, "msg": "Email has already been registered!"}
+            elif tt[0].startswith("!") and decode(tt[0].lower()[1:]) == email.lower():
+                return {"success": False, "msg": "The previous owner of this email has updated their email within 7 days so this email address is reserved for 7 days!"}
+
         cur.execute(f"SELECT username, email FROM UserInfo")
         t = cur.fetchall()
         for tt in t:
@@ -337,11 +367,54 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
         background_tasks.add_task(sendVerification, email, decode(username), "Account activation", \
             f"Welcome {decode(username)}! Please verify your email to activate your account!", "3 hours", \
                 "https://memo.charles14.xyz/user/activate?token="+token)
-        cur.execute(f"INSERT INTO UserPending VALUES ('{username}', '{encode(email)}', '{encode(password)}', {inviter}, '{token}', {int(time.time() + 3600 * 3)})")
+                
+        puserId = 1
+        try:
+            cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 0")
+            t = cur.fetchall()
+            if len(t) > 0:
+                puserId = t[0][0]
+            cur.execute(f"UPDATE IDInfo SET nextId = {puserId + 1} WHERE type = 0")
+
+            cur.execute(f"INSERT INTO UserPending VALUES ({puserId}, '{username}', '{encode(email)}', '{encode(password)}', {inviter}, '{token}', {int(time.time() + 3600 * 3)})")
+            conn.commit()
+
+            return {"success": True, "msg": f"User registered but pending email verification!"}
+        except:
+            sessions.errcnt += 1
+            return {"success": False, "msg": "Unknown error occured. Try again later..."}
+
+    elif command[0] == "delete_pending":
+        if len(command) != 2:
+            return {"success": False, "msg": "Usage: delete_pending [puserId]\nDelete a pending user"}
+
+        puserId = command[1]
+
+        if puserId.isdigit():
+            cur.execute(f"SELECT * FROM UserPending WHERE puserId = {puserId}")
+            if len(cur.fetchall()) == 0:
+                cur.execute(f"SELECT puserId FROM UserPending WHERE username = '{encode(puserId)}'")
+                t = cur.fetchall()
+                if len(t) == 0:
+                    return {"success": False, "msg": "User not found!"}
+                else:
+                    puserId = t[0][0]
+            else:
+                puserId = int(puserId)
+        else:
+            cur.execute(f"SELECT puserId FROM UserPending WHERE username = '{encode(puserId)}'")
+            t = cur.fetchall()
+            if len(t) == 0:
+                return {"success": False, "msg": "User not found!"}
+            else:
+                puserId = t[0][0]
+            
+        cur.execute(f"DELETE FROM UserPending WHERE puserId = {puserId}")
+        cur.execute(f"DELETE FROM UserPendingToken WHERE puserId = {puserId}")
         conn.commit()
-        
-        return {"success": True, "msg": f"User registered but pending email verification!"}
-    
+
+        return {"success": True, "msg": "User deleted!"}            
+
     elif command[0] == "delete_user":
         if len(command) != 2:
             return {"success": False, "msg": "Usage: delete_user [userId]\nThe account must be marked as deletion first, and admin will be able to bring the deletion schedule forward"}
@@ -382,7 +455,7 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
             cur.execute(f"UPDATE UserInfo SET userId = {abs(uid)} WHERE userId = {uid}")
             conn.commit()
             
-            return {"success": False, "msg": "Account deleted"}
+            return {"success": True, "msg": "Account deleted"}
     
     elif command[0] == "delete_user_completely":
         if len(command) != 2:
@@ -424,7 +497,7 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
             cur.execute(f"DELETE FROM UserSessionHistory WHERE userId = {uid}")
             conn.commit()
 
-            return {"success": False, "msg": "Account data wiped!"}
+            return {"success": True, "msg": "Account data wiped!"}
     
     elif command[0] == 'mute':
         if len(command) != 3:
@@ -500,7 +573,7 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
         value = int(command[3])
 
         if not item in ['question_limit', 'book_limit', 'allow_group_creation', 'group_member_limit']:
-            return {"success": False, "msg": f"Unknown privilege item: {item}. Acceptable item list: question_limit"}
+            return {"success": False, "msg": f"Unknown privilege item: {item}. Acceptable item list: question_limit, book_limit, allow_group_creation, group_member_limit"}
 
         cur.execute(f"SELECT * FROM Privilege WHERE userId = {uid} AND item = '{item}'")
         if len(cur.fetchall()) == 0:
@@ -541,7 +614,7 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
 
     elif command[0] == "set_name_tag":
         if len(command) != 4:
-            return {"success": False, "msg": "Usage: set_name_tag [userId] [tag] [tag type]"}
+            return {"success": False, "msg": "Usage: set_name_tag [userId] [tag] [tag color]"}
 
         uid = 0
         if not command[1].isdigit():
@@ -558,7 +631,7 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
         tagtype = command[3]
 
         if not tagtype.isalnum():
-            return {"success": False, "msg": "Invalid tag type!"}
+            return {"success": False, "msg": "Invalid tag color!"}
         
         cur.execute(f"SELECT * FROM UserNameTag WHERE userId = {uid}")
         t = cur.fetchall()
@@ -627,7 +700,7 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
         cur.execute(f"INSERT INTO BanReason VALUES ({uid}, '{reason}')")
         conn.commit()
 
-        return {"success": False, "msg": f"Banned user {uid}"}
+        return {"success": True, "msg": f"Banned user {uid}"}
 
     elif command[0] == "unban":
         if len(command) != 2:
@@ -653,7 +726,7 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
                 cur.execute(f"UPDATE UserInfo SET userId = {uid} WHERE userId = {-uid}")
                 cur.execute(f"DELETE FROM BanReason WHERE userId = {uid}")
                 conn.commit()
-                return {"success": False, "msg": f"Unbanned user {uid}"}
+                return {"success": True, "msg": f"Unbanned user {uid}"}
 
     elif command[0] == "get_user_count":
         cur.execute(f"SELECT COUNT(*) FROM UserInfo")

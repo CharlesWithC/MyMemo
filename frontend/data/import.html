@@ -19,19 +19,108 @@
     <link href="/css/main.css" rel="stylesheet">
 
     <link rel="icon" href="/img/icon-sm.png">
+
+    <script>
+        $(document).ready(function () {
+            $("#userId").val(localStorage.getItem("userId"));
+            $("#token").val(localStorage.getItem("token"));
+            bookList = [];
+            $.ajax({
+                url: "/api/book",
+                method: 'POST',
+                async: true,
+                dataType: "json",
+                data: {
+                    userId: localStorage.getItem("userId"),
+                    token: localStorage.getItem("token")
+                },
+                success: function (r) {
+                    for (var i = 0; i < r.length; i++)
+                        $("#book").append("<option value=" + r[i].bookId + ">" + r[i].name +
+                            "</option>");
+                }
+            });
+            $("#submit").click(function () {
+                var fdata = new FormData();
+                var files = $('#file')[0].files[0];
+                fdata.append("file", files);
+                fdata.append("updateType", $('input[name="updateType"]:checked').val());
+                fdata.append("checkDuplicate", $('input[name="checkDuplicate"]:checked').val());
+                fdata.append("bookId", $('select[name="bookId"]').val());
+                fdata.append("userId", localStorage.getItem("userId"));
+                fdata.append("token", localStorage.getItem("token"));
+                $.ajax({
+                    url: "/api/data/import",
+                    method: 'POST',
+                    async: true,
+                    dataType: "json",
+                    data: fdata,
+                    processData: false,
+                    contentType: false,
+                    success: function (r) {
+                        if (!r.success) {
+                            NotyNotification(r.msg, type = 'error');
+                            return;
+                        } else {
+                            $("#upload-form").hide();
+                            $("#upload-msg").show();
+                            $("#msg").removeAttr("style");
+                            $("#msg").html(r.msg);
+                            interval = setInterval(function () {
+                                $.ajax({
+                                    url: "/api/data/import",
+                                    method: 'POST',
+                                    async: true,
+                                    dataType: "json",
+                                    data: {
+                                        getResult: "getResult",
+                                        userId: localStorage.getItem(
+                                            "userId"),
+                                        token: localStorage.getItem("token")
+                                    },
+                                    success: function (r) {
+                                        $("#msg").html(r.msg);
+                                        if (r.status == 0) {
+                                            $("#msg").css("color",
+                                                "red");
+                                            clearInterval(interval);
+                                            $("#retry").show();
+                                        } else if (r.status == 1) {
+                                            $("#msg").css("color",
+                                                "green");
+                                            clearInterval(interval);
+                                            $("#retry").show();
+                                        }
+                                    }
+                                })
+                            }, 1000);
+                        }
+                    },
+                    error: function (r, textStatus, errorThrown) {
+                        AjaxErrorHandler(r, textStatus, errorThrown);
+                    }
+                });
+            });
+            $("#retry").click(function () {
+                $("#upload-form").show();
+                $("#upload-msg").hide();
+                $("#retry").hide();
+            });
+        });
+    </script>
 </head>
 
 <body>
     <div id="navigate" style="z-index:100">
         <div class="leftside">
             <div class="sqbtn">
-                <a href="/"><img class="icon"  src="/img/icon.png" style="width:2.2em;height:2.2em"></a>
+                <a href="/"><img class="icon" src="/img/icon.png" style="width:2.2em;height:2.2em"></a>
             </div>
         </div>
         <div class="userctrl">
-            <a href='/user'><i class="fa fa-user"></i></a> <span id="navusername"><a href='/user/login'>Sign in</a>&nbsp;&nbsp; </span>
-            <a class="only-signed-in" href='/notifications' style="display:none"><i
-                    class="fa fa-bell"></i></a>
+            <a href='/user'><i class="fa fa-user"></i></a> <span id="navusername"><a href='/user/login'>Sign
+                    in</a>&nbsp;&nbsp; </span>
+            <a class="only-signed-in" href='/notifications' style="display:none"><i class="fa fa-bell"></i></a>
             <a href='/settings'><i class="fa fa-cogs"></i></a>
             <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i
                     class="fa fa-arrow-right-from-bracket"></i></a>
@@ -40,36 +129,73 @@
 
     <div id="content" class="container">
         <h1 class="title">Import Data</h1>
-        <div class="subcontainer sub-div">
-            <p>You can upload a new question list here, the file must be a .xlsx table.</p>
-            <p>The columns must contain 'Question','Answer'. (It can also contain other columns but Question and Answer
-                are
-                required)</p>
-            <p>'Status' is an optional column. If you set it, the script will decide the status of the question.</p>
+        <div class="subcontainer sub-div sub-left">
+            <h2>Requirements</h2>
+            <h3>Format</h3>
+            <p>1.Must be .xlsx table file</p>
+            <p>2.Must contain column 'Question' and 'Answer'.
+                (It can also contain other columns but Question and Answer are required)</p>
+            <p>3.'Status' is an optional column, it can decide the preset status of the question.</p>
             <br>
-            <p>There are three types of upload you can choose: Append, Overwrite and Clear & Overwrite</p>
-            <p>If you choose Append, the uploaded questions will be appended to existing database. Duplicate questions may
-                exist and
-                you
-                will be warned.</p>
-            <p>If you choose Overwrite, when duplicated questions are found, they will be replaced by uploaded ones. Other
-                questions
-                will be appended to existing database.</p>
-            <p>If you choose Clear & Overwrite, all the existing questions will be deleted and only the uploaded ones will
-                be
-                kept.
+            <h3>Options</h3>
+            <h4>Data Update Type</h4>
+            <p>Append: Uploaded questions will be appended to existing database. You will be warned of duplicate
+                questions.</p>
+            <p>Overwrite: Duplicated questions will overwrite existing ones. Other questions will be appended directly.
             </p>
-            <p>Please note that if you search for a question which is duplicated, only the first-imported one will be shown.
+            <p>Clear & Overwrite: Existing questions will be cleared before appending uploaded questions.</p>
+            <br>
+            <p>P.S.: Excel doesn't support multiple lines in one cell, use \n as line break to write multi-line data.
             </p>
-            <br>
-            <p>And, by the way, Excel doesn't support multiple lines in one cell, so if you want to write question / answer
-                with multiple lines, use \n as line break.</p>
-            <br>
-            <p id="msg" style="color:red"></p>
-            <iframe id="importFrame" src="/data/importFrame" style="width:100%;height:28em" frameBorder="0"></iframe>
-            <button id="submit" type="submit" class="btn btn-primary"
-                onclick="var iframe = document.getElementById('importFrame');iframe.src = iframe.src;"><i
-                    class="fa fa-undo"></i> Clear</button>
+        </div>
+        <div class="sub-right">
+            <div id="upload-form" class="subcontainer sub-div">
+                <h2>Upload File</h2>
+                <div class="mb-3">
+                    <input class="form-control" type="file" name="file" id="file">
+                </div>
+                <br>
+                <p>Upload Type:
+                    <div class="form-check">
+                        <input type="radio" id="append" name="updateType" value="append" checked
+                            class="form-check-input" type="radio" name="flexRadioDefault">
+                        <label class="form-check-label" for="append">Append</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="radio" id="overwrite" name="updateType" value="overwrite" class="form-check-input"
+                            type="radio" name="flexRadioDefault">
+                        <label class="form-check-label" for="overwrite">Overwrite</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="radio" id="clear_overwrite" name="updateType" value="clear_overwrite"
+                            class="form-check-input" type="radio" name="flexRadioDefault">
+                        <label class="form-check-label" for="clear_overwrite">Clear & Overwrite</label>
+                    </div>
+                </p>
+                <p>Check duplicate question?
+                    <div class="form-check">
+                        <input type="radio" id="yes" name="checkDuplicate" value="yes" checked class="form-check-input"
+                            type="radio" name="flexRadioDefault">
+                        <label class="form-check-label" for="yes">Yes</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="radio" id="no" name="checkDuplicate" value="no" class="form-check-input"
+                            type="radio" name="flexRadioDefault">
+                        <label class="form-check-label" for="no">No</label>
+                    </div>
+                </p>
+                <p>Add to book:
+                    <select name="bookId" id="book" class="form-select">
+                    </select>
+                </p>
+                <button id="submit" class="btn btn-primary"><i class="fa fa-upload"></i> Upload</button>
+            </div>
+            <div id="upload-msg" class="subcontainer sub-div" style="display:none">
+                <h2>Upload Result</h2>
+                <p id="msg"></p>
+                <button id="retry" class="btn btn-primary" style="display:none"><i class="fa fa-sync"></i>
+                    Retry</button>
+            </div>
         </div>
     </div>
 
@@ -82,9 +208,11 @@
             <p>Copyright &copy; 2022 My Memo</p>
         </div>
         <div style="float:right;margin:1em">
-            <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo" target="_blank" rel="noopener noreferrer"><i class="fa fa-brands fa-github"></i>
+            <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo" target="_blank"
+                    rel="noopener noreferrer"><i class="fa fa-brands fa-github"></i>
                     GitHub</a></p>
-            <p>Developed by <a href="https://www.charles14.xyz" target="_blank" rel="noopener noreferrer">Charles</a></p>
+            <p>Developed by <a href="https://www.charles14.xyz" target="_blank" rel="noopener noreferrer">Charles</a>
+            </p>
         </div>
     </div>
 </body>

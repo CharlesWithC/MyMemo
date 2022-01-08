@@ -1,5 +1,14 @@
 # Update History
 
+## v5.6.9
+
+*Date: 2021/1/8*  
+Feature Updates:  
+1.Better data import & export functions  
+2.Enabled markdown for question & answer  
+3.Better user management for admin  
+4.Improved UI
+
 ## v5.6.8  
 
 *Date: 2021/1/8*  

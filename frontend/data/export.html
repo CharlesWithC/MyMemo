@@ -30,22 +30,74 @@
                 data: {
                     userId: localStorage.getItem("userId"),
                     token: localStorage.getItem("token"),
-                    exportType: $('input[name="exportType"]:checked').val()
+                    exportType: $('input[name="exportType"]:checked').val(),
+                    bookId: $('select[name="bookId"]').val()
                 },
                 success: function (r) {
                     token = r.token;
-                    setTimeout(function () {
-                        window.location.href = "/download?token=" + token;
-                    }, 3000);
                     NotyNotification("Success!");
-                    NotyNotification("Please be patient while the download is being prepared.",
-                        type = 'info', timeout = 5000);
+                    $("#msg").html("");
+                    preparing = false;
+                    interval = setInterval(function () {
+                        $.ajax({
+                            url: "/api/data/export/status",
+                            method: 'POST',
+                            async: true,
+                            dataType: "json",
+                            data: {
+                                token: token
+                            },
+                            success: function (r) {
+                                $("#msg").show();
+                                if (r.status == -1) {
+                                    $("#msg").html(r.msg);
+                                    $("#msg").css("color", "red");
+                                    clearInterval(interval);
+                                } else if (r.status == 0 && !preparing) {
+                                    preparing = true;
+                                    $("#msg").html(r.msg);
+                                    $("#msg").removeAttr("style");
+                                } else if (r.status == 1) {
+                                    $("#msg").html(r.msg);
+                                    $("#msg").css("color", "green");
+                                    clearInterval(interval);
+                                    window.location.href = "/download?token=" + token;
+                                }
+                            }
+                        });
+                    }, 1500);
                 },
                 error: function (r, textStatus, errorThrown) {
                     AjaxErrorHandler(r, textStatus, errorThrown);
                 }
             });
         }
+
+        $(document).ready(function () {
+            bookList = [];
+            $.ajax({
+                url: "/api/book",
+                method: 'POST',
+                async: true,
+                dataType: "json",
+                data: {
+                    userId: localStorage.getItem("userId"),
+                    token: localStorage.getItem("token")
+                },
+                success: function (r) {
+                    for (var i = 0; i < r.length; i++)
+                        $("#book").append("<option value=" + r[i].bookId + ">" + r[i].name +
+                            "</option>");
+                    if ($('input[name="exportType"]:checked').val() == "xlsx") $("#select-book")
+                        .show();
+                    else $("#select-book").hide();
+                }
+            });
+            $('input[type=radio]').change(function () {
+                if ($('input[name="exportType"]:checked').val() == "xlsx") $("#select-book").show();
+                else $("#select-book").hide();
+            });
+        });
     </script>
 </head>
 
@@ -68,26 +120,29 @@
 
     <div id="content" class="container">
         <h1 class="title">Export Data</h1>
-        <div class="subcontainer sub-div"></div>
-        <p>You can export the data here.</p>
-        <p>There are two options for you to choose: Excel Table and Raw Database File</p>
-        <p>If you choose Question List, you will get all the questions, answers and status in a .xlsx file which is
-            human-readable.</p>
-        <p>If you choose All Data, you will get all your data stored on the server except some sensitive data (such as
-            your password).</p>
-        <p>Please note that the questions and answers stored in the raw database file are encoded with base64. Status
-            code are integars: {1: "Default", 2: "Tagged", 3: "Deleted"}</p>
-        <p>And by the way, for server safety, you are not allowed to upload database directly.</p>
-        <br>
-        <p id="msg" style="color:red"></p>
-        <p>Type:
-            <input type="radio" id="xlsx" name="exportType" value="xlsx" checked>
-            <label for="xlsx">Question List</label>
-            <input type="radio" id="rawdb" name="exportType" value="rawdb">
-            <label for="rawdb">All Data</label>
-        </p>
-        <button id="submit" type="button" class="btn btn-primary" onclick="Export()"><i class="fa fa-download"></i>
-            Export</button>
+        <div class="subcontainer sub-div">
+            <p>Question List: A .xlsx file containing questions, answers and status .</p>
+            <p>All data: All your data stored on the server except some sensitive data (e.g. password).</p>
+            <p>
+                <div class="form-check">
+                    <input type="radio" id="xlsx" name="exportType" value="xlsx" checked class="form-check-input"
+                        type="radio" name="flexRadioDefault">
+                    <label class="form-check-label" for="xlsx">Question List</label>
+                </div>
+                <div class="form-check">
+                    <input type="radio" id="rawdb" name="exportType" value="rawdb" checked class="form-check-input"
+                        type="radio" name="flexRadioDefault">
+                    <label class="form-check-label" for="rawdb">All Data</label>
+                </div>
+            </p>
+            <p id="select-book" style="display:none">Book to export
+                <select name="bookId" id="book" class="form-select" style="max-width:fit-content">
+                </select>
+            </p>
+            <button id="submit" type="button" class="btn btn-primary" onclick="Export()"><i class="fa fa-download"></i>
+                Export</button>
+            <p id="msg"></p>
+        </div>
     </div>
     </div>
 

@@ -43,10 +43,10 @@ function UpdateShareList() {
                 AppendTableData("shareList", ["No data available"], undefined, "100%");
                 l = 0;
             }
-
-            SetTableInfo("shareList", "<p style='opacity:80%'>Showing " + l + " - " +
-                r + " / " + totalShare);
+            
             PaginateTable("shareList", page, total, "ShareListPage");
+            SetTableInfo("shareList", "<p style='opacity:80%'>Showing " + l + " - " +
+                r + " / " + totalShare + "</p>");
 
             $("#refresh-btn").html('<i class="fa fa-sync"></i>');
         },

@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>My Memo</title>
+    <title>Admin CLI - My Memo</title>
 
     <script src="https://cdn.charles14.xyz/js/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.charles14.xyz/js/bootstrap.bundle.min.js"></script>
@@ -22,6 +22,9 @@
 
     <script>
         $(document).ready(function () {
+            GenModal("<span style='color:yellow'><i class='fa fa-warning'></i></span> Attention",
+                `<p>This is the Admin CLI</p>
+                <p>If you are not familiar commands, you'd better use <a href='/admin/gui'>Admin GUI</a></p>`);
             $.ajax({
                 url: "/api/admin/command",
                 method: 'POST',
@@ -135,7 +138,7 @@
     </div>
 
     <div id="content" class="container">
-        <h1 class="title">Admin Command Line Interface</h1>
+        <h1 class="title">Admin CLI</h1>
 
         <div class="subcontainer sub-div">
             <div class="input-group mb-3">
@@ -153,30 +156,31 @@
 
             <h2>Command List</h2>
             <p>1. get_user_info [userId] - Get detailed user info of [userId]</p>
-            <p>2. create_user [username] [email] [password] - Create a user by admin, user will be shown as invited by
+            <p>2.1. create_user [username] [email] [password] - Create a user by admin, user will be shown as invited by
                 this
                 admin</p>
-            <p>3. delete_user [userId] - The account must be marked as deletion first, and admin will be able to bring
-                the
-                deletion schedule forward</p>
-            <p>4. delete_user_completely [userId] - Wipe all the data of [userId] (this should be requested by the user)
-            </p>
-            <p>5. mute [userId] [duration] - Mute [userId] for [duration] days | To mute forever, set [duration] to -1
-            </p>
-            <p>6. unmute [userId] - Unmute [userId]</p>
-            <p>7. set_privilege [userId] [item] [value] - Add [item] privilege for user [userId] ([item] can be
+            <p>2.2. delete_pending [puserId] - Delete a pending user</p>
+            <p>3.1. set_name_tag [userId] [tag] [tag color] - Add name tag [tag] for user [userId] ([tag color] is the color
+                of
+                tag)</p>
+            <p>3.2. remove_name_tag [userId] - Remove nametag from [userId]</p>
+            <p>4.1. set_privilege [userId] [item] [value] - Add [item] privilege for user [userId] ([item] can be
                 question_limit, book_limit, allow_group_creation, group_member_limit) | If privilege exists, then update
                 it
             </p>
-            <p>8. remove_privilege [userId] [item] - Delete [item] privilege from user [userId]</p>
-            <p>9. set_name_tag [userId] [tag] [tag type] - Add name tag [tag] for user [userId] ([tag type] is the color
-                of
-                tag)</p>
-            <p>10. remove_name_tag [userId] - Remove nametag from [userId]</p>
-            <p>11. ban [userId] [reason] - Ban account</p>
-            <p>12. unban [userId] - Unban account</p>
-            <p>13. get_user_count - Get user count</p>
-            <p>14. restart - Restart backend server</p>
+            <p>4.2. remove_privilege [userId] [item] - Delete [item] privilege from user [userId]</p>
+            <p>5.1. mute [userId] [duration] - Mute [userId] for [duration] days | To mute forever, set [duration] to -1
+            </p>
+            <p>5.2. unmute [userId] - Unmute [userId]</p>
+            <p>6.1. ban [userId] [reason] - Ban account</p>
+            <p>6.2. unban [userId] - Unban account</p>
+            <p>7.1. delete_user [userId] - The account must be marked as deletion first, and admin will be able to bring
+                the
+                deletion schedule forward</p>
+            <p>7.2. delete_user_completely [userId] - Wipe all the data of [userId] (this should be requested by the user)
+            </p>
+            <p>8. get_user_count - Get user count</p>
+            <p>9. restart - Restart backend server</p>
         </div>
     </div>
 

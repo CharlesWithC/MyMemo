@@ -28,6 +28,7 @@ def genCode(length = 8):
 
 def encode(s, removeHTMLTag = True):
     try:
+        s = s.replace("\n","  \n")
         if removeHTMLTag:
             s = re.sub("\\<.*?\\>", "<HTML_REMOVED>", s)
         s = s.replace("\\n","<n>")

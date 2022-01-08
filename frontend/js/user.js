@@ -58,7 +58,7 @@ function UpdateUserInfo() {
             $("#signout-btn").show();
             l = user.username.indexOf('>', user.username.indexOf('>') + 1);
             r = user.username.indexOf('<', user.username.indexOf('<', user.username.indexOf('<') + 1) + 1);
-            $("title").html(user.username.substr(l + 1, r - l - 1) + " | My Memo");
+            $("title").html(user.username.substr(l + 1, r - l - 1) + " - My Memo");
 
             $("#navusername").html(user.username);
             $("#username").html(user.username);
@@ -414,7 +414,7 @@ function Login() {
                         }
                         l = user.username.indexOf('>', user.username.indexOf('>') + 1);
                         r = user.username.indexOf('<', user.username.indexOf('<', user.username.indexOf('<') + 1) + 1);
-                        $("title").html(user.username.substr(l + 1, r - l - 1) + " | My Memo");
+                        $("title").html(user.username.substr(l + 1, r - l - 1) + " - My Memo");
 
                         if (localStorage.getItem("first-use") != "0" || localStorage.getItem("sign-out") == "1") {
                             $.ajax({
@@ -916,7 +916,7 @@ $(document).ready(function () {
                         $("#signout-btn").show();
                         l = user.username.indexOf('>', user.username.indexOf('>') + 1);
                         r = user.username.indexOf('<', user.username.indexOf('<', user.username.indexOf('<') + 1) + 1);
-                        $("title").html(user.username.substr(l + 1, r - l - 1) + " | My Memo");
+                        $("title").html(user.username.substr(l + 1, r - l - 1) + " - My Memo");
 
                         $("#username-public").html(user.username);
                         $("#bio-public").html(marked.parse(user.bio));

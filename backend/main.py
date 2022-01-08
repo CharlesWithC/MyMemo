@@ -53,7 +53,5 @@ if __name__ == "__main__":
     padProc.start()
     pevdProc = Process(target = PendingEmailVerificationDeletion, daemon=True)
     pevdProc.start()
-    corProc = Process(target = apis.data.clearOutdatedResult, daemon=True)
-    corProc.start()
 
     uvicorn.run("app:app", host = config.server_ip, port = config.server_port)

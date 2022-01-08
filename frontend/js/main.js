@@ -2,6 +2,11 @@
 // Author: @Charles-1414
 // License: GNU General Public License v3.0
 
+var isphone = false;
+if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+    isphone = true;
+}
+
 class MemoClass {
     constructor() {
         this.questionId = 0;
@@ -46,9 +51,10 @@ memo.questionId = parseInt(lsGetItem("memo-question-id", 0));
 memo.bookId = parseInt(lsGetItem("memo-book-id", 0));
 memo.bookList = JSON.parse(lsGetItem("book-list", JSON.stringify([])));
 memo.bookName = lsGetItem("memo-book-name", "");
-function UpdateBookName(){
+
+function UpdateBookName() {
     memo.bookList = JSON.parse(lsGetItem("book-list", JSON.stringify([])));
-    if(memo.bookList == []){
+    if (memo.bookList == []) {
         memo.bookId = 0;
         memo.bookName = "All questions";
         $("#book-name").html(memo.bookName);
@@ -89,11 +95,6 @@ var ccCorrectAudio = new Audio('/audio/correct.mp3');
 var ccWrongAudio = new Audio('/audio/wrong.mp3');
 
 function PageInit() {
-    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-        $("#home").css("line-height", "85%");
-    } else {
-        $("#home").css("line-height", "65%");
-    }
     l = ["Switch", "Practice", "Challenge", "Offline"];
     $("#mode").html(l[settings.mode]);
     $("#book-name").html(memo.bookName);
@@ -150,14 +151,14 @@ function ShowQuestion() {
     }
     if (settings.mode != 2) { // spj
         if (settings.swap == 0) {
-            $("#question").val(memo.question);
-            $("#answer").val("");
+            $("#question").html(marked.parse(memo.question));
+            $("#answer").html("");
         } else if (settings.swap == 1) {
-            $("#question").val("");
-            $("#answer").val(memo.answer);
+            $("#question").html("");
+            $("#answer").html(marked.parse(memo.answer));
         } else if (settings.swap == 2 && settings.mode != 1) {
-            $("#question").val(memo.question);
-            $("#answer").val(memo.answer);
+            $("#question").html(marked.parse(memo.question));
+            $("#answer").html(marked.parse(memo.answer));
         }
     }
     if (settings.autoPlay != 0) {
@@ -195,9 +196,9 @@ function ShowQuestion() {
         memo.speaker.cancel();
         msg = undefined;
         if (settings.swap != 1 || settings.swap == 1 && memo.displayingAnswer) {
-            msg = new SpeechSynthesisUtterance($("#question").val());
+            msg = new SpeechSynthesisUtterance($("#question").text());
         } else {
-            msg = new SpeechSynthesisUtterance($("#answer").val());
+            msg = new SpeechSynthesisUtterance($("#answer").text());
         }
         memo.speaker.speak(msg);
     }
@@ -214,11 +215,11 @@ function DisplayAnswer() {
     if (memo.started) {
         if (settings.mode == 0) {
             if (settings.swap == 0) {
-                if (!memo.displayingAnswer) $("#answer").val(memo.answer);
-                else $("#answer").val("");
+                if (!memo.displayingAnswer) $("#answer").html(marked.parse(memo.answer));
+                else $("#answer").html("");
             } else if (settings.swap == 1) {
-                if (!memo.displayingAnswer) $("#question").val(memo.question);
-                else $("#question").val("");
+                if (!memo.displayingAnswer) $("#question").html(marked.parse(memo.question));
+                else $("#question").html("");
             } else if (settings.swap == 2) {
                 return;
             }
@@ -288,6 +289,16 @@ function AutoPlayer() {
 function MemoStart() {
     $("#qa1").show();
     $("#qa2").hide();
+    if (isphone) {
+        $("#title2").remove();
+        $("#qa1").css("width", "100%");
+        $("#qa2").css("width", "100%");
+        $("#qa1").css("max-width", "100%");
+        $("#qa2").css("max-width", "100%");
+    } else {
+        $(".choice").css("width", "60%");
+        $(".choice").css("max-width", "60%");
+    }
     $("#statisticsQuestion").html("");
     $("#statisticsDetail").html("");
     if (settings.mode == 0) { // Switch mode
@@ -448,9 +459,9 @@ function MemoStart() {
                 memo.answer = "";
                 memo.questionStatus = r.status;
                 memo.choices = r.choices;
-                $("#cc-question").val(memo.question);
+                $("#cc-question").html(marked.parse(memo.question));
                 for (var i = 0; i < memo.choices.length; i++)
-                    $("#choice-" + i).html(memo.choices[i]);
+                    $("#choice-" + i).html(marked.parse(memo.choices[i]));
                 memo.challengeToken = r.challengeToken;
                 ShowQuestion();
             },
@@ -463,9 +474,9 @@ function MemoStart() {
     if (settings.mode != 1 && settings.mode != 2 && settings.autoPlay != 0) {
         settings.apinterval = setInterval(AutoPlayer, apdelay[settings.autoPlay] * 1000);
         $(".ap-btn").attr("onclick", "StopAutoPlayer()");
-        $(".ap-btn").html('<i class="fa fa-pause-circle"></i> Pause');
+        $(".ap-btn").html('<i class="fa fa-pause-circle"></i>');
         memo.speaker.cancel();
-        msg = new SpeechSynthesisUtterance($("#question").val());
+        msg = new SpeechSynthesisUtterance($("#question").text());
         memo.speaker.speak(msg);
     }
 }
@@ -529,9 +540,9 @@ function MemoPractice(res) {
     if (memo.practiceStatus != 2 && res == "no") {
         memo.practiceStatus = 2;
         if (settings.swap == 0 || settings.swap == 2) {
-            $("#answer").val(memo.answer);
+            $("#answer").html(marked.parse(memo.answer));
         } else {
-            $("#question").val(memo.question);
+            $("#question").html(marked.parse(memo.question));
         }
         $("#practice-msg").html("Try to memorize it!")
         $(".memo-practice-yes").html("<i class='fa fa-arrow-circle-right'></i> Next");
@@ -542,9 +553,9 @@ function MemoPractice(res) {
     if (memo.practiceStatus == 0 && res == "yes") {
         memo.practiceStatus = 1;
         if (settings.swap == 0 || settings.swap == 2) {
-            $("#answer").val(memo.answer);
+            $("#answer").html(marked.parse(memo.answer));
         } else {
-            $("#question").val(memo.question);
+            $("#question").html(marked.parse(memo.question));
         }
         $("#practice-msg").html("Are you correct?");
     } else if (memo.practiceStatus == 1 && res == "yes") {
@@ -562,9 +573,9 @@ var ccAnswered = false;
 function ChallengeChoice(choiceid) {
     if (ccAnswered) {
         ccAnswered = false;
-        $("#cc-question").val(memo.question);
+        $("#cc-question").html(marked.parse(memo.question));
         for (var i = 0; i < memo.choices.length; i++)
-            $("#choice-" + i).html(memo.choices[i]);
+            $("#choice-" + i).html(marked.parse(memo.choices[i]));
         $("#challenge-msg").html("Select your answer <i class='fa fa-arrow-up'></i>");
         ShowQuestion();
         $(".choice").css("background", "transparent");
@@ -629,9 +640,9 @@ function ChallengeChoice(choiceid) {
                     memo.answer = "";
                     memo.questionStatus = r.status;
                     memo.choices = r.choices;
-                    $("#cc-question").val(memo.question);
+                    $("#cc-question").html(marked.parse(memo.question));
                     for (var i = 0; i < memo.choices.length; i++)
-                        $("#choice-" + i).html(memo.choices[i]);
+                        $("#choice-" + i).html(marked.parse(memo.choices[i]));
                     memo.challengeToken = r.challengeToken;
                     $("#challenge-msg").html("Select your answer <i class='fa fa-arrow-up'></i>");
                     ShowQuestion();
@@ -718,14 +729,14 @@ function EditQuestion() {
             memo.answer = answer;
 
             if (settings.swap == 0 || settings.swap == 2 && settings.mode == 1) {
-                $("#question").val(memo.question);
-                $("#answer").val("");
+                $("#question").html(marked.parse(memo.question));
+                $("#answer").html("");
             } else if (settings.swap == 1) {
-                $("#question").val("");
-                $("#answer").val(memo.answer);
+                $("#question").html("");
+                $("#answer").html(marked.parse(memo.answer));
             } else if (settings.swap == 2 && settings.mode != 1 && settings.mode != 2) {
-                $("#question").val(memo.question);
-                $("#answer").val(memo.answer);
+                $("#question").html(marked.parse(memo.question));
+                $("#answer").html(marked.parse(memo.answer));
             }
 
             if (r.success == true) {
@@ -744,26 +755,26 @@ function EditQuestion() {
 
 function SpeakQuestion() {
     memo.speaker.cancel();
-    msg = new SpeechSynthesisUtterance($("#question").val());
+    msg = new SpeechSynthesisUtterance($("#question").text());
     memo.speaker.speak(msg);
 }
 
 function SpeakAnswer() {
     memo.speaker.cancel();
-    msg = new SpeechSynthesisUtterance($("#answer").val());
+    msg = new SpeechSynthesisUtterance($("#answer").text());
     memo.speaker.speak(msg);
 }
 
 function StopAutoPlayer() {
     settings.apinterval = clearInterval(settings.apinterval); // this will make it undefined
     $(".ap-btn").attr("onclick", "ResumeAutoPlayer()");
-    $(".ap-btn").html('<i class="fa fa-play-circle"></i> Resume');
+    $(".ap-btn").html('<i class="fa fa-play-circle"></i>');
 }
 
 function ResumeAutoPlayer() {
     settings.apinterval = setInterval(AutoPlayer, apdelay[settings.autoPlay] * 1000);
     $(".ap-btn").attr("onclick", "StopAutoPlayer()");
-    $(".ap-btn").html('<i class="fa fa-pause-circle"></i> Pause');
+    $(".ap-btn").html('<i class="fa fa-pause-circle"></i>');
 }
 
 function BackToHome() {

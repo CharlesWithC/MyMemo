@@ -41,7 +41,7 @@ function UpdateGroupMember() {
             totalMember = r.totalMember;
             $("tbody tr").remove();
 
-            $("title").html(bookName + " | My Memo");
+            $("title").html(bookName + " - My Memo");
             $(".title").html(bookName + '&nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="UpdateGroupMember()" id="refresh-btn"><i class="fa fa-sync"></i></button>');
 
             $("#groupDescription").html(marked.parse(r.description.replaceAll("\n", "<br>")));
@@ -72,9 +72,9 @@ function UpdateGroupMember() {
                 l = 0;
             }
 
-            SetTableInfo("memberList", "<p style='opacity:80%'>Showing " + l + " - " +
-                r + " / " + totalMember);
             PaginateTable("memberList", page, total, "MemberListPage");
+            SetTableInfo("memberList", "<p style='opacity:80%'>Showing " + l + " - " +
+                r + " / " + totalMember + "</p>");
 
             if (!isOwner) {
                 $("#memberList tr > *:nth-child(3)").hide();

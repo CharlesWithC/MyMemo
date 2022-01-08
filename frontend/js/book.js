@@ -86,8 +86,8 @@ function UpdateTable() {
     statusIntToStr = ["", "Default", "Tagged", "Deleted"];
     for (var i = 0; i < data.length; i++) {
         AppendTableData("questionList", [
-            data[i].question.replaceAll("\n", "<br>"),
-            data[i].answer.replaceAll("\n", "<br>"),
+            marked.parse(data[i].question),
+            marked.parse(data[i].answer),
             statusIntToStr[data[i].status],
             id = GenOPBtn(data[i].questionId)
         ], data[i].questionId);
@@ -107,8 +107,8 @@ function UpdateTable() {
     content = "<p style='opacity:80%'>Showing " + l + " - " + r + " / " + totalQ + " | ";
     content += "<span style='cursor:pointer' onclick='SelectAll()'>Select All</span> | ";
     content += "<span style='cursor:pointer' onclick='DeselectAll()'>Deselect All</span></p>";
-    SetTableInfo("questionList", content);
     PaginateTable("questionList", page, total, "BookPage");
+    SetTableInfo("questionList", content);
     UpdateStatusColor();
 }
 
@@ -141,8 +141,8 @@ function UpdateQuestionList() {
                 NotyNotification(r.msg, 'warning', 5000);
                 $("#questionList tbody tr").remove();
                 AppendTableData("questionList", [r.msg], undefined, "100%");
-                SetTableInfo("questionList", "Forbidden");
                 PaginateTable("questionList", 1, 1, "BookPage");
+                SetTableInfo("questionList", "Forbidden");
                 return;
             }
             data = r.data;
@@ -201,7 +201,7 @@ function OpenBook(bid = null) {
             totalQ = bookList[i].total;
             bookName = bookList[i].name;
             $(".title").html(bookName);
-            $("title").html(bookName + " | My Memo");
+            $("title").html(bookName + " - My Memo");
             groupId = bookList[i].groupId;
             groupCode = bookList[i].groupCode;
             $("#groupCode").html(groupCode);
@@ -709,8 +709,8 @@ function BookRename() {
                 bookName = newName;
                 $(".book-name").html(bookName);
                 $(".title").html(bookName);
-                $("title").html(bookName + " | My Memo");
-                $("title").html(bookName + " | My Memo");
+                $("title").html(bookName + " - My Memo");
+                $("title").html(bookName + " - My Memo");
                 NotyNotification('Success! Book renamed!');
                 $("#" + curModalId).modal("hide");
             } else {
@@ -1143,8 +1143,8 @@ function GroupInfoUpdate() {
 
                         $(".book-name").html(bookName);
                         $(".title").html(bookName);
-                        $("title").html(bookName + " | My Memo");
-                        $("title").html(bookName + " | My Memo");
+                        $("title").html(bookName + " - My Memo");
+                        $("title").html(bookName + " - My Memo");
                         $("#groupCode").html(groupCode);
                         $(".only-group-exist").show();
                         $(".only-group-inexist").hide();
@@ -1388,7 +1388,7 @@ function SelectBook(bookId) {
     UpdateBookContentDisplay();
 
     $(".title").html(bookName);
-    $("title").html(bookName + " | My Memo");
+    $("title").html(bookName + " - My Memo");
 }
 
 function UpdateBookContentList() {

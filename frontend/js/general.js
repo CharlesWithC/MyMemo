@@ -2,6 +2,11 @@
 // Author: @Charles-1414
 // License: GNU General Public License v3.0
 
+var isphone = false;
+if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+    isphone = true;
+}
+
 function NotyNotification(text, type = 'success', timeout = 3000, layout = 'topRight') {
     new Noty({
         theme: 'mint',
@@ -352,7 +357,7 @@ function GeneralUpdateTheme() {
     navusername = $("#navusername").html();
     shortUserctrl = false;
     setInterval(function () {
-        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        if (isphone) {
             if ($("#navusername").html() != "") {
                 navusername = $("#navusername").html();
             }
@@ -518,7 +523,7 @@ $(document).ready(function () {
         });
     }
 
-    if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+    if (!isphone) {
         if (window.location.pathname.indexOf("/book") == -1) {
             $("#navigate").after(`<div id="book-div" class="book-side" style="display:none">
             <div class="book-side-content">
@@ -574,13 +579,14 @@ $(document).ready(function () {
     if (localStorage.getItem("isAdmin") == true) {
         $(".leftside").append("<hr>");
         $(".leftside").append(`<div class="sqbtn">
+            <a href="/admin/gui" id="book-btn"><i class="fa fa-screwdriver-wrench"></i></a><br>
+        </div>
+        <div class="sqbtn">
             <a href="/admin/cli" id="book-btn"><i class="fa fa-terminal"></i></a><br>
-        </div><div class="sqbtn">
-            <a href="/admin/userlist" id="book-btn"><i class="fa fa-address-book"></i></a><br>
         </div>`);
     }
 
-    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+    if (isphone) {
         $(".leftside br").remove();
         $(".leftside").css("top", "0");
         $(".leftside").css("left", "2%");
@@ -601,7 +607,7 @@ $(document).ready(function () {
         $(".leftside hr").remove();
     }
 
-    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+    if (isphone) {
         $('head').append('<link rel="stylesheet" href="/css/mobile.css" type="text/css" />');
     }
     GeneralUpdateTheme();
