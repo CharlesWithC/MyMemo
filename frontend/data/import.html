@@ -40,35 +40,37 @@
 
     <div id="content" class="container">
         <h1 class="title">Import Data</h1>
-        <p>You can upload a new question list here, the file must be a .xlsx table.</p>
-        <p>The columns must contain 'Question','Answer'. (It can also contain other columns but Question and Answer
-            are
-            required)</p>
-        <p>'Status' is an optional column. If you set it, the script will decide the status of the question.</p>
-        <br>
-        <p>There are three types of upload you can choose: Append, Overwrite and Clear & Overwrite</p>
-        <p>If you choose Append, the uploaded questions will be appended to existing database. Duplicate questions may
-            exist and
-            you
-            will be warned.</p>
-        <p>If you choose Overwrite, when duplicated questions are found, they will be replaced by uploaded ones. Other
-            questions
-            will be appended to existing database.</p>
-        <p>If you choose Clear & Overwrite, all the existing questions will be deleted and only the uploaded ones will
-            be
-            kept.
-        </p>
-        <p>Please note that if you search for a question which is duplicated, only the first-imported one will be shown.
-        </p>
-        <br>
-        <p>And, by the way, Excel doesn't support multiple lines in one cell, so if you want to write question / answer
-            with multiple lines, use \n as line break.</p>
-        <br>
-        <p id="msg" style="color:red"></p>
-        <iframe id="importFrame" src="/data/importFrame" style="width:100%;height:28em" frameBorder="0"></iframe>
-        <button id="submit" type="submit" class="btn btn-primary"
-            onclick="var iframe = document.getElementById('importFrame');iframe.src = iframe.src;"><i
-                class="fa fa-undo"></i> Clear</button>
+        <div class="subcontainer sub-div">
+            <p>You can upload a new question list here, the file must be a .xlsx table.</p>
+            <p>The columns must contain 'Question','Answer'. (It can also contain other columns but Question and Answer
+                are
+                required)</p>
+            <p>'Status' is an optional column. If you set it, the script will decide the status of the question.</p>
+            <br>
+            <p>There are three types of upload you can choose: Append, Overwrite and Clear & Overwrite</p>
+            <p>If you choose Append, the uploaded questions will be appended to existing database. Duplicate questions may
+                exist and
+                you
+                will be warned.</p>
+            <p>If you choose Overwrite, when duplicated questions are found, they will be replaced by uploaded ones. Other
+                questions
+                will be appended to existing database.</p>
+            <p>If you choose Clear & Overwrite, all the existing questions will be deleted and only the uploaded ones will
+                be
+                kept.
+            </p>
+            <p>Please note that if you search for a question which is duplicated, only the first-imported one will be shown.
+            </p>
+            <br>
+            <p>And, by the way, Excel doesn't support multiple lines in one cell, so if you want to write question / answer
+                with multiple lines, use \n as line break.</p>
+            <br>
+            <p id="msg" style="color:red"></p>
+            <iframe id="importFrame" src="/data/importFrame" style="width:100%;height:28em" frameBorder="0"></iframe>
+            <button id="submit" type="submit" class="btn btn-primary"
+                onclick="var iframe = document.getElementById('importFrame');iframe.src = iframe.src;"><i
+                    class="fa fa-undo"></i> Clear</button>
+        </div>
     </div>
 
     <div class="footer">

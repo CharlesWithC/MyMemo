@@ -38,6 +38,7 @@ class SettingsClass {
     }
 }
 
+var curModalId = "";
 var goal = 0;
 var chtoday = 0;
 memo = new MemoClass();
@@ -673,29 +674,7 @@ function Statistics() {
         },
         success: function (r) {
             statistics = r.msg.replaceAll("\n", "<br>");
-
-            $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
-                aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="modalLabel">Statistics of ` + memo.question + `</h5>
-                            <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
-                                onclick="$('#modal').modal('hide')">
-                                <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <p>` + statistics + `</p>
-                        </div>
-                    </div>
-                </div>
-            </div>`);
-
-            $("#modal").modal("show");
-            $('#modal').on('hidden.bs.modal', function () {
-                $("#modal").remove();
-            });
+            GenModal("<i class='fa fa-chart-bar'></i> Statistics", "<p>" + statistics + "</p>");
         },
         error: function (r, textStatus, errorThrown) {
             AjaxErrorHandler(r, textStatus, errorThrown);
@@ -704,49 +683,19 @@ function Statistics() {
 }
 
 function EditQuestionShow() {
-    $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Edit Question</h5>
-                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#modal').modal('hide')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form>
-                        <div class="form-group">
-                            <label for="edit-question" class="col-form-label">Question:</label>
-                            <textarea class="form-control" id="edit-question"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="edit-answer" class="col-form-label">Answer:</label>
-                            <textarea class="form-control" id="edit-answer"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#modal').modal('hide')">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="EditQuestion()">Edit</button>
-                </div>
-            </div>
+    curModalId = GenModal("<i class='fa fa-edit'></i> Edit",
+        `<div class="form-group">
+            <label for="edit-question" class="col-form-label">Question:</label>
+            <textarea class="form-control" id="edit-question"></textarea>
         </div>
-    </div>`);
+        <div class="form-group">
+            <label for="edit-answer" class="col-form-label">Answer:</label>
+            <textarea class="form-control" id="edit-answer" style="height:10em"></textarea>
+        </div>`,
+        `<button id="edit-question-btn" type="button" class="btn btn-primary" onclick="EditQuestion()">Edit</button>`);
     $("#edit-question").val(memo.question);
     $("#edit-answer").val(memo.answer);
-    $("#modal").modal("show");
-    $('#modal').on('hidden.bs.modal', function () {
-        $("#modal").remove();
-    });
-
-    $("#edit-question,#edit-answer").keypress(function (e) {
-        if (e.which == 13 && e.ctrlKey) {
-            EditQuestion();
-        }
-    });
+    OnSubmit("#edit-question,#edit-answer", EditQuestion, true);
 }
 
 function EditQuestion() {
@@ -785,7 +734,7 @@ function EditQuestion() {
                 NotyNotification(r.msg, type = 'error');
             }
 
-            $("#editQuestionModal").modal('hide');
+            $("#" + curModalId).modal('hide');
         },
         error: function (r, textStatus, errorThrown) {
             AjaxErrorHandler(r, textStatus, errorThrown);

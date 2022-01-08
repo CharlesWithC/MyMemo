@@ -205,7 +205,7 @@ async def apiEditQuestion(request: Request):
 
     conn.commit()
 
-    return {"success":True, "msg": "Question edited!"}
+    return {"success": True, "question": decode(question), "answer": decode(answer), "msg": "Question edited!"}
 
 @app.post("/api/question/delete")
 async def apiDeleteQuestion(request: Request):

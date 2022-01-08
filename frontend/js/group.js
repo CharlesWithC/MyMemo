@@ -5,9 +5,9 @@
 var groupId = -1;
 var bookId = -1;
 var bookName = "";
-var selected = [];
 var member = [];
 var isOwner = false;
+var curModalId = "";
 
 var page = 1;
 var pageLimit = 10;
@@ -95,8 +95,6 @@ function UpdateGroupMember() {
             AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
-
-    selected = [];
 }
 
 function MemberListPage(p) {
@@ -130,46 +128,13 @@ function UpdatePageLimit(pl) {
 }
 
 function TransferOwnershipShow(uid) {
-    $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog"
-        aria-labelledby="modalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" style="color:red"><i class="fa fa-random"></i> Transfer Ownership
-                    </h5>
-                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#modal').modal('hide')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure to transfer ownership? Make sure you trust that user!</p>
-                    <p>You cannot undo this operation unless the new owner transferred ownership back.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#modal').modal('hide')">Cancel</button>
-                    <button id="transfer-ownership-btn" type="button" class="btn btn-danger" data-dismiss="modal"
-                        onclick="GroupOperation(3, ` + uid + `)">Transfer</button>
-                </div>
-            </div>
-        </div>
-    </div>`);
-    $("#modal").modal("show");
-    $('#modal').on('hidden.bs.modal', function () {
-        $("#modal").remove();
-    });
-    setTimeout(function () {
-        selected = [];
-    }, 100);
+    curModalId = GenModal(`<i class="fa fa-random"></i> Transfer Ownership`,
+        `<p>Are you sure to transfer ownership? Make sure you trust that user!</p>
+        <p>You cannot undo this operation unless the new owner transferred ownership back.</p>`,
+        `<button id="transfer-ownership-btn" type="button" class="btn btn-danger" onclick="GroupOperation(3, ` + uid + `)">Transfer</button>`);
 }
 
-function GroupOperation(operation, uid = -1) {
-    if (uid != -1) {
-        list = [uid];
-    } else {
-        list = selected;
-    }
+function GroupOperation(operation, uid) {
     if (operation == 2 || operation == 1 || operation == 3) {
         if (list.length == 0) {
             return;

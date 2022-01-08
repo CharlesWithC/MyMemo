@@ -9,6 +9,7 @@ var shareCode = "";
 var distype = 1;
 var title = "";
 var description = "";
+var curModalId = "";
 
 var page = 1;
 var pageLimit = 10;
@@ -284,56 +285,23 @@ function BackToList() {
 }
 
 function UpdateInformationShow() {
-    $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalLabel"><i class="fa fa-edit"></i> Edit Post</h5>
-                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#modal').modal('hide')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form>
-                        <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1">Title</span>
-                            <input type="text" class="form-control" id="discovery-title" aria-describedby="basic-addon1">
-                        </div>
-                        <div class="form-group">
-                            <label for="discovery-description" class="col-form-label">Description:</label>
-                            <script>var descriptionMDE = new SimpleMDE({autoDownloadFontAwesome:false,spellChecker:false,tabSize:4});</script>
-                            <textarea class="form-control" id="discovery-description" style="height:10em"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#modal').modal('hide')">Close</button>
-                    <button id="publish-to-discovery-btn" type="button" class="btn btn-primary"
-                        onclick="UpdateInformation()">Edit <i class="fa fa-paper-plane"></i></button>
-                </div>
-            </div>
+    curModalId = GenModal(`<i class="fa fa-edit"></i> Edit Post`,
+        `<div class="input-group mb-3">
+            <span class="input-group-text" id="basic-addon1">Title</span>
+            <input type="text" class="form-control" id="discovery-title" aria-describedby="basic-addon1">
         </div>
-    </div>`);
+        <div class="form-group">
+            <label for="discovery-description" class="col-form-label">Description:</label>
+            <script>var descriptionMDE = new SimpleMDE({autoDownloadFontAwesome:false,spellChecker:false,tabSize:4});</script>
+            <textarea class="form-control" id="discovery-description" style="height:10em"></textarea>
+        </div>`,
+        `<button id="publish-to-discovery-btn" type="button" class="btn btn-primary" onclick="UpdateInformation()">Edit</button>`)
     $("#discovery-title").val(title);
-    $("#modal").modal("show");
-    $('#modal').on('hidden.bs.modal', function () {
-        $("#modal").remove();
-    });
-    $(".editor-toolbar").css("background-color", "white");
-    $(".editor-toolbar").css("opacity", "1");
-    $(".cursor").remove();
-    $('#modal').on('shown.bs.modal', function () {
+    $('#' + modalId).on('shown.bs.modal', function () {
         descriptionMDE.value(description);
     });
-
-    $("#discovery-title,#discovery-description").keypress(function (e) {
-        if (e.which == 13 && e.ctrlKey) {
-            UpdateInformation();
-        }
-    });
+    BeautifyMarkdownEditor();
+    OnSubmit("#discovery-title,#discovery-description", UpdateInformation, true);
 }
 
 function UpdateInformation() {
@@ -362,7 +330,7 @@ function UpdateInformation() {
                 $("#detail-description").html(marked.parse(description));
 
                 NotyNotification(r.msg);
-                $('#modal').modal('hide');
+                $('#' + curModalId).modal('hide');
             } else {
                 NotyNotification(r.msg, type = 'error');
             }

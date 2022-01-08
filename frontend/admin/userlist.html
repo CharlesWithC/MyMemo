@@ -52,9 +52,14 @@
                     totalUser = r.totalUser;
 
                     for (var i = 0; i < userList.length; i++) {
-                        if (userList[i].userId < 0)
-                            userList[i].userId = -userList[i].userId;
-                        AppendTableData("userList", [userList[i].userId, userList[i].username,
+                        if (userList[i].userId < 0) userList[i].userId = -userList[i].userId;
+                        userType = "<i class='fa fa-user-check'></i>";
+                        if(userList[i].userType == 1) userType = "<i class='fa fa-user-shield'></i>";
+                        else if(userList[i].userType == 2) userType = "<i class='fa fa-user-lock'></i>";
+                        else if(userList[i].userType == 3) userType = "<i class='fa fa-user-slash'></i>";
+                        else if(userList[i].userType == 4) userType = "<i class='fa fa-user-xmark'></i>";
+                        else if(userList[i].userType == 5) userType = "<i class='fa fa-user-clock'></i>";
+                        AppendTableData("userList", [userType, userList[i].userId, userList[i].username,
                                 userList[i].email, userList[i].inviter, userList[i]
                                 .inviteCode, userList[i].age, userList[i].status, userList[
                                     i].privilege
@@ -154,8 +159,8 @@
         $(document).ready(function () {
             InitTable("userList", [10, 25, 50, 100], 10, UpdatePageLimit, Search);
             InitSorting("userList",
-                ["userId", "username", "email", "inviter", "inviteCode", "age", "status", "privilege"],
-                ["asc", undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+                ["userType", "userId", "username", "email", "inviter", "inviteCode", "age", "status", "privilege"],
+                [undefined, "asc", undefined, undefined, undefined, undefined, undefined, undefined, undefined],
                 "UserListSort");
 
             UpdateTable();
@@ -192,6 +197,7 @@
             <table class="table table-hover" id="userList" style="text-align:center">
                 <thead>
                     <tr>
+                        <th id="table-userType"></th>
                         <th id="table-userId" class="sorting">User ID</th>
                         <th id="table-username" class="sorting">Username</th>
                         <th id="table-email" class="sorting">Email</th>

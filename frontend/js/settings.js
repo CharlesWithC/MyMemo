@@ -2,6 +2,8 @@
 // Author: @Charles-1414
 // License: GNU General Public License v3.0
 
+var curModalId = "";
+
 function UpdateSettingsButtons() {
     mode = lsGetItem("settings-mode", 0);
     $(".mode-btn").removeClass("btn-primary btn-secondary");
@@ -150,6 +152,13 @@ function UpdateTheme(theme) {
     }
 }
 
+function ClearDeletedQuestionsShow(){
+    curModalId = GenModal(`<span style="color:red"><i class="fa fa-trash"></i> Clear Deleted Questions</span>`,
+        `<p>Are you sure to clear all deleted questions? This will remove all the questions that are marked as deleted.</p>
+        <p>This operation cannot be undone.</p>`,
+        `<button type="button" class="btn btn-danger" onclick="ClearDeletedQuestion()">Remove</button>`);
+}
+
 function ClearDeletedQuestion() {
     $.ajax({
         url: '/api/question/clearDeleted',
@@ -162,7 +171,7 @@ function ClearDeletedQuestion() {
         },
         success: function (r) {
             NotyNotification('Success! All questions marked deleted are removed from database!');
-            $('#modal').modal('hide');
+            $('#' + curModalId).modal('hide');
         },
         error: function (r, textStatus, errorThrown) {
             AjaxErrorHandler(r, textStatus, errorThrown);
@@ -230,37 +239,4 @@ function SettingsSync(operation) {
             }
         });
     }
-}
-
-function ClearDeletedQuestionsShow(){
-    $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" style="color:red"><i class="fa fa-trash"></i> Clear Deleted Questions</h5>
-                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#modal').modal('hide')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure to clear all deleted questions? This will remove all the questions that are marked
-                        as
-                        deleted.</p>
-                    <p>This operation cannot be undone.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#modal').modal('hide')">Cancel</button>
-                    <button type="button" class="btn btn-danger" data-dismiss="modal"
-                        onclick="ClearDeletedQuestion()">Remove</button>
-                </div>
-            </div>
-        </div>
-    </div>`);
-    $("#modal").modal("show");
-    $('#modal').on('hidden.bs.modal', function () {
-        $("#modal").remove();
-    });
 }

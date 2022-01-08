@@ -359,9 +359,10 @@ async def apiDownload(token: str, request: Request, background_tasks: Background
     
     queue.append(token)
     
-    userId = d[0][0]
-    exportType = d[0][1]
-    ts = d[0][2]
+    d = dataDownloadToken[token]
+    userId = d[0]
+    exportType = d[1]
+    ts = d[2]
     del dataDownloadToken[token]
 
     if int(time.time()) - ts > 1800: # 10 minutes

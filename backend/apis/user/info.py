@@ -58,7 +58,6 @@ async def apiGetUserInfo(request: Request):
     t = cur.fetchall()
     if len(t) > 0:
         regts = t[0][0]
-    age = math.ceil((time.time() - regts) / 86400)
 
     isAdmin = False
     cur.execute(f"SELECT * FROM AdminList WHERE userId = {userId}")
@@ -103,7 +102,7 @@ async def apiGetUserInfo(request: Request):
             elif int(lst/86400) - int(tt[0]/86400) > 1:
                 break
 
-    return {"success": True, "username": username, "bio": d[4], "email": email, "invitationCode": d[2], "inviter": inviter, "age": age, "isAdmin": isAdmin, \
+    return {"success": True, "username": username, "bio": d[4], "email": email, "invitationCode": d[2], "inviter": inviter, "age": CalculateAge(regts), "isAdmin": isAdmin, \
         "goal": goal, "chtoday": chtoday, "checkin_today": checkin_today, "checkin_continuous": checkin_continuous}
 
 @app.get("/api/user/publicInfo/{uid:int}")
@@ -148,7 +147,6 @@ async def apiGetUserPublicInfo(uid: int, request: Request):
     t = cur.fetchall()
     if len(t) > 0:
         regts = t[0][0]
-    age = math.ceil((time.time() - regts) / 86400)
 
     isAdmin = False
     cur.execute(f"SELECT * FROM AdminList WHERE userId = {uid}")
@@ -162,7 +160,7 @@ async def apiGetUserPublicInfo(uid: int, request: Request):
     else:
         username = f"<a href='/user?userId={uid}'><span class='username'>{username}</span></a>"
 
-    return {"success": True, "username": username, "bio": bio, "cnt": cnt, "tagcnt": tagcnt, "delcnt": delcnt, "chcnt": chcnt, "age": age, "isAdmin": isAdmin}   
+    return {"success": True, "username": username, "bio": bio, "cnt": cnt, "tagcnt": tagcnt, "delcnt": delcnt, "chcnt": chcnt, "age": CalculateAge(regts), "isAdmin": isAdmin}   
 
 @app.get("/api/user/chart/{uid}")
 async def apiGetUserChart(uid: int, request: Request):

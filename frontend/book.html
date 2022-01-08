@@ -35,7 +35,7 @@
             PageInit();
 
             $('#questionList tbody').on('click', 'td', function () {
-                if($(this).html().indexOf("<button") != -1){
+                if ($(this).html().indexOf("<button") != -1) {
                     return;
                 }
                 wid = parseInt($(this).parent().attr("id"));
@@ -103,8 +103,7 @@
         <div class="userctrl">
             <a href='/user'><i class="fa fa-user"></i></a> <span id="navusername"><a href='/user/login'>Sign
                     in</a>&nbsp;&nbsp; </span>
-            <a class="only-signed-in" href='/notifications' style="display:none"><i
-                    class="fa fa-bell"></i></a>
+            <a class="only-signed-in" href='/notifications' style="display:none"><i class="fa fa-bell"></i></a>
             <a href='/settings'><i class="fa fa-cogs"></i></a>
             <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i
                     class="fa fa-arrow-right-from-bracket"></i></a>
@@ -127,8 +126,7 @@
                     <h4>Create Book</h4>
                     <div class="input-group mb-3" style="width:fit-content">
                         <span class="input-group-text" id="basic-addon1">Name</span>
-                        <input type="text" class="form-control" id="page-create-book"
-                            aria-describedby="basic-addon1">
+                        <input type="text" class="form-control" id="page-create-book" aria-describedby="basic-addon1">
                         <div class="input-group-append">
                             <button class="btn btn-outline-primary" type="button"
                                 onclick="CreateBook('#page-create-book')">Create</button>
@@ -139,8 +137,7 @@
                     <h4>Import share</h4>
                     <div class="input-group mb-3" style="width:fit-content">
                         <span class="input-group-text" id="basic-addon1">Share Code</span>
-                        <input type="text" class="form-control" id="page-import-share"
-                            aria-describedby="basic-addon1">
+                        <input type="text" class="form-control" id="page-import-share" aria-describedby="basic-addon1">
                         <div class="input-group-append">
                             <button class="btn btn-outline-primary" type="button"
                                 onclick="CreateBook('#page-import-share')">Import</button>
@@ -152,8 +149,7 @@
                     <h4>Join Group</h4>
                     <div class="input-group mb-3" style="width:fit-content">
                         <span class="input-group-text" id="basic-addon1">Group Code</span>
-                        <input type="text" class="form-control" id="page-join-group"
-                            aria-describedby="basic-addon1">
+                        <input type="text" class="form-control" id="page-join-group" aria-describedby="basic-addon1">
                         <div class="input-group-append">
                             <button class="btn btn-outline-primary" type="button"
                                 onclick="CreateBook('#page-join-group')">Join</button>
@@ -166,7 +162,9 @@
 
         <div class="book-data-div" style="display:none">
             <div id="qlist" class="subcontainer sub-div sub-left">
-                <h2><i class="fa fa-table"></i>&nbsp;&nbsp;Question List</h2>
+                <h2><i class="fa fa-table"></i>&nbsp;&nbsp;Question List&nbsp;&nbsp;<button type="button"
+                        class="btn btn-outline-secondary" onclick="UpdateQuestionList()" id="refresh-btn"><i
+                            class="fa fa-sync"></i></button></h2>
                 <table class="table table-hover" id="questionList" style="text-align:center">
                     <thead>
                         <tr>
@@ -226,7 +224,7 @@
                         <i class="fa fa-copy"></i></button>
                     <button type="button" class="btn btn-primary not-for-all-questions only-group-owner-if-group-exist"
                         onclick="BookRenameShow()">Rename <i class="fa fa-edit"></i></button>
-                    <button type="button" class="btn btn-primary" onclick="BookChart();">Chart <i
+                    <button type="button" class="btn btn-primary" onclick="BookChart();">Statistics <i
                             class="fa fa-chart-bar"></i></button>
                     <button type="button" class="btn btn-primary" id="select-book-btn">Select <i
                             class="far fa-check-square"></i></button>
@@ -307,15 +305,10 @@
                                         class="btn btn-secondary group-anonymous-btn"
                                         onclick="GroupAnonymousSwitch(2)">Full
                                         Anonymous</button>
-                                    <p style="font-size:0.75em">Open means members can see other members' username and
-                                        progress.
+                                    <p style="font-size:0.75em">Open means members can see other members' username and progress.
                                         Anonymous means members can see other member's progress but not username. Full
-                                        Anonymous
-                                        means
-                                        members can see no data from other members.</p>
-                                    <p style="font-size:0.75em">Anonymous settings will not stop the group's question
-                                        list sync.
-                                    </p>
+                                        Anonymous means members can see no data from other members.</p>
+                                    <p style="font-size:0.75em">Anonymous settings will not stop the group's question list sync.</p>
                                     <br>
                                     <h5>Group code settings:</h5>
                                     <button type="button" class="btn btn-warning"
@@ -328,7 +321,7 @@
                                     <br>
                                     <h5>Danger zone:</h5>
                                     <button type="button" class="btn btn-danger" onclick="GroupDismissShow()">Dismiss
-                                        <i class="fa fa-times"></i></button>
+                                        <i class="fa fa-users-slash"></i></button>
                                 </div>
                             </div>
                         </div>

@@ -6,6 +6,8 @@ var bookId = -1;
 var bookName = "";
 var groupId = -1;
 var groupCode = "";
+var groupName = "";
+var groupDescription = "";
 var isGroupOwner = false;
 var isGroupEditor = false;
 var discoveryId = -1;
@@ -15,6 +17,8 @@ setInterval(function () {
     bookList = JSON.parse(lsGetItem("book-list", JSON.stringify([])));
 }, 5000); // this will be updated by general.js
 var selected = [];
+
+var curModalId = "";
 
 var page = 1;
 var pageLimit = 10;
@@ -51,6 +55,30 @@ function UpdateStatusColor() {
             }
         }
     }
+}
+
+function BackToList() {
+    $(".book-data-div").hide();
+    $(".book-list-content-div").fadeIn();
+    window.history.pushState("My Memo", "My Memo", "/book");
+    $(".title").html(`Book&nbsp;&nbsp;<button type="button" id="refresh-btn" class="btn btn-outline-secondary"
+    onclick="UpdateBookContentList()"><i class="fa fa-sync"></i></button>`);
+    $("#refresh-btn").html('<i class="fa fa-sync fa-spin"></i>');
+    $.ajax({
+        url: "/api/book",
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            bookList = r;
+            UpdateBookContentDisplay();
+            $("#refresh-btn").html('<i class="fa fa-sync"></i>');
+        }
+    });
 }
 
 function UpdateTable() {
@@ -172,8 +200,7 @@ function OpenBook(bid = null) {
 
             totalQ = bookList[i].total;
             bookName = bookList[i].name;
-            btns = '<button type="button" class="btn btn-outline-secondary" onclick="UpdateQuestionList()" id="refresh-btn"><i class="fa fa-sync"></i></button>';
-            $(".title").html(bookName + '&nbsp;&nbsp;' + btns);
+            $(".title").html(bookName);
             $("title").html(bookName + " | My Memo");
             groupId = bookList[i].groupId;
             groupCode = bookList[i].groupCode;
@@ -228,6 +255,21 @@ function OpenBook(bid = null) {
                     $(".group-published-to-discovery").show();
                     $("#group-go-to-discovery-btn").attr("onclick", "window.location.href='/discovery?discoveryId=" + groupDiscoveryId + "'");
                 }
+                $.ajax({
+                    url: "/api/group/info",
+                    method: 'POST',
+                    async: true,
+                    dataType: "json",
+                    data: {
+                        groupId: groupId,
+                        userId: localStorage.getItem("userId"),
+                        token: localStorage.getItem("token")
+                    },
+                    success: function (r) {
+                        groupName = r.name;
+                        groupDescription = r.description;
+                    }
+                });
             } else {
                 $(".group-not-published-to-discovery").hide();
                 $(".group-published-to-discovery").hide();
@@ -325,31 +367,7 @@ function ShowStatistics(wid) {
         success: function (r) {
             statistics = r.msg.replaceAll("\n", "<br>");
 
-            $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
-                aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="modal">Statistics of ` + question + `</h5>
-                            <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
-                                onclick="$('#modal').modal('hide')">
-                                <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <p>` + statistics + `</p>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                                onclick="$('#modal').modal('hide')">Close</button>
-                        </div>
-                    </div>
-                </div>
-            </div>`);
-            $("#modal").modal("show");
-            $('#modal').on('hidden.bs.modal', function () {
-                $("#modal").remove();
-            });
+            GenModal("<i class='fa fa-chart-bar'></i> Statistics", "<p>" + statistics + "</p>");
         },
         error: function (r, textStatus, errorThrown) {
             AjaxErrorHandler(r, textStatus, errorThrown);
@@ -370,49 +388,20 @@ function EditQuestionShow(wid) {
             break;
         }
     }
-    $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalLabel">Edit Question</h5>
-                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#modal').modal('hide')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form>
-                        <div class="form-group">
-                            <label for="edit-question" class="col-form-label">Question:</label>
-                            <textarea class="form-control" id="edit-question"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="edit-answer" class="col-form-label">Answer:</label>
-                            <textarea class="form-control" id="edit-answer" style="height:10em"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#modal').modal('hide')">Close</button>
-                    <button id="edit-question-btn" type="button" class="btn btn-primary"
-                        onclick="EditQuestion()">Edit</button>
-                </div>
-            </div>
+
+    curModalId = GenModal("<i class='fa fa-edit'></i> Edit",
+        `<div class="form-group">
+            <label for="edit-question" class="col-form-label">Question:</label>
+            <textarea class="form-control" id="edit-question"></textarea>
         </div>
-    </div>`)
+        <div class="form-group">
+            <label for="edit-answer" class="col-form-label">Answer:</label>
+            <textarea class="form-control" id="edit-answer" style="height:10em"></textarea>
+        </div>`,
+        `<button id="edit-question-btn" type="button" class="btn btn-primary" onclick="EditQuestion()">Edit</button>`);
     $("#edit-question").val(question);
     $("#edit-answer").val(answer);
-    $("#modal").modal("show");
-    $('#modal').on('hidden.bs.modal', function () {
-        $("#modal").remove();
-    });
-    $("#edit-question,#edit-answer").keypress(function (e) {
-        if (e.which == 13 && e.ctrlKey) {
-            EditQuestion();
-        }
-    });
+    OnSubmit("#edit-question,#edit-answer", EditQuestion, true);
 }
 
 function EditQuestionFromBtn() {
@@ -440,22 +429,19 @@ function EditQuestion() {
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            for (var i = 0; i < data.length; i++) {
-                if (data[i].questionId == wid) {
+            question = r.question;
+            answer = r.answer;
+            for (var i = 0; i < data.length; i++)
+                if (data[i].questionId == editQuestionId) {
                     data[i].question = question;
                     data[i].answer = answer;
                     break;
                 }
-            }
             UpdateTable();
 
-            if (r.success == true) {
-                NotyNotification(r.msg);
-            } else {
-                NotyNotification(r.msg, type = 'error');
-            }
-
-            $("#modal").modal('hide');
+            if (r.success == true) NotyNotification(r.msg);
+            else NotyNotification(r.msg, type = 'error');
+            $("#" + curModalId).modal('hide');
         },
         error: function (r, textStatus, errorThrown) {
             AjaxErrorHandler(r, textStatus, errorThrown);
@@ -540,52 +526,22 @@ function AddExistingQuestion() {
 }
 
 function AddQuestionShow() {
-    $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalLabel">Add a new question to ` + bookName + `</h5>
-                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#modal').modal('hide')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form>
-                        <div class="form-group">
-                            <label for="edit-question" class="col-form-label">Question:</label>
-                            <textarea class="form-control" id="edit-question"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="edit-answer" class="col-form-label">Answer:</label>
-                            <textarea class="form-control" id="edit-answer" style="height:10em"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#modal').modal('hide')">Close</button>
-                    <button id="edit-question-btn" type="button" class="btn btn-primary"
-                        onclick="AddQuestion()">Add</button>
-                </div>
-            </div>
+    GenModal("<i class='fa fa-plus'></i> Add",
+        `<div class="form-group">
+            <label for="add-question" class="col-form-label">Question:</label>
+            <textarea class="form-control" id="add-question"></textarea>
         </div>
-    </div>`)
-    $("#modal").modal("show");
-    $('#modal').on('hidden.bs.modal', function () {
-        $("#modal").remove();
-    });
-    $("#edit-question,#edit-answer").keypress(function (e) {
-        if (e.which == 13 && e.ctrlKey) {
-            AddQuestion();
-        }
-    });
+        <div class="form-group">
+            <label for="add-answer" class="col-form-label">Answer:</label>
+            <textarea class="form-control" id="add-answer" style="height:10em"></textarea>
+        </div>`,
+        `<button id="add-question-btn" type="button" class="btn btn-primary" onclick="AddQuestion()">Add</button>`);
+    OnSubmit("#add-question,#add-answer", AddQuestion, true);
 }
 
 function AddQuestion() {
-    question = $("#edit-question").val();
-    answer = $("#edit-answer").val();
+    question = $("#add-question").val();
+    answer = $("#add-answer").val();
     $.ajax({
         url: '/api/question/add',
         method: 'POST',
@@ -615,13 +571,14 @@ function AddQuestion() {
 
 function RemoveFromBook(wid = -1) {
     questions = [];
-    if (wid == -1) {
-        questions = selected;
-    } else {
-        questions = [wid];
+    if (wid == -1) questions = selected;
+    else questions = [wid];
+    if (questions.length == 0) {
+        NotyNotification("Make sure you selected at least one question!", type = 'warning');
+        return;
     }
     if ($("#removeFromDB").is(":checked") || bookId == 0) {
-        RemoveQuestionShow();
+        RemoveQuestionShow(wid);
         return;
     }
     $.ajax({
@@ -650,57 +607,37 @@ function RemoveFromBook(wid = -1) {
     });
 }
 
-function RemoveQuestionShow() {
-    $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog"
-        aria-labelledby="modalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" style="color:red"><i class="fa fa-trash"></i> Remove Question from
-                        Database
-                    </h5>
-                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#modal').modal('hide')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure to remove all select questions from database? This will remove them from all
-                        books.
-                    </p>
-                    <p>This operation cannot be undone.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#modal').modal('hide')">Cancel</button>
-                    <button type="button" class="btn btn-danger" data-dismiss="modal"
-                        onclick="RemoveQuestion()">Remove</button>
-                </div>
-            </div>
-        </div>
-    </div>`);
-    $("#modal").modal("show");
-    $('#modal').on('hidden.bs.modal', function () {
-        $("#modal").remove();
-    });
+
+function RemoveQuestionShow(wid) {
+    curModalId = GenModal("<span style='color:red'><i class='fa fa-trash'></i> Remove</span>",
+        `<p>Are you sure to remove all select questions from <b>database</b>? This will remove them from <b>all books</b>.</p>
+        <p>This operation cannot be undone.</p>`,
+        `<button type="button" class="btn btn-danger" onclick="RemoveQuestion(` + wid + `)">Remove</button>`);
 }
 
-function RemoveQuestion() {
+function RemoveQuestion(wid) {
+    questions = [];
+    if (wid == -1) questions = selected;
+    else questions = [wid];
+    if (questions.length == 0) {
+        NotyNotification("Make sure you selected at least one question!", type = 'warning');
+        return;
+    }
     $.ajax({
         url: '/api/question/delete',
         method: 'POST',
         async: true,
         dataType: "json",
         data: {
-            questions: JSON.stringify(selected),
+            questions: JSON.stringify(questions),
             userId: localStorage.getItem("userId"),
             token: localStorage.getItem("token")
         },
         success: function (r) {
             if (r.success == true) {
-                NotyNotification('Success! Removed ' + selected.length + ' question(s) from database!');
+                NotyNotification('Success! Removed ' + questions.length + ' question(s) from database!');
 
-                $("#modal").modal('hide');
+                $("#" + curModalId).modal('hide');
                 localStorage.setItem("memo-book-id", "0");
 
                 UpdateQuestionList();
@@ -739,43 +676,14 @@ function BookClone() {
 }
 
 function BookRenameShow() {
-    $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalLabel">Rename Book</h5>
-                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#modal').modal('hide')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form>
-                        <div class="input-group mb-3 center">
-                            <span class="input-group-text" id="basic-addon1">Name</span>
-                            <input type="text" class="form-control" id="book-rename" aria-describedby="basic-addon1">
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#modal').modal('hide')">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="BookRename()">Rename</button>
-                </div>
-            </div>
-        </div>
-    </div>`);
+    curModalId = GenModal("<i class='fa fa-edit'></i> Rename Book",
+        `<div class="input-group mb-3">
+            <span class="input-group-text" id="basic-addon1">Name</span>
+            <input type="text" class="form-control" id="book-rename" aria-describedby="basic-addon1">
+        </div>`,
+        `<button type="button" class="btn btn-primary" onclick="BookRename()">Rename</button>`);
     $("#book-rename").val(bookName);
-    $("#modal").modal("show");
-    $('#modal').on('hidden.bs.modal', function () {
-        $("#modal").remove();
-    });
-    $("#book-rename").keypress(function (e) {
-        if (e.which == 13 || e.which == 13 && e.ctrlKey) {
-            BookRename();
-        }
-    });
+    OnSubmit("#book-rename", BookRename);
 }
 
 function BookRename() {
@@ -800,12 +708,11 @@ function BookRename() {
             if (r.success == true) {
                 bookName = newName;
                 $(".book-name").html(bookName);
-                btns = '<button type="button" class="btn btn-outline-secondary" onclick="UpdateQuestionList()" id="refresh-btn"><i class="fa fa-sync"></i></button>';
-                $(".title").html(bookName + '&nbsp;&nbsp;' + btns);
+                $(".title").html(bookName);
                 $("title").html(bookName + " | My Memo");
                 $("title").html(bookName + " | My Memo");
                 NotyNotification('Success! Book renamed!');
-                $("#modal").modal("hide");
+                $("#" + curModalId).modal("hide");
             } else {
                 NotyNotification(r.msg, type = 'error');
             }
@@ -817,44 +724,16 @@ function BookRename() {
 }
 
 function BookDeleteShow() {
-    $("#content").after(`
-    <div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" style="color:red"><i class="fa fa-trash"></i> Delete Book</h5>
-                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#modal').modal('hide')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure to delete this book? The questions will be preserved in the question database
-                        but
-                        they will no longer belong to this book.</p>
-                    <p>This operation cannot be undone.</p>
-                    <br>
-                    <p>Type the name of the book <b>` + bookName + `</b> to continue:</p>
-                    <form>
-                        <div class="input-group mb-3 center">
-                            <input type="text" class="form-control" id="book-delete" aria-describedby="basic-addon1">
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#modal').modal('hide')">Cancel</button>
-                    <button type="button" class="btn btn-danger" data-dismiss="modal"
-                        onclick="BookDelete()">Delete</button>
-                </div>
-            </div>
-        </div>
-    </div>`);
-    $("#modal").modal("show");
-    $('#modal').on('hidden.bs.modal', function () {
-        $("#modal").remove();
-    });
+    curModalId = GenModal("<span style='color:red'><i class='fa fa-trash'></i> Delete Book</span>",
+        `<p>Are you sure to delete this book? The questions will be preserved in the question database but they will no longer belong to this book.</p>
+        <p>This operation cannot be undone.</p>
+        <br>
+        <p>Type the name of the book <b>` + bookName + `</b> to continue:</p>
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" id="book-delete" aria-describedby="basic-addon1">
+        </div>`,
+        `<button type="button" class="btn btn-danger" onclick="BookDelete()">Delete</button>`);
+    OnSubmit("#book-delete", BookDelete);
 }
 
 function BookDelete() {
@@ -876,12 +755,12 @@ function BookDelete() {
         success: function (r) {
             if (r.success == true) {
                 NotyNotification('Success! Book deleted!');
+                $('#' + curModalId).on('hide.bs.modal', function () {
+                    BackToList();
+                });
                 setTimeout(function () {
-                    $(".book-data-div").hide();
-                    $(".book-list-content-div").fadeIn();
-                    window.history.pushState("My Memo", "My Memo", "/book");
-                    $(".title").html(`Book&nbsp;&nbsp;<button type="button" id="refresh-btn" class="btn btn-outline-secondary"
-                    onclick="UpdateBookContentList()"><i class="fa fa-sync"></i></button>`);
+                    $("#" + curModalId).modal("hide");
+                    BackToList();
                 }, 3000);
             } else {
                 NotyNotification(r.msg, type = 'error');
@@ -894,59 +773,25 @@ function BookDelete() {
 }
 
 function PublishToDiscoveryShow() {
-    $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog"
-        aria-labelledby="modalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modallLabel"><i class="fa fa-paper-plane"></i>
-                        Publish
-                        To Discovery</h5>
-                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#modal').modal('hide')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>You are about to publish the book to Discovery.</p>
-                    <p>This will make it able to be found by any people.</p>
-                    <p>All your updates made within this book will be synced to Discovery. (But people already
-                        imported it will not get the sync, use Group function to do that)</p>
-                    <br>
-                    <p>Please enter title and description below. Make them beautiful and others may get engaged.</p>
-                    <form>
-                        <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1">Title</span>
-                            <input type="text" class="form-control" id="discovery-title" aria-describedby="basic-addon1">
-                        </div>
-                        <div class="form-group">
-                            <label for="discovery-description" class="col-form-label">Description:</label>
-                            <script>var descriptionMDE = new SimpleMDE({autoDownloadFontAwesome:false,spellChecker:false,tabSize:4});</script>
-                            <textarea class="form-control" id="discovery-description" style="height:10em"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#modal').modal('hide')">Close</button>
-                    <button id="publish-to-discovery-btn" type="button" class="btn btn-primary"
-                        onclick="PublishToDiscovery()">Publish <i class="fa fa-paper-plane"></i></button>
-                </div>
-            </div>
+    curModalId = GenModal("<i class='fa fa-paper-plane'></i> Publish To Discovery",
+        `<p>You are about to publish the book to Discovery.</p>
+        <p>This will make it able to be found by any people.</p>
+        <p>All your updates made within this book will be synced to Discovery. (But people already
+            imported it will not get the sync, use Group function to do that)</p>
+        <br>
+        <p>Please enter title and description below. Make them beautiful and others may get engaged.</p>
+        <div class="input-group mb-3">
+            <span class="input-group-text" id="basic-addon1">Title</span>
+            <input type="text" class="form-control" id="discovery-title" aria-describedby="basic-addon1">
         </div>
-    </div>`);
-    $("#modal").modal("show");
-    $('#modal').on('hidden.bs.modal', function () {
-        $("#modal").remove();
-    });
-    $(".editor-toolbar").css("background-color", "white");
-    $(".editor-toolbar").css("opacity", "1");
-    $(".cursor").remove();
-    $("#discovery-title,#discovery-description").keypress(function (e) {
-        if (e.which == 13 && e.ctrlKey) {
-            PublishToDiscovery();
-        }
-    });
+        <div class="form-group">
+            <label for="discovery-description" class="col-form-label">Description:</label>
+            <script>var descriptionMDE = new SimpleMDE({autoDownloadFontAwesome:false,spellChecker:false,tabSize:4});</script>
+            <textarea class="form-control" id="discovery-description" style="height:10em"></textarea>
+        </div>`,
+        `<button id="publish-to-discovery-btn" type="button" class="btn btn-primary" onclick="PublishToDiscovery()">Publish</button>`);
+    BeautifyMarkdownEditor();
+    OnSubmit("#discovery-title,#discovery-description", PublishToDiscovery, true);
 }
 
 function PublishToDiscovery() {
@@ -975,7 +820,7 @@ function PublishToDiscovery() {
 
                 NotyNotification(r.msg);
 
-                $('#modal').modal('hide');
+                $('#' + curModalId).modal('hide');
             } else {
                 NotyNotification(r.msg, type = 'error');
             }
@@ -987,92 +832,34 @@ function PublishToDiscovery() {
 }
 
 function UnpublishDiscoveryShow() {
-    $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog"
-        aria-labelledby="modalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" style="color:red"><i class="fa fa-trash"></i> Unpublish From Discovery
-                    </h5>
-                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#modal').modal('hide')">
-                        <span aria-hidden="true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure to unpublish the book from Discovery?</p>
-                    <p>You will lose all the views and likes of your post.</p>
-                    <p>This operation cannot be undone.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#modal').modal('hide')">Cancel</button>
-                    <button type="button" class="btn btn-danger" data-dismiss="modal"
-                        onclick="UnpublishDiscovery()">Unpublish</button>
-                </div>
-            </div>
-        </div>
-    </div>`);
-    $("#modal").modal("show");
-    $('#modal').on('hidden.bs.modal', function () {
-        $("#modal").remove();
-    });
+    curModalId = GenModal(`<span style="color:red"><i class="fa fa-trash"></i> Unpublish From Discovery</span>`,
+        `<p>Are you sure to unpublish the book from Discovery?</p>
+        <p>You will lose all the views and likes of your post.</p>
+        <p>This operation cannot be undone.</p>`,
+        `<button type="button" class="btn btn-danger" onclick="UnpublishDiscovery()">Unpublish</button>`);
 }
 
 function GroupPublishToDiscoveryShow() {
-    $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog"
-        aria-labelledby="modalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalLabel"><i class="fa fa-paper-plane"></i>
-                        Publish To Discovery</h5>
-                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#modal').modal('hide')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>You are about to publish the group to Discovery.</p>
-                    <p>This will make it able to be found by any people.</p>
-                    <p>Any people will be able to find it and join your group.</p>
-                    <p>You can make your group a private group if you want to temporarily make it invisible on
-                        Discovery.</p>
-                    <br>
-                    <p>Please enter title and description below. Make them beautiful and others may get engaged.</p>
-                    <form>
-                        <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1">Title</span>
-                            <input type="text" class="form-control" id="group-discovery-title" aria-describedby="basic-addon1">
-                        </div>
-                        <div class="form-group">
-                            <label for="group-discovery-description" class="col-form-label">Description:</label>
-                            <script>var descriptionMDE = new SimpleMDE({autoDownloadFontAwesome:false,spellChecker:false,tabSize:4});</script>
-                            <textarea class="form-control" id="group-discovery-description" style="height:10em"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#modal').modal('hide')">Close</button>
-                    <button id="publish-to-discovery-btn" type="button" class="btn btn-primary"
-                        onclick="GroupPublishToDiscovery()">Publish <i class="fa fa-paper-plane"></i></button>
-                </div>
-            </div>
+    curModalId = GenModal(`<i class="fa fa-paper-plane"></i> Publish To Discovery`,
+        `<p>You are about to publish the group to Discovery.</p>
+        <p>This will make it able to be found by any people.</p>
+        <p>Any people will be able to find it and join your group.</p>
+        <p>You can make your group a private group if you want to temporarily make it invisible on
+            Discovery.</p>
+        <br>
+        <p>Please enter title and description below. Make them beautiful and others may get engaged.</p>
+        <div class="input-group mb-3">
+            <span class="input-group-text" id="basic-addon1">Title</span>
+            <input type="text" class="form-control" id="group-discovery-title" aria-describedby="basic-addon1">
         </div>
-    </div>`);
-    $("#modal").modal("show");
-    $('#modal').on('hidden.bs.modal', function () {
-        $("#modal").remove();
-    });
-    $(".editor-toolbar").css("background-color", "white");
-    $(".editor-toolbar").css("opacity", "1");
-    $(".cursor").remove();
-    $("#group-discovery-title,#group-discovery-description").keypress(function (e) {
-        if (e.which == 13 && e.ctrlKey) {
-            GroupPublishToDiscovery();
-        }
-    });
+        <div class="form-group">
+            <label for="group-discovery-description" class="col-form-label">Description:</label>
+            <script>var descriptionMDE = new SimpleMDE({autoDownloadFontAwesome:false,spellChecker:false,tabSize:4});</script>
+            <textarea class="form-control" id="group-discovery-description" style="height:10em"></textarea>
+        </div>`,
+        `<button id="publish-to-discovery-btn" type="button" class="btn btn-primary" onclick="GroupPublishToDiscovery()">Publish</button>`);
+    BeautifyMarkdownEditor();
+    OnSubmit("#group-discovery-title,#group-discovery-description", GroupPublishToDiscovery, true);
 }
 
 function GroupPublishToDiscovery() {
@@ -1101,7 +888,7 @@ function GroupPublishToDiscovery() {
 
                 NotyNotification(r.msg, type = 'success', timeout = 30000);
 
-                $('#modal').modal('hide');
+                $('#' + curModalId).modal('hide');
             } else {
                 NotyNotification(r.msg, type = 'error');
             }
@@ -1113,36 +900,11 @@ function GroupPublishToDiscovery() {
 }
 
 function GroupUnpublishDiscoveryShow() {
-    $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog"
-        aria-labelledby="modalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" style="color:red"><i class="fa fa-trash"></i> Unpublish From Discovery
-                    </h5>
-                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#modal').modal('hide')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure to unpublish the group from Discovery?</p>
-                    <p>You will lose all the views and likes of your post.</p>
-                    <p>This operation cannot be undone.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#modal').modal('hide')">Cancel</button>
-                    <button type="button" class="btn btn-danger" data-dismiss="modal"
-                        onclick="GroupUnpublishDiscovery()">Unpublish</button>
-                </div>
-            </div>
-        </div>
-    </div>`);
-    $("#modal").modal("show");
-    $('#modal').on('hidden.bs.modal', function () {
-        $("#modal").remove();
-    });
+    curModalId = GenModal(`<span style='color:red'><i class="fa fa-trash"></i> Unpublish From Discovery</span>`,
+        `<p>Are you sure to unpublish the group from Discovery?</p>
+        <p>You will lose all the views and likes of your post.</p>
+        <p>This operation cannot be undone.</p>`,
+        `<button type="button" class="btn btn-danger" onclick="GroupUnpublishDiscovery()">Unpublish</button>`);
 }
 
 function UnpublishDiscovery() {
@@ -1164,7 +926,7 @@ function UnpublishDiscovery() {
                 $("#go-to-discovery-btn").attr("onclick", "");
 
                 NotyNotification(r.msg);
-                $('#modal').modal('hide');
+                $('#' + curModalId).modal('hide');
             } else {
                 NotyNotification(r.msg, type = 'error');
             }
@@ -1194,7 +956,7 @@ function GroupUnpublishDiscovery() {
                 $("#go-to-discovery-btn").attr("onclick", "");
 
                 NotyNotification(r.msg);
-                $('#modal').modal('hide');
+                $('#' + curModalId).modal('hide');
             } else {
                 NotyNotification(r.msg, type = 'error');
             }
@@ -1206,54 +968,20 @@ function GroupUnpublishDiscovery() {
 }
 
 function CreateGroupShow() {
-    $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalLabel">Create Group</h5>
-                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#modal').modal('hide')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Your group need a name and a description so others can know what it do. Please enter them
-                        below!
-                    </p>
-                    <form>
-                        <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1">Name</span>
-                            <input type="text" class="form-control" id="group-name" aria-describedby="basic-addon1">
-                        </div>
-                        <div class="form-group">
-                            <label for="group-description" class="col-form-label">Description:</label>
-                            <script>var groupDescriptionMDE = new SimpleMDE({autoDownloadFontAwesome:false,spellChecker:false,tabSize:4});</script>
-                            <textarea class="form-control" id="group-description" style="height:10em"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#modal').modal('hide')">Close</button>
-                    <button id="create-group-btn" type="button" class="btn btn-primary"
-                        onclick="CreateGroup()">Create</button>
-                </div>
-            </div>
+    curModalId = GenModal(`<i class='fa fa-user-group'></i> Create Group`,
+        `<p>Your group need a name and a description so others can know about it.</p>
+        <div class="input-group mb-3">
+            <span class="input-group-text" id="basic-addon1">Name</span>
+            <input type="text" class="form-control" id="group-name" aria-describedby="basic-addon1">
         </div>
-    </div>`);
-    $("#modal").modal("show");
-    $('#modal').on('hidden.bs.modal', function () {
-        $("#modal").remove();
-    });
-    $(".editor-toolbar").css("background-color", "white");
-    $(".editor-toolbar").css("opacity", "1");
-    $(".cursor").remove();
-    $("#group-name,#group-description").keypress(function (e) {
-        if (e.which == 13 && e.ctrlKey) {
-            CreateGroup();
-        }
-    });
+        <div class="form-group">
+            <label for="group-description" class="col-form-label">Description:</label>
+            <script>var groupDescriptionMDE = new SimpleMDE({autoDownloadFontAwesome:false,spellChecker:false,tabSize:4});</script>
+            <textarea class="form-control" id="group-description" style="height:10em"></textarea>
+        </div>`,
+        `<button id="create-group-btn" type="button" class="btn btn-primary" onclick="CreateGroup()">Create</button>`);
+    BeautifyMarkdownEditor();
+    OnSubmit("#group-name,#group-description", CreateGroup, true);
 }
 
 function CreateGroup() {
@@ -1293,12 +1021,13 @@ function CreateGroup() {
                         $(".only-group-owner").show();
                         $(".only-group-owner-if-group-exist").show();
                         $(".only-group-editor-if-group-exist").show();
+                        $(".group-not-published-to-discovery").show();
 
                         break;
                     }
                 }
                 NotyNotification(r.msg, type = 'info', timeout = 30000);
-                $("#modal").modal("hide");
+                $("#" + curModalId).modal("hide");
             } else {
                 NotyNotification(r.msg, type = 'error');
             }
@@ -1314,36 +1043,10 @@ function GroupMember() {
 }
 
 function QuitGroupShow() {
-    $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" style="color:red"><i class="fa fa-arrow-right-from-bracket"></i> Quit Group</h5>
-                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#modal').modal('hide')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure to quit the group? Your progress will no longer be shared with other members and
-                        the
-                        book sync will stop.</p>
-                    <p>You will not be able to join the group again unless you have the invite code.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#modal').modal('hide')">Cancel</button>
-                    <button type="button" class="btn btn-danger" data-dismiss="modal"
-                        onclick="QuitGroup()">Quit</button>
-                </div>
-            </div>
-        </div>
-    </div>`);
-    $("#modal").modal("show");
-    $('#modal').on('hidden.bs.modal', function () {
-        $("#modal").remove();
-    });
+    curModalId = GenModal(`<span style="color:yellow"><i class="fa fa-arrow-right-from-bracket"></i> Quit Group</span>`,
+        `<p>Are you sure to quit the group? Your progress will no longer be shared with other members and the data sync will stop.</p>
+        <p>You will not be able to join the group again unless you have the invite code.</p>`,
+        `<button type="button" class="btn btn-warning" onclick="QuitGroup()">Quit</button>`);
 }
 
 function QuitGroup() {
@@ -1379,7 +1082,7 @@ function QuitGroup() {
                         break;
                     }
                 }
-                $("#modal").modal('hide');
+                $("#" + curModalId).modal('hide');
                 NotyNotification(r.msg);
             } else {
                 NotyNotification(r.msg, type = 'error');
@@ -1392,46 +1095,78 @@ function QuitGroup() {
 }
 
 function GroupInfoUpdateShow() {
-    $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modal"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modal">Update Group Information</h5>
-                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#modal').modal('hide')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form>
-                        <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1">Name</span>
-                            <input type="text" class="form-control" id="group-name" aria-describedby="basic-addon1">
-                        </div>
-                        <div class="form-group">
-                            <label for="group-description" class="col-form-label">Description:</label>
-                            <script>var groupDescriptionMDE = new SimpleMDE({autoDownloadFontAwesome:false,spellChecker:false,tabSize:4});</script>
-                            <textarea class="form-control" id="group-description" style="height:10em"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#modal').modal('hide')">Close</button>
-                    <button id="create-group-btn" type="button" class="btn btn-primary"
-                        onclick="GroupInfoUpdate()">Update</button>
-                </div>
-            </div>
+    curModalId = GenModal(`<i class='fa fa-edit'></i> Update Group Information`,
+        `<div class="input-group mb-3">
+            <span class="input-group-text" id="basic-addon1">Name</span>
+            <input type="text" class="form-control" id="group-name" aria-describedby="basic-addon1">
         </div>
-    </div>`);
-    $("#modal").modal("show");
-    $('#modal').on('hidden.bs.modal', function () {
-        $("#modal").remove();
+        <div class="form-group">
+            <label for="group-description" class="col-form-label">Description:</label>
+            <script>var groupDescriptionMDE = new SimpleMDE({autoDownloadFontAwesome:false,spellChecker:false,tabSize:4});</script>
+            <textarea class="form-control" id="group-description" style="height:10em"></textarea>
+        </div>`,
+        `<button id="create-group-btn" type="button" class="btn btn-primary" onclick="GroupInfoUpdate()">Update</button>`);
+    $("#group-name").val(groupName);
+    $('#' + curModalId).on('shown.bs.modal', function () {
+        groupDescriptionMDE.value(groupDescription);
     });
-    $(".editor-toolbar").css("background-color", "white");
-    $(".editor-toolbar").css("opacity", "1");
-    $(".cursor").remove();
+    BeautifyMarkdownEditor();
+    OnSubmit("#group-name,#group-description", GroupInfoUpdate, true);
+}
+
+function GroupInfoUpdate() {
+    gname = $("#group-name").val();
+    gdescription = groupDescriptionMDE.value();
+    if (gname == "" || gdescription == "") {
+        NotyNotification('Group name and description must be filled', type = 'warning');
+        return;
+    }
+    $.ajax({
+        url: '/api/group/manage',
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            groupId: groupId,
+            name: gname,
+            description: gdescription,
+            operation: "updateInfo",
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            if (r.success == true) {
+                for (var i = 0; i < bookList.length; i++) {
+                    if (bookList[i].bookId == bookId) {
+                        bookList[i].name = gname;
+                        bookName = gname;
+
+                        $(".book-name").html(bookName);
+                        $(".title").html(bookName);
+                        $("title").html(bookName + " | My Memo");
+                        $("title").html(bookName + " | My Memo");
+                        $("#groupCode").html(groupCode);
+                        $(".only-group-exist").show();
+                        $(".only-group-inexist").hide();
+                        $(".only-group-owner").show();
+                        $(".only-group-owner-if-group-exist").show();
+                        $(".only-group-editor-if-group-exist").show();
+
+                        localStorage.setItem("groupId", "-1");
+                        break;
+                    }
+                }
+                $("#" + curModalId).modal('hide');
+                NotyNotification(r.msg);
+
+            } else {
+                NotyNotification(r.msg, type = 'error');
+            }
+        },
+        error: function (r, textStatus, errorThrown) {
+            AjaxErrorHandler(r, textStatus, errorThrown);
+        }
+    });
 }
 
 function GroupAnonymousSwitch(anonymous) {
@@ -1493,62 +1228,6 @@ function GroupAnonymousSwitch(anonymous) {
     });
 }
 
-function GroupInfoUpdate() {
-    gname = $("#group-name").val();
-    gdescription = groupDescriptionMDE.value();
-    if (gname == "" || gdescription == "") {
-        NotyNotification('Group name and description must be filled', type = 'warning');
-        return;
-    }
-    $.ajax({
-        url: '/api/group/manage',
-        method: 'POST',
-        async: true,
-        dataType: "json",
-        data: {
-            groupId: groupId,
-            name: gname,
-            description: gdescription,
-            operation: "updateInfo",
-            userId: localStorage.getItem("userId"),
-            token: localStorage.getItem("token")
-        },
-        success: function (r) {
-            if (r.success == true) {
-                for (var i = 0; i < bookList.length; i++) {
-                    if (bookList[i].bookId == bookId) {
-                        bookList[i].name = gname;
-                        bookName = gname;
-
-                        $(".book-name").html(bookName);
-                        btns = '<button type="button" class="btn btn-outline-secondary" onclick="UpdateQuestionList()" id="refresh-btn"><i class="fa fa-sync"></i></button>';
-                        $(".title").html(bookName + '&nbsp;&nbsp;' + btns);
-                        $("title").html(bookName + " | My Memo");
-                        $("title").html(bookName + " | My Memo");
-                        $("#groupCode").html(groupCode);
-                        $(".only-group-exist").show();
-                        $(".only-group-inexist").hide();
-                        $(".only-group-owner").show();
-                        $(".only-group-owner-if-group-exist").show();
-                        $(".only-group-editor-if-group-exist").show();
-
-                        localStorage.setItem("groupId", "-1");
-                        break;
-                    }
-                }
-                $("#modal").modal('hide');
-                NotyNotification(r.msg);
-
-            } else {
-                NotyNotification(r.msg, type = 'error');
-            }
-        },
-        error: function (r, textStatus, errorThrown) {
-            AjaxErrorHandler(r, textStatus, errorThrown);
-        }
-    });
-}
-
 function GroupCodeUpdate(operation) {
     $.ajax({
         url: '/api/group/code/update',
@@ -1586,52 +1265,18 @@ function GroupCodeUpdate(operation) {
 }
 
 function GroupDismissShow() {
-    $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" style="color:red"><i class="fa fa-times"></i> Dismiss Group</h5>
-                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#modal').modal('hide')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure to dismiss the group? The group book sync will stop and it will be deleted
-                        permanently.</p>
-                    <p>All members will quit automatically and they will not be able to see each other's progress.
-                    </p>
-                    <p>This operation cannot be undone.</p>
-                    <p>*If you just want to make your group private or revoke the code, there are options just above
-                        the
-                        dismiss button.</p>
-                    <br>
-                    <p>Type the name of the group <b>` + bookName + `</b> to continue:</p>
-                    <form>
-                        <div class="input-group mb-3 center">
-                            <input type="text" class="form-control" id="group-delete" aria-describedby="basic-addon1">
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#modal').modal('hide')">Cancel</button>
-                    <button type="button" class="btn btn-danger" data-dismiss="modal"
-                        onclick="GroupDismiss()">Dismiss</button>
-                </div>
-            </div>
-        </div>
-    </div>`);
-    $("#modal").modal("show");
-    $('#modal').on('hidden.bs.modal', function () {
-        $("#modal").remove();
-    });
-    $("#group-delete").keypress(function (e) {
-        if (e.which == 13 || e.which == 13 && e.ctrlKey) {
-            GroupDismiss();
-        }
-    });
+    curModalId = GenModal(`<span style="color:red"><i class="fa fa-users-slash"></i> Dismiss Group</span>`,
+        `<p>Are you sure to dismiss the group? The group data sync will stop and it will be deleted permanently.</p>
+        <p>All members will quit automatically and they will not be able to see each other's progress.</p>
+        <p>This operation cannot be undone.</p>
+        <p>*If you just want to make your group private or revoke the code, there are options just above the dismiss button.</p>
+        <br>
+        <p>Type the name of the group <b>` + bookName + `</b> to continue:</p>
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" id="group-delete" aria-describedby="basic-addon1">
+        </div>`,
+        `<button type="button" class="btn btn-danger" onclick="GroupDismiss()">Dismiss</button>`);
+    OnSubmit("#group-delete", GroupDismiss);
 }
 
 function GroupDismiss() {
@@ -1670,7 +1315,7 @@ function GroupDismiss() {
                     }
                 }
                 NotyNotification(r.msg);
-                $("#modal").modal("hide");
+                $("#" + curModalId).modal("hide");
             } else {
                 NotyNotification(r.msg, type = 'error');
             }
@@ -1742,8 +1387,7 @@ function SelectBook(bookId) {
     localStorage.setItem("memo-book-id", bookId);
     UpdateBookContentDisplay();
 
-    btns = '<button type="button" class="btn btn-outline-secondary" onclick="UpdateQuestionList()" id="refresh-btn"><i class="fa fa-sync"></i></button>';
-    $(".title").html(bookName + '&nbsp;&nbsp;' + btns);
+    $(".title").html(bookName);
     $("title").html(bookName + " | My Memo");
 }
 
@@ -1811,28 +1455,13 @@ function BookChart() {
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
-                aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="modalLabel"><i class="fa fa-chart-bar"></i> Book Statistics</h5>
-                            <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
-                                onclick="$('#modal').modal('hide')">
-                                <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <div id="charts" style="border-radius:0.5em">
-                                <div class="chart" id="chart1"></div>
-                                <div class="chart" id="chart2"></div>
-                                <div class="chart" id="chart3" style="width:49%;display:inline-block;"></div>
-                                <div class="chart" id="chart4" style="width:49%;display:inline-block;"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>`);
+            GenModal(`<i class="fa fa-chart-bar"></i> Book Statistics`,
+                `<div id="charts" style="border-radius:0.5em">
+                    <div class="chart" id="chart1"></div>
+                    <div class="chart" id="chart2"></div>
+                    <div class="chart" id="chart3" style="width:49%;display:inline-block;"></div>
+                    <div class="chart" id="chart4" style="width:49%;display:inline-block;"></div>
+                </div>`);
             x = ['x'];
             Memorized = ['Memorized'];
             Forgotten = ['Forgotten'];
@@ -2011,32 +1640,10 @@ function BookChart() {
                 });
                 setTimeout(chart4.flush, 500);
             }, 2000);
-
-            $("text").css("font-family", "Comic Sans MS");
-            if (localStorage.getItem("settings-theme") == "dark") {
-                setInterval(function () {
-                    $("text").css("fill", "#ffffff");
-                    $(".c3-tooltip tr").css("color", "black")
-                }, 50);
-            }
-
-            $("#modal").modal("show");
-            $('#modal').on('hidden.bs.modal', function () {
-                $("#modal").remove();
-            });
+            BeautifyC3Chart();
         },
         error: function (r, textStatus, errorThrown) {
             AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
-}
-
-function BackToList() {
-    $(".book-data-div").hide();
-    $(".book-list-content-div").fadeIn();
-    UpdateBookContentDisplay();
-
-    window.history.pushState("My Memo", "My Memo", "/book");
-    $(".title").html(`Book&nbsp;&nbsp;<button type="button" id="refresh-btn" class="btn btn-outline-secondary"
-    onclick="UpdateBookContentList()"><i class="fa fa-sync"></i></button>`);
 }

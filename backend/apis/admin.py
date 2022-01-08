@@ -74,12 +74,16 @@ async def apiAdminUserList(request: Request):
         dd = list(dd)
         dd[1] = decode(dd[1])
 
+        userType = 0
         status = "Active"
         if dd[0] < 0:
+            userType = 2
             status = "Banned"
         if dd[1] == "@deleted":
+            userType = 3
             status = "Deleted"
         if sessions.checkDeletionMark(dd[0]):
+            userType = 4
             status = "Deactivated"
 
         for mm in muted:
@@ -89,7 +93,10 @@ async def apiAdminUserList(request: Request):
                 else:
                     status += " , Muted until " + str(datetime.datetime.fromtimestamp(int(mm[1])))
 
+        isAdmin = False
         if (dd[0],) in admins:
+            isAdmin = True
+            userType = 1
             status += " , Admin"
         
         inviterUsername = "Unknown"
@@ -103,7 +110,6 @@ async def apiAdminUserList(request: Request):
         t = cur.fetchall()
         if len(t) > 0:
             regts = t[0][0]
-        age = math.ceil((time.time() - regts) / 86400)
 
         prv = ""
         cur.execute(f"SELECT item, value FROM Privilege WHERE userId = {dd[0]}")
@@ -142,7 +148,7 @@ async def apiAdminUserList(request: Request):
         if inviteCode == "":
             inviteCode = "/"
 
-        users.append({"userId": str(dd[0]), "username": username, "plain_username": plain_username, "email": email, "inviter": f"{inviterUsername} (UID: {dd[3]})", "inviteCode": inviteCode, "age": age, "status": status, "privilege": prv})
+        users.append({"userId": str(dd[0]), "username": username, "plain_username": plain_username, "email": email, "inviter": f"{inviterUsername} (UID: {dd[3]})", "inviteCode": inviteCode, "age": CalculateAge(regts), "userType": userType, "isAdmin": isAdmin, "status": status, "privilege": prv})
         
     cur.execute(f"SELECT puserId, username, email, inviter FROM UserPending")
     d = cur.fetchall()
@@ -156,7 +162,7 @@ async def apiAdminUserList(request: Request):
         if len(t) != 0:
             inviterUsername = decode(t[0][0])
 
-        users_pending.append({"userId": str(dd[0]) + "*", "username": decode(dd[1]), "plain_username": decode(dd[1]), "email": decode(dd[2]), "inviter": f"{inviterUsername} (UID: {dd[3]})", "inviteCode": "/", "age": -1, "status": "Pending Activation", "privilege": "/"})
+        users_pending.append({"userId": str(dd[0]) + "*", "username": decode(dd[1]), "plain_username": decode(dd[1]), "email": decode(dd[2]), "inviter": f"{inviterUsername} (UID: {dd[3]})", "inviteCode": "/", "age": -1, "userType": 5, "isAdmin": False, "status": "Pending Activation", "privilege": "/"})
 
     t = {}
     for dd in users:

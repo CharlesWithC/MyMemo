@@ -23,6 +23,83 @@ function AjaxErrorHandler(r, textStatus, errorThrown) {
     }
 }
 
+function GenRandomString(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+}
+
+function BeautifyMarkdownEditor() {
+    $(".editor-toolbar").css("background-color", "white");
+    $(".editor-toolbar").css("opacity", "1");
+    $(".cursor").remove();
+}
+
+function BeautifyC3Chart() {
+    $("text").css("font-family", "Comic Sans MS");
+    if (localStorage.getItem("settings-theme") == "dark") {
+        setInterval(function () {
+            $("text").css("fill", "#ffffff");
+            $(".c3-tooltip tr").css("color", "black")
+        }, 50);
+    }
+}
+
+var modalz = 1000;
+
+function GenModal(title, content, control, onhide = function () {}, addClass = "") {
+    modalId = "modal-" + GenRandomString(8);
+    modalz += 2;
+    if (control == undefined) control = "";
+    $(".footer").before(`<div class="modal fade ` + addClass + `" id="` + modalId + `" tabindex="-1" role="dialog"
+        aria-labelledby="` + modalId + `-label" aria-hidden="true" style="z-index:` + modalz + `">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="` + modalId + `-label">` + title + `</h5>
+                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="` + modalId + `" aria-label="Close"
+                        onclick="$('#` + modalId + `').modal('hide')">
+                        <span aria-hidden="true"><i class="fa fa-times"></i></span>
+                    </button>
+                </div>
+                <div class="modal-body">` + content + `</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="` + modalId + `" onclick="$('#` + modalId + `').modal('hide')">Close</button>
+                ` + control + `</div>
+            </div>
+        </div>
+    </div>`);
+    $("#" + modalId).modal("show");
+    $.each($(".modal-backdrop"), function () {
+        if ($(this).attr("id") == undefined) {
+            $(this).attr("id", modalId + "-backdrop");
+            $(this).css("z-index", modalz - 1);
+        }
+    });
+    $('.modal').on('hidden.bs.modal', function () {
+        tmodalId = $(this).attr("id");
+        $("#" + tmodalId).remove();
+        $("#" + tmodalId + "-backdrop").remove();
+        if (tmodalId == modalId) onhide();
+    });
+
+    return modalId;
+}
+
+function OnSubmit(element, func, needctrl = false) {
+    $(element).off("keypress");
+    $(element).unbind("keypress");
+    $(element).keypress(function (e) {
+        if (e.which == 13 && !needctrl || e.which == 13 && e.ctrlKey) {
+            func();
+        }
+    });
+}
+
 function BackToHome() {
     window.location.href = '/';
 }
@@ -552,7 +629,9 @@ function RefreshCaptcha(submitfunc) {
         success: function (r) {
             if (r.success == true) {
                 $("#captcha-answer").val("");
-                setTimeout(function(){$("#captcha-answer").focus();},300);
+                setTimeout(function () {
+                    $("#captcha-answer").focus();
+                }, 300);
                 captchaToken = r.captchaToken;
                 captchaBase64 = r.captchaBase64;
                 $("#captcha").html("<img style='height:2em' src='data:image/png;base64," + captchaBase64 + "'>");
@@ -565,54 +644,33 @@ function RefreshCaptcha(submitfunc) {
 }
 
 function ShowCaptcha(submitfunc) {
-    $("#content").after(`<div class="modal fade" id="captchaModal" tabindex="-1" role="dialog"
-        aria-labelledby="modalLabel" aria-hidden="true" style="z-index:10000">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalLabel"><i class="fa fa-robot"></i>  Captcha</h5>
-                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#modal').modal('hide')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Please solve this captcha to prove that you are not a robot:</p>
-                    <div class="input-group mb-3">
-                        <input type="text" class="form-control" id="captcha-answer" aria-describedby="captcha">
-                        <span class="input-group-text" id="captcha">Fetching captcha&nbsp;&nbsp;<i class='fa fa-spinner fa-spin'></i></span>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#modal').modal('hide')">Close</button>
-                    <button type="button" class="btn btn-primary" id="captcha-submit">Submit</button>
-                </div>
-            </div>
-        </div>
-    </div>`);
-    $("#captchaModal").modal("show");
-    $('#captchaModal').on('hidden.bs.modal', function () {
-        $("#captchaModal").remove();
-        captchaToken = undefined;
+    GenModal(`<i class="fa fa-robot"></i>  Captcha`,
+        `<p>Please solve this captcha to prove that you are not a robot:</p>
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" id="captcha-answer" aria-describedby="captcha">
+                <span class="input-group-text" id="captcha" onclick="RefreshCaptcha();">Fetching captcha&nbsp;&nbsp;<i class='fa fa-spinner fa-spin'></i></span>
+            </div>`,
+        `<button type="button" class="btn btn-primary" id="captcha-submit" onclick="` + submitfunc + `();">Submit</button>`,
+        function () {
+            captchaToken = undefined;
+        }, "captchaModal"
+    );
+    OnSubmit("#captcha-answer", function () {
+        $("#captcha-submit").click();
     });
-    $("#captcha-answer").keypress(function (e) {
-        if (e.which == 13 || e.which == 13 && e.ctrlKey) {
-            $("#captcha-submit").click();
-        }
-    });
+
     $.ajax({
         url: "/api/captcha",
         method: 'GET',
         async: true,
         success: function (r) {
             if (r.success == true) {
-                setTimeout(function(){$("#captcha-answer").focus();},300);
+                setTimeout(function () {
+                    $("#captcha-answer").focus();
+                }, 300);
                 captchaToken = r.captchaToken;
                 captchaBase64 = r.captchaBase64;
                 $("#captcha").html("<img style='height:2em' src='data:image/png;base64," + captchaBase64 + "'>");
-                $("#captcha").attr("onclick", "RefreshCaptcha()");
-                $("#captcha-submit").attr("onclick", submitfunc + "()");
             }
         },
         error: function (r, textStatus, errorThrown) {

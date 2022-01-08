@@ -1,5 +1,11 @@
 # Update History
 
+## v5.6.8  
+
+*Date: 2021/1/8*  
+Fixed some bugs  
+Optimized code for less code to generate Modal  
+
 ## v5.6.7
 
 *Date: 2022/1/2*  

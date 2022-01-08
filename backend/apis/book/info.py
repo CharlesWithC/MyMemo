@@ -99,7 +99,7 @@ async def apiGetBook(request: Request):
             discoveryId = t[0][0]
         
         groupDiscoveryId = -1
-        cur.execute(f"SELECT discoveryId FROM Discovery WHERE bookId = {groupId} AND bookId = {userId} AND type = 2")
+        cur.execute(f"SELECT discoveryId FROM Discovery WHERE bookId = {groupId} AND publisherId = {userId} AND type = 2")
         t = cur.fetchall()
         if len(t) != 0:
             groupDiscoveryId = t[0][0]

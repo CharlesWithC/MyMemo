@@ -75,7 +75,8 @@ async def apiGroup(request: Request):
         cur.execute(f"INSERT INTO GroupMember VALUES ({groupId}, {userId}, 1, {bookId})")
         cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'create_group', {int(time.time())}, '{encode(f'Created group {decode(name)}')}')")
         cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'join_group', {int(time.time()+1)}, '{encode(f'Joined group {decode(name)}')}')")
-        
+        cur.execute(f"UPDATE Book SET name = '{name}' WHERE bookId = {bookId} AND userId = {userId}")
+
         questions = getBookData(userId, bookId)
         
         gquestionId = 1
@@ -115,7 +116,7 @@ async def apiGroup(request: Request):
         if owner != userId:
             return {"success": False, "msg": f"You are not the owner of the group!"}
             
-        cur.execute(f"SELECT * FROM Discovery WHERE publisherId = {userId} AND bookId = {groupId}")
+        cur.execute(f"SELECT * FROM Discovery WHERE publisherId = {userId} AND bookId = {groupId} AND type = 2")
         if len(cur.fetchall()) != 0:
             return {"success": False, "msg": f"Group published to Discovery! Unpublish it before dismissing it!"}
         
@@ -202,6 +203,36 @@ async def apiGroupCodeUpdate(request: Request):
         cur.execute(f"UPDATE GroupInfo SET groupCode = '{gcode}' WHERE groupId = {groupId}")
         conn.commit()
         return {"success": True, "msg": f"New group code: @{gcode}", "groupCode": f"@{gcode}"}
+
+@app.post("/api/group/info")
+async def apiGroupMember(request: Request):
+    ip = request.client.host
+    form = await request.form()
+    conn = newconn()
+    cur = conn.cursor()
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
+
+    userId = int(form["userId"])
+    token = form["token"]
+    if not validateToken(userId, token):
+        raise HTTPException(status_code=401)
+
+    groupId = int(form["groupId"])
+    cur.execute(f"SELECT userId, isEditor FROM GroupMember WHERE groupId = {groupId}")
+    d = cur.fetchall()
+    if not (userId,0,) in d and not (userId,1,) in d:
+        return {"success": False, "msg": f"You must be a member of the group before viewing its info."}
+
+    info = None
+    cur.execute(f"SELECT name, description, anonymous FROM GroupInfo WHERE groupId = {groupId}")
+    t = cur.fetchall()
+    if len(t) > 0:
+        info = t[0]
+    else:
+        return {"success": False, "msg": "Group not found!"}
+
+    return {"success": True, "name": decode(info[0]), "description": decode(info[1])}
 
 @app.post("/api/group/member")
 async def apiGroupMember(request: Request):

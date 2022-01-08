@@ -59,8 +59,7 @@
         <div class="userctrl">
             <a href='/user'><i class="fa fa-user"></i></a> <span id="navusername"><a href='/user/login'>Sign
                     in</a>&nbsp;&nbsp; </span>
-            <a class="only-signed-in" href='/notifications' style="display:none"><i
-                    class="fa fa-bell"></i></a>
+            <a class="only-signed-in" href='/notifications' style="display:none"><i class="fa fa-bell"></i></a>
             <a href='/settings'><i class="fa fa-cogs"></i></a>
             <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i
                     class="fa fa-arrow-right-from-bracket"></i></a>
@@ -69,6 +68,7 @@
 
     <div id="content" class="container">
         <h1 class="title">Export Data</h1>
+        <div class="subcontainer sub-div"></div>
         <p>You can export the data here.</p>
         <p>There are two options for you to choose: Excel Table and Raw Database File</p>
         <p>If you choose Question List, you will get all the questions, answers and status in a .xlsx file which is
@@ -88,6 +88,7 @@
         </p>
         <button id="submit" type="button" class="btn btn-primary" onclick="Export()"><i class="fa fa-download"></i>
             Export</button>
+    </div>
     </div>
 
     <div class="footer">

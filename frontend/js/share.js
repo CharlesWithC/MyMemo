@@ -117,34 +117,13 @@ function Unshare(shareCode) {
 }
 
 function CreateShareShow() {
-    $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog"
-        aria-labelledby="modalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="fa fa-share-alt"></i> Share Book
-                    </h5>
-                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#modal').modal('hide')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Select a book to share: </p>
-                    <select name="bookId" id="book" class="form-select">
-                    </select>
-                    <p>An unique share code will be generated.</p>
-                    <p><span id="share-msg"></span></p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#modal').modal('hide')">Cancel</button>
-                    <button id="share-btn" type="button" class="btn btn-primary" data-dismiss="modal"
-                        onclick="Share();">Share</button>
-                </div>
-            </div>
-        </div>
-    </div>`);
+    GenModal(`<i class="fa fa-share-alt"></i> Share Book`,
+        `<p>Select a book to share: </p>
+        <select name="bookId" id="book" class="form-select">
+        </select>
+        <p>An unique share code will be generated.</p>
+        <p><span id="share-msg"></span></p>`,
+        `<button id="share-btn" type="button" class="btn btn-primary" onclick="Share()">Share</button>`);
     $.ajax({
         url: "/api/book",
         method: 'POST',
@@ -160,13 +139,6 @@ function CreateShareShow() {
                     "</option>");
         }
     });
-    $("#modal").modal("show");
-    $('#modal').on('hidden.bs.modal', function () {
-        $("#modal").remove();
-    });
-    setTimeout(function () {
-        selected = [];
-    }, 100);
 }
 
 function Share() {

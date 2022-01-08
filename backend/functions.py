@@ -7,6 +7,7 @@ import random
 import base64
 import time
 import re
+import math
 
 from app import app, config
 from db import newconn
@@ -361,3 +362,77 @@ def validateCaptcha(captchaToken, captchaAnswer):
         return {"success": False, "captcha": True, "msg": "Incorrect captcha!"}
 
     return True
+from datetime import date
+
+Months = {0:31, 1:31, 2:28, 3:31, 4:30, 5:31, 6:30, 7:31, 8:31, 9:30, 10:31, 11:30, 12:31}
+
+def IsLeapYear(year):
+    if year % 4 == 0:
+        if year % 100 == 0:
+            if year % 400 == 0:
+                return True
+            else:
+                return False
+        else:
+            return True
+    else:
+        return False
+
+def CalculateAge(timestamp, humanReadable = True):
+    year, month, day = 0, 0, 0
+    
+    try:
+        date1 = date.fromtimestamp(timestamp)
+        year1, mon1, day1 = date1.year, date1.month, date1.day
+        date2 = date.today()
+        year2, mon2, day2 = date2.year, date2.month, date2.day
+        totalDays = (date2 - date1).days
+
+        if int(year1) == int(year2):
+            month = totalDays / 30
+            day = totalDays % 30
+            year = 0
+        else:
+            year = totalDays / 365
+            month = (totalDays % 365) / 30
+            if IsLeapYear(int(year1)):
+                Months[2] = 29
+            if int(day2) >= int(day1):
+                day = int(day2) - int(day1)
+            elif int(mon2) == 2 and (IsLeapYear(int(year2)) or (not IsLeapYear(int(year2)))):
+                year = year - 1
+                month = 11
+                prevMonth = Months[int(mon2) - 1]
+                days = prevMonth - int(day1) + int(day2)
+                day = days
+            else:
+                prevMonth = Months[int(mon2) - 1]
+                days = prevMonth - int(day1) + int(day2)
+                day = days
+        
+        year, month, day = int(year), int(month), int(day)
+    
+    except:
+        if humanReadable:
+            day = math.ceil((time.time() - timestamp) / 86400)
+        
+    if humanReadable:
+        year_s = "s"
+        if year <= 1:
+            year_s = ""
+        month_s = "s"
+        if month <= 1:
+            month_s = ""
+        day_s = "s"
+        if day <= 1:
+            day_s = ""
+        if year > 0:
+            return f"{year} year{year_s} {month} month{month_s} {day} day{day_s}"
+        elif month > 0:
+            return f"{month} month{month_s} {day} day{day_s}"
+        elif day > 0:
+            return f"{day} day{day_s}"
+        else:
+            return "1 day"
+    else:
+        return (year, month, day)

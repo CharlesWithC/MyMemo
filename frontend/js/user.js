@@ -21,6 +21,8 @@ class UserClass {
 }
 user = new UserClass();
 
+var curModalId = "";
+
 function UpdateUserInfo() {
     $.ajax({
         url: "/api/user/info",
@@ -377,7 +379,7 @@ function Login() {
                 return;
             }
 
-            $("#captchaModal").modal("hide");
+            $(".captchaModal").modal("hide");
 
             if (r.success == true && r.active == true) {
                 localStorage.setItem("userId", r.userId);
@@ -498,7 +500,7 @@ function Register() {
                 return;
             }
 
-            $("#captchaModal").modal("hide");
+            $(".captchaModal").modal("hide");
 
             if (r.success == true) {
                 NotyNotification(r.msg, type = 'success', timeout = 15000);
@@ -516,60 +518,29 @@ function Register() {
 }
 
 function UpdateProfileShow() {
-    $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog"
-        aria-labelledby="modalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalLabel"><i class="fa fa-edit"></i> Update Profile</h5>
-                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#modal').modal('hide')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form>
-                        <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1">Username</span>
-                            <input type="text" class="form-control" id="update-username" aria-describedby="basic-addon1">
-                        </div>
-                        <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1">Email</span>
-                            <input type="text" class="form-control" id="update-email" aria-describedby="basic-addon1">
-                        </div>
-                        <div class="form-group">
-                            <label for="update-bio" class="col-form-label">Bio:</label>
-                            <script>var biomde = new SimpleMDE({autoDownloadFontAwesome:false,spellChecker:false,tabSize:4});</script>
-                            <textarea class="form-control" id="update-bio"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#modal').modal('hide')">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="UpdateUserProfile()">Update</button>
-                </div>
-            </div>
+    curModalId = GenModal(`<i class="fa fa-edit"></i> Update Profile`,
+        `<div class="input-group mb-3">
+            <span class="input-group-text" id="basic-addon1">Username</span>
+            <input type="text" class="form-control" id="update-username" aria-describedby="basic-addon1">
         </div>
-    </div>`);
+        <div class="input-group mb-3">
+            <span class="input-group-text" id="basic-addon1">Email</span>
+            <input type="text" class="form-control" id="update-email" aria-describedby="basic-addon1">
+        </div>
+        <div class="form-group">
+            <label for="update-bio" class="col-form-label">Bio:</label>
+            <script>var biomde = new SimpleMDE({autoDownloadFontAwesome:false,spellChecker:false,tabSize:4});</script>
+            <textarea class="form-control" id="update-bio"></textarea>
+        </div>`,
+        `<button type="button" class="btn btn-primary" onclick="UpdateUserProfile()">Update</button>`);
+    BeautifyMarkdownEditor();
+    OnSubmit("#update-username,#update-email,#update-bio", UpdateUserProfile, true);
     l = user.username.indexOf('>', user.username.indexOf('>') + 1);
     r = user.username.indexOf('<', user.username.indexOf('<', user.username.indexOf('<') + 1) + 1);
     $("#update-username").val(user.username.substr(l + 1, r - l - 1));
     $("#update-email").val(user.email);
-    $("#modal").modal("show");
-    $('#modal').on('hidden.bs.modal', function () {
-        $("#modal").remove();
-    });
-    $(".editor-toolbar").css("background-color", "white");
-    $(".editor-toolbar").css("opacity", "1");
-    $(".cursor").remove();
-    $('#modal').on('shown.bs.modal', function () {
+    $('#' + curModalId).on('shown.bs.modal', function () {
         biomde.value(user.bio);
-    });
-    $("#update-username,#update-email,#update-bio").keypress(function (e) {
-        if (e.which == 13 || e.which == 13 && e.ctrlKey) {
-            UpdateUserProfile();
-        }
     });
 }
 
@@ -599,7 +570,7 @@ function UpdateUserProfile() {
         },
         success: function (r) {
             if (r.captcha == true) {
-                if ($("#captchaModal").length == 0) {
+                if ($(".captchaModal").length == 0) {
                     ShowCaptcha("UpdateUserProfile");
                 } else {
                     NotyNotification(r.msg, "warning");
@@ -609,7 +580,7 @@ function UpdateUserProfile() {
             }
 
             if (r.success == true) {
-                $("#captchaModal").modal("hide");
+                $(".captchaModal").modal("hide");
                 $.ajax({
                     url: "/api/user/info",
                     method: 'POST',
@@ -629,7 +600,7 @@ function UpdateUserProfile() {
                         $("#email").html(user.email);
                     }
                 });
-                $("#modal").modal("hide");
+                $("#" + curModalId).modal("hide");
 
                 NotyNotification(r.msg);
             } else {
@@ -640,6 +611,24 @@ function UpdateUserProfile() {
             AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
+}
+
+function ChangePasswordShow() {
+    curModalId = GenModal(`<i class="fa fa-edit"></i> Change Password`,
+        `<div class="input-group mb-3">
+            <span class="input-group-text" id="basic-addon1">Current Password</span>
+            <input type="password" class="form-control" id="oldpwd" aria-describedby="basic-addon1">
+        </div>
+        <div class="input-group mb-3">
+            <span class="input-group-text" id="basic-addon1">New Password</span>
+            <input type="password" class="form-control" id="newpwd" aria-describedby="basic-addon1">
+        </div>
+        <div class="input-group mb-3">
+            <span class="input-group-text" id="basic-addon1">Repeat new Password</span>
+            <input type="password" class="form-control" id="cfmpwd" aria-describedby="basic-addon1">
+        </div>`,
+        `<button type="button" class="btn btn-primary" onclick="ChangePassword()">Change</button>`);
+    OnSubmit("#oldpwd,#newpwd,#cfmpwd",ChangePassword);
 }
 
 function ChangePassword() {
@@ -672,7 +661,7 @@ function ChangePassword() {
 
                 NotyNotification('Password has been changed! You have to log in again!', type = 'warning');
 
-                $("#modal").modal("hide");
+                $("#" + curModalId).modal("hide");
 
                 localStorage.removeItem("userid");
                 localStorage.removeItem("username");
@@ -691,52 +680,33 @@ function ChangePassword() {
     });
 }
 
-
-function ChangePasswordShow() {
-    $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog"
-        aria-labelledby="modalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalLabel"><i class="fa fa-edit"></i>Change Password</h5>
-                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#modal').modal('hide')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form>
-                        <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1">Current Password</span>
-                            <input type="password" class="form-control" id="oldpwd" aria-describedby="basic-addon1">
-                        </div>
-                        <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1">New Password</span>
-                            <input type="password" class="form-control" id="newpwd" aria-describedby="basic-addon1">
-                        </div>
-                        <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1">Repeat new Password</span>
-                            <input type="password" class="form-control" id="cfmpwd" aria-describedby="basic-addon1">
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#modal').modal('hide')">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="ChangePassword()">Change</button>
-                </div>
-            </div>
+function DeleteAccountShow() {
+    userId = localStorage.getItem("userId");
+    curModalId = GenModal(`<span style='color:red'><i class="fa fa-trash"></i> Delete Account</span>`,
+        `<p>Are you sure to delete your account?</p>
+        <p>By continuing, your account will be disabled and it will be deleted after 14 days.</p>
+        <p>You can recover it by logging in at any time during that period.</p>
+        <p>After 14 days it will be deleted permanently and cannot be recovered.</p>
+        <br>
+        <p>Deleting your account will make you unable to login permanently but all your other data will
+            be preserved.</p>
+        <p>You can delete most of the data manually such as questions and books.</p>
+        <p>If you want a deep data wipe, you can contact administrator and provide your User ID: ` + userId + `.</p>
+        <p>Administrators will be able to wipe your data completely after your account is deleted.</p>
+        <br>
+        <p>Type your "I acknowledge what I'm doing" and your password to continue:</p>
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" id="acknowledge-confirm"
+                aria-describedby="basic-addon1">
         </div>
-    </div>`);
-    $("#modal").modal("show");
-    $('#modal').on('hidden.bs.modal', function () {
-        $("#modal").remove();
-    });
-    $("#oldpwd,#newpwd,#cfmpwd").keypress(function (e) {
-        if (e.which == 13 || e.which == 13 && e.ctrlKey) {
-            ChangePassword();
-        }
-    });
+        <div class="input-group mb-3">
+            <span class="input-group-text" id="basic-addon1">Password</span>
+            <input type="password" class="form-control" id="delete-password"
+                aria-describedby="basic-addon1">
+        </div>
+        <p id="delete-msg"></p>`,
+        `<button type="button" class="btn btn-primary" onclick="DeleteAccount()">Delete</button>`);
+    OnSubmit("#acknowledge-confirm,#delete-password", DeleteAccount, true);
 }
 
 function DeleteAccount() {
@@ -773,64 +743,6 @@ function DeleteAccount() {
         },
         error: function (r, textStatus, errorThrown) {
             AjaxErrorHandler(r, textStatus, errorThrown);
-        }
-    });
-}
-
-function DeleteAccountShow() {
-    userId = localStorage.getItem("userId");
-    $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog"
-        aria-labelledby="modalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalLabel"><i class="fa fa-trash"></i> Delete Account</h5>
-                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#modal').modal('hide')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form>
-                        <p>Are you sure to delete your account?</p>
-                        <p>By continuing, your account will be disabled and it will be deleted after 14 days.</p>
-                        <p>You can recover it by logging in at any time during that period.</p>
-                        <p>After 14 days it will be deleted permanently and cannot be recovered.</p>
-                        <br>
-                        <p>Deleting your account will make you unable to login permanently but all your other data will
-                            be preserved.</p>
-                        <p>You can delete most of the data manually such as questions and books.</p>
-                        <p>If you want a deep data wipe, you can contact administrator and provide your User ID: ` + userId + `.</p>
-                        <p>Administrators will be able to wipe your data completely after your account is deleted.</p>
-                        <br>
-                        <p>Type your "I acknowledge what I'm doing" and your password to continue:</p>
-                        <div class="input-group mb-3">
-                            <input type="text" class="form-control" id="acknowledge-confirm"
-                                aria-describedby="basic-addon1">
-                        </div>
-                        <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1">Password</span>
-                            <input type="password" class="form-control" id="delete-password"
-                                aria-describedby="basic-addon1">
-                        </div>
-                        <p id="delete-msg"></p>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#modal').modal('hide')">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="DeleteAccount()">Delete</button>
-                </div>
-            </div>
-        </div>
-    </div>`);
-    $("#modal").modal("show");
-    $('#modal').on('hidden.bs.modal', function () {
-        $("#modal").remove();
-    });
-    $("#acknowledge-confirm,#delete-password").keypress(function (e) {
-        if (e.which == 13 || e.which == 13 && e.ctrlKey) {
-            DeleteAccount();
         }
     });
 }
@@ -974,28 +886,7 @@ function SessionDetail(i) {
     <p>User Agent: " + sessions[i].userAgent + "</p></p>\
     <p>Login time: " + loginTime + "</p>\
     <p>Expire time: " + expireTime + "</p>";
-    $("#content").after(`
-    <div class="modal fade" id="modal" tabindex="-1" role="dialog"
-        aria-labelledby="modalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class='fa fa-brands fa-` + system + `'></i>&nbsp;&nbsp;` + sysver + `</h5>
-                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#modal').modal('hide');">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    ` + body + `
-                </div>
-            </div>
-        </div>
-    </div>`);
-    $("#modal").modal("show");
-    $('#modal').on('hidden.bs.modal', function () {
-        $("#modal").remove();
-    });
+    GenModal(`<i class='fa fa-brands fa-` + system + `'></i>&nbsp;&nbsp;` + sysver, body);
 }
 
 $(document).ready(function () {
@@ -1062,52 +953,15 @@ $(document).ready(function () {
 });
 
 function ForgotPasswordShow() {
-    $("#content").after(`<div class="modal fade" id="modal" tabindex="-1" role="dialog"
-        aria-labelledby="modalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalLabel">Reset Password</h5>
-                    <button type="button" class="close" style="background-color:transparent;border:none" data-dismiss="modal" aria-label="Close"
-                        onclick="$('#modal').modal('hide')">
-                        <span aria-hidden=" true"><i class="fa fa-times"></i></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form>
-                        <p>Please enter your email below and an email containing password reset link will be sent to you.</p>
-                        <div class="input-group mb-3">
-                            <span class="input-group-text" id="basic-addon1">Email</span>
-                            <input type="text" class="form-control" id="reset-email" aria-describedby="basic-addon1">
-                        </div>
-                        <p id="msg"></p>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                        onclick="$('#modal').modal('hide')">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="ForgotPassword()">Reset</button>
-                </div>
-            </div>
+    curModalId = GenModal(`<i class='fa fa-sync'></i> Reset Password`,
+        `<p>Please enter your email below and an email containing password reset link will be sent to you.</p>
+        <div class="input-group mb-3">
+            <span class="input-group-text" id="basic-addon1">Email</span>
+            <input type="text" class="form-control" id="reset-email" aria-describedby="basic-addon1">
         </div>
-    </div>`);
-    $("#modal").modal("show");
-    $('#modal').on('hidden.bs.modal', function () {
-        $("#modal").remove();
-        $("#input-password").keypress(function (e) {
-            if (e.which == 13 || e.which == 13 && e.ctrlKey) {
-                Login();
-            }
-        });
-    });
-    $("#input-password").keypress(function (e) {
-        return;
-    });
-    $("#reset-email").keypress(function (e) {
-        if (e.which == 13 || e.which == 13 && e.ctrlKey) {
-            ForgotPassword();
-        }
-    });
+        <p id="msg"></p>`,
+        `<button type="button" class="btn btn-primary" onclick="ForgotPassword()">Reset</button>`);
+    OnSubmit("#reset-email", ForgotPassword);
 }
 
 function ForgotPassword() {

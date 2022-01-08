@@ -400,8 +400,7 @@ async def apiDeleteBook(request: Request):
         return {"success": False, "msg": "Book does not exist!"}
     name = t[0][0]
 
-    cur.execute(f"SELECT * FROM Discovery WHERE publisherId = {userId} AND bookId = {bookId}")
-    notice = ""
+    cur.execute(f"SELECT * FROM Discovery WHERE publisherId = {userId} AND bookId = {bookId} AND type = 1")
     if len(cur.fetchall()) != 0:
         return {"success": False, "msg": "Book published to Discovery! Unpublish it first before deleting the book."}
             
