@@ -10,6 +10,10 @@ h1 {
     margin-right: 0em;
 }
 
+#refresh-btn {
+    font-size: 0.5em;
+}
+
 h2 {
     font-size: 1.8em;
 }
@@ -39,11 +43,11 @@ td {
     right: 1em;
 }
 
-.input-group > input{
+.input-group>input {
     font-size: 1em;
 }
 
-.input-group > span{
+.input-group>span {
     font-size: 1em;
 }
 
@@ -69,8 +73,6 @@ td {
 
 .container {
     padding: 1em;
-    margin: 0.5em auto;
-    margin-top: 0;
     max-width: 100%;
 }
 
@@ -94,11 +96,9 @@ td {
 }
 
 .table_search {
-    font-size: 1em;
-    float:none;
+    width: 100%;
 }
 
 .table_range {
-    font-size: 1em;
-    float:none;
+    width: 100%;
 }

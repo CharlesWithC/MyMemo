@@ -70,9 +70,7 @@ button {
 
 .container {
     position: relative;
-    margin: 1em;
-    margin-top: 0;
-    margin-bottom: 0.5em;
+    margin: 0;
     padding: 5%;
     padding-top: 0.5em;
     min-height: 100%;
@@ -82,7 +80,8 @@ button {
 
 .subcontainer {
     padding: 1.5em;
-    margin: 0.5em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
     background-color: #eeeeee;
     overflow: hidden;
     border-radius: 0.5em;
@@ -106,12 +105,12 @@ button {
 
 @media all and (min-width: 1000px) {
     .sub-left {
-        width: calc(66.67% - 1.2em);
+        width: calc(66.67% - 1em);
         float: left;
     }
 
     .sub-right {
-        width: calc(33.33% - 1.2em);
+        width: calc(33.33% - 1em);
         float: right;
     }
 }
@@ -407,12 +406,10 @@ button {
 
 .table_range {
     float: left;
-    width: calc(min(40%, 100% - 15em));
 }
 
 .table_search {
     float: right;
-    width: calc(min(60%, 15em));
 }
 
 .table-light {
