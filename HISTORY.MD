@@ -1,5 +1,20 @@
 # Update History
 
+## v5.6.10
+
+*Date: 2021/1/14*  
+Bug Fixes:  
+1.Fixed some bugs of challenge mode  
+
+Feature Updates:  
+1.Improved admin panel  
+2.Allowed users to revoke sessions  
+
+Code Updates:  
+1.Updated server code structure  
+
+**Winter Vacation!**
+
 ## v5.6.9
 
 *Date: 2021/1/8*  

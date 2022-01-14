@@ -415,6 +415,7 @@ function PageInit() {
     discoveryId = getUrlParameter("discoveryId");
     if (discoveryId == -1) {
         RefreshDiscovery();
+        $(".discovery-list").show();
     } else {
         $(".discovery-list").hide();
         $(".discovery-detail").show();

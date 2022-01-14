@@ -3,13 +3,11 @@
 # License: GNU General Public License v3.0
 
 from fastapi import Request, HTTPException
-import os, sys, time, math
-import json
+import time
 
 from app import app, config
 from db import newconn
 from functions import *
-import sessions
 
 ##########
 # User Info API
@@ -318,6 +316,8 @@ async def apiUserSessions(request: Request):
         if dd[1] <= int(time.time()):
             cur.execute(f"DELETE FROM ActiveUserLogin WHERE token = '{dd[4]}' AND userId = {userId}")
         else:
-            ss.append({"loginTime": dd[0], "expireTime": dd[1], "userAgent": decode(dd[2]), "ip": dd[3]})
+            tk = dd[4]
+            tk = tk[tk.find("-")+1:tk.find("-",tk.find("-")+1)]
+            ss.append({"loginTime": dd[0], "expireTime": dd[1], "userAgent": decode(dd[2]), "ip": dd[3], "token": tk})
     
-    return ss
+    return ss[::-1]

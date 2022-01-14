@@ -23,6 +23,41 @@ user = new UserClass();
 
 var curModalId = "";
 
+function UpdateSessions() {
+    curToken = localStorage.getItem("token");
+    $.ajax({
+        url: "/api/user/sessions",
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            $(".user-session").remove();
+            $("#sessions br").remove();
+            sessions = r;
+            for (var i = 0; i < sessions.length; i++) {
+                system = "desktop";
+                if (sessions[i].userAgent.indexOf("Win") != -1) system = "windows";
+                if (sessions[i].userAgent.indexOf("Mac") != -1) system = "apple";
+                if (sessions[i].userAgent.indexOf("Linux") != -1) system = "linux";
+                if (sessions[i].userAgent.indexOf("Android") != -1) system = "android";
+                sysver = sessions[i].userAgent.substr(sessions[i].userAgent.indexOf("(") + 1, sessions[i].userAgent.indexOf(")") - sessions[i].userAgent.indexOf("(") - 1);
+                note = ""
+                if (sessions[i].token == curToken.substr(curToken.indexOf('-') + 1, 8))
+                    note = "<p class='rect-content'>*Current session</p>";
+                $("#sessions").append(`<div class='rect user-session' onclick='SessionDetail(` + i + `);'>
+            <p class='rect-title'><i class='fa fa-brands fa-` + system + `'></i>&nbsp;&nbsp;` + sysver + `
+            ` + note + `
+            <p class='rect-content'>IP: ` + sessions[i].ip + `</p>
+            </div><br>`)
+            }
+        }
+    });
+}
+
 function UpdateUserInfo() {
     $.ajax({
         url: "/api/user/info",
@@ -96,31 +131,7 @@ function UpdateUserInfo() {
                 $("#danger-zone").remove();
             }
 
-            $.ajax({
-                url: "/api/user/sessions",
-                method: 'POST',
-                async: true,
-                dataType: "json",
-                data: {
-                    userId: localStorage.getItem("userId"),
-                    token: localStorage.getItem("token")
-                },
-                success: function (r) {
-                    sessions = r;
-                    for (var i = 0; i < sessions.length; i++) {
-                        system = "desktop";
-                        if (sessions[i].userAgent.indexOf("Win") != -1) system = "windows";
-                        if (sessions[i].userAgent.indexOf("Mac") != -1) system = "apple";
-                        if (sessions[i].userAgent.indexOf("Linux") != -1) system = "linux";
-                        if (sessions[i].userAgent.indexOf("Android") != -1) system = "android";
-                        sysver = sessions[i].userAgent.substr(sessions[i].userAgent.indexOf("(") + 1, sessions[i].userAgent.indexOf(")") - sessions[i].userAgent.indexOf("(") - 1);
-                        $("#sessions").append("<div class='rect' onclick='SessionDetail(" + i + ");'>\
-                    <p class='rect-title'><i class='fa fa-brands fa-" + system + "'></i>&nbsp;&nbsp;" + sysver + "\
-                    <p class='rect-content'>IP: " + sessions[i].ip + "</p>\
-                    </div><br>")
-                    }
-                }
-            });
+            UpdateSessions();
         },
         error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
@@ -418,7 +429,7 @@ function Login() {
 
                         if (localStorage.getItem("first-use") != "0" || localStorage.getItem("sign-out") == "1") {
                             $.ajax({
-                                url: '/api/user/settings',
+                                url: '/api/user/user/settings',
                                 method: 'POST',
                                 async: false,
                                 dataType: "json",
@@ -628,7 +639,7 @@ function ChangePasswordShow() {
             <input type="password" class="form-control" id="cfmpwd" aria-describedby="basic-addon1">
         </div>`,
         `<button type="button" class="btn btn-primary" onclick="ChangePassword()">Change</button>`);
-    OnSubmit("#oldpwd,#newpwd,#cfmpwd",ChangePassword);
+    OnSubmit("#oldpwd,#newpwd,#cfmpwd", ChangePassword);
 }
 
 function ChangePassword() {
@@ -873,7 +884,33 @@ function UpdateGoal() {
     });
 }
 
+function SessionRevoke(sessionToken) {
+    $.ajax({
+        url: "/api/user/session/revoke",
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            sessionToken: sessionToken,
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            if (r.success == true) {
+                NotyNotification(r.msg, type = 'success');
+                UpdateSessions();
+            } else {
+                NotyNotification(r.msg, type = 'error');
+            }
+        },
+        error: function (r, textStatus, errorThrown) {
+            AjaxErrorHandler(r, textStatus, errorThrown);
+        }
+    });
+}
+
 function SessionDetail(i) {
+    curToken = localStorage.getItem("token");
     system = "desktop";
     if (sessions[i].userAgent.indexOf("Win") != -1) system = "windows";
     if (sessions[i].userAgent.indexOf("Mac") != -1) system = "apple";
@@ -882,11 +919,15 @@ function SessionDetail(i) {
     sysver = sessions[i].userAgent.substr(sessions[i].userAgent.indexOf("(") + 1, sessions[i].userAgent.indexOf(")") - sessions[i].userAgent.indexOf("(") - 1);
     loginTime = new Date(sessions[i].loginTime * 1000).toLocaleString();
     expireTime = new Date(sessions[i].expireTime * 1000).toLocaleString();
-    body = "<p>IP: " + sessions[i].ip + "</p>\
+    note = ""
+    if (sessions[i].token == curToken.substr(curToken.indexOf('-') + 1, 8))
+        note = "<p>*Current session</p>";
+    body = note + "<p>IP: " + sessions[i].ip + "</p>\
     <p>User Agent: " + sessions[i].userAgent + "</p></p>\
     <p>Login time: " + loginTime + "</p>\
     <p>Expire time: " + expireTime + "</p>";
-    GenModal(`<i class='fa fa-brands fa-` + system + `'></i>&nbsp;&nbsp;` + sysver, body);
+    GenModal(`<i class='fa fa-brands fa-` + system + `'></i>&nbsp;&nbsp;` + sysver, body,
+        `<button type="button" class="btn btn-warning" onclick="SessionRevoke('` + sessions[i].token + `')">Revoke</button>`);
 }
 
 $(document).ready(function () {

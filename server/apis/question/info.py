@@ -3,14 +3,12 @@
 # License: GNU General Public License v3.0
 
 from fastapi import Request, HTTPException
-import os, sys, datetime, time
+import datetime, time
 import random
-import json
 
 from app import app, config
 from db import newconn
 from functions import *
-import sessions
 
 ##########
 # Question API

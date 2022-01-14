@@ -129,9 +129,9 @@
         <div class="userctrl">
             <a href='/user'><i class="fa fa-user"></i></a> <span id="navusername"><a href='/user/login'>Sign
                     in</a>&nbsp;&nbsp; </span>
-            <a class="only-signed-in" href='/notifications' style="display:none"><i
+            <a class="only-signed-in" href='/user/events' style="display:none"><i
                     class="fa fa-bell"></i></a>
-            <a href='/settings'><i class="fa fa-cogs"></i></a>
+            <a href='/user/settings'><i class="fa fa-cogs"></i></a>
             <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i
                     class="fa fa-arrow-right-from-bracket"></i></a>
         </div>
@@ -155,7 +155,8 @@
             <hr>
 
             <h2>Command List</h2>
-            <p>1. get_user_info [userId] - Get detailed user info of [userId]</p>
+            <p>1.1. get_user_info [userId] - Get detailed user info of [userId]</p>
+            <p>1.2. get_user_count - Get user count</p>
             <p>2.1. create_user [username] [email] [password] - Create a user by admin, user will be shown as invited by
                 this
                 admin</p>
@@ -177,9 +178,9 @@
             <p>7.1. delete_user [userId] - The account must be marked as deletion first, and admin will be able to bring
                 the
                 deletion schedule forward</p>
-            <p>7.2. delete_user_completely [userId] - Wipe all the data of [userId] (this should be requested by the user)
-            </p>
-            <p>8. get_user_count - Get user count</p>
+            <p>7.2. wipe_user [userId] - Wipe all the data of [userId] (this should be requested by the user)</p>
+            <p>8.1. block_mail_domain [domain] - Block users with emails at [domain] from registering</p>
+            <p>8.2. unblock_mail_domain [domain] - Allow users with emails at [domain] to register</p>
             <p>9. restart - Restart backend server</p>
         </div>
     </div>

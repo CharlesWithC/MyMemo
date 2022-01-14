@@ -3,8 +3,7 @@
 # License: GNU General Public License v3.0
 
 from fastapi import Request, HTTPException, BackgroundTasks
-import os, sys, time, math, uuid
-import json
+import time, uuid
 import validators
 
 from app import app, config
@@ -260,3 +259,39 @@ async def apiResetPassword(request: Request, background_tasks: BackgroundTasks):
     background_tasks.add_task(sendNormal, email, username, "Password updated", f"Your password has been updated. If you didn't do this, reset your password immediately!")
     
     return {"success": True, "msg": "Password updated!"}
+
+@app.post("/api/user/session/revoke")
+async def apiUserSessionRevoke(request: Request):
+    ip = request.client.host
+    form = await request.form()
+    conn = newconn()
+    cur = conn.cursor()
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
+        
+    userId = int(form["userId"])
+    token = form["token"]
+    if not validateToken(userId, token):
+        raise HTTPException(status_code=401)
+    
+    session = form["sessionToken"]
+
+    cur.execute(f"SELECT loginTime FROM ActiveUserLogin WHERE userId = {userId} AND token = '{token}'")
+    t = cur.fetchall()
+    if len(t) == 0:
+        raise HTTPException(status_code=401)
+    curLoginTime = t[0][0]
+
+    cur.execute(f"SELECT token, loginTime FROM ActiveUserLogin WHERE userId = {userId} AND token LIKE '%{session}%'")
+    t = cur.fetchall()
+    if len(t) == 0:
+        return {"success": False, "msg": "Session not found!"}
+    sFullToken = t[0][0]
+    sLoginTime = t[0][1]
+
+    if sFullToken != token and sLoginTime < curLoginTime and time.time() - curLoginTime < 1800:
+        return {"success": False, "msg": "Your current session is not old enough to revoke an older session. Try again later..."}
+
+    sessions.logout(userId, sFullToken)
+
+    return {"success": True, "msg": f"Session {session} revoked!"}

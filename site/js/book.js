@@ -330,6 +330,8 @@ function PageInit() {
             bookList = r;
             if (bookId != -1)
                 OpenBook();
+            else
+                $(".book-list-content-div").show();
             UpdateBookContentDisplay();
             $("#refresh-btn").html('<i class="fa fa-sync"></i>');
         }
@@ -557,6 +559,9 @@ function AddQuestion() {
         success: function (r) {
             if (r.success == true) {
                 NotyNotification('Success! Added a new question!');
+                $("#add-question").val("");
+                $("#add-answer").val("");
+                $("#add-question").focus();
 
                 UpdateQuestionList();
             } else {

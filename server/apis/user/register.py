@@ -3,8 +3,7 @@
 # License: GNU General Public License v3.0
 
 from fastapi import Request, HTTPException, BackgroundTasks
-import os, sys, time, math, uuid
-import json
+import time, uuid
 import validators
 
 from app import app, config

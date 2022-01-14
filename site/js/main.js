@@ -262,7 +262,8 @@ function MemoMove(direction) {
             },
             success: function (r) {
                 if (!r.success) {
-                    NotyNotification(r.msg, 'warning', 5000);
+                    NotyNotification(r.msg, 'warning', 10000);
+                    BackToHome();
                     return;
                 }
                 memo.question = r.question;
@@ -446,7 +447,8 @@ function MemoStart() {
             success: function (r) {
                 $("#start-btn").html("Go <i class='fa fa-play'></i>");
                 if (!r.success) {
-                    NotyNotification(r.msg, 'warning', 5000);
+                    NotyNotification(r.msg, 'warning', 10000);
+                    BackToHome();
                     return;
                 }
                 ccAnswered = false;
@@ -609,6 +611,35 @@ function ChallengeChoice(choiceid) {
             $(".choice").css("background", "#ff5555");
             $("#div-choice-" + (r.correct - 1)).css("background", "#55ff55");
 
+            if(r.success == false){
+                NotyNotification(r.msg, "error", 10000);
+                BackToHome();
+                return;
+            }
+            
+            if (r.result == -1 && r.expired == true) {
+                $("#challenge-msg").html("Challenge expired!");
+                NotyNotification("Challenge expired!", 'warning');
+
+                setTimeout(function () {
+                    ccAnswered = false;
+                    memo.questionId = -1;
+                    memo.question = r.question;
+                    memo.answer = "";
+                    memo.questionStatus = r.status;
+                    memo.choices = r.choices;
+                    $("#cc-question").html(marked.parse(memo.question));
+                    for (var i = 0; i < memo.choices.length; i++)
+                        $("#choice-" + i).html(marked.parse(memo.choices[i]));
+                    memo.challengeToken = r.challengeToken;
+                    $("#challenge-msg").html("Select your answer <i class='fa fa-arrow-up'></i>");
+                    ShowQuestion();
+                    $(".choice").css("background", "transparent");
+                    $(".choice-circle").css("background", "#dddddd");
+                }, 500);
+                return;
+            }
+
             if (r.result == true) {
                 $("#challenge-msg").html("Answer correct <i class='fa fa-check'></i>");
                 if (r.expired == true) {
@@ -648,7 +679,7 @@ function ChallengeChoice(choiceid) {
                     ShowQuestion();
                     $(".choice").css("background", "transparent");
                     $(".choice-circle").css("background", "#dddddd");
-                }, 500)
+                }, 500);
             } else {
                 $("#challenge-msg").html("Wrong answer <i class='fa fa-times'></i>");
                 if (r.expired == true) {

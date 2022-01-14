@@ -3,13 +3,11 @@
 # License: GNU General Public License v3.0
 
 from fastapi import Request, HTTPException
-import os, sys, time, math
 import json, requests
 
 from app import app, config
 from db import newconn
 from functions import *
-import sessions
 
 ##########
 # Discovery Info API

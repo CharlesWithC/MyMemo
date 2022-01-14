@@ -18,11 +18,11 @@ import apis.discovery.main
 import apis.group
 import apis.share
 import apis.data
-import apis.admin
+import apis.admin.main
 
 @app.get("/api/version")
 async def apiGetVersion(request: Request):
-    return {"success": True, "version": "v5.6.9"}
+    return {"success": True, "version": "v5.6.10"}
 
 @app.get("/api/captcha")
 async def apiGetCaptcha(request: Request):

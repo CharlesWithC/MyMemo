@@ -44,9 +44,9 @@
         <div class="userctrl">
             <a href='/user'><i class="fa fa-user"></i></a> <span id="navusername"><a href='/user/login'>Sign
                     in</a>&nbsp;&nbsp; </span>
-            <a class="only-signed-in" href='/notifications' style="display:none"><i
+            <a class="only-signed-in" href='/user/events' style="display:none"><i
                     class="fa fa-bell"></i></a>
-            <a href='/settings'"><i class="fa fa-cogs"></i></a>
+            <a href='/user/settings'"><i class="fa fa-cogs"></i></a>
             <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i
                     class="fa fa-arrow-right-from-bracket"></i></a>
         </div>
@@ -56,7 +56,7 @@
         <h1 class="title">Discovery &nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary"
                 onclick="RefreshDiscovery()" id="refresh-btn"><i class="fa fa-sync"></i></button></h1>
 
-        <div class="discovery-list">
+        <div class="discovery-list" style="display:none">
             <div id="dlist" class="subcontainer sub-div">
                 <h2><i class="fa fa-table"></i>&nbsp;&nbsp;Post List</h2>
                 <table class="table table-hover" id="discoveryList" style="text-align:center">

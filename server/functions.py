@@ -428,7 +428,7 @@ def CalculateAge(timestamp, humanReadable = True):
         if day <= 1:
             day_s = ""
         if year > 0:
-            return f"{year} year{year_s} {month} month{month_s} {day} day{day_s}"
+            return f"{year} year{year_s} {month} month{month_s}"
         elif month > 0:
             return f"{month} month{month_s} {day} day{day_s}"
         elif day > 0:
