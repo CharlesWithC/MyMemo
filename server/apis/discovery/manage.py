@@ -189,4 +189,4 @@ async def apiDiscoveryUpdate(request: Request):
     cur.execute(f"UPDATE Discovery SET description = '{description}' WHERE discoveryId = {discoveryId}")
     conn.commit()
     
-    return {"success": True, "msg": "Success! Discovery post updated!"}
+    return {"success": True, "msg": "Discovery post updated!"}

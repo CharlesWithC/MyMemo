@@ -1,5 +1,14 @@
 # Update History
 
+## v5.6.11
+
+*Date: 2021/1/15*  
+Feature Updates:  
+1.Added preview for book and group before import / join  
+2.Added click to copy for share code and group code  
+3.Made date time of question statistics to be in user local time  
+4.Added "last edit" to question statistics  
+
 ## v5.6.10
 
 *Date: 2021/1/14*  

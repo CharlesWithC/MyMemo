@@ -144,7 +144,10 @@ async def apiGetQuestionStat(request: Request):
     undelcnt = 0
     lstundel = 0
 
-    for i in range(2, len(d)):
+    lastEdit = 0
+    lastGroupEdit = 0
+
+    for i in range(0, len(d)):
         if status == 1 and d[i][0] == 2:
             tagcnt += 1
             lsttag = d[i][1]
@@ -157,6 +160,11 @@ async def apiGetQuestionStat(request: Request):
         elif status == 3 and d[i][0] == 1:
             undelcnt += 1
             lstundel = d[i][1]
+        elif d[i][0] == 100 and d[i][1] >= lastEdit:
+            lastEdit = d[i][1]
+        elif d[i][0] == 101 and d[i][1] >= lastGroupEdit:
+            lastGroupEdit = d[i][1]
+
         status = d[i][0]
     
     cur.execute(f"SELECT nextChallenge, lastChallenge FROM ChallengeData WHERE questionId = {questionId} AND userId = {userId}")
@@ -199,7 +207,8 @@ async def apiGetQuestionStat(request: Request):
             lst1dmem += dd[0]
     
     def ts2dt(ts):
-        return datetime.datetime.fromtimestamp(ts)
+        return f"<time>{ts}</time>"
+        #return datetime.datetime.fromtimestamp(ts)
 
     res = f"About {question}\n"
 
@@ -211,6 +220,13 @@ async def apiGetQuestionStat(request: Request):
         res += f"Added at {ts2dt(ats)} on website.\n"  
     elif astatus == -3:
         res += f"Imported from a group's book.\n"
+    
+    if lastEdit != 0 and lastGroupEdit == 0:
+        res += f"Last edited at <time>{ts2dt(lastEdit)}</time>.\n"
+    elif lastGroupEdit != 0 and lastEdit >= lastGroupEdit:
+        res += f"Last edited at <time>{ts2dt(lastEdit)}</time> by you and synced to other members in group.\n"
+    elif lastGroupEdit != 0 and lastEdit < lastGroupEdit:
+        res += f"Last edited at <time>{ts2dt(lastGroupEdit)}</time> by an editor in group.\n"
 
     if tagcnt > 0:
         res += f"Tagged for {tagcnt} times\n(Last time: {ts2dt(lsttag)}),\n"

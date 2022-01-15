@@ -204,7 +204,8 @@ function OpenBook(bid = null) {
             $("title").html(bookName + " - My Memo");
             groupId = bookList[i].groupId;
             groupCode = bookList[i].groupCode;
-            $("#groupCode").html(groupCode);
+            $("#groupCode").html(groupCode + 
+                ' <button type="button" class="btn btn-primary btn-sm" onclick="CopyToClipboard(\'' + groupCode + '\')"><i class="fa fa-copy"></i></button>');
             isGroupOwner = bookList[i].isGroupOwner;
             isGroupEditor = bookList[i].isGroupEditor;
             $(".group").show();
@@ -367,7 +368,7 @@ function ShowStatistics(wid) {
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            statistics = r.msg.replaceAll("\n", "<br>");
+            statistics = TimestampToLocale(r.msg.replaceAll("\n", "<br>"));
 
             GenModal("<i class='fa fa-chart-bar'></i> Statistics", "<p>" + statistics + "</p>");
         },
@@ -474,7 +475,7 @@ function BookUpdateStatus(updateTo) {
             }
             UpdateTable();
             UpdateStatusColor();
-            NotyNotification("Success! Question status updated!");
+            NotyNotification("Question status updated!");
         },
         error: function (r, textStatus, errorThrown) {
             AjaxErrorHandler(r, textStatus, errorThrown);
@@ -513,7 +514,7 @@ function AddExistingQuestion() {
         },
         success: function (r) {
             if (r.success == true) {
-                NotyNotification('Success! Added ' + selected.length + ' question(s)!');
+                NotyNotification('Added ' + selected.length + ' question(s)!');
 
                 ShowManage();
                 UpdateQuestionList();
@@ -558,7 +559,7 @@ function AddQuestion() {
         },
         success: function (r) {
             if (r.success == true) {
-                NotyNotification('Success! Added a new question!');
+                NotyNotification('Added a new question!');
                 $("#add-question").val("");
                 $("#add-answer").val("");
                 $("#add-question").focus();
@@ -599,7 +600,7 @@ function RemoveFromBook(wid = -1) {
         },
         success: function (r) {
             if (r.success == true) {
-                NotyNotification('Success! Removed ' + questions.length + ' question(s) from this book!');
+                NotyNotification('Removed ' + questions.length + ' question(s) from this book!');
 
                 UpdateQuestionList();
             } else {
@@ -640,7 +641,7 @@ function RemoveQuestion(wid) {
         },
         success: function (r) {
             if (r.success == true) {
-                NotyNotification('Success! Removed ' + questions.length + ' question(s) from database!');
+                NotyNotification('Removed ' + questions.length + ' question(s) from database!');
 
                 $("#" + curModalId).modal('hide');
                 localStorage.setItem("memo-book-id", "0");
@@ -669,7 +670,7 @@ function BookClone() {
         },
         success: function (r) {
             if (r.success == true) {
-                NotyNotification('Success! Book cloned!');
+                NotyNotification('Book cloned!');
             } else {
                 NotyNotification(r.msg, type = 'error');
             }
@@ -716,7 +717,7 @@ function BookRename() {
                 $(".title").html(bookName);
                 $("title").html(bookName + " - My Memo");
                 $("title").html(bookName + " - My Memo");
-                NotyNotification('Success! Book renamed!');
+                NotyNotification('Book renamed!');
                 $("#" + curModalId).modal("hide");
             } else {
                 NotyNotification(r.msg, type = 'error');
@@ -759,7 +760,7 @@ function BookDelete() {
         },
         success: function (r) {
             if (r.success == true) {
-                NotyNotification('Success! Book deleted!');
+                NotyNotification('Book deleted!');
                 $('#' + curModalId).on('hide.bs.modal', function () {
                     BackToList();
                 });
@@ -1437,7 +1438,7 @@ function CreateBook(element) {
             if (r.success == true) {
                 UpdateBookContentList();
                 UpdateBookContentDisplay();
-                NotyNotification('Success! Book created!');
+                NotyNotification('Book created!');
             } else {
                 NotyNotification(r.msg, type = 'error');
             }
@@ -1446,6 +1447,18 @@ function CreateBook(element) {
             AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
+}
+
+function ImportShare() {
+    shareCode = $("#page-import-share").val();
+    if (shareCode.startsWith("!")) shareCode = shareCode.substr(1);
+    window.location.href = "/share/import?shareCode=" + shareCode;
+}
+
+function JoinGroup() {
+    groupCode = $("#page-join-group").val();
+    if (groupCode.startsWith("@")) groupCode = groupCode.substr(1);
+    window.location.href = "/group/join?groupCode=" + groupCode;
 }
 
 function BookChart() {

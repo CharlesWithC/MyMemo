@@ -15,14 +15,14 @@ import apis.user.main
 import apis.question.main
 import apis.book.main
 import apis.discovery.main
-import apis.group
-import apis.share
-import apis.data
+import apis.group.main
+import apis.share.main
+import apis.data.main
 import apis.admin.main
 
 @app.get("/api/version")
 async def apiGetVersion(request: Request):
-    return {"success": True, "version": "v5.6.10"}
+    return {"success": True, "version": "v5.6.11"}
 
 @app.get("/api/captcha")
 async def apiGetCaptcha(request: Request):

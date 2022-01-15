@@ -170,7 +170,7 @@ function ClearDeletedQuestion() {
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            NotyNotification('Success! All questions marked deleted are removed from database!');
+            NotyNotification('All questions marked deleted are removed from database!');
             $('#' + curModalId).modal('hide');
         },
         error: function (r, textStatus, errorThrown) {

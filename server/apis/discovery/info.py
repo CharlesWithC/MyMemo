@@ -391,6 +391,6 @@ async def apiDiscoveryData(discoveryId: int, request: Request):
     else:
         publisher = f"<a href='/user?userId={uid}'><span class='username'>{publisher}</span></a>"
 
-    return {"success": True, "title": title, "description": description, "questions": questions, \
+    return {"success": True, "title": title, "description": description, "preview": questions, \
         "shareCode": shareCode, "type": distype, "publisher": publisher, "isPublisher": isPublisher, \
             "views": views, "likes": likes, "liked": liked, "imports": imports, "pinned": pinned}

@@ -203,6 +203,7 @@ if doinit:
     # questionUpdateId is the Id for the specific question
     # updateTo is the status the question is updated to
     # NOTE: When a new question is added, there should be a StatusUpdate record, with questionUpdateId = 0 and updateTo = 0
+    # When a question is edited on website, a updateTo = 100 record will be added | For group edits, updateTo will be 101
 
     ########## NOTE: Tables related to books
 

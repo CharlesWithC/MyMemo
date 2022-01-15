@@ -204,8 +204,10 @@ function UpdateDiscoveryQuestionList() {
             }
 
             shareCode = r.shareCode;
-            $("#shareCode").html(shareCode);
-            $("#groupCode").html(shareCode);
+            $("#shareCode").html(shareCode +
+                ' <button type="button" class="btn btn-primary btn-sm" onclick="CopyToClipboard(\'' + shareCode + '\')"><i class="fa fa-copy"></i></button>');
+            $("#groupCode").html(shareCode +
+                ' <button type="button" class="btn btn-primary btn-sm" onclick="CopyToClipboard(\'' + shareCode + '\')"><i class="fa fa-copy"></i></button>');
 
             if (r.isPublisher || localStorage.getItem("isAdmin") == "1") {
                 $(".publisher-only").show();
@@ -227,7 +229,7 @@ function UpdateDiscoveryQuestionList() {
                 }
             }
 
-            questionList = r.questions;
+            questionList = r.preview;
 
             for (var i = 0; i < questionList.length; i++)
                 AppendTableData("questionList", [marked.parse(questionList[i].question), marked.parse(questionList[i].answer)]);
@@ -243,7 +245,7 @@ function UpdateDiscoveryQuestionList() {
 
 function ImportBook() {
     $.ajax({
-        url: '/api/book/create',
+        url: '/api/share/import',
         method: 'POST',
         async: true,
         dataType: "json",
@@ -254,7 +256,7 @@ function ImportBook() {
         },
         success: function (r) {
             if (r.success == true) {
-                NotyNotification("Success! Book imported!");
+                NotyNotification("Book imported!");
             } else {
                 NotyNotification(r.msg, type = 'error');
             }

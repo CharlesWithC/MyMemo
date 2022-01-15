@@ -199,8 +199,12 @@ async def apiEditQuestion(request: Request):
 
                 cur.execute(f"UPDATE QuestionList SET question = '{question}' WHERE userId = {uid} AND questionId = {wid}")
                 cur.execute(f"UPDATE QuestionList SET answer = '{answer}' WHERE userId = {uid} AND questionId = {wid}")
+                updateQuestionStatus(uid, wid, 101)
 
     conn.commit()
+
+    updateQuestionStatus(userId, questionId, 101)
+    updateQuestionStatus(userId, questionId, 100)
 
     return {"success": True, "question": decode(question), "answer": decode(answer), "msg": "Question edited!"}
 

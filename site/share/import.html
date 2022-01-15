@@ -11,10 +11,13 @@
     <script src="https://cdn.charles14.xyz/js/marked.min.js"></script>
     <script src="/js/general.js"></script>
     <script src="/js/table.js"></script>
-    <script src="/js/group.js"></script>
+    <script src="/js/share.js"></script>
 
     <link href="https://cdn.charles14.xyz/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.charles14.xyz/css/all.min.css" rel="stylesheet">
+
+    <link href="https://cdn.charles14.xyz/css/simplemde.min.css" rel="stylesheet">
+    <script src="https://cdn.charles14.xyz/js/simplemde.min.js"></script>
 
     <link href="https://cdn.charles14.xyz/noty/noty.css" rel="stylesheet">
     <script src="https://cdn.charles14.xyz/noty/noty.min.js" type="text/javascript"></script>
@@ -25,12 +28,7 @@
 
     <script>
         $(document).ready(function () {
-            InitTable("memberList", [10, 25, 50, 100], 10, UpdatePageLimit, Search);
-            InitSorting("memberList",
-                ["username", "progress"],
-                [undefined, "desc"],
-                "MemberListSort");
-            PageInit();
+            ImportPageInit();
         });
     </script>
 </head>
@@ -47,29 +45,42 @@
                     in</a>&nbsp;&nbsp; </span>
             <a class="only-signed-in" href='/user/events' style="display:none"><i
                     class="fa fa-bell"></i></a>
-            <a href='/user/settings'><i class="fa fa-cogs"></i></a>
+            <a href='/user/settings'"><i class="fa fa-cogs"></i></a>
             <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i
                     class="fa fa-arrow-right-from-bracket"></i></a>
         </div>
     </div>
 
     <div id="content" class="container">
-        <h1 class="title">Group</h1>
+        <h1 class="title">Share</h1>
 
-        <div id="member" class="member subcontainer sub-div">
-            <p style="float:left;width:90%">Description: <br><span id="groupDescription"></span></p>
-            <p style="float:right"><a href="#" onclick="window.history.back()">Back</a></p>
-            <table class="table table-hover" id="memberList" style="text-align:center">
-                <thead>
-                    <tr>
-                        <th id="username" class="sorting">Username</th>
-                        <th id="progress" class="sorting">Progress</th>
-                        <th id="operation">Operation</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
+        <div class="discovery-detail">
+            <div id="qlist" class="subcontainer sub-div sub-left">
+                <h2><i class="fa fa-newspaper"></i>&nbsp;&nbsp;Preview</h2>
+                <table class="table table-hover" id="questionList" style="text-align:center">
+                    <thead>
+                        <tr>
+                            <th id="question">Question</th>
+                            <th id="answer">Answer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="manage sub-right" id="manage">
+                <div id="basic-info" class="subcontainer sub-div">
+                    <h2><span id="name"></span></h2>
+                    <p>Shared by <span id="sharer"></span></p>
+                    <p style="font-size:0.8em"><span id="import-count"></span> Imports</p>
+                </div>
+                <div class="subcontainer sub-div">
+                    <h4>Import <i class="fa fa-upload"></i></h4>
+                    <p>Share code: <span id="shareCode"></span></p>
+                    <button type="button" class="btn btn-primary" onclick="ImportBook()">Import</button>
+                </div>
+            </div>
         </div>
     </div>
 

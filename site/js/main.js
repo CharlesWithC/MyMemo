@@ -715,7 +715,7 @@ function Statistics() {
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            statistics = r.msg.replaceAll("\n", "<br>");
+            statistics = TimestampToLocale(r.msg.replaceAll("\n", "<br>"));
             GenModal("<i class='fa fa-chart-bar'></i> Statistics", "<p>" + statistics + "</p>");
         },
         error: function (r, textStatus, errorThrown) {

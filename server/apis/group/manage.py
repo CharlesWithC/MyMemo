@@ -175,7 +175,7 @@ async def apiManageGroup(request: Request):
                 
                 cur.execute(f"UPDATE GroupMember SET isEditor = 1 WHERE groupId = {groupId} AND userId = {uid}")
         conn.commit()
-        return {"success": True, "msg": "Success!"}
+        return {"success": True, "msg": "Group editor updated!"}
 
     elif op == "kick":
         cur.execute(f"SELECT name FROM GroupInfo WHERE groupId = {groupId}")
@@ -191,7 +191,7 @@ async def apiManageGroup(request: Request):
             cur.execute(f"DELETE FROM GroupMember WHERE groupId = {groupId} AND userId = {uid}")
             cur.execute(f"INSERT INTO UserEvent VALUES ({uid}, 'quit_group', {int(time.time())}, '{encode(f'You have been kicked from group {decode(name)}')}')")
         conn.commit()
-        return {"success": True, "msg": "Success!"}
+        return {"success": True, "msg": "Group member kicked!"}
     
     elif op =="transferOwnership":
         users = json.loads(form["users"])
@@ -216,7 +216,7 @@ async def apiManageGroup(request: Request):
         cur.execute(f"UPDATE GroupInfo SET owner = {uid} WHERE groupId = {groupId}")
         cur.execute(f"UPDATE GroupMember SET isEditor = 1 WHERE groupId = {groupId} and userId = {uid}")
         conn.commit()
-        return {"success": True, "msg": f"Success! Ownership transferred to {newOwner} (UID: {uid})"}
+        return {"success": True, "msg": f"Ownership transferred to {newOwner} (UID: {uid})"}
 
     elif op == "updateInfo":
         name = encode(form["name"])
@@ -241,7 +241,7 @@ async def apiManageGroup(request: Request):
             cur.execute(f"UPDATE Book SET name = '{name}' WHERE bookId = {wbid} AND userId = {uid}")
         conn.commit()
 
-        return {"success": True, "msg": f"Success! Group information updated!"}
+        return {"success": True, "msg": f"Group information updated!"}
     
     elif op == "anonymous":
         anonymous = int(form["anonymous"])
@@ -253,7 +253,7 @@ async def apiManageGroup(request: Request):
         if len(t) > 0:
             cur.execute(f"UPDATE GroupInfo SET anonymous = {anonymous} WHERE groupId = {groupId}")
             conn.commit()
-            return {"success": True, "msg": f"Success!", "anonymous": anonymous}
+            return {"success": True, "msg": f"Group anonymous settings updated", "anonymous": anonymous}
         
         return {"success": False, "msg": f"Group not found!"}
 
@@ -293,6 +293,139 @@ async def apiGroupCodeUpdate(request: Request):
         cur.execute(f"UPDATE GroupInfo SET groupCode = '{gcode}' WHERE groupId = {groupId}")
         conn.commit()
         return {"success": True, "msg": f"New group code: @{gcode}", "groupCode": f"@{gcode}"}
+
+@app.post("/api/group/join")
+async def apiJoinGroup(request: Request):
+    ip = request.client.host
+    form = await request.form()
+    conn = newconn()
+    cur = conn.cursor()
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
+
+    userId = int(form["userId"])
+    token = form["token"]
+    if not validateToken(userId, token):
+        raise HTTPException(status_code=401)
+    
+    groupCode = form["groupCode"]
+
+    if groupCode.startswith("@"):
+        groupCode = groupCode[1:]
+
+    if not groupCode.isalnum():
+        return {"success": False, "msg": "Invalid group code!"}
+
+    if groupCode == "pvtgroup":
+        return {"success": False, "msg": "This is the general code of all private code and it cannot be used!"}
+        
+    cur.execute(f"SELECT groupId, name FROM GroupInfo WHERE groupCode = '{groupCode}'")
+    d = cur.fetchall()
+    if len(d) != 0:
+        groupId = d[0][0]
+        name = d[0][1]
+
+        cur.execute(f"SELECT userId FROM GroupMember WHERE groupId = {groupId} AND userId = {userId}")
+        if len(cur.fetchall()) != 0:
+            return {"success": False, "msg": "You have already joined this group!"}
+        
+        cur.execute(f"SELECT owner FROM GroupInfo WHERE groupId = {groupId}")
+        owner = 0
+        t = cur.fetchall()
+        if len(t) > 0:
+            owner = t[0][0]
+            cur.execute(f"SELECT userId FROM UserInfo WHERE userId = {owner}")
+            if len(cur.fetchall()) == 0:
+                return {"success": False, "msg": "Invalid group code!"}
+        else:
+            return {"success": False, "msg": "Invalid group code!"}
+            
+        mlmt = 0
+        cur.execute(f"SELECT memberLimit FROM GroupInfo WHERE groupId = {groupId}")
+        tt = cur.fetchall()
+        if len(tt) > 0:
+            mlmt = tt[0][0]
+        cur.execute(f"SELECT * FROM GroupMember WHERE groupId = {groupId}")
+        if len(cur.fetchall()) >= mlmt:
+            return {"success": False, "msg": "Group is full!"}
+
+        cur.execute(f"SELECT question, answer, groupQuestionId FROM GroupQuestion WHERE groupId = {groupId}")
+        t = cur.fetchall()
+        
+        # preserve limit check here as if the owner dismissed the group, the questions will remain in users' lists
+        max_allow = config.max_question_per_user_allowed
+        cur.execute(f"SELECT value FROM Privilege WHERE userId = {userId} AND item = 'question_limit'")
+        pr = cur.fetchall()
+        if len(pr) != 0:
+            max_allow = pr[0][0]
+        cur.execute(f"SELECT COUNT(*) FROM QuestionList WHERE userId = {userId}")
+        d = cur.fetchall()
+        if len(d) != 0 and max_allow != -1 and d[0][0] + len(t) >= max_allow:
+            return {"success": False, "msg": f"You have reached your limit of maximum added questions {max_allow}. Remove some old questions or contact administrator for help."}
+
+        max_book_allow = config.max_book_per_user_allowed
+        cur.execute(f"SELECT value FROM Privilege WHERE userId = {userId} AND item = 'book_limit'")
+        pr = cur.fetchall()
+        if len(pr) != 0:
+            max_book_allow = pr[0][0]
+        cur.execute(f"SELECT COUNT(*) FROM Book WHERE userId = {userId}")
+        d = cur.fetchall()
+        if len(d) != 0 and max_book_allow != -1 and d[0][0] + 1 >= max_book_allow:
+            return {"success": False, "msg": f"You have reached your limit of maximum created book {max_allow}. Remove some books (this will not remove the questions) or contact administrator for help."}
+
+        bookId = 1
+        cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 3 AND userId = {userId}")
+        d = cur.fetchall()
+        if len(d) == 0:
+            cur.execute(f"INSERT INTO IDInfo VALUES (3, {userId}, 2)")
+        else:
+            bookId = d[0][0]
+            cur.execute(f"UPDATE IDInfo SET nextId = {bookId + 1} WHERE type = 3 AND userId = {userId}")
+
+        # do import
+        cur.execute(f"INSERT INTO Book VALUES ({userId}, {bookId}, '{name}', 0)")
+        cur.execute(f"INSERT INTO GroupMember VALUES ({groupId}, {userId}, 0, {bookId})")
+        cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'join_group', {int(time.time())}, '{encode(f'Joined group {decode(name)}')}')")
+
+        questionId = 1
+        for tt in t:
+            # do not use same question to prevent accidental question deletion when new book is deleted
+            cur.execute(f"SELECT questionId, answer FROM QuestionList WHERE userId = {userId} AND question = '{tt[0]}'")
+            p = cur.fetchall()
+            memorizedTS = 0
+            for pp in p:
+                if pp[1] == tt[1]: # question completely the same
+                    cur.execute(f"SELECT memorizedTimestamp FROM QuestionList WHERE userId = {userId} AND questionId = {pp[0]}")
+                    k = cur.fetchall()
+                    if len(k) != 0 and k[0][0] != 0:
+                        memorizedTS = k[0][0]
+                        cur.execute(f"UPDATE Book SET progress = progress + 1 WHERE userId = {userId} AND bookId = {bookId}")
+                    break
+
+            cur.execute(f"SELECT nextId FROM IDInfo WHERE type = 2 AND userId = {userId}")
+            d = cur.fetchall()
+            if len(d) == 0:
+                cur.execute(f"INSERT INTO IDInfo VALUES (2, {userId}, 2)")
+            else:
+                questionId = d[0][0]
+                cur.execute(f"UPDATE IDInfo SET nextId = {questionId + 1} WHERE type = 2 AND userId = {userId}")
+
+            # no duplicate check as user are not allowed to edit questions in group
+            cur.execute(f"INSERT INTO BookData VALUES ({userId}, {bookId}, {questionId})")
+            cur.execute(f"INSERT INTO QuestionList VALUES ({userId}, {questionId}, '{tt[0]}', '{tt[1]}', 1, {memorizedTS})")
+            cur.execute(f"INSERT INTO ChallengeData VALUES ({userId},{questionId}, 0, -1)")
+            cur.execute(f"INSERT INTO GroupSync VALUES ({groupId}, {userId}, {questionId}, {tt[2]})")
+
+            updateQuestionStatus(userId, questionId, -1) # -1 is imported question
+            # updateQuestionStatus(userId, questionId, 1) # 1 is default status
+
+            questionId += 1
+        
+        conn.commit()
+        return {"success": True, "bookId": bookId}
+    
+    else:
+        return {"success": False, "msg": "Invalid group code!"}
 
 @app.post("/api/group/quit")
 async def apiQuitGroup(request: Request):

@@ -9,6 +9,9 @@ var orderBy = "name";
 var order = "asc";
 var search = "";
 
+var bookName = "";
+var shareCode = "";
+
 function UpdateShareList() {
     $("#refresh-btn").html('<i class="fa fa-sync fa-spin"></i>');
     $.ajax({
@@ -33,7 +36,8 @@ function UpdateShareList() {
             $("tbody tr").remove();
 
             for (var i = 0; i < shareList.length; i++) {
-                btns = '<button type="button" class="btn btn-warning btn-sm" onclick="Unshare(\'' + shareList[i].shareCode + '\')"><i class="fa fa-trash"></i></button>';
+                btns = '<button type="button" class="btn btn-primary btn-sm" onclick="CopyToClipboard(\'' + shareList[i].shareCode + '\')"><i class="fa fa-copy"></i></button>';
+                btns += '<button type="button" class="btn btn-warning btn-sm" onclick="Unshare(\'' + shareList[i].shareCode + '\')"><i class="fa fa-trash"></i></button>';
                 var time = new Date(parseInt(shareList[i].timestamp) * 1000);
                 AppendTableData("shareList", [shareList[i].name, shareList[i].shareCode, shareList[i].importCount, time.toLocaleString(), btns], shareList[i].bookId);
             }
@@ -43,7 +47,7 @@ function UpdateShareList() {
                 AppendTableData("shareList", ["No data available"], undefined, "100%");
                 l = 0;
             }
-            
+
             PaginateTable("shareList", page, total, "ShareListPage");
             SetTableInfo("shareList", "<p style='opacity:80%'>Showing " + l + " - " +
                 r + " / " + totalShare + "</p>");
@@ -159,6 +163,77 @@ function Share() {
                 NotyNotification(r.msg, type = 'success');
                 $("#share-msg").html("Book share created! Share code: " + r.shareCode);
                 UpdateShareList();
+            } else {
+                NotyNotification(r.msg, type = 'error');
+            }
+        },
+        error: function (r, textStatus, errorThrown) {
+            AjaxErrorHandler(r, textStatus, errorThrown);
+        }
+    });
+}
+
+function ImportPageInit() {
+    shareCode = getUrlParameter("shareCode");
+    if (shareCode.startsWith("!")) shareCode = shareCode.substr(1);
+    $.ajax({
+        url: "/api/share/preview",
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            shareCode: shareCode,
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            if (r.success == false) {
+                NotyNotification(r.msg, type = 'error');
+                setTimeout(function () {
+                    window.location.href = "/book";
+                }, 3000);
+                return;
+            }
+
+            bookName = r.name;
+            $(".title").html(r.name);
+            $("#name").html(r.name);
+            $("#sharer").html(r.sharerUsername);
+            $("#import-count").html(r.importCount);
+
+            $("#shareCode").html("!" + shareCode + 
+            ' <button type="button" class="btn btn-primary btn-sm" onclick="CopyToClipboard(\'!' + shareCode + '\')"><i class="fa fa-copy"></i></button>');
+
+            questionList = r.preview;
+
+            for (var i = 0; i < questionList.length; i++)
+                AppendTableData("questionList", [marked.parse(questionList[i].question), marked.parse(questionList[i].answer)]);
+        },
+        error: function (r, textStatus, errorThrown) {
+            AjaxErrorHandler(r, textStatus, errorThrown);
+        }
+    });
+}
+
+function ImportBook() {
+    if (shareCode == undefined) window.location.reload();
+
+    $.ajax({
+        url: '/api/share/import',
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            shareCode: shareCode,
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            if (r.success == true) {
+                NotyNotification('Imported ' + bookName + '!');
+                setTimeout(function () {
+                    window.location.href = "/book?bookId=" + r.bookId;
+                }, 3000);
             } else {
                 NotyNotification(r.msg, type = 'error');
             }

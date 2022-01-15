@@ -8,6 +8,7 @@ var bookName = "";
 var member = [];
 var isOwner = false;
 var curModalId = "";
+var groupCode = "";
 
 var page = 1;
 var pageLimit = 10;
@@ -135,6 +136,7 @@ function TransferOwnershipShow(uid) {
 }
 
 function GroupOperation(operation, uid) {
+    list = [uid];
     if (operation == 2 || operation == 1 || operation == 3) {
         if (list.length == 0) {
             return;
@@ -177,4 +179,76 @@ function GroupOperation(operation, uid) {
 function PageInit() {
     groupId = getUrlParameter("groupId");
     UpdateGroupMember();
+}
+
+function JoinPageInit() {
+    groupCode = getUrlParameter("groupCode");
+    if (groupCode.startsWith("@")) groupCode = groupCode.substr(1);
+    $.ajax({
+        url: "/api/group/preview",
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            groupCode: groupCode,
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            if (r.success == false) {
+                NotyNotification(r.msg, type = 'error');
+                setTimeout(function () {
+                    window.location.href = "/book";
+                }, 3000);
+                return;
+            }
+
+            bookName = r.name;
+            $(".title").html(r.name);
+            $("#name").html(r.name);
+            $("#description").html(marked.parse(r.description));
+            $("#owner").html(r.ownerUsername);
+            $("#member-count").html(r.memberCount);
+
+            $("#groupCode").html("@" + groupCode + 
+            ' <button type="button" class="btn btn-primary btn-sm" onclick="CopyToClipboard(\'@' + groupCode + '\')"><i class="fa fa-copy"></i></button>');
+
+            questionList = r.preview;
+
+            for (var i = 0; i < questionList.length; i++)
+                AppendTableData("questionList", [marked.parse(questionList[i].question), marked.parse(questionList[i].answer)]);
+        },
+        error: function (r, textStatus, errorThrown) {
+            AjaxErrorHandler(r, textStatus, errorThrown);
+        }
+    });
+}
+
+function JoinGroup() {
+    if (groupCode == undefined) window.location.reload();
+
+    $.ajax({
+        url: '/api/group/join',
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            groupCode: groupCode,
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            if (r.success == true) {
+                NotyNotification('Joined ' + bookName + '!');
+                setTimeout(function () {
+                    window.location.href = "/book?bookId=" + r.bookId;
+                }, 3000);
+            } else {
+                NotyNotification(r.msg, type = 'error');
+            }
+        },
+        error: function (r, textStatus, errorThrown) {
+            AjaxErrorHandler(r, textStatus, errorThrown);
+        }
+    });
 }

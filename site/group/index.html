@@ -8,8 +8,10 @@
     <script src="https://cdn.charles14.xyz/js/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.charles14.xyz/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.charles14.xyz/js/popper.min.js"></script>
+    <script src="https://cdn.charles14.xyz/js/marked.min.js"></script>
     <script src="/js/general.js"></script>
-    <script src="/js/events.js"></script>
+    <script src="/js/table.js"></script>
+    <script src="/js/group.js"></script>
 
     <link href="https://cdn.charles14.xyz/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.charles14.xyz/css/all.min.css" rel="stylesheet">
@@ -23,6 +25,11 @@
 
     <script>
         $(document).ready(function () {
+            InitTable("memberList", [10, 25, 50, 100], 10, UpdatePageLimit, Search);
+            InitSorting("memberList",
+                ["username", "progress"],
+                [undefined, "desc"],
+                "MemberListSort");
             PageInit();
         });
     </script>
@@ -38,8 +45,7 @@
         <div class="userctrl">
             <a href='/user'><i class="fa fa-user"></i></a> <span id="navusername"><a href='/user/login'>Sign
                     in</a>&nbsp;&nbsp; </span>
-            <a class="only-signed-in" href='/user/events' style="display:none"><i
-                    class="fa fa-bell"></i></a>
+            <a class="only-signed-in" href='/user/events' style="display:none"><i class="fa fa-bell"></i></a>
             <a href='/user/settings'><i class="fa fa-cogs"></i></a>
             <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i
                     class="fa fa-arrow-right-from-bracket"></i></a>
@@ -47,8 +53,26 @@
     </div>
 
     <div id="content" class="container">
-        <h1 class="title">User Events</h1>
-        <br>
+        <h1 class="title">Group</h1>
+
+        <div id="member" class="member subcontainer sub-div sub-left">
+            <table class="table table-hover" id="memberList" style="text-align:center">
+                <thead>
+                    <tr>
+                        <th id="username" class="sorting">Username</th>
+                        <th id="progress" class="sorting">Progress</th>
+                        <th id="operation">Operation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="subcontainer sub-div sub-right">
+            <p style="float:left;width:90%">Description: <br><span id="groupDescription"></span></p>
+            <p style="float:right"><a href="#" onclick="window.history.back()">Back</a></p>
+        </div>
     </div>
 
     <div class="footer">
@@ -63,7 +87,8 @@
             <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo" target="_blank"
                     rel="noopener noreferrer"><i class="fa fa-brands fa-github"></i>
                     GitHub</a></p>
-            <p>Developed by <a href="https://www.charles14.xyz" target="_blank" rel="noopener noreferrer">Charles</a></p>
+            <p>Developed by <a href="https://www.charles14.xyz" target="_blank" rel="noopener noreferrer">Charles</a>
+            </p>
         </div>
     </div>
 </body>

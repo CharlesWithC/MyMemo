@@ -10,7 +10,7 @@ from functions import *
 
 ##########
 # Group API
-# Info
+# Info, Preview
 
 @app.post("/api/group/info")
 async def apiGroupMember(request: Request):
@@ -188,3 +188,60 @@ async def apiGroupMember(request: Request):
     else:
         return {"success": True, "data": ret[(page - 1) * pageLimit : page * pageLimit], "total": (len(ret) - 1) // pageLimit + 1, "totalMember": len(ret),\
              "name": decode(info[0]), "description": decode(info[1]), "isOwner": isOwner}
+
+@app.post("/api/group/preview")
+async def apiGroupPreview(request: Request):
+    ip = request.client.host
+    form = await request.form()
+    conn = newconn()
+    cur = conn.cursor()
+    
+    groupCode = form["groupCode"]
+
+    if groupCode.startswith("@"):
+        groupCode = groupCode[1:]
+    
+    if not groupCode.isalnum():
+        return {"success": False, "msg": "Invalid group code!"}
+
+    cur.execute(f"SELECT groupId, owner, name, description FROM GroupInfo WHERE groupCode = '{groupCode}'")
+    d = cur.fetchall()
+    if len(d) == 0:
+        return {"success": False, "msg": "Invalid group code!"}
+    d = d[0]
+    groupId = d[0]
+    owner = d[1]
+    name = decode(d[2])
+    description = decode(d[3])
+
+    memberCount = 0
+    cur.execute(f"SELECT COUNT(*) FROM GroupMember WHERE groupId = {groupId}")
+    t = cur.fetchall()
+    if len(t) > 0:
+        memberCount = t[0][0]
+    
+    ownerUsername = ""
+    cur.execute(f"SELECT username FROM UserInfo WHERE userId = {owner}")
+    t = cur.fetchall()
+    if len(t) > 0:
+        ownerUsername = decode(t[0][0])
+    
+    if ownerUsername != "@deleted" and owner != 0:
+        cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {abs(owner)}")
+        t = cur.fetchall()
+        if len(t) > 0:
+            ownerUsername = f"<a href='/user?userId={owner}'><span class='username' style='color:{t[0][1]}'>{ownerUsername}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
+        else:
+            ownerUsername = f"<a href='/user?userId={owner}'><span class='username'>{ownerUsername}</span></a>"
+    
+    cur.execute(f"SELECT question, answer FROM GroupQuestion WHERE groupId = {groupId}")
+    d = cur.fetchall()
+    da = {}
+    for dd in d:
+        da[decode(dd[0])] = {"question": decode(dd[0]), "answer": decode(dd[1])}
+    ret = []
+    for q in sorted(da.keys()):
+        ret.append(da[q])
+    ret = ret[:10]
+    
+    return {"success": True, "name": name, "description": description, "ownerUsername": ownerUsername, "memberCount": memberCount, "preview": ret}

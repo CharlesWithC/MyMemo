@@ -38,6 +38,30 @@ function GenRandomString(length) {
     return result;
 }
 
+function CopyToClipboard(text) {
+    var $temp = $("<input>");
+    $("body").append($temp);
+    $temp.val(text).select();
+    document.execCommand("copy");
+    $temp.remove();
+    NotyNotification("Copied!");
+}
+
+function TimestampToLocale(text) {
+    tempid = "temp-" + GenRandomString();
+    $("body").append("<div id='" + tempid + "'>" + text + "</div>")
+    $("#" + tempid + " time").each(function () {
+        t = parseInt($(this).text());
+        if (t != NaN) {
+            dt = new Date(t * 1000).toLocaleString();
+            $(this).text(dt);
+        }
+    });
+    ret = $("#" + tempid).html();
+    $("#" + tempid).remove();
+    return ret;
+}
+
 function BeautifyMarkdownEditor() {
     $(".editor-toolbar").css("background-color", "white");
     $(".editor-toolbar").css("opacity", "1");
@@ -134,7 +158,7 @@ function SignOut() {
 }
 
 function SessionExpired() {
-    NotyNotification('Login session expired! Please login again!', type = 'error');
+    NotyNotification('Login to proceed!', type = 'error');
     localStorage.clear();
     localStorage.setItem("first-use", "0");
     localStorage.setItem("sign-out", "1");
@@ -290,7 +314,7 @@ function CreateBook(element) {
         success: function (r) {
             if (r.success == true) {
                 UpdateBookList();
-                NotyNotification('Success! Book created!');
+                NotyNotification('Book created!');
             } else {
                 NotyNotification(r.msg, type = 'error');
             }
