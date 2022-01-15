@@ -71,27 +71,28 @@ button {
 .container {
     position: relative;
     margin: 0;
-    padding: 5em;
+    padding: 4em;
     padding-top: 0.5em;
     min-height: 100%;
-    min-width: 95%;
+    min-width: 100%;
     max-width: 100%;
 }
 
 .subcontainer {
     padding: 1.5em;
     margin: 0.5em;
-    background-color: #eeeeee;
-    overflow: hidden;
-    border-radius: 0.5em;
-    box-sizing: border-box;
-    box-shadow: 0 0.1px 3px rgba(128, 128, 128, 0.1);
+    display: inline-block;
+    vertical-align: top;
+    min-width: 100%;
+    max-width: 100%;
 }
 
 .sub-div {
-    display: inline-block;
-    vertical-align: top;
-    width: 100%;
+    overflow: hidden;
+    background-color: #eeeeee;
+    border-radius: 0.5em;
+    box-sizing: border-box;
+    box-shadow: 0 0.1px 3px rgba(128, 128, 128, 0.1);
 }
 
 @media all and (max-width: 999px) {
@@ -104,21 +105,21 @@ button {
 
 @media all and (min-width: 1000px) {
     .sub-left {
-        width: calc(66.67% - 1em);
+        min-width: calc(66.67% - 1em);
+        max-width: calc(66.67% - 1em);
         float: left;
     }
 
     .sub-right {
-        width: calc(33.33% - 1em);
+        min-width: calc(33.33% - 1em);
+        max-width: calc(33.33% - 1em);
         float: right;
     }
 }
 
 .center {
     position: relative;
-    width: calc(100% - 6em);
     margin: auto;
-    margin-left: 3em;
     top: calc(50% + 1.5em);
     transform: translateY(-50%);
     text-align: center;
@@ -136,6 +137,7 @@ button {
     text-align: left;
     font-size: 2.2em;
     top: 0;
+    left: 0.5em;
 }
 
 .big-title {
@@ -175,7 +177,7 @@ button {
     margin-bottom: 0.5em;
     padding: 0.4em;
     text-align: center;
-    width: 100%;
+    width: 25em;
     border: #aaaaaa solid;
     border-radius: 0.5em;
 }
@@ -286,8 +288,8 @@ button {
 }
 
 
-
-.notification {
+.notifications {
+    min-width: 47.5%;
     max-width: 47.5%;
     display: inline-block;
 }

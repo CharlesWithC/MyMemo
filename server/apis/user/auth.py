@@ -289,9 +289,12 @@ async def apiUserSessionRevoke(request: Request):
     sFullToken = t[0][0]
     sLoginTime = t[0][1]
 
-    if sFullToken != token and sLoginTime < curLoginTime and time.time() - curLoginTime < 1800:
+    if sFullToken == token:
+        return {"success": False, "msg": f"You cannot revoke your current session!"}
+
+    if sLoginTime < curLoginTime and time.time() - curLoginTime < 1800:
         return {"success": False, "msg": "Your current session is not old enough to revoke an older session. Try again later..."}
 
     sessions.logout(userId, sFullToken)
 
-    return {"success": True, "msg": f"Session {session} revoked!"}
+    return {"success": True, "msg": f"Session revoked!"}

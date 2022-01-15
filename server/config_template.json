@@ -1,18 +1,18 @@
 {
+    "domain": "memo.charles14.xyz",
     "server_ip": "127.0.0.1",
     "server_port": 8888,
+    "log_file": "/var/log/mymemo.log",
+    
     "search_server_ip": "127.0.0.1",
     "search_server_port": 8889,
-    "max_concurrent_download": -1,
-    "log_file": "/var/log/mymemo.log",
-
-    "default_user_password": "123456",
 
     "database": "mysql",
     "mysql_host": "localhost",
     "mysql_user": "mymemo",
     "mysql_passwd": "123456",
     "mysql_db": "mymemo",
+    "default_user_password": "123456",
 
     "mail_remote": "http://mailserver.example.com",
     "mail_remote_key": "[The same key as the one in mailserver/config.json]",

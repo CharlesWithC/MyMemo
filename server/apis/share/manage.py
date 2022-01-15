@@ -278,7 +278,7 @@ async def apiShareImport(request: Request):
             questionId += 1
         
         # update import count
-        cur.execute(f"UPDATE BookShare SET importCount = importCount + 1 WHERE userId = {userId} AND bookId = {sharerBookId} AND shareCode = '{shareCode}'")
+        cur.execute(f"UPDATE BookShare SET importCount = importCount + 1 WHERE shareCode = '{shareCode}'")
         conn.commit()            
 
         return {"success": True, "bookId": bookId}

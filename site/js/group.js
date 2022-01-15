@@ -51,9 +51,9 @@ function UpdateGroupMember() {
                 btns = '';
                 if (isOwner) {
                     if (member[i].username.indexOf("(Editor)") != -1) {
-                        btns += '&nbsp;&nbsp;<button class="btn btn-primary btn-sm" type="button" onclick="GroupOperation(2, ' + member[i].userId + ')"><i class="fa fa-edit"></i> Undo make editor</button>';
+                        btns += '&nbsp;&nbsp;<button class="btn btn-primary btn-sm" type="button" onclick="GroupOperation(2, ' + member[i].userId + ')"><i class="fa fa-user-pen"></i> Undo make editor</button>';
                     } else if (member[i].username.indexOf("(Owner)") == -1) {
-                        btns += '&nbsp;&nbsp;<button class="btn btn-primary btn-sm" type="button" onclick="GroupOperation(2, ' + member[i].userId + ')"><i class="fa fa-edit"></i> Make editor</button>';
+                        btns += '&nbsp;&nbsp;<button class="btn btn-primary btn-sm" type="button" onclick="GroupOperation(2, ' + member[i].userId + ')"><i class="fa fa-user-pen"></i> Make editor</button>';
                     }
                     if (member[i].username.indexOf("(Owner)") == -1) {
                         btns += '&nbsp;&nbsp;<button class="btn btn-warning btn-sm" type="button" onclick="GroupOperation(1, ' + member[i].userId + ')"><i class="fa fa-ban"></i> Kick</button>';
@@ -63,7 +63,7 @@ function UpdateGroupMember() {
                     }
                 }
                 member[i].username = member[i].username.replaceAll("(Owner)", '<i class="fa fa-crown"></i>');
-                member[i].username = member[i].username.replaceAll("(Editor)", '<i class="fa fa-edit"></i>');
+                member[i].username = member[i].username.replaceAll("(Editor)", '<i class="fa fa-user-pen"></i>');
                 AppendTableData("memberList", [member[i].username, member[i].progress, btns], member[i].userId);
             }
             l = (page - 1) * pageLimit + 1;

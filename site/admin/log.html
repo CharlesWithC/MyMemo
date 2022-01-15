@@ -10,7 +10,20 @@
     <link rel="icon" href="/img/icon-sm.png">
 
     <script>
+        function UpdatePing(ping) {
+            $("#ping").html(ping + " ms");
+            if (ping <= 200) $("#ping").css("color", "#00aaaa");
+            else if (ping <= 500) $("#ping").css("color", "#00aa00");
+            else if (ping <= 1000) $("#ping").css("color", "#aaaa00");
+            else if (ping <= 3000) $("#ping").css("color", "#dd8800");
+            else $("#ping").css("color", "#aa0000");
+        }
         $(document).ready(function () {
+            var isphone = false;
+            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                isphone = true;
+            }
+
             head = 0;
             tail = 0;
             $.ajax({
@@ -25,7 +38,7 @@
                 },
                 error: function (r, textStatus, errorThrown) {
                     if (r.status == 503) window.location.reload();
-                    else window.location.href = "/";
+                    else if (r.status == 401) window.location.href = "/";
                 }
             });
 
@@ -48,9 +61,9 @@
                     },
                     success: function (r) {
                         if (r.success) {
-                            $("body").prepend("<div id='start-from-" + (head - 100) + "'></div>");
-                            $("#start-from-" + (head - 100)).append(r.log);
-                            window.location.href = "#start-from-" + head;
+                            $("body").prepend("<div id='" + (head - 100) + "'></div>");
+                            $("#" + (head - 100)).append(r.log);
+                            window.location.href = "#" + head;
                             head = r.head;
                         } else {
                             head = -1;
@@ -64,6 +77,8 @@
             }
 
             function UpdateTail() {
+                var ajaxTime = new Date().getTime();
+                if ($.active > 0) return;
                 $.ajax({
                     url: "/api/admin/log",
                     method: 'POST',
@@ -77,15 +92,32 @@
                         token: localStorage.getItem("token")
                     },
                     success: function (r) {
+                        UpdatePing(new Date().getTime() - ajaxTime);
+                        $("#serverTime").html(r.serverTime);
+                        $("#clientIp").html(r.clientIp);
                         if (r.success) {
-                            $("body").append("<div id='start-from-" + (tail) + "'></div>");
-                            $("#start-from-" + (tail)).append(r.log);
+                            gototail = false;
+                            ratio = 1;
+                            if (isphone) ratio = 4;
                             if ($("body, html")[0].scrollHeight - $("body, html").scrollTop() -
-                                50 <= window.innerHeight) {
-                                window.location.href = "#start-from-" + (tail);
-                            }
+                                300 * ratio <= window.innerHeight)
+                                gototail = true;
+
+                            $("#latest").before("<div id='" + (tail) + "'></div>");
+                            $("#" + (tail)).append(r.log);
                             tail = r.tail;
+
+                            if (gototail) window.location.href = "#latest";
                         }
+                    },
+                    error: function (r, textStatus, errorThrown) {
+                        if (r.status == 504 || r.status == 408) $("#ping").html("TIMEOUT");
+                        else if (r.status == 502) $("#ping").html("SERVER SIDE PROGRAM STOPPED");
+                        else if (r.status == 521) $("#ping").html("SERVER OFFLINE");
+                        else if (r.status == 0) $("#ping").html("UNKNOWN ERROR");
+                        else $("#ping").html("ERROR " + r.status + " " + errorThrown);
+                        $("#ping").css("color", "#aa0000");
+                        $("#serverTime").html("Unknown");
                     }
                 });
             }
@@ -105,8 +137,8 @@
                 success: function (r) {
                     head = r.head;
                     tail = r.tail;
-                    $("body").prepend("<div id='start-from-" + (head) + "'></div>");
-                    $("#start-from-" + (head)).append(r.log);
+                    $("body").prepend("<div id='" + (head) + "'></div>");
+                    $("#" + (head)).append(r.log);
                     updateHead = setInterval(function () {
                         if ($("body, html").scrollTop() < 100 && head != -1) {
                             AppendPrevious();
@@ -125,13 +157,16 @@
     </script>
     <style>
         body {
-            background-color: #000000
+            background-color: #000000;
+            color: #aaaaaa;
         }
     </style>
 </head>
 
 <body class="body_foreground body_background" style="font-size:normal;">
-
+    <div id="latest">
+        <pre>--- <span id="clientIp">127.0.0.1</span> | Ping: <span id="ping">ERROR</span> | Server time: <span id="serverTime" class="ansi1">Unknown</span> ---</pre>
+    </div>
 </body>
 
 </html>

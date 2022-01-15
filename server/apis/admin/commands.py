@@ -11,6 +11,7 @@ from app import app, config
 from db import newconn
 from functions import *
 from emailop import sendVerification
+import main
 
 import apis.admin.runcmd.user.info as info
 import apis.admin.runcmd.user.manage as manage
@@ -23,8 +24,16 @@ import apis.admin.runcmd.user.privilege as privilege
 def restart():
     print("Requested to restart program! Restarting in 5 seconds...")
     time.sleep(5)
-    os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
+    os.execl(sys.executable, os.path.abspath(main.__file__), *sys.argv) 
     sys.exit(0)
+
+def checkAdmin(userId):
+    conn = newconn()
+    cur = conn.cursor()
+    cur.execute(f"SELECT userId FROM AdminList WHERE userId = {userId}")
+    if len(cur.fetchall()) == 0:
+        return False
+    return True
 
 @app.post("/api/admin/command")
 async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
@@ -47,7 +56,7 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
     command = form["command"]
     command = decode(encode(command)) # remove html element
     if command == "check_admin":
-        cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'execute_admin_command', {int(time.time())}, '{encode(f'Opened Admin CLI Panel')}')")
+        cur.execute(f"INSERT INTO UserEvent VALUES ({userId}, 'execute_admin_command', {int(time.time())}, '{encode(f'Opened Admin Panel')}')")
         conn.commit()
         return {"success": True}
     else:
@@ -55,6 +64,17 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
         conn.commit()
 
     command = command.split()
+
+    if userId != 1 and not command[0] in ["get_user_info", "get_user_count", "create_user", "restart"]:
+        uid = 0
+        if not command[1].isdigit():
+            uid = usernameToUid(encode(command[1]))
+        else:
+            uid = int(command[1])
+            
+        if checkAdmin(uid):
+            return {"success": False, "msg": "Only site owner (UID: 1) can modify administrators."}
+
     if command[0] == "get_user_info":
         return info.get_user_info(userId, command)
 
@@ -96,12 +116,27 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
     
     elif command[0] == 'reomve_name_tag':
         return privilege.reomve_name_tag(userId, command)
-
+    
+    elif command[0] == 'add_admin':
+        if userId == 1:
+            return privilege.add_admin(userId, command)
+        else:
+            return {"success": False, "log": "Only site owner can add admins!"}
+        
+    elif command[0] == 'remove_admin':
+        if userId == 1:
+            return privilege.remove_admin(userId, command)
+        else:
+            return {"success": False, "log": "Only site owner can remove admins!"}
+            
     elif command[0] == "restart":
+        if userId != 1:
+            return {"success": False, "log": "Only site owner can restart program!"}
+
         if os.path.exists("/tmp/MyMemoLastManualRestart"):
             lst = int(open("/tmp/MyMemoLastManualRestart","r").read())
-            if int(time.time()) - lst <= 300:
-                return {"success": False, "msg": "Only one restart in each 5 minutes is allowed!"}
+            if int(time.time()) - lst <= 60:
+                return {"success": False, "msg": "Only one restart is allowed within one minute!"}
         
         open("/tmp/MyMemoLastManualRestart","w").write(str(int(time.time())))
 

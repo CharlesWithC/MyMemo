@@ -4,7 +4,7 @@
 
 from fastapi import Request, HTTPException, BackgroundTasks
 from ansi2html import Ansi2HTMLConverter
-import os, time
+import os, time, datetime
 
 from app import app, config
 from db import newconn
@@ -255,6 +255,9 @@ async def apiAdminLog(request: Request):
     cur.execute(f"SELECT userId FROM AdminList WHERE userId = {userId}")
     if len(cur.fetchall()) == 0:
         raise HTTPException(status_code=401)
+    
+    if userId != 1:
+        return {"success": False, "log": "Only site admin can view server log!"}
 
     start = int(form["start"])
     end = int(form["end"])
@@ -276,9 +279,9 @@ async def apiAdminLog(request: Request):
         ret = "\n".join(d[head:tail])
     
     if head == tail:
-        return {"success": False}
+        return {"success": False, "clientIp": ip, "serverTime": datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")}
 
     conv = Ansi2HTMLConverter()
     html = conv.convert(ret)
 
-    return {"success": True, "head": head, "tail": tail, "log": html}
+    return {"success": True, "head": head, "tail": tail, "log": html, "clientIp": ip, "serverTime": datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")}

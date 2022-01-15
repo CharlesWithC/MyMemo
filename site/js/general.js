@@ -418,22 +418,22 @@ function GeneralUpdateTheme() {
     $("table").addClass("table");
     if (localStorage.getItem("settings-theme") == "dark") {
         $("table").addClass("table-dark");
-        $(".subcontainer table").addClass("table-dark-subcontainer");
+        $(".sub-div table").addClass("table-dark-subcontainer");
         $("tr").css("color", "#ffffff");
         $("th").css("color", "#ffffff");
         $("tr").css("background-color", "#333333");
         $("th").css("background-color", "#333333");
-        $(".subcontainer tr").css("background-color", "#444444");
-        $(".subcontainer th").css("background-color", "#444444");
+        $(".sub-div tr").css("background-color", "#444444");
+        $(".sub-div th").css("background-color", "#444444");
     } else {
         $("table").addClass("table-light");
-        $(".subcontainer table").addClass("table-light-subcontainer");
+        $(".sub-div table").addClass("table-light-subcontainer");
         $("tr").css("color", "#000000");
         $("th").css("color", "#000000");
         $("tr").css("background-color", "#ffffff");
         $("th").css("background-color", "#ffffff");
-        $(".subcontainer tr").css("background-color", "#eeeeee");
-        $(".subcontainer th").css("background-color", "#eeeeee");
+        $(".sub-div tr").css("background-color", "#eeeeee");
+        $(".sub-div th").css("background-color", "#eeeeee");
     }
 
     setInterval(function () {
@@ -443,7 +443,7 @@ function GeneralUpdateTheme() {
         if (localStorage.getItem("settings-theme") == "dark") {
             $("body").css("color", "#ffffff");
             $("body").css("background-color", "#333333");
-            $(".subcontainer").css("background-color", "#444444");
+            $(".sub-div ").css("background-color", "#444444");
             $("#content a,.container a").css("color", "#dddddd");
 
             $("hr").css("background-color", "#cccccc");
@@ -456,7 +456,7 @@ function GeneralUpdateTheme() {
         } else {
             $("body").css("color", "#000000");
             $("body").css("background-color", "#ffffff");
-            $(".subcontainer").css("background-color", "#eeeeee");
+            $(".sub-div ").css("background-color", "#eeeeee");
             $("#content a,.container a").css("color", "#222222");
 
             $("hr").css("background-color", "#222222");

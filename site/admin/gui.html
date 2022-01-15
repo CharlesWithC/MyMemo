@@ -171,7 +171,7 @@
             }
         }
 
-        function RunCommand(command) {
+        function RunCommand(command, noUpdateTable = false) {
             $.ajax({
                 url: "/api/admin/command",
                 method: 'POST',
@@ -185,7 +185,7 @@
                 success: function (r) {
                     if (r.success == true) {
                         NotyNotification(r.msg);
-                        UpdateTable(true);
+                        if(!noUpdateTable) UpdateTable(true);
                     } else if (r.success == false) {
                         NotyNotification(r.msg, 'error');
                     }
@@ -358,26 +358,28 @@
     <div id="content" class="container">
         <h1 class="title">Admin Panel</h1>
 
-        <div class="subcontainer sub-div sub-left">
-            <h2>User List&nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary" id="refresh-btn"><i
-                        class="fa fa-sync"></i></button></h2>
-            <table class="table table-hover" id="userList" style="text-align:center">
-                <thead>
-                    <tr>
-                        <th id="table-userType"></th>
-                        <th id="table-userId" class="sorting">User ID</th>
-                        <th id="table-username" class="sorting">Username</th>
-                        <th id="table-email" class="sorting">Email</th>
-                        <th id="table-status" class="sorting">Status</th>
-                        <th id="table-age" class="sorting" style="min-width:9.5em">Age</th>
-                        <th id="table-inviter" class="sorting" style="min-width:8em">Inviter</th>
-                        <th id="table-inviteCode" class="sorting">Invitation Code</th>
-                        <th id="table-privilege" class="sorting" style="min-width:12em">Privilege</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
+        <div class="sub-left">
+            <div class="subcontainer sub-div">
+                <h2>User List&nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary" id="refresh-btn"><i
+                            class="fa fa-sync"></i></button></h2>
+                <table class="table table-hover" id="userList" style="text-align:center">
+                    <thead>
+                        <tr>
+                            <th id="table-userType"></th>
+                            <th id="table-userId" class="sorting">User ID</th>
+                            <th id="table-username" class="sorting">Username</th>
+                            <th id="table-email" class="sorting">Email</th>
+                            <th id="table-status" class="sorting">Status</th>
+                            <th id="table-age" class="sorting" style="min-width:9.5em">Age</th>
+                            <th id="table-inviter" class="sorting" style="min-width:8em">Inviter</th>
+                            <th id="table-inviteCode" class="sorting">Invitation Code</th>
+                            <th id="table-privilege" class="sorting" style="min-width:12em">Privilege</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div class="sub-right">
@@ -408,7 +410,7 @@
                 <button type="button" class="btn btn-primary"
                     onclick='window.open("/admin/log", "popupWindow", "width=800, height=600, scrollbars=yes");'>View
                     Log</button>
-                <button type="button" class="btn btn-warning" onclick="RunCommand('restart')">Restart Program</button>
+                <button type="button" class="btn btn-warning" onclick="RunCommand('restart', true)">Restart Program</button>
             </div>
         </div>
     </div>

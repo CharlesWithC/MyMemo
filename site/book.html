@@ -115,10 +115,12 @@
                 onclick="UpdateBookContentList()"><i class="fa fa-sync"></i></button>
         </h1>
         <div class="book-list-content-div" style="display:none">
-            <div class="book-list-content subcontainer sub-div sub-left">
-                <div>
-                    <h4>My Book</h4>
-                    <p><i class="fa fa-spinner fa-spin"></i></p>
+            <div class="sub-left">
+                <div class="book-list-content subcontainer sub-div">
+                    <div>
+                        <h4>My Book</h4>
+                        <p><i class="fa fa-spinner fa-spin"></i></p>
+                    </div>
                 </div>
             </div>
             <div class="sub-right">
@@ -151,8 +153,7 @@
                         <span class="input-group-text" id="basic-addon1">Group Code</span>
                         <input type="text" class="form-control" id="page-join-group" aria-describedby="basic-addon1">
                         <div class="input-group-append">
-                            <button class="btn btn-outline-primary" type="button"
-                                onclick="JoinGroup()">Preview</button>
+                            <button class="btn btn-outline-primary" type="button" onclick="JoinGroup()">Preview</button>
                         </div>
                     </div>
                     <p style="font-size:0.8em">A group code usually starts with '@'</p>
@@ -161,22 +162,24 @@
         </div>
 
         <div class="book-data-div" style="display:none">
-            <div id="qlist" class="subcontainer sub-div sub-left">
-                <h2><i class="fa fa-table"></i>&nbsp;&nbsp;Question List&nbsp;&nbsp;<button type="button"
-                        class="btn btn-outline-secondary" onclick="UpdateQuestionList()" id="refresh-btn"><i
-                            class="fa fa-sync"></i></button></h2>
-                <table class="table table-hover" id="questionList" style="text-align:center">
-                    <thead>
-                        <tr>
-                            <th id="question" class="sorting">Question</th>
-                            <th id="answer" class="sorting">Answer</th>
-                            <th id="status" class="sorting">Status</th>
-                            <th id="operation">Operation</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
+            <div class="sub-left">
+                <div id="qlist" class="subcontainer sub-div">
+                    <h2><i class="fa fa-table"></i>&nbsp;&nbsp;Question List&nbsp;&nbsp;<button type="button"
+                            class="btn btn-outline-secondary" onclick="UpdateQuestionList()" id="refresh-btn"><i
+                                class="fa fa-sync"></i></button></h2>
+                    <table class="table table-hover" id="questionList" style="text-align:center">
+                        <thead>
+                            <tr>
+                                <th id="question" class="sorting">Question</th>
+                                <th id="answer" class="sorting">Answer</th>
+                                <th id="status" class="sorting">Status</th>
+                                <th id="operation">Operation</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <div id="manage" class="manage sub-right">
@@ -305,10 +308,12 @@
                                         class="btn btn-secondary group-anonymous-btn"
                                         onclick="GroupAnonymousSwitch(2)">Full
                                         Anonymous</button>
-                                    <p style="font-size:0.75em">Open means members can see other members' username and progress.
+                                    <p style="font-size:0.75em">Open means members can see other members' username and
+                                        progress.
                                         Anonymous means members can see other member's progress but not username. Full
                                         Anonymous means members can see no data from other members.</p>
-                                    <p style="font-size:0.75em">Anonymous settings will not stop the group's question list sync.</p>
+                                    <p style="font-size:0.75em">Anonymous settings will not stop the group's question
+                                        list sync.</p>
                                     <br>
                                     <h5>Group code settings:</h5>
                                     <button type="button" class="btn btn-warning"

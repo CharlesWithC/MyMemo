@@ -129,24 +129,28 @@
 
     <div id="content" class="container">
         <h1 class="title">Import Data</h1>
-        <div class="subcontainer sub-div sub-left">
-            <h2>Requirements</h2>
-            <h3>Format</h3>
-            <p>1.Must be .xlsx table file</p>
-            <p>2.Must contain column 'Question' and 'Answer'.
-                (It can also contain other columns but Question and Answer are required)</p>
-            <p>3.'Status' is an optional column, it can decide the preset status of the question.</p>
-            <br>
-            <h3>Options</h3>
-            <h4>Data Update Type</h4>
-            <p>Append: Uploaded questions will be appended to existing database. You will be warned of duplicate
-                questions.</p>
-            <p>Overwrite: Duplicated questions will overwrite existing ones. Other questions will be appended directly.
-            </p>
-            <p>Clear & Overwrite: Existing questions will be cleared before appending uploaded questions.</p>
-            <br>
-            <p>P.S.: Excel doesn't support multiple lines in one cell, use \n as line break to write multi-line data.
-            </p>
+        <div class="sub-left">
+            <div class="subcontainer sub-div">
+                <h2>Requirements</h2>
+                <h3>Format</h3>
+                <p>1.Must be .xlsx table file</p>
+                <p>2.Must contain column 'Question' and 'Answer'.
+                    (It can also contain other columns but Question and Answer are required)</p>
+                <p>3.'Status' is an optional column, it can decide the preset status of the question.</p>
+                <br>
+                <h3>Options</h3>
+                <h4>Data Update Type</h4>
+                <p>Append: Uploaded questions will be appended to existing database. You will be warned of duplicate
+                    questions.</p>
+                <p>Overwrite: Duplicated questions will overwrite existing ones. Other questions will be appended
+                    directly.
+                </p>
+                <p>Clear & Overwrite: Existing questions will be cleared before appending uploaded questions.</p>
+                <br>
+                <p>P.S.: Excel doesn't support multiple lines in one cell, use \n as line break to write multi-line
+                    data.
+                </p>
+            </div>
         </div>
         <div class="sub-right">
             <div id="upload-form" class="subcontainer sub-div">

@@ -1,5 +1,11 @@
 # Update History
 
+## v5.6.13  
+
+*Date: 2021/1/15*  
+1.Bug Fixes & UI Updates  
+2.Added stricter admin permission and allowed site owner to add admins on web cli panel  
+
 ## v5.6.12  
 
 *Date: 2021/1/15*  

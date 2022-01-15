@@ -44,9 +44,8 @@
         <div class="userctrl">
             <a href='/user'><i class="fa fa-user"></i></a> <span id="navusername"><a href='/user/login'>Sign
                     in</a>&nbsp;&nbsp; </span>
-            <a class="only-signed-in" href='/user/events' style="display:none"><i
-                    class="fa fa-bell"></i></a>
-            <a href='/user/settings'"><i class="fa fa-cogs"></i></a>
+            <a class="only-signed-in" href='/user/events' style="display:none"><i class="fa fa-bell"></i></a>
+            <a href='/user/settings'"><i class=" fa fa-cogs"></i></a>
             <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i
                     class="fa fa-arrow-right-from-bracket"></i></a>
         </div>
@@ -83,23 +82,25 @@
         </div>
 
         <div class="discovery-detail" style="display:none">
-            <div id="qlist" class="subcontainer sub-div sub-left">
-                <h2><i class="fa fa-newspaper"></i>&nbsp;&nbsp;Preview</h2>
-                <table class="table table-hover" id="questionList" style="text-align:center">
-                    <thead>
-                        <tr>
-                            <th id="question">Question</th>
-                            <th id="answer">Answer</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
+            <div class="sub-left">
+                <div id="qlist" class="subcontainer sub-div">
+                    <h2><i class="fa fa-newspaper"></i>&nbsp;&nbsp;Preview</h2>
+                    <table class="table table-hover" id="questionList" style="text-align:center">
+                        <thead>
+                            <tr>
+                                <th id="question">Question</th>
+                                <th id="answer">Answer</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <div class="manage sub-right" id="manage">
                 <div id="basic-info" class="subcontainer sub-div">
-                    <p>Description: <span id="detail-description"></span></p>
+                    <p><span id="detail-description"></span></p>
                     <p>Published by <span id="detail-publisher"></span></p>
                     <p style="font-size:0.8em"><span id="detail-views">0</span> Views | <span id="detail-likes">0</span>
                         Likes | <span id="detail-imports"></span> <span id="detail-imports-name"></span></p>

@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 # Copyright (C) 2021 Charles All rights reserved.
 # Author: @Charles-1414
 # License: GNU General Public License v3.0
@@ -26,9 +28,9 @@ class Tee(object):
         sys.stderr = self.stderr
         self.file.close()
     def write(self, data):
-        self.stdout.write(data)
-        if "/api/admin/log" in data and "200 OK" in data:
+        if "/api/admin/log" in data and "200 OK" in data or "NOLOG" in data:
             return
+        self.stdout.write(data)
         self.file.write(data)
     def flush(self):
         self.file.flush()
@@ -76,4 +78,5 @@ if __name__ == "__main__":
     pevdProc = Process(target = PendingEmailVerificationDeletion, daemon=True)
     pevdProc.start()
 
+    time.sleep(5)
     uvicorn.run("app:app", host = config.server_ip, port = config.server_port)

@@ -133,3 +133,55 @@ def remove_name_tag(userId, command):
     conn.commit()
 
     return {"success": True, "msg": f"Removed nametag from user {uid}"}
+
+def add_admin(userId, command):
+    conn = newconn()
+    cur = conn.cursor()
+    if len(command) != 2:
+        return {"success": False, "msg": "Usage: add_admin [userId]\nAdd [userId] to administrator list."}
+
+    uid = 0
+    if not command[1].isdigit():
+        uid = usernameToUid(encode(command[1]))
+    else:
+        uid = int(command[1])
+    if uid == 0:
+        return {"success": False, "msg": "Invalid user id!"}
+    
+    if checkBanned(uid):
+        return {"success": False, "msg": "User has been banned!"}
+
+    cur.execute(f"SELECT userId FROM AdminList WHERE userId = {uid}")
+    if len(cur.fetchall()) == 0:
+        cur.execute(f"INSERT INTO AdminList VALUES ({uid})")
+        conn.commit()
+        return {"success": True, "msg": f"Added user {command[1]} to administrator list!"}
+    
+    else:
+        return {"success": True, "msg": f"User {command[1]} is already an administrator!"}
+
+def remove_admin(userId, command):
+    conn = newconn()
+    cur = conn.cursor()
+    if len(command) != 2:
+        return {"success": False, "msg": "Usage: remove_admin [userId]\nRemove [userId] from administrator list."}
+
+    uid = 0
+    if not command[1].isdigit():
+        uid = usernameToUid(encode(command[1]))
+    else:
+        uid = int(command[1])
+    if uid == 0:
+        return {"success": False, "msg": "Invalid user id!"}
+    
+    if checkBanned(uid):
+        return {"success": False, "msg": "User has been banned!"}
+
+    cur.execute(f"SELECT userId FROM AdminList WHERE userId = {uid}")
+    if len(cur.fetchall()) != 0:
+        cur.execute(f"DELETE FROM AdminList WHERE userId = {uid}")
+        conn.commit()
+        return {"success": True, "msg": f"Removed user {command[1]} from administrator list!"}
+    
+    else:
+        return {"success": True, "msg": f"User {command[1]} is not an administrator!"}

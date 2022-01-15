@@ -27,7 +27,7 @@
             PageInit();
             UpdateBookDisplay();
 
-            $("textarea").click(function () {
+            $("#content").click(function () {
                 DisplayAnswer();
             });
             $("#question").click(function () {
@@ -106,9 +106,7 @@
         </div>
 
         <div id="memo" style="display:none;height:100%;width:100%">
-            <h1 id="title2" class="title" style="margin-left:1em">My Memo</h1>
-
-            <div class="center subcontainer sub-div">
+            <div class="center subcontainer">
                 <div id="navigate2">
                     <div class="top-right">
                         <button id="statistics-btn" type="button" class="btn btn-sm btn-info" onclick="Statistics()"><i
@@ -122,7 +120,7 @@
                     </div>
                 </div>
 
-                <div id="qa1" style="width:80%;max-width:80%;margin:auto;">
+                <div id="qa1" style="margin:auto;">
                     <div style="height:4em;max-height:4em;margin-bottom:0.5em;text-align:center;overflow:auto">
                         <p id="question" style="font-size:1.6em"></p>
                     </div>
@@ -131,8 +129,8 @@
                     </div>
                 </div>
 
-                <div id="qa2" style="width:80%;max-width:80%;margin:auto;display:none">
-                    <div style="height:4em;max-height:4em;margin-bottom:1.5em;text-align:center;overflow:auto">
+                <div id="qa2" style="margin:auto;display:none">
+                    <div style="height:6em;max-height:6em;margin-bottom:1.5em;text-align:center;overflow:auto">
                         <p id="cc-question" style="font-size:1.6em"></p>
                     </div>
                     <div id="div-choice-0" class="choice" onclick="ChallengeChoice(0);">
@@ -161,7 +159,7 @@
                     </div>
                 </div>
 
-                <div id="switch-control" class="control" style="display:none">
+                <div id="switch-control" class="control" style="display:none;min-width:100%;">
                     <button type="button" class="btn btn-primary control-btn control-btn-left control-btn-top memo-tag"
                         onclick="MemoTag()">Tag <i class='fa fa-star'></i></button>
                     <button type="button"
@@ -176,7 +174,7 @@
                         onclick="MemoMove('next')">Next <i class="fa fa-arrow-circle-right"></i></button>
                 </div>
 
-                <div id="practice-control" class="control" style="display:none">
+                <div id="practice-control" class="control" style="display:none;min-width:100%;">
                     <p style="padding-bottom:1em"><span id="practice-msg">Do you remember it?</span></p>
                     <button type="button"
                         class="btn btn-primary control-btn control-btn-left control-btn-top memo-practice-yes"
@@ -192,7 +190,7 @@
                         onclick="MemoDelete()">Delete <i class="fa fa-trash"></i></button>
                 </div>
 
-                <div id="challenge-control" class="control" style="display:none;padding-top:1em">
+                <div id="challenge-control" class="control" style="display:none;padding-top:1em;min-width:100%;">
                     <p style="margin:0"><span id="challenge-msg">Select your answer <i
                                 class='fa fa-arrow-up'></i></span></p>
                     <button type="button" class="btn btn-primary control-btn control-btn-left control-btn-top memo-tag"

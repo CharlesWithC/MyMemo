@@ -291,14 +291,13 @@ function MemoStart() {
     $("#qa1").show();
     $("#qa2").hide();
     if (isphone) {
-        $("#title2").remove();
         $("#qa1").css("width", "100%");
         $("#qa2").css("width", "100%");
         $("#qa1").css("max-width", "100%");
         $("#qa2").css("max-width", "100%");
-    } else {
-        $(".choice").css("width", "60%");
-        $(".choice").css("max-width", "60%");
+        $("#qa2").children().css("min-width", "100%");
+        $("#qa2").children().css("width", "100%");
+        $(".choice").css("width","100%");
     }
     $("#statisticsQuestion").html("");
     $("#statisticsDetail").html("");

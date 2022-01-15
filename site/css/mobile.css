@@ -11,7 +11,7 @@ h1 {
 }
 
 #refresh-btn {
-    font-size: 0.5em;
+    font-size: 0.4em;
 }
 
 h2 {
@@ -53,7 +53,7 @@ td {
 
 .title {
     font-size: 1.8em;
-    margin-top: 1.4em;
+    margin-top: 1.6em;
     padding: 0.2em;
 }
 
@@ -72,12 +72,15 @@ td {
 }
 
 .container {
-    padding: 1em;
-    max-width: 100%;
+    padding: 0.5em;
+    margin: 0;
+    min-width: calc(100% - 1em);
+    max-width: calc(100% - 1em);
 }
 
 .subcontainer {
     padding: 1em;
+    min-width: 100%;
 }
 
 .modal-dialog {
@@ -85,14 +88,20 @@ td {
     margin: 10em auto;
 }
 
-.choice {
-    width: 80%;
+.center {
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
 }
 
-.center {
-    margin-left: 0;
-    margin: auto;
-    width: 95%;
+.notifications {
+    min-width: 100%;
+    max-width: 100%;
+    display: inline-block;
+}
+
+.choice {
+    width: 80%;
 }
 
 .table_search {

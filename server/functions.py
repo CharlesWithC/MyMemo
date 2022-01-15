@@ -35,7 +35,7 @@ def encode(s, removeHTMLTag = True):
         s = s.replace("\n","<br>")
         return base64.b64encode(s.encode()).decode()
     except:
-        print(f"Unable to encode {s}")
+        print(f"Unable to encode '{s}'")
         return ""
 
 def decode(s):
