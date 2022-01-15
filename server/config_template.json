@@ -4,6 +4,7 @@
     "search_server_ip": "127.0.0.1",
     "search_server_port": 8889,
     "max_concurrent_download": -1,
+    "log_file": "/var/log/mymemo.log",
 
     "default_user_password": "123456",
 

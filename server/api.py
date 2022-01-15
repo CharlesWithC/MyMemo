@@ -22,7 +22,7 @@ import apis.admin.main
 
 @app.get("/api/version")
 async def apiGetVersion(request: Request):
-    return {"success": True, "version": "v5.6.11"}
+    return {"success": True, "version": "v5.6.12"}
 
 @app.get("/api/captcha")
 async def apiGetCaptcha(request: Request):

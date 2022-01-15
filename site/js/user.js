@@ -429,7 +429,7 @@ function Login() {
 
                         if (localStorage.getItem("first-use") != "0" || localStorage.getItem("sign-out") == "1") {
                             $.ajax({
-                                url: '/api/user/user/settings',
+                                url: '/api/user/settings',
                                 method: 'POST',
                                 async: false,
                                 dataType: "json",

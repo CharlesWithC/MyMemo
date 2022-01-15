@@ -3,6 +3,7 @@
 # License: GNU General Public License v3.0
 
 from fastapi import Request, HTTPException, BackgroundTasks
+from ansi2html import Ansi2HTMLConverter
 import os, time
 
 from app import app, config
@@ -236,3 +237,48 @@ async def apiAdminUserList(request: Request):
         return {"success": True, "data": ret[(page - 1) * pageLimit :], "total": (len(ret) - 1) // pageLimit + 1, "totalUser": len(ret)}
     else:
         return {"success": True, "data": ret[(page - 1) * pageLimit : page * pageLimit], "total": (len(ret) - 1) // pageLimit + 1, "totalUser": len(ret)}
+
+@app.post("/api/admin/log")
+async def apiAdminLog(request: Request):
+    ip = request.client.host
+    form = await request.form()
+    conn = newconn()
+    cur = conn.cursor()
+    if not "userId" in form.keys() or not "token" in form.keys() or "userId" in form.keys() and (not form["userId"].isdigit() or int(form["userId"]) < 0):
+        raise HTTPException(status_code=401)
+        
+    userId = int(form["userId"])
+    token = form["token"]
+    if not validateToken(userId, token):
+        raise HTTPException(status_code=401)
+
+    cur.execute(f"SELECT userId FROM AdminList WHERE userId = {userId}")
+    if len(cur.fetchall()) == 0:
+        raise HTTPException(status_code=401)
+
+    start = int(form["start"])
+    end = int(form["end"])
+    reverse = int(form["reverse"])
+
+    d = open(config.log_file, "r").read().split("\n")[:-1]
+    if len(d) < start or end <= 0:
+        return {"success": False}
+    start = max(0, start)
+    start_line = 0
+    ret = ""
+    if reverse:
+        head = max(len(d) - end, 0)
+        tail = len(d) - start
+        ret = "\n".join(d[::-1][head:tail][::-1])
+    else:
+        head = start
+        tail = min(len(d), end)
+        ret = "\n".join(d[head:tail])
+    
+    if head == tail:
+        return {"success": False}
+
+    conv = Ansi2HTMLConverter()
+    html = conv.convert(ret)
+
+    return {"success": True, "head": head, "tail": tail, "log": html}

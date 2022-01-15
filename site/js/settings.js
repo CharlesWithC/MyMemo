@@ -182,7 +182,7 @@ function ClearDeletedQuestion() {
 function SettingsSync(operation) {
     if (operation == "upload") {
         $.ajax({
-            url: '/api/user/user/settings',
+            url: '/api/user/settings',
             method: 'POST',
             async: true,
             dataType: "json",
@@ -210,7 +210,7 @@ function SettingsSync(operation) {
         });
     } else if (operation == "download") {
         $.ajax({
-            url: '/api/user/user/settings',
+            url: '/api/user/settings',
             method: 'POST',
             async: true,
             dataType: "json",

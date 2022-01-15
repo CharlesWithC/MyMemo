@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Log - My Memo</title>
+
+    <script src="https://cdn.charles14.xyz/js/jquery-3.6.0.min.js"></script>
+
+    <link rel="icon" href="/img/icon-sm.png">
+
+    <script>
+        $(document).ready(function () {
+            head = 0;
+            tail = 0;
+            $.ajax({
+                url: "/api/admin/command",
+                method: 'POST',
+                async: true,
+                dataType: "json",
+                data: {
+                    userId: localStorage.getItem("userId"),
+                    token: localStorage.getItem("token"),
+                    command: "check_admin"
+                },
+                error: function (r, textStatus, errorThrown) {
+                    if (r.status == 503) window.location.reload();
+                    else window.location.href = "/";
+                }
+            });
+
+            updating = true;
+
+            function AppendPrevious() {
+                if (updating) return;
+                updating = true;
+                $.ajax({
+                    url: "/api/admin/log",
+                    method: 'POST',
+                    async: true,
+                    dataType: "json",
+                    data: {
+                        start: head - 100,
+                        end: head,
+                        reverse: 0,
+                        userId: localStorage.getItem("userId"),
+                        token: localStorage.getItem("token")
+                    },
+                    success: function (r) {
+                        if (r.success) {
+                            $("body").prepend("<div id='start-from-" + (head - 100) + "'></div>");
+                            $("#start-from-" + (head - 100)).append(r.log);
+                            window.location.href = "#start-from-" + head;
+                            head = r.head;
+                        } else {
+                            head = -1;
+                            clearInterval(updateHead);
+                        }
+                        setTimeout(function () {
+                            updating = false;
+                        }, 300);
+                    }
+                });
+            }
+
+            function UpdateTail() {
+                $.ajax({
+                    url: "/api/admin/log",
+                    method: 'POST',
+                    async: true,
+                    dataType: "json",
+                    data: {
+                        start: tail,
+                        end: tail + 100,
+                        reverse: 0,
+                        userId: localStorage.getItem("userId"),
+                        token: localStorage.getItem("token")
+                    },
+                    success: function (r) {
+                        if (r.success) {
+                            $("body").append("<div id='start-from-" + (tail) + "'></div>");
+                            $("#start-from-" + (tail)).append(r.log);
+                            if ($("body, html")[0].scrollHeight - $("body, html").scrollTop() -
+                                50 <= window.innerHeight) {
+                                window.location.href = "#start-from-" + (tail);
+                            }
+                            tail = r.tail;
+                        }
+                    }
+                });
+            }
+
+            $.ajax({
+                url: "/api/admin/log",
+                method: 'POST',
+                async: true,
+                dataType: "json",
+                data: {
+                    start: 0,
+                    end: 100,
+                    reverse: 1,
+                    userId: localStorage.getItem("userId"),
+                    token: localStorage.getItem("token")
+                },
+                success: function (r) {
+                    head = r.head;
+                    tail = r.tail;
+                    $("body").prepend("<div id='start-from-" + (head) + "'></div>");
+                    $("#start-from-" + (head)).append(r.log);
+                    updateHead = setInterval(function () {
+                        if ($("body, html").scrollTop() < 100 && head != -1) {
+                            AppendPrevious();
+                        }
+                    }, 100);
+                    updateTail = setInterval(UpdateTail, 1000);
+                    $("html, body").animate({
+                        scrollTop: $(document).height() - $(window).height()
+                    }, 0);
+                    setTimeout(function () {
+                        updating = false;
+                    }, 300);
+                }
+            });
+        });
+    </script>
+    <style>
+        body {
+            background-color: #000000
+        }
+    </style>
+</head>
+
+<body class="body_foreground body_background" style="font-size:normal;">
+
+</body>
+
+</html>

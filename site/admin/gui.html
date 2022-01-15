@@ -60,9 +60,10 @@
                     for (var i = 0; i < userList.length; i++) {
                         if (userList[i].userId < 0) userList[i].userId = (-parseInt(userList[i].userId))
                             .toString();
-                        if(userList[i].muteUntil != -1) userList[i].muteUntil = "until <i>"+new Date(userList[i].muteUntil * 1000).toLocaleString()+"</i>";
+                        if (userList[i].muteUntil != -1) userList[i].muteUntil = "until <i>" + new Date(
+                            userList[i].muteUntil * 1000).toLocaleString() + "</i>";
                         else userList[i].muteUntil = "<i>forever</i>"
-                        if(userList[i].banReason == "") userList[i].banReason = "Unknown Reason"
+                        if (userList[i].banReason == "") userList[i].banReason = "Unknown Reason"
                         userOnDisplay[userList[i].userId] = userList[i];
                         userType = "<i class='fa fa-user-check'></i>";
                         if (userList[i].userType == 1) userType = "<i class='fa fa-user-shield'></i>";
@@ -307,6 +308,22 @@
         }
 
         $(document).ready(function () {
+            $.ajax({
+                url: "/api/admin/command",
+                method: 'POST',
+                async: true,
+                dataType: "json",
+                data: {
+                    userId: localStorage.getItem("userId"),
+                    token: localStorage.getItem("token"),
+                    command: "check_admin"
+                },
+                error: function (r, textStatus, errorThrown) {
+                    if (r.status == 503) window.location.reload();
+                    else window.location.href = "/";
+                }
+            });
+
             InitTable("userList", [10, 25, 50, 100], 10, UpdatePageLimit, Search);
             InitSorting("userList",
                 ["userId", "username", "email", "status", "age", "inviter", "inviteCode", "privilege"],
@@ -387,9 +404,11 @@
                 <button type="button" class="btn btn-primary" onclick="CreateUser()">Create</button>
             </div>
             <div class="subcontainer sub-div">
-                <h2>Server Operation</h2>
-                <button type="button" class="btn btn-warning" onclick="RunCommand('restart')">Restart Server
-                    Program</button>
+                <h2>Server</h2>
+                <button type="button" class="btn btn-primary"
+                    onclick='window.open("/admin/log", "popupWindow", "width=800, height=600, scrollbars=yes");'>View
+                    Log</button>
+                <button type="button" class="btn btn-warning" onclick="RunCommand('restart')">Restart Program</button>
             </div>
         </div>
     </div>

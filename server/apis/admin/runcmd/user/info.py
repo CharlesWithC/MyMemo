@@ -6,6 +6,8 @@ from db import newconn
 from functions import *
 
 def get_user_info(userId, command):
+    conn = newconn()
+    cur = conn.cursor()
     if len(command) != 2:
         return {"success": False, "msg": f"Usage: get_user_info [userId]\nGet detailed user info of [userId]"}
     
@@ -63,6 +65,8 @@ def get_user_info(userId, command):
     return {"success": True, "msg": f"{d[0]} (UID: {uid})\nEmail: {decode(d[1])}\nInvitation Code: {d[2]}\nInviter: {inviter} (UID: {d[3]})\nQuestion Count: {cnt}\nAccount age: {CalculateAge(regts)} day(s)\n{msg}"}
 
 def get_user_count(userId, command):
+    conn = newconn()
+    cur = conn.cursor()
     cur.execute(f"SELECT COUNT(*) FROM UserInfo")
     tot = 0
     d = cur.fetchall()

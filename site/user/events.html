@@ -24,6 +24,10 @@
     <script>
         $(document).ready(function () {
             PageInit();
+            setInterval(function AutoUpdate() {
+                if ($("body, html")[0].scrollHeight - $("body, html").scrollTop() - 175 <= window
+                    .innerHeight && page != -1)  ShowMore();
+            }, 100);
         });
     </script>
 </head>
@@ -38,8 +42,7 @@
         <div class="userctrl">
             <a href='/user'><i class="fa fa-user"></i></a> <span id="navusername"><a href='/user/login'>Sign
                     in</a>&nbsp;&nbsp; </span>
-            <a class="only-signed-in" href='/user/events' style="display:none"><i
-                    class="fa fa-bell"></i></a>
+            <a class="only-signed-in" href='/user/events' style="display:none"><i class="fa fa-bell"></i></a>
             <a href='/user/settings'><i class="fa fa-cogs"></i></a>
             <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i
                     class="fa fa-arrow-right-from-bracket"></i></a>
@@ -63,7 +66,8 @@
             <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo" target="_blank"
                     rel="noopener noreferrer"><i class="fa fa-brands fa-github"></i>
                     GitHub</a></p>
-            <p>Developed by <a href="https://www.charles14.xyz" target="_blank" rel="noopener noreferrer">Charles</a></p>
+            <p>Developed by <a href="https://www.charles14.xyz" target="_blank" rel="noopener noreferrer">Charles</a>
+            </p>
         </div>
     </div>
 </body>

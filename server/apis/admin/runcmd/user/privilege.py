@@ -10,6 +10,8 @@ from db import newconn
 from functions import *
 
 def set_privilege(userId, command):
+    conn = newconn()
+    cur = conn.cursor()
     if len(command) != 4:
         return {"success": False, "msg": "Usage: set_privilege [userId] [item] [value]\nAdd [item] privilege for user [userId] ([item] can be question_limit)\nIf privilege exists, then update it"}
 
@@ -40,6 +42,8 @@ def set_privilege(userId, command):
     return {"success": True, "msg": "Privilege set"}
 
 def remove_privilege(userId, command):
+    conn = newconn()
+    cur = conn.cursor()
     if len(command) != 3:
         return {"success": False, "msg": "Usage: remove_privilege [userId] [item]\nDelete [item] privilege from user [userId]"}
 
@@ -68,6 +72,8 @@ def remove_privilege(userId, command):
         return {"success": False, "msg": "This user doesn't have this privilege!"}
 
 def set_name_tag(userId, command):
+    conn = newconn()
+    cur = conn.cursor()
     if len(command) != 4:
         return {"success": False, "msg": "Usage: set_name_tag [userId] [tag] [tag color]"}
 
@@ -102,6 +108,8 @@ def set_name_tag(userId, command):
     return {"success": True, "msg": f"Added {tagtype} nametag for user {uid}"}
 
 def remove_name_tag(userId, command):
+    conn = newconn()
+    cur = conn.cursor()
     if len(command) != 2:
         return {"success": False, "msg": "Usage: remove_name_tag [userId]"}
 

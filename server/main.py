@@ -9,12 +9,34 @@ from db import newconn
 
 from multiprocessing import Process
 import time
-import json
 
 import sessions
 import functions
 import api
-import apis.data
+
+class Tee(object):
+    def __init__(self, name, mode):
+        self.file = open(name, mode)
+        self.stdout = sys.stdout
+        self.stderr = sys.stderr
+        sys.stdout = self
+        sys.stderr = self
+    def __del__(self):
+        sys.stdout = self.stdout
+        sys.stderr = self.stderr
+        self.file.close()
+    def write(self, data):
+        self.stdout.write(data)
+        if "/api/admin/log" in data and "200 OK" in data:
+            return
+        self.file.write(data)
+    def flush(self):
+        self.file.flush()
+    def isatty(self):
+        return True
+
+sys.stdout = Tee(config.log_file, "a")
+sys.stderr = Tee(config.log_file, "a")
 
 def PendingAccountDeletion():
     while 1:

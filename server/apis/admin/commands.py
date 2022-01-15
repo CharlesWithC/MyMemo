@@ -21,6 +21,7 @@ import apis.admin.runcmd.user.privilege as privilege
 # Admin API
 
 def restart():
+    print("Requested to restart program! Restarting in 5 seconds...")
     time.sleep(5)
     os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
     sys.exit(0)

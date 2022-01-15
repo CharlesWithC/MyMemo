@@ -72,6 +72,8 @@ def unmute(userId, command):
         return {"success": False, "msg": "User not muted!"}
         
 def ban(userId, command):
+    conn = newconn()
+    cur = conn.cursor()
     if len(command) < 3:
         return {"success": False, "msg": "Usage: ban [userId] [reason]\nBan account"}
     
@@ -102,6 +104,8 @@ def ban(userId, command):
     return {"success": True, "msg": f"Banned user {uid}"}
 
 def unban(userId, command):
+    conn = newconn()
+    cur = conn.cursor()
     if len(command) != 2:
         return {"success": False, "msg": "Usage: unban [userId]\nUnban account"}
     

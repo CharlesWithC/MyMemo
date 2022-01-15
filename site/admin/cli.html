@@ -36,10 +36,8 @@
                     command: "check_admin"
                 },
                 error: function (r, textStatus, errorThrown) {
-                    if(r.status == 503){
-                        window.location.reload();
-                    }
-                    window.location.href = "/";
+                    if(r.status == 503) window.location.reload();
+                    else window.location.href = "/";
                 }
             });
 
@@ -179,9 +177,7 @@
                 the
                 deletion schedule forward</p>
             <p>7.2. wipe_user [userId] - Wipe all the data of [userId] (this should be requested by the user)</p>
-            <p>8.1. block_mail_domain [domain] - Block users with emails at [domain] from registering</p>
-            <p>8.2. unblock_mail_domain [domain] - Allow users with emails at [domain] to register</p>
-            <p>9. restart - Restart backend server</p>
+            <p>8. restart - Restart backend server</p>
         </div>
     </div>
 

@@ -1,5 +1,12 @@
 # Update History
 
+## v5.6.12  
+
+*Date: 2021/1/15*  
+1.Bug Fixes & UI Updates  
+2.Added file log & frontend realtime log  
+3.Added auto "Show More" for user events  
+
 ## v5.6.11
 
 *Date: 2021/1/15*  

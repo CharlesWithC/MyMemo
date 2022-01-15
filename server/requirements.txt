@@ -9,3 +9,4 @@ xlrd==2.0.1
 FuzzyWuzzy==0.18.0
 python-Levenshtein==0.12.2
 captcha==0.3
+ansi2html==1.6.0

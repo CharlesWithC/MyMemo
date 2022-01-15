@@ -11,6 +11,8 @@ from functions import *
 from emailop import sendVerification
 
 def create_user(userId, command):
+    conn = newconn()
+    cur = conn.cursor()
     if len(command) != 4:
         return {"success": False, "msg": f"Usage: create_user [username] [email] [password]\nCreate a user by admin, user will be shown as invited by this admin"}
     
@@ -80,6 +82,8 @@ def create_user(userId, command):
         return {"success": False, "msg": "Unknown error occured. Try again later..."}
 
 def delete_pending(userId, command):
+    conn = newconn()
+    cur = conn.cursor()
     if len(command) != 2:
         return {"success": False, "msg": "Usage: delete_pending [puserId]\nDelete a pending user"}
 
@@ -111,6 +115,8 @@ def delete_pending(userId, command):
     return {"success": True, "msg": "User deleted!"}            
 
 def delete_user(userId, command):
+    conn = newconn()
+    cur = conn.cursor()
     if len(command) != 2:
         return {"success": False, "msg": "Usage: delete_user [userId]\nThe account must be marked as deletion first, and admin will be able to bring the deletion schedule forward"}
 
@@ -153,6 +159,8 @@ def delete_user(userId, command):
         return {"success": True, "msg": "Account deleted"}
 
 def wipe_user(userId, command):
+    conn = newconn()
+    cur = conn.cursor()
     if len(command) != 2:
         return {"success": False, "msg": "Usage: wipe_user [userId]\nThe account must be deleted already and admins will be able to wipe all data stored in the database."}
     

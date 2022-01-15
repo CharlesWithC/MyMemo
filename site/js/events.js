@@ -35,11 +35,11 @@ function PageInit() {
     });
 }
 
+updating = false;
 function ShowMore() {
-    if (page == -1) {
-        return;
-    }
-    $(".more-btn").html("Loading... <i class='fa fa-spinner fa-spin'></i>")
+    if (page == -1 || updating) return;
+    updating = true;
+    $(".more-btn").html("Loading... <i class='fa fa-spinner fa-spin'></i>");
     $.ajax({
         url: '/api/user/events',
         method: 'POST',
@@ -67,6 +67,7 @@ function ShowMore() {
             if (r.nextpage != -1) $("#content").append("<a href='#" + (page * 20) + "' class='notification more-btn' onclick='ShowMore()'>Show More</a>");
             else $("#content").append("<a href='#" + (page * 20) + "' class='notification more-btn'>The End</a>");
             page = r.nextpage;
+            updating = false;
         },
         error: function (r, textStatus, errorThrown) {
             AjaxErrorHandler(r, textStatus, errorThrown);
