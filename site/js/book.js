@@ -1491,7 +1491,7 @@ function ImportShare() {
             if (r.success == false) {
                 NotyNotification(r.msg, type = 'error');
             } else {
-                window.location.href = "/share/import/shareCode=" + shareCode;
+                window.location.href = "/share/import?shareCode=" + shareCode;
             }
         }
     });
