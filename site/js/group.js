@@ -43,8 +43,9 @@ function UpdateGroupMember() {
             $("tbody tr").remove();
 
             $("title").html(bookName + " - My Memo");
-            $(".title").html(bookName + '&nbsp;&nbsp;<button type="button" class="btn btn-outline-secondary" onclick="UpdateGroupMember()" id="refresh-btn"><i class="fa fa-sync"></i></button>');
+            $(".title").html(bookName);
 
+            $("#groupName").html(bookName);
             $("#groupDescription").html(marked.parse(r.description.replaceAll("\n", "<br>")));
 
             for (var i = 0; i < member.length; i++) {
@@ -199,7 +200,7 @@ function JoinPageInit() {
                 NotyNotification(r.msg, type = 'error');
                 setTimeout(function () {
                     window.location.href = "/book";
-                }, 3000);
+                }, 1000);
                 return;
             }
 
@@ -210,8 +211,8 @@ function JoinPageInit() {
             $("#owner").html(r.ownerUsername);
             $("#member-count").html(r.memberCount);
 
-            $("#groupCode").html("@" + groupCode + 
-            ' <button type="button" class="btn btn-primary btn-sm" onclick="CopyToClipboard(\'@' + groupCode + '\')"><i class="fa fa-copy"></i></button>');
+            $("#groupCode").html("@" + groupCode + " " + GenCPBtn("@" + groupCode));
+            $("#groupLink").html(GenCPBtn("http://" + window.location.hostname + "/group/join?groupCode=" + groupCode));
 
             questionList = r.preview;
 

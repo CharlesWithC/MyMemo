@@ -36,10 +36,12 @@ function UpdateShareList() {
             $("tbody tr").remove();
 
             for (var i = 0; i < shareList.length; i++) {
-                btns = '<button type="button" class="btn btn-primary btn-sm" onclick="CopyToClipboard(\'' + shareList[i].shareCode + '\')"><i class="fa fa-copy"></i></button>';
-                btns += '<button type="button" class="btn btn-warning btn-sm" onclick="Unshare(\'' + shareList[i].shareCode + '\')"><i class="fa fa-trash"></i></button>';
+                btns = '<button type="button" class="btn btn-warning btn-sm" onclick="Unshare(\'' + shareList[i].shareCode + '\')"><i class="fa fa-trash"></i></button>';
                 var time = new Date(parseInt(shareList[i].timestamp) * 1000);
-                AppendTableData("shareList", [shareList[i].name, shareList[i].shareCode, shareList[i].importCount, time.toLocaleString(), btns], shareList[i].bookId);
+                AppendTableData("shareList", [shareList[i].name, shareList[i].shareCode + " " + GenCPBtn(shareList[i].shareCode),
+                    GenCPBtn("http://" + window.location.hostname + "/share/import?shareCode=" + shareList[i].shareCode.substr(1)),
+                    shareList[i].importCount, time.toLocaleString(), btns
+                ], shareList[i].bookId);
             }
             l = (page - 1) * pageLimit + 1;
             r = l + shareList.length - 1;
@@ -92,6 +94,21 @@ function UpdatePageLimit(pl) {
 
 function PageInit() {
     UpdateShareList();
+    $.ajax({
+        url: "/api/book",
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            for (var i = 1; i < r.length; i++)
+                $("#book").append("<option value=" + r[i].bookId + ">" + r[i].name +
+                    "</option>");
+        }
+    });
 }
 
 function Unshare(shareCode) {
@@ -116,31 +133,6 @@ function Unshare(shareCode) {
         },
         error: function (r, textStatus, errorThrown) {
             AjaxErrorHandler(r, textStatus, errorThrown);
-        }
-    });
-}
-
-function CreateShareShow() {
-    GenModal(`<i class="fa fa-share-alt"></i> Share Book`,
-        `<p>Select a book to share: </p>
-        <select name="bookId" id="book" class="form-select">
-        </select>
-        <p>An unique share code will be generated.</p>
-        <p><span id="share-msg"></span></p>`,
-        `<button id="share-btn" type="button" class="btn btn-primary" onclick="Share()">Share</button>`);
-    $.ajax({
-        url: "/api/book",
-        method: 'POST',
-        async: true,
-        dataType: "json",
-        data: {
-            userId: localStorage.getItem("userId"),
-            token: localStorage.getItem("token")
-        },
-        success: function (r) {
-            for (var i = 1; i < r.length; i++)
-                $("#book").append("<option value=" + r[i].bookId + ">" + r[i].name +
-                    "</option>");
         }
     });
 }
@@ -191,7 +183,7 @@ function ImportPageInit() {
                 NotyNotification(r.msg, type = 'error');
                 setTimeout(function () {
                     window.location.href = "/book";
-                }, 3000);
+                }, 1000);
                 return;
             }
 
@@ -201,8 +193,8 @@ function ImportPageInit() {
             $("#sharer").html(r.sharerUsername);
             $("#import-count").html(r.importCount);
 
-            $("#shareCode").html("!" + shareCode + 
-            ' <button type="button" class="btn btn-primary btn-sm" onclick="CopyToClipboard(\'!' + shareCode + '\')"><i class="fa fa-copy"></i></button>');
+            $("#shareCode").html("!" + shareCode + " "+GenCPBtn("!" + shareCode));
+            $("#shareLink").html(GenCPBtn("http://" + window.location.hostname + "/share/import?shareCode=" + shareCode));
 
             questionList = r.preview;
 

@@ -75,6 +75,7 @@ function BackToList() {
         },
         success: function (r) {
             bookList = r;
+            localStorage.setItem("book-list", JSON.stringify(bookList));
             UpdateBookContentDisplay();
             $("#refresh-btn").html('<i class="fa fa-sync"></i>');
         }
@@ -161,6 +162,7 @@ function BookPage(p) {
 }
 
 function Search() {
+    selected = [];
     search = $("#search-content").val();
     orderBy = "none";
     SortTable(orderBy);
@@ -172,6 +174,9 @@ function OpenBook(bid = null) {
     if (bid != null) {
         bookId = bid;
     }
+
+    search = "";
+    selected = [];
 
     if (bookId == 0) {
         $("#removeFromDB").prop("checked", true);
@@ -198,17 +203,16 @@ function OpenBook(bid = null) {
             $(".book-list-content-div").hide();
             $(".book-data-div").fadeIn();
 
+            $(".group").show();
+
             totalQ = bookList[i].total;
             bookName = bookList[i].name;
             $(".title").html(bookName);
             $("title").html(bookName + " - My Memo");
             groupId = bookList[i].groupId;
             groupCode = bookList[i].groupCode;
-            $("#groupCode").html(groupCode + 
-                ' <button type="button" class="btn btn-primary btn-sm" onclick="CopyToClipboard(\'' + groupCode + '\')"><i class="fa fa-copy"></i></button>');
             isGroupOwner = bookList[i].isGroupOwner;
             isGroupEditor = bookList[i].isGroupEditor;
-            $(".group").show();
             if (bookId == 0) {
                 $(".not-for-all-questions").hide();
             } else {
@@ -237,6 +241,10 @@ function OpenBook(bid = null) {
                     $(".only-group-editor-if-group-exist").hide();
                 }
             }
+            $("#groupCode").html(groupCode + " " + GenCPBtn(groupCode));
+            $("#groupLink").html(GenCPBtn("http://" + window.location.hostname + "/group/join?groupCode=" + groupCode.substr(1)));
+            if(groupCode == "@pvtgroup") $(".only-group-public").hide();
+            else $(".only-group-public").show();
             discoveryId = bookList[i].discoveryId;
             if (discoveryId == -1) {
                 $(".not-published-to-discovery").show();
@@ -329,6 +337,7 @@ function PageInit() {
         },
         success: function (r) {
             bookList = r;
+            localStorage.setItem("book-list", JSON.stringify(bookList));
             if (bookId != -1)
                 OpenBook();
             else
@@ -1021,7 +1030,10 @@ function CreateGroup() {
                         groupCode = r.groupCode;
                         isGroupOwner = r.isGroupOwner;
 
-                        $("#groupCode").html(groupCode);
+                        $("#groupCode").html(groupCode + " " + GenCPBtn(groupCode));
+                        $("#groupLink").html(GenCPBtn("http://" + window.location.hostname + "/group/join?groupCode=" + groupCode.substr(1)));
+                        if(groupCode == "@pvtgroup") $(".only-group-public").hide();
+                        else $(".only-group-public").show();
                         $(".only-group-exist").show();
                         $(".only-group-inexist").hide();
                         $(".only-group-owner").show();
@@ -1077,7 +1089,10 @@ function QuitGroup() {
                         groupCode = "";
                         isGroupOwner = false;
 
-                        $("#groupCode").html(groupCode);
+                        $("#groupCode").html(groupCode + " " + GenCPBtn(groupCode));
+                        $("#groupLink").html(GenCPBtn("http://" + window.location.hostname + "/group/join?groupCode=" + groupCode.substr(1)));
+                        if(groupCode == "@pvtgroup") $(".only-group-public").hide();
+                        else $(".only-group-public").show();
                         $(".only-group-exist").show();
                         $(".only-group-inexist").hide();
                         $(".only-group-owner").show();
@@ -1151,7 +1166,10 @@ function GroupInfoUpdate() {
                         $(".title").html(bookName);
                         $("title").html(bookName + " - My Memo");
                         $("title").html(bookName + " - My Memo");
-                        $("#groupCode").html(groupCode);
+                        $("#groupCode").html(groupCode + " " + GenCPBtn(groupCode));
+                        $("#groupLink").html(GenCPBtn("http://" + window.location.hostname + "/group/join?groupCode=" + groupCode.substr(1)));
+                        if(groupCode == "@pvtgroup") $(".only-group-public").hide();
+                        else $(".only-group-public").show();
                         $(".only-group-exist").show();
                         $(".only-group-inexist").hide();
                         $(".only-group-owner").show();
@@ -1253,7 +1271,10 @@ function GroupCodeUpdate(operation) {
                         bookList[i].groupCode = r.groupCode;
                         groupCode = r.groupCode;
 
-                        $("#groupCode").html(groupCode);
+                        $("#groupCode").html(groupCode + " " + GenCPBtn(groupCode));
+                        $("#groupLink").html(GenCPBtn("http://" + window.location.hostname + "/group/join?groupCode=" + groupCode.substr(1)));
+                        if(groupCode == "@pvtgroup") $(".only-group-public").hide();
+                        else $(".only-group-public").show();
 
                         break;
                     }
@@ -1312,7 +1333,10 @@ function GroupDismiss() {
                         groupCode = "";
                         isGroupOwner = false;
 
-                        $("#groupCode").html(groupCode);
+                        $("#groupCode").html(groupCode + " " + GenCPBtn(groupCode));
+                        $("#groupLink").html(GenCPBtn("http://" + window.location.hostname + "/group/join?groupCode=" + groupCode.substr(1)));
+                        if(groupCode == "@pvtgroup") $(".only-group-public").hide();
+                        else $(".only-group-public").show();
                         $(".only-group-exist").hide();
                         $(".only-group-inexist").show();
                         $(".only-group-owner").hide();
@@ -1410,6 +1434,7 @@ function UpdateBookContentList() {
         },
         success: function (r) {
             bookList = r;
+            localStorage.setItem("book-list", JSON.stringify(bookList));
             UpdateBookContentDisplay();
             $("#refresh-btn").html('<i class="fa fa-sync"></i>');
         }
@@ -1452,13 +1477,47 @@ function CreateBook(element) {
 function ImportShare() {
     shareCode = $("#page-import-share").val();
     if (shareCode.startsWith("!")) shareCode = shareCode.substr(1);
-    window.location.href = "/share/import?shareCode=" + shareCode;
+    $.ajax({
+        url: "/api/share/preview",
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            shareCode: shareCode,
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            if (r.success == false) {
+                NotyNotification(r.msg, type = 'error');
+            } else {
+                window.location.href = "/share/import/shareCode=" + shareCode;
+            }
+        }
+    });
 }
 
 function JoinGroup() {
     groupCode = $("#page-join-group").val();
     if (groupCode.startsWith("@")) groupCode = groupCode.substr(1);
-    window.location.href = "/group/join?groupCode=" + groupCode;
+    $.ajax({
+        url: "/api/group/preview",
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            groupCode: groupCode,
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            if (r.success == false) {
+                NotyNotification(r.msg, type = 'error');
+            } else {
+                window.location.href = "/group/join?groupCode=" + groupCode;
+            }
+        }
+    });
 }
 
 function BookChart() {

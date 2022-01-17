@@ -78,6 +78,6 @@ if __name__ == "__main__":
     pevdProc = Process(target = PendingEmailVerificationDeletion, daemon=True)
     pevdProc.start()
 
-    print("My Memo v5.6.14 by Charles")
+    print("My Memo v5.6.15 by Charles")
     time.sleep(5)
     uvicorn.run("app:app", host = config.server_ip, port = config.server_port)

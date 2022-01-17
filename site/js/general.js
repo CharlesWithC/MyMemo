@@ -47,6 +47,11 @@ function CopyToClipboard(text) {
     NotyNotification("Copied!");
 }
 
+function GenCPBtn(text){
+    if(text == "@pvtgroup") return "";
+    return '<button type="button" class="btn btn-primary btn-sm" onclick="CopyToClipboard(\'' + text + '\')"><i class="fa fa-copy"></i></button>';
+}
+
 function TimestampToLocale(text) {
     tempid = "temp-" + GenRandomString();
     $("body").append("<div id='" + tempid + "'>" + text + "</div>")
@@ -63,16 +68,14 @@ function TimestampToLocale(text) {
 }
 
 function BeautifyMarkdownEditor() {
-    $(".editor-toolbar").css("background-color", "white");
-    $(".editor-toolbar").css("opacity", "1");
     $(".cursor").remove();
 }
 
 function BeautifyC3Chart() {
-    $("text").css("font-family", "Comic Sans MS");
+    $(".c3 text").css("font-family", "Comic Sans MS");
     if (localStorage.getItem("settings-theme") == "dark") {
         setInterval(function () {
-            $("text").css("fill", "#ffffff");
+            $(".c3 text").css("fill", "#ffffff");
             $(".c3-tooltip tr").css("color", "black")
         }, 50);
     }
@@ -133,6 +136,14 @@ function BackToHome() {
     window.location.href = '/';
 }
 
+function ClearUserData() {
+    theme = localStorage.getItem("settings-theme");
+    localStorage.clear();
+    localStorage.setItem("first-use", "0");
+    localStorage.setItem("sign-out", "1");
+    localStorage.setItem("settings-theme", theme);
+}
+
 function SignOut() {
     $.ajax({
         url: "/api/user/logout",
@@ -144,10 +155,7 @@ function SignOut() {
             token: localStorage.getItem("token")
         }
     });
-    localStorage.clear();
-    localStorage.setItem("first-use", "0");
-    localStorage.setItem("sign-out", "1");
-
+    ClearUserData();
     $("#navusername").html("<a href='/user/login'>Sign in</a>&nbsp;&nbsp;  ");
 
     NotyNotification('You are now signed out!');
@@ -158,14 +166,13 @@ function SignOut() {
 }
 
 function SessionExpired(noredirect = false) {
-    if(!noredirect) NotyNotification('Login to proceed!', type = 'error');
-    else{
-        if(localStorage.getItem("token") != null)
+    if (!noredirect) NotyNotification('Login to proceed!', type = 'error');
+    else {
+        if (localStorage.getItem("token") != null)
             NotyNotification('Login session expired!', type = 'error');
     }
-    localStorage.clear();
-    localStorage.setItem("first-use", "0");
-    localStorage.setItem("sign-out", "1");
+    ClearUserData();
+    $("#navusername").html("<a href='/user/login'>Sign in</a>&nbsp;&nbsp;  ");
     if (!noredirect) {
         setTimeout(function () {
             window.location.href = "/user/login"
@@ -640,9 +647,8 @@ $(document).ready(function () {
         $(".leftside .sqbtn").css("display", "inline-block");
         $(".userctrl").css("right", "2%");
         $(".leftside hr").remove();
-    }
+        $("#footer-text").children().css("float", "none");
 
-    if (isphone) {
         $('head').append('<link rel="stylesheet" href="/css/mobile.css" type="text/css" />');
     }
     GeneralUpdateTheme();

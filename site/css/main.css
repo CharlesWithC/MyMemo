@@ -27,16 +27,22 @@ h1 {
 h2 {
     font-size: 1.5em;
     margin-bottom: 1em;
+    font-weight: bold;
+}
+
+.c3 text {
+    font-family: Comic Sans;
+    font-size: 1.1em;
+}
+
+.sub-div p {
+    padding-left: 0.2em;
 }
 
 
 
 .btn {
     margin: 0.2em;
-}
-
-button {
-    margin: 0.1em;
 }
 
 .top-left {
@@ -92,7 +98,7 @@ button {
     background-color: #eeeeee;
     border-radius: 0.5em;
     box-sizing: border-box;
-    box-shadow: 0 0.1px 3px rgba(128, 128, 128, 0.1);
+    box-shadow: 0 0 3px 3px rgba(128, 128, 128, 0.1);
 }
 
 .notification {
@@ -415,10 +421,12 @@ button {
 }
 
 .table_range {
+    white-space: nowrap;
     float: left;
 }
 
 .table_search {
+    white-space: nowrap;
     float: right;
 }
 
@@ -494,4 +502,9 @@ a:hover {
 
 .footer a:hover {
     color: #777777;
+}
+
+.editor-toolbar {
+    background-color: white;
+    opacity: 1;
 }

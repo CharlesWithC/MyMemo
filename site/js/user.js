@@ -49,7 +49,7 @@ function UpdateSessions() {
                 if (sessions[i].token == curToken.substr(curToken.indexOf('-') + 1, 8))
                     note = "<p class='rect-content'>*Current session</p>";
                 $("#sessions").append(`<div class='rect user-session' onclick='SessionDetail(` + i + `);'>
-            <p class='rect-title'><i class='fa fa-brands fa-` + system + `'></i>&nbsp;&nbsp;` + sysver + `
+            <p class='rect-title'><i class='fa fa-brands fa-` + system + `'></i> ` + sysver + `
             ` + note + `
             <p class='rect-content'>IP: ` + sessions[i].ip + `</p>
             </div><br>`)
@@ -136,6 +136,7 @@ function UpdateUserInfo() {
         error: function (r, textStatus, errorThrown) {
             if (r.status == 401) {
                 if ((window.location).toString().indexOf("/login") == -1) {
+                    ClearUserData();
                     window.location.href = "/user/login";
                 }
                 $("#signout-btn").hide();
@@ -343,10 +344,10 @@ function UpdateChart(tuid) {
                 setTimeout(chart4.flush, 500);
             }, 2000);
 
-            $("text").css("font-family", "Comic Sans MS");
+            $(".c3 text").css("font-family", "Comic Sans MS");
             if (localStorage.getItem("settings-theme") == "dark") {
                 setInterval(function () {
-                    $("text").css("fill", "#ffffff");
+                    $(".c3 text").css("fill", "#ffffff");
                     $(".c3-tooltip tr").css("color", "black")
                 }, 50);
             }
@@ -379,7 +380,7 @@ function Login() {
             captchaAnswer: $("#captcha-answer").val()
         },
         success: function (r) {
-            if(r.requireCaptcha == true){
+            if (r.requireCaptcha == true) {
                 ShowCaptcha("Login");
                 return;
             }
@@ -673,9 +674,7 @@ function ChangePassword() {
 
                 $("#" + curModalId).modal("hide");
 
-                localStorage.removeItem("userid");
-                localStorage.removeItem("username");
-                localStorage.removeItem("token");
+                ClearUserData();
 
                 setTimeout(function () {
                     window.location.href = "/user/login";
@@ -925,7 +924,7 @@ function SessionDetail(i) {
     <p>User Agent: " + sessions[i].userAgent + "</p></p>\
     <p>Login time: " + loginTime + "</p>\
     <p>Expire time: " + expireTime + "</p>";
-    GenModal(`<i class='fa fa-brands fa-` + system + `'></i>&nbsp;&nbsp;` + sysver, body,
+    GenModal(`<i class='fa fa-brands fa-` + system + `'></i> ` + sysver, body,
         `<button type="button" class="btn btn-warning" onclick="SessionRevoke('` + sessions[i].token + `')">Revoke</button>`);
 }
 
@@ -986,6 +985,7 @@ $(document).ready(function () {
         if (localStorage.getItem("userId") == null && uid == -1) {
             $("#signout-btn").hide();
             if ((window.location).toString().indexOf("/login") == -1) {
+                ClearUserData();
                 window.location.href = "/user/login";
             }
         }

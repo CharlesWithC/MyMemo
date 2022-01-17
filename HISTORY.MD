@@ -1,5 +1,10 @@
 # Update History
 
+## v5.6.15
+
+*Date: 2021/1/17*  
+Bug Fixes & UI Improvements
+
 ## v5.6.14  
 
 *Date: 2021/1/17*  

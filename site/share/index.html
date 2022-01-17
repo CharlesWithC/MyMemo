@@ -29,11 +29,6 @@
                 ["name", "shareCode", "importCount", "timestamp"],
                 ["asc", undefined, undefined, undefined],
                 "UserListSort");
-
-            $("#shareList_range").before(
-                '<div>&nbsp;&nbsp;<button type="button" class="btn btn-primary" onclick="CreateShareShow()">Create New Share</button></div><br>'
-            );
-
             PageInit();
         });
     </script>
@@ -49,8 +44,7 @@
         <div class="userctrl">
             <a href='/user'><i class="fa fa-user"></i></a> <span id="navusername"><a href='/user/login'>Sign
                     in</a>&nbsp;&nbsp; </span>
-            <a class="only-signed-in" href='/user/events' style="display:none"><i
-                    class="fa fa-bell"></i></a>
+            <a class="only-signed-in" href='/user/events' style="display:none"><i class="fa fa-bell"></i></a>
             <a href='/user/settings'><i class="fa fa-cogs"></i></a>
             <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i
                     class="fa fa-arrow-right-from-bracket"></i></a>
@@ -62,37 +56,55 @@
                 onclick="UpdateShareList()"><i class="fa fa-sync"></i></button>
         </h1>
 
-        <div class="subcontainer sub-div">
-            <table class="table table-hover" id="shareList" style="text-align:center">
-                <thead>
-                    <tr>
-                        <th id="th-name" class="sorting">Name</th>
-                        <th id="th-shareCode" class="sorting">Code</th>
-                        <th id="th-importCount" class="sorting">Import count</th>
-                        <th id="th-timestamp" class="sorting">Creation</th>
-                        <th id="th-operation">Operation</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
+        <div class="sub-left">
+            <div class="subcontainer sub-div">
+                <h2><i class="fa fa-list"></i> Share List</h2>
+                <table class="table table-hover" id="shareList" style="text-align:center">
+                    <thead>
+                        <tr>
+                            <th id="th-name" class="sorting">Name</th>
+                            <th id="th-shareCode" class="sorting" style="min-width:10em">Code</th>
+                            <th id="th-shareLink">Link</th>
+                            <th id="th-importCount" class="sorting">Import count</th>
+                            <th id="th-timestamp" class="sorting">Creation</th>
+                            <th id="th-operation">Operation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="sub-right">
+            <div class="subcontainer sub-div">
+                <h2><i class="fa fa-share-alt"></i> Create Share</h2>
+                <p>Select a book to share: </p>
+                <select name="bookId" id="book" class="form-select">
+                </select>
+                <p>An unique share code will be generated.</p>
+                <p><span id="share-msg"></span></p>
+                <button id="share-btn" type="button" class="btn btn-primary" onclick="Share()">Share</button>
+            </div>
         </div>
     </div>
 
     <div class="footer">
-        <div style="float:left;margin:1em">
+        <div id="footer-icon" style="float:left;margin-top:2em;width:3em">
             <img class="icon" src="/img/icon.png" style="width:3em;height:3em">
         </div>
-        <div style="float:left;margin:1em">
-            <p>Version: <span id="version">v5</span></p>
-            <p>Copyright &copy; 2022 My Memo</p>
-        </div>
-        <div style="float:right;margin:1em">
-            <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo" target="_blank"
-                    rel="noopener noreferrer"><i class="fa fa-brands fa-github"></i>
-                    GitHub</a></p>
-            <p>Developed by <a href="https://www.charles14.xyz" target="_blank" rel="noopener noreferrer">Charles</a>
-            </p>
+        <div id="footer-text" style="float:right;width: calc(100% - 5em);">
+            <div style="float:left;margin:1em">
+                <p>Version: <span id="version">v5</span></p>
+                <p>Copyright &copy; 2022 My Memo</p>
+            </div>
+            <div style="float:right;margin:1em">
+                <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo" target="_blank"
+                        rel="noopener noreferrer"><i class="fa fa-brands fa-github"></i>
+                        GitHub</a></p>
+                <p>Developed by <a href="https://www.charles14.xyz" target="_blank"
+                        rel="noopener noreferrer">Charles</a>
+                </p>
+            </div>
         </div>
     </div>
 </body>

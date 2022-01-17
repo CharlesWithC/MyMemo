@@ -49,12 +49,14 @@
                 }
                 $(this).parent().toggleClass('table-active');
             });
-
-            $("#create-book-name-content").keypress(function (e) {
+            
+            $("#page-create-book").keypress(function (e) {
                 if (e.which == 13 || e.which == 13 && e.ctrlKey) {
-                    CreateBook("#create-book-name-content");
+                    CreateBook("#page-create-book");
                 }
             });
+            OnSubmit("#page-import-share",ImportShare);
+            OnSubmit("#page-join-group",JoinGroup);
             $("#refresh-btn").click(function () {
                 UpdateBookList();
             });
@@ -164,7 +166,7 @@
         <div class="book-data-div" style="display:none">
             <div class="sub-left">
                 <div id="qlist" class="subcontainer sub-div">
-                    <h2><i class="fa fa-table"></i>&nbsp;&nbsp;Question List&nbsp;&nbsp;<button type="button"
+                    <h2><i class="fa fa-table"></i> Question List&nbsp;&nbsp;<button type="button"
                             class="btn btn-outline-secondary" onclick="UpdateQuestionList()" id="refresh-btn"><i
                                 class="fa fa-sync"></i></button></h2>
                     <table class="table table-hover" id="questionList" style="text-align:center">
@@ -184,7 +186,7 @@
 
             <div id="manage" class="manage sub-right">
                 <div class="subcontainer sub-div">
-                    <h2><i class="fa fa-list"></i>&nbsp;&nbsp;Manage</h2>
+                    <h2><i class="fa fa-list"></i> Manage</h2>
                     <div>
                         <h5><i class="fa fa-marker"></i> Status</h5>
                         <button type="button" class="btn btn-primary" onclick="BookUpdateStatus(1)">Default</button>
@@ -192,11 +194,6 @@
                                 class="fa fa-star"></i></button>
                         <button type="button" class="btn btn-primary" onclick="BookUpdateStatus(3)">Delete <i
                                 class="fa fa-trash"></i></button>
-                        <div class="only-group-editor-if-group-exist">
-                            <br>
-                            <h5><i class="fa fa-edit"></i> Edit Question</h5>
-                            <button type="button" class="btn btn-primary" onclick="EditQuestionFromBtn()">Edit</button>
-                        </div>
                         <div class="only-group-editor-if-group-exist">
                             <br>
                             <h5><i class="fa fa-plus"></i> Add Question</h5>
@@ -262,6 +259,7 @@
                         Group</button>
 
                     <p class="only-group-exist">Code: <span id="groupCode">(Book not bound to a group)</span></p>
+                    <p class="only-group-exist only-group-public">Or copy the link to share <span id="groupLink"></span></p>
 
                     <button type="button" class="btn btn-primary only-group-exist" onclick="GroupMember()">Member <i
                             class="fa fa-list"></i></button>
@@ -289,7 +287,7 @@
                                         Information
                                         <i class="fa fa-edit"></i></button>
                                     <br>
-                                    <h5>Discovery:</h5>
+                                    <h4>Discovery:</h4>
                                     <button type="button" class="btn btn-primary group-not-published-to-discovery"
                                         onclick="GroupPublishToDiscoveryShow()">Publish To Discovery <i
                                             class="fa fa-paper-plane"></i></button>
@@ -297,7 +295,7 @@
                                         onclick="GroupUnpublishDiscoveryShow()" style="display:none">Unpublish <i
                                             class="fa fa-trash"></i></button>
                                     <br>
-                                    <h5>Group anonymous settings:</h5>
+                                    <h4>Group anonymous:</h4>
                                     <button id="group-anonymous-0" type="button"
                                         class="btn btn-secondary group-anonymous-btn"
                                         onclick="GroupAnonymousSwitch(0)">Open</button>
@@ -308,14 +306,8 @@
                                         class="btn btn-secondary group-anonymous-btn"
                                         onclick="GroupAnonymousSwitch(2)">Full
                                         Anonymous</button>
-                                    <p style="font-size:0.75em">Open means members can see other members' username and
-                                        progress.
-                                        Anonymous means members can see other member's progress but not username. Full
-                                        Anonymous means members can see no data from other members.</p>
-                                    <p style="font-size:0.75em">Anonymous settings will not stop the group's question
-                                        list sync.</p>
                                     <br>
-                                    <h5>Group code settings:</h5>
+                                    <h4>Group code:</h4>
                                     <button type="button" class="btn btn-warning"
                                         onclick="GroupCodeUpdate('disable')">Make
                                         private <i class="fa fa-lock"></i></button>
@@ -324,7 +316,7 @@
                                         code <i class="fa fa-undo"></i>
                                     </button>
                                     <br>
-                                    <h5>Danger zone:</h5>
+                                    <h4>Danger zone:</h4>
                                     <button type="button" class="btn btn-danger" onclick="GroupDismissShow()">Dismiss
                                         <i class="fa fa-users-slash"></i></button>
                                 </div>
@@ -346,19 +338,22 @@
     </div>
 
     <div class="footer">
-        <div style="float:left;margin:1em">
+        <div id="footer-icon" style="float:left;margin-top:2em;width:3em">
             <img class="icon" src="/img/icon.png" style="width:3em;height:3em">
         </div>
-        <div style="float:left;margin:1em">
-            <p>Version: <span id="version">v5</span></p>
-            <p>Copyright &copy; 2022 My Memo</p>
-        </div>
-        <div style="float:right;margin:1em">
-            <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo" target="_blank"
-                    rel="noopener noreferrer"><i class="fa fa-brands fa-github"></i>
-                    GitHub</a></p>
-            <p>Developed by <a href="https://www.charles14.xyz" target="_blank" rel="noopener noreferrer">Charles</a>
-            </p>
+        <div id="footer-text" style="float:right;width: calc(100% - 5em);">
+            <div style="float:left;margin:1em">
+                <p>Version: <span id="version">v5</span></p>
+                <p>Copyright &copy; 2022 My Memo</p>
+            </div>
+            <div style="float:right;margin:1em">
+                <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo" target="_blank"
+                        rel="noopener noreferrer"><i class="fa fa-brands fa-github"></i>
+                        GitHub</a></p>
+                <p>Developed by <a href="https://www.charles14.xyz" target="_blank"
+                        rel="noopener noreferrer">Charles</a>
+                </p>
+            </div>
         </div>
     </div>
 </body>

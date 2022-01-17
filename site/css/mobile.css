@@ -1,6 +1,5 @@
 html,
 body {
-    font-family: Comic Sans;
     font-size: 1.6em;
 }
 
@@ -10,28 +9,53 @@ h1 {
     margin-right: 0em;
 }
 
-#refresh-btn {
-    font-size: 0.4em;
-}
-
 h2 {
     font-size: 1.8em;
 }
 
 h4 {
-    font-size: 1.6em;
-}
-
-h5 {
     font-size: 1.4em;
 }
 
-p {
+h5 {
     font-size: 1.2em;
+}
+
+.c3 text {
+    font-size: 1.8em;
+}
+
+.progress {
+    font-size: 0.8em;
 }
 
 td {
     font-size: 0.8em;
+}
+
+.sub-div {
+    font-size: 0.8em;
+}
+
+.btn {
+    font-size: 0.8em;
+}
+
+.sub-div .btn {
+    font-size: 0.6em;
+}
+
+.footer {
+    font-size: 0.8em;
+}
+
+.sub-div .btn .fa {
+    font-size: 1em;
+}
+
+#footer-text {
+    margin-left: 1em;
+    margin-bottom: 1em;
 }
 
 .noty_theme__mint.noty_bar .noty_body {
@@ -74,13 +98,13 @@ td {
 .container {
     padding: 0.5em;
     margin: 0;
-    min-width: calc(100% - 1em);
-    max-width: calc(100% - 1em);
 }
 
 .subcontainer {
     padding: 1em;
     min-width: 100%;
+    min-width: calc(100% - 0.5em);
+    max-width: calc(100% - 0.5em);
 }
 
 .modal-dialog {
@@ -110,4 +134,37 @@ td {
 
 .table_range {
     width: 100%;
+}
+
+table .btn {
+    font-size: 1em;
+}
+
+.modal-content {
+    border-radius: 1rem;
+}
+
+.noty_layout {
+    min-width: 50%;
+    max-width: 100%;
+    font-size: 0.8em;
+}
+
+.editor-toolbar a,a::before {
+    margin: 0.25em;
+}
+
+.editor-toolbar i.separator {
+    margin-left: 0.6em;
+    margin-right: 0;
+}
+
+.editor-toolbar a.fa-link {
+    margin-right: 0.7em
+}
+
+.editor-toolbar a.fa-list-ol,
+a.fa-eye,
+a.fa-image {
+    margin-right: 0.5em
 }

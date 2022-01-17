@@ -22,7 +22,7 @@ import apis.admin.main
 
 @app.get("/api/version")
 async def apiGetVersion(request: Request):
-    return {"success": True, "version": "v5.6.14"}
+    return {"success": True, "version": "v5.6.15"}
 
 @app.get("/api/ip")
 async def apiGetIP(request: Request):

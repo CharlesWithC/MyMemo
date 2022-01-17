@@ -79,7 +79,7 @@ function RefreshDiscovery(p = -1) {
                 info = "";
                 title = toplist[i].title;
                 description = toplist[i].description;
-                info = toplist[i].views + " <i class='fa fa-eye'></i>&nbsp;&nbsp;" + toplist[i].likes + " <i class='fa fa-heart'></i>";
+                info = toplist[i].views + " <i class='fa fa-eye'></i> " + toplist[i].likes + " <i class='fa fa-heart'></i>";
                 $("#top-post").append(`<div class="rect discovery-top" href="#" onclick="ShowDiscovery(` + toplist[i].discoveryId + `);">
                         <p class="rect-title">` + title + `</p>
                         ` + marked.parse(description) + `
@@ -165,6 +165,9 @@ function UpdateDiscoveryQuestionList() {
     $(".title").html(`Discovery &nbsp;&nbsp;<button type="button"
     class="btn btn-outline-secondary" onclick="RefreshDiscovery()" id="refresh-btn"><i
         class="fa fa-sync"></i></button>`);
+    $("#detail-publisher,#detail-description,#detail-views,#detail-likes,#detail-imports,#detail-imports-name").html("");
+    $("#shareCode,#shareLink,#groupCode,#groupLink").html("");
+    $(".publisher-only,.user-only,.group-only,.group-only").hide();
 
     $.ajax({
         url: "/api/discovery/" + discoveryId,
@@ -193,21 +196,24 @@ function UpdateDiscoveryQuestionList() {
                 $(".title").html(r.title + ' <a href="#" onclick="LikePost()"><i class="far fa-heart" style="color:red"></i></a>');
             }
             $("#detail-publisher").html(r.publisher);
+            $("#detail-name").html(r.title);
             $("#detail-description").html(marked.parse(r.description));
             $("#detail-views").html(r.views);
             $("#detail-likes").html(r.likes);
             $("#detail-imports").html(r.imports);
             if (r.type == 1) {
-                $("#detail-imports-name").html("Imports");
+                $("#detail-imports-name").html("Import");
             } else if (r.type == 2) {
-                $("#detail-imports-name").html("Members");
+                $("#detail-imports-name").html("Member");
             }
 
             shareCode = r.shareCode;
-            $("#shareCode").html(shareCode +
-                ' <button type="button" class="btn btn-primary btn-sm" onclick="CopyToClipboard(\'' + shareCode + '\')"><i class="fa fa-copy"></i></button>');
-            $("#groupCode").html(shareCode +
-                ' <button type="button" class="btn btn-primary btn-sm" onclick="CopyToClipboard(\'' + shareCode + '\')"><i class="fa fa-copy"></i></button>');
+            shareLink = "http://" + window.location.hostname + "/share/import?shareCode=" + shareCode.substr(1);
+            groupLink = "http://" + window.location.hostname + "/group/join?groupCOde=" + shareCode.substr(1);
+            $("#shareCode").html(shareCode + " " + GenCPBtn(shareCode));
+            $("#shareLink").html(GenCPBtn(shareLink));
+            $("#groupCode").html(shareCode + " " + GenCPBtn(shareCode));
+            $("#groupLink").html(GenCPBtn(groupLink));
 
             if (r.isPublisher || localStorage.getItem("isAdmin") == "1") {
                 $(".publisher-only").show();
@@ -250,13 +256,43 @@ function ImportBook() {
         async: true,
         dataType: "json",
         data: {
-            name: shareCode,
+            shareCode: shareCode,
             userId: localStorage.getItem("userId"),
             token: localStorage.getItem("token")
         },
         success: function (r) {
             if (r.success == true) {
-                NotyNotification("Book imported!");
+                NotyNotification('Imported ' + bookName + '!');
+                setTimeout(function () {
+                    window.location.href = "/book?bookId=" + r.bookId;
+                }, 3000);
+            } else {
+                NotyNotification(r.msg, type = 'error');
+            }
+        },
+        error: function (r, textStatus, errorThrown) {
+            AjaxErrorHandler(r, textStatus, errorThrown);
+        }
+    });
+}
+
+function JoinGroup() {
+    $.ajax({
+        url: '/api/group/join',
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            groupCode: shareCode,
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            if (r.success == true) {
+                NotyNotification('Joined ' + bookName + '!');
+                setTimeout(function () {
+                    window.location.href = "/book?bookId=" + r.bookId;
+                }, 3000);
             } else {
                 NotyNotification(r.msg, type = 'error');
             }

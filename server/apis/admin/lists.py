@@ -272,7 +272,7 @@ async def apiAdminLog(request: Request):
     if reverse:
         head = max(len(d) - end, 0)
         tail = len(d) - start
-        ret = "\n".join(d[::-1][head:tail][::-1])
+        ret = "\n".join(d[::-1][start:end][::-1])
     else:
         head = start
         tail = min(len(d), end)
