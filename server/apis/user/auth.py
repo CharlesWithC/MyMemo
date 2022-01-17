@@ -24,12 +24,6 @@ async def apiLogin(request: Request, background_tasks: BackgroundTasks):
     conn = newconn()
     cur = conn.cursor()
 
-    captchaToken = form["captchaToken"]
-    captchaAnswer = form["captchaAnswer"]
-    captchaResult = validateCaptcha(captchaToken, captchaAnswer)
-    if captchaResult != True:
-        return captchaResult
-
     username = encode(form["username"])
     password = form["password"]
 
@@ -88,6 +82,16 @@ async def apiLogin(request: Request, background_tasks: BackgroundTasks):
             defaultemail = t[0][0]
             if defaultemail == "disabled":
                 return {"success": False, "msg": "Default user has been disabled!"}
+
+    # allow the first login to be without captcha
+    if sessions.getPasswordTrialCount(userId, ip)[0] >= 1:
+        if not "captchaToken" in form.keys():
+            return {"requireCaptcha": True}
+        captchaToken = form["captchaToken"]
+        captchaAnswer = form["captchaAnswer"]
+        captchaResult = validateCaptcha(captchaToken, captchaAnswer)
+        if captchaResult != True:
+            return captchaResult
 
     if sessions.getPasswordTrialCount(userId, ip)[0] >= 5 and int(time.time()) - sessions.getPasswordTrialCount(userId, ip)[1] <= 600:
         return {"success": False, "msg": "Too many attempts! Try again later..."}

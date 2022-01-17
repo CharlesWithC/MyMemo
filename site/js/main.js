@@ -137,6 +137,7 @@ function PageInit() {
                     $(".login").show();
                     $(".title").hide();
                     $("#signout-btn").hide();
+                    SessionExpired(true);
                 }
             }
         });

@@ -1,5 +1,11 @@
 # Update History
 
+## v5.6.14  
+
+*Date: 2021/1/17*  
+1.Minor UI, performance improvement  
+2.Better user experience: captcha will be asked since the second login attempt  
+
 ## v5.6.13  
 
 *Date: 2021/1/15*  

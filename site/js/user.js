@@ -367,11 +367,6 @@ function Login() {
         return;
     }
 
-    if (captchaToken == undefined) {
-        ShowCaptcha("Login");
-        return;
-    }
-
     $.ajax({
         url: "/api/user/login",
         method: 'POST',
@@ -384,6 +379,10 @@ function Login() {
             captchaAnswer: $("#captcha-answer").val()
         },
         success: function (r) {
+            if(r.requireCaptcha == true){
+                ShowCaptcha("Login");
+                return;
+            }
             if (r.captcha == true) {
                 NotyNotification(r.msg, "warning");
                 RefreshCaptcha();

@@ -257,7 +257,7 @@ async def apiAdminLog(request: Request):
         raise HTTPException(status_code=401)
     
     if userId != 1:
-        return {"success": False, "log": "Only site admin can view server log!"}
+        return {"success": False, "clientIp": ip, "log": "<pre>Only site owner can view server log!</pre>"}
 
     start = int(form["start"])
     end = int(form["end"])

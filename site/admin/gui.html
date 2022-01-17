@@ -192,10 +192,7 @@
                 },
                 error: function (r, textStatus, errorThrown) {
                     if (r.status == 401) {
-                        alert("Login session expired! Please login again!");
-                        localStorage.removeItem("userId");
-                        localStorage.removeItem("token");
-                        window.location.href = "/user";
+                        SessionExpired();
                     } else {
                         NotyNotification("Error " + r.status + " " + errorThrown, 'error');
                     }

@@ -27,7 +27,7 @@ function PageInit() {
                     if (isfirst) $("#content").append(`<h4>` + lstmd + `&nbsp;&nbsp;</h4>`), isfirst = false;
                     else $("#content").append(`<h4><br>` + lstmd + `&nbsp;&nbsp;</h4>`);
                 }
-                $("#content").append("<div id=" + ((page - 1) * 20 + i) + " class='subcontainer sub-div notification' style='padding:0.8em 0.2em 0.2em 0.8em;'>\
+                $("#content").append("<div id=" + ((page - 1) * 20 + i) + " class='subcontainer sub-div notification'>\
                 <p style='font-size:1.2em'>" + notifications[i].msg + "</p>\
                 <p style='font-size:0.8em;color:#888888'>" + time.toLocaleString() + "</p>\
                 </div>");

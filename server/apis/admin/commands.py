@@ -121,17 +121,17 @@ async def apiAdminCommand(request: Request, background_tasks: BackgroundTasks):
         if userId == 1:
             return privilege.add_admin(userId, command)
         else:
-            return {"success": False, "log": "Only site owner can add admins!"}
+            return {"success": False, "msg": "Only site owner can add admins!"}
         
     elif command[0] == 'remove_admin':
         if userId == 1:
             return privilege.remove_admin(userId, command)
         else:
-            return {"success": False, "log": "Only site owner can remove admins!"}
+            return {"success": False, "msg": "Only site owner can remove admins!"}
             
     elif command[0] == "restart":
         if userId != 1:
-            return {"success": False, "log": "Only site owner can restart program!"}
+            return {"success": False, "msg": "Only site owner can restart program!"}
 
         if os.path.exists("/tmp/MyMemoLastManualRestart"):
             lst = int(open("/tmp/MyMemoLastManualRestart","r").read())

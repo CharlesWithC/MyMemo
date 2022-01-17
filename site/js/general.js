@@ -157,14 +157,20 @@ function SignOut() {
     }, 1000);
 }
 
-function SessionExpired() {
-    NotyNotification('Login to proceed!', type = 'error');
+function SessionExpired(noredirect = false) {
+    if(!noredirect) NotyNotification('Login to proceed!', type = 'error');
+    else{
+        if(localStorage.getItem("token") != null)
+            NotyNotification('Login session expired!', type = 'error');
+    }
     localStorage.clear();
     localStorage.setItem("first-use", "0");
     localStorage.setItem("sign-out", "1");
-    setTimeout(function () {
-        window.location.href = "/user/login"
-    }, 3000);
+    if (!noredirect) {
+        setTimeout(function () {
+            window.location.href = "/user/login"
+        }, 3000);
+    }
 }
 
 function getUrlParameter(sParam) {
@@ -247,7 +253,10 @@ function UpdateBookList(async = true) {
     });
 }
 
-UpdateBookList();
+if (new Date().getTime() - lsGetItem("last-book-update", 0) > 600000) {
+    UpdateBookList();
+    localStorage.setItem("last-book-update", new Date().getTime());
+}
 setInterval(function () {
     UpdateBookList();
 }, 300000);
@@ -372,6 +381,7 @@ function UpdateNavUsername() {
                 $("#navusername").html("<a href='/user/login'>Sign in</a>&nbsp;&nbsp;  ");
                 localStorage.setItem("username", "");
                 clearInterval(updnu_interval);
+                SessionExpired(true);
             }
         }
     });
@@ -542,6 +552,7 @@ $(document).ready(function () {
                 if (r.status == 401) {
                     $("#navusername").html("<a href='/user/login'>Sign in</a>&nbsp;&nbsp;  ");
                     localStorage.setItem("username", "");
+                    SessionExpired(true);
                 }
             }
         });

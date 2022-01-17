@@ -95,8 +95,19 @@ button {
     box-shadow: 0 0.1px 3px rgba(128, 128, 128, 0.1);
 }
 
+.notification {
+    padding: 0.8em;
+    display: inline-block;
+}
+
 @media all and (max-width: 999px) {
     .sub-div {
+        width: 100%;
+        min-width: 100%;
+        max-width: 100%;
+    }
+
+    .notification {
         width: 100%;
         min-width: 100%;
         max-width: 100%;
@@ -114,6 +125,12 @@ button {
         min-width: calc(33.33% - 1em);
         max-width: calc(33.33% - 1em);
         float: right;
+    }
+
+    .notification {
+        width: 47.5%;
+        min-width: 47.5%;
+        max-width: 47.5%;
     }
 }
 
@@ -285,13 +302,6 @@ button {
     width: 90%;
     overflow-x: hidden;
     overflow-y: auto;
-}
-
-
-.notifications {
-    min-width: 47.5%;
-    max-width: 47.5%;
-    display: inline-block;
 }
 
 .more-btn {
