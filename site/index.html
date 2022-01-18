@@ -10,7 +10,6 @@
     <script src="https://cdn.charles14.xyz/js/popper.min.js"></script>
     <script src="https://cdn.charles14.xyz/js/marked.min.js"></script>
     <script src="/js/general.js"></script>
-    <script src="/js/main.js"></script>
 
     <link href="https://cdn.charles14.xyz/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.charles14.xyz/css/all.min.css" rel="stylesheet">
@@ -19,207 +18,43 @@
     <script src="https://cdn.charles14.xyz/noty/noty.min.js" type="text/javascript"></script>
     <link href="https://cdn.charles14.xyz/noty/themes/mint.css" rel="stylesheet">
     <link href="/css/main.css" rel="stylesheet">
+    <link href="/css/intro.css" rel="stylesheet">
+
+    <script>window.location.href="/home";</script>
+    <!--Introduction page is under construction-->
 
     <link rel="icon" href="/img/icon-sm.png">
-
-    <script>
-        $(document).ready(function () {
-            PageInit();
-            UpdateBookDisplay();
-
-            $("#content").click(function () {
-                DisplayAnswer();
-            });
-            $("#question").click(function () {
-                SpeakQuestion();
-            });
-            $("#answer").dblclick(function () {
-                if ($("#answer").val() == "") DisplayAnswer();
-                SpeakAnswer();
-            });
-            $("#start-from").keypress(function (e) {
-                if (e.which == 13 || e.which == 13 && e.ctrlKey) {
-                    MemoGo();
-                }
-            });
-        });
-    </script>
-
-    <style>
-        #content p {
-            margin: 0
-        }
-    </style>
 </head>
 
 <body>
-    <div id="navigate" style="z-index:100">
-        <div class="leftside">
-            <div class="sqbtn">
-                <a href="#" onclick="BackToHome()"><img class="icon" src="/img/icon.png"
-                        style="width:2.2em;height:2.2em"></a>
-            </div>
-        </div>
-        <div class="userctrl" style="height:4.5em;min-width: 14em;">
-            <div style="text-align:left;float:left;">
-                <a href='/user'><i class="fa fa-user"></i></a> <span id="navusername"><a href='/user/login'>Sign
-                        in</a></span>
-            </div>
-            &nbsp;
-            <div style="text-align:right;float:right;">
-                <a class="only-signed-in" href='/user/events' style="display:none"><i class="fa fa-bell"></i></a>
-                <a href='/user/settings'><i class="fa fa-cogs"></i></a>
-                <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i
-                        class="fa fa-arrow-right-from-bracket"></i></a>
-            </div>
-            <br>
-            <div id="progress-div" style="margin-top:0.5em;height:1.5em">
-                <div class="progress" style="display:inline-block;width:80%;height:1.7em">
-                    <div id="goal-progress" class="progress-bar progress-bar-striped progress-bar-animated"
-                        role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"
-                        style="width: 0%; height:1.7em">
-                        <p style="margin-top:1.2em;margin-left:1em;position:absolute;color:black">Goal: <span
-                                id="today-goal">0 /
-                                0</span></p>
-                    </div>
-                </div>
-                <button id="checkin-btn" class="btn btn-primary btn-sm" style="margin-top:-0.6em" type="button"
-                    onclick="CheckIn()" disabled><i class="far fa-check-square"></i></button>
-            </div>
-        </div>
-    </div>
-
     <div id="content" class="container" style="height:100%">
-        <div id="home" class="center" style="padding:0;position:relative;padding-bottom:5em">
-            <h1 class="big-title" style="margin-top:0.7em">My Memo</h1>
-            <div class="input-group mb-3" style="max-width:15em">
-                <span class="input-group-text" id="basic-addon1">From</span>
-                <input type="text" class="form-control" id="start-from" aria-describedby="basic-addon1">
-            </div>
-            <button id="start-btn" type="button" class="btn btn-primary" style="position:relative;width:10em"
-                onclick="MemoGo()">Go <i class='fa fa-play'></i></button>
-            <div style="margin-top:1em">
-                <br>
-                <p>Book: <span id="book-name"><i class="fa fa-spinner fa-spin"></i></span></p>
-                <p><span id="mode"><i class="fa fa-spinner fa-spin"></i></span> Mode</p>
-            </div>
-        </div>
-
-        <div id="memo" style="display:none;height:100%;width:100%">
-            <div class="center subcontainer">
-                <div id="navigate2">
-                    <div class="top-right">
-                        <button id="statistics-btn" type="button" class="btn btn-sm btn-info" onclick="Statistics()"><i
-                                class="fa fa-list-alt"></i></button>
-                        <br>
-                        <button id="edit-btn" type="button" class="btn btn-sm btn-info" onclick="EditQuestionShow()"><i
-                                class="fa fa-edit"></i></button>
-                        <br>
-                        <button type="button" class="btn btn-primary control-btn-bottom ap-btn"
-                            onclick="StopAutoPlayer()" style="display:none"><i class="fa fa-pause-circle"></i></button>
-                    </div>
-                </div>
-
-                <div id="qa1" style="margin:auto;">
-                    <div style="height:4em;max-height:4em;margin-bottom:0.5em;text-align:center;overflow:auto">
-                        <p id="question" style="font-size:1.6em"></p>
-                    </div>
-                    <div style="height:10em;max-height:10em;margin-bottom:1.5em;text-align:center;overflow:auto">
-                        <p id="answer" style="font-size:1.6em"></p>
-                    </div>
-                </div>
-
-                <div id="qa2" style="margin:auto;display:none">
-                    <div style="height:6em;max-height:6em;margin-bottom:1.5em;text-align:center;overflow:auto">
-                        <p id="cc-question" style="font-size:1.6em"></p>
-                    </div>
-                    <div id="div-choice-0" class="choice" onclick="ChallengeChoice(0);">
-                        <div class="choice-circle-wrap">
-                            <div id="choice-circle-0" class="choice-circle"></div>
-                        </div>
-                        <div class="choice-text"><span id="choice-0"></span></div>
-                    </div>
-                    <div id="div-choice-1" class="choice" onclick="ChallengeChoice(1);">
-                        <div class="choice-circle-wrap">
-                            <div id="choice-circle-1" class="choice-circle"></div>
-                        </div>
-                        <div class="choice-text"><span id="choice-1"></span></div>
-                    </div>
-                    <div id="div-choice-2" class="choice" onclick="ChallengeChoice(2);">
-                        <div class="choice-circle-wrap">
-                            <div id="choice-circle-2" class="choice-circle"></div>
-                        </div>
-                        <div class="choice-text"><span id="choice-2"></span></div>
-                    </div>
-                    <div id="div-choice-3" class="choice" onclick="ChallengeChoice(3);">
-                        <div class="choice-circle-wrap">
-                            <div id="choice-circle-3" class="choice-circle"></div>
-                        </div>
-                        <div class="choice-text"><span id="choice-3"></span></div>
-                    </div>
-                </div>
-
-                <div id="switch-control" class="control" style="display:none;min-width:100%;">
-                    <button type="button" class="btn btn-primary control-btn control-btn-left control-btn-top memo-tag"
-                        onclick="MemoTag()">Tag <i class='fa fa-star'></i></button>
-                    <button type="button"
-                        class="btn btn-primary control-btn control-btn-right control-btn-top memo-delete"
-                        onclick="MemoDelete()">Delete <i class="fa fa-trash"></i></button>
-                    <br>
-                    <button type="button"
-                        class="btn btn-primary control-btn control-btn-left control-btn-bottom memo-previous"
-                        onclick="MemoMove('previous')"><i class="fa fa-arrow-circle-left"></i> Previous</button>
-                    <button type="button"
-                        class="btn btn-primary control-btn control-btn-right control-btn-bottom memo-next"
-                        onclick="MemoMove('next')">Next <i class="fa fa-arrow-circle-right"></i></button>
-                </div>
-
-                <div id="practice-control" class="control" style="display:none;min-width:100%;">
-                    <p style="padding-bottom:1em"><span id="practice-msg">Do you remember it?</span></p>
-                    <button type="button"
-                        class="btn btn-primary control-btn control-btn-left control-btn-top memo-practice-yes"
-                        onclick="MemoPractice('yes')">Yes <i class='fa fa-check'></i></button>
-                    <button type="button"
-                        class="btn btn-primary control-btn control-btn-right control-btn-top memo-practice-no"
-                        onclick="MemoPractice('no')">No <i class='fa fa-times'></i></button>
-                    <br>
-                    <button type="button" class="btn btn-primary control-btn control-btn-left control-btn-top memo-tag"
-                        onclick="MemoTag()">Tag <i class='fa fa-star'></i></button>
-                    <button type="button"
-                        class="btn btn-primary control-btn control-btn-right control-btn-top memo-delete"
-                        onclick="MemoDelete()">Delete <i class="fa fa-trash"></i></button>
-                </div>
-
-                <div id="challenge-control" class="control" style="display:none;padding-top:1em;min-width:100%;">
-                    <p style="margin:0"><span id="challenge-msg">Select your answer <i
-                                class='fa fa-arrow-up'></i></span></p>
-                    <button type="button" class="btn btn-primary control-btn control-btn-left control-btn-top memo-tag"
-                        onclick="MemoTag()">Tag <i class='fa fa-star'></i></button>
-                    <button type="button"
-                        class="btn btn-primary control-btn control-btn-right control-btn-top memo-delete"
-                        onclick="MemoDelete()">Delete <i class="fa fa-trash"></i></button>
-                </div>
-            </div>
+        <div class="section">
+            <h1 class="title" style="margin-top:0.7em">My Memo</h1>
         </div>
     </div>
 
     <div class="footer">
-        <div id="footer-icon" style="float:left;margin-top:2em;width:3em">
-            <img class="icon" src="/img/icon.png" style="width:3em;height:3em">
+        <div id="footer-intro" style="float:left;width:80%">
+            <div id="footer-icon" style="float:left;">
+                <img class="icon" src="/img/icon.png" style="width:3em;height:3em;margin-left:0.3em">
+                <p style="color:#aaaaaa">&copy; 2022</p>
+            </div>
+            <div style="float:right;width:calc(100% - 6em)">
+                <p>My Memo</p>
+                <p>A light weight memo website based on Python FastAPI + HTML5 Bootstrap.</p>
+                <p>This is a personal project made with <i class="fa fa-heart"></i></p>
+                <p>You could check <a href="https://github.com/Charles-1414/MyMemo/README.md" 
+                    target="_blank" rel="noopener noreferrer">README</a> if you want to know more about this project.</p>
+            </div>
         </div>
-        <div id="footer-text" style="float:right;width: calc(100% - 5em);">
-            <div style="float:left;margin:1em">
-                <p>Version: <span id="version">v5</span></p>
-                <p>Copyright &copy; 2022 My Memo</p>
-            </div>
-            <div style="float:right;margin:1em">
-                <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo" target="_blank"
-                        rel="noopener noreferrer"><i class="fa fa-brands fa-github"></i>
-                        GitHub</a></p>
-                <p>Developed by <a href="https://www.charles14.xyz" target="_blank"
-                        rel="noopener noreferrer">Charles</a>
-                </p>
-            </div>
+        <div id="footer-info" style="float:right;">
+            <p>Version: <span id="version">v5</span></p>
+            <p>Open sourced at
+                <a href="https://github.com/Charles-1414/MyMemo/blob/master/README.md" target="_blank" rel="noopener noreferrer">
+                    <i class="fa fa-brands fa-github"></i> GitHub</a></p>
+            <p>Developed by <a href="https://www.charles14.xyz" target="_blank" rel="noopener noreferrer">Charles</a>
+            </p>
+            <p><a href="mailto:memo@charles14.xyz">Contact</a> | <a href="/donate">Donate</a></p>
         </div>
     </div>
 </body>

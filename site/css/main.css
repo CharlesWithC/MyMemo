@@ -359,7 +359,6 @@ h2 {
     background-color: #333333;
     border-top: #555555 solid;
     border-top-width: 0.5em;
-    line-height: 50%;
 }
 
 
@@ -496,8 +495,12 @@ a:hover {
     text-decoration: none;
 }
 
+.footer p {
+    margin-bottom: 0.1em;
+}
+
 .footer a {
-    color: #ffffff;
+    color: #dddddd;
 }
 
 .footer a:hover {
@@ -507,4 +510,18 @@ a:hover {
 .editor-toolbar {
     background-color: white;
     opacity: 1;
+}
+
+#footer-icon {
+    float: left;
+    width: 4em;
+    margin-right: 2em;
+}
+
+hr {
+    background-color: #222222;
+}
+
+.footer hr {
+    background-color: #cccccc;
 }

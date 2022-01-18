@@ -20,34 +20,6 @@
     <link href="/css/main.css" rel="stylesheet">
 
     <link rel="icon" href="/img/icon-sm.png">
-
-    <script>
-        $(document).ready(function () {
-            errorCode = parseInt(getUrlParameter("code"));
-            if(errorCode == 401){
-                $("#title").html("401 Unauthorized");
-                $("#description").html("That's a gate with an access control panel. Uncover it and enter your password to continue!");
-            } else if(errorCode == 403){
-                $("#title").html("403 Forbidden");
-                $("#description").html("You are accessing something that doesn't belong to you, go back!");
-            } else if(errorCode == 404){
-                $("#title").html("404 Not Found");
-                $("#description").html("The page has been taken away by aliens!");
-            } else if(errorCode == 500){
-                $("#title").html("500 Internal Server Error");
-                $("#description").html("Aliens sabotaged the server. Hope it will just be a temporary issue. Please try again later!");
-            } else if(errorCode == 502){
-                $("#title").html("502 Bad Gateway");
-                $("#description").html("Aliens broke your connection to the server. Try again later!");
-            } else if(errorCode == 503){
-                $("#title").html("503 Service Unavailable");
-                $("#description").html("Aliens are attacking the server! Such issues should not persist long. Please try again later!");
-            } else if(errorCode == 504){
-                $("#title").html("504 Gateway Timeout");
-                $("#description").html("The server is responding too slowly! This should be a temporary issue. Please try again later!");
-            }
-        });
-    </script>
 </head>
 
 <body>
@@ -66,9 +38,18 @@
     </div>
 
     <div id="content" class="container">
-        <div id="home" class="center">
-            <h1 id="big-title"></h1>
-            <h2 id="description"></h2>
+        <h1 class="title">Donate</h1>
+        <div class="subcontainer sub-div">
+            <p>Donations via crypto are accpeted, any amount is OK! (Click to copy address)</p>
+            <p>Open Alias: <a style="cursor:pointer" onclick='CopyToClipboard("donate.charles14.xyz")'>donate.charles14.xyz</a>
+            </p>
+            <p>Bitcoin: <a style="cursor:pointer"
+                    onclick='CopyToClipboard("bc1qa990asevkgp7537x7vlghqmng80ckc7zrdt04t")'>bc1qa990asevkgp7537x7vlghqmng80ckc7zrdt04t</a>
+            </p>
+            <p>Litecoin: <a style="cursor:pointer"
+                    onclick='CopyToClipboard("ltc1q3xn9xetykqzq28ce480sdjp9ft78ah7mwcx2vj")'>ltc1q3xn9xetykqzq28ce480sdjp9ft78ah7mwcx2vj</a>
+            </p>
+            <p>If you want to donate in other ways, you can email memo@charles14.xyz.</p>
         </div>
     </div>
 

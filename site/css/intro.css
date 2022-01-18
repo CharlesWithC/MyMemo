@@ -1,0 +1,29 @@
+@font-face {
+    font-family: 'Comic Sans';
+    src: url('/fonts/ComicSansMS3.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Impact';
+    src: url('/fonts/impact.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+html,
+body {
+    height: 100%;
+    width: 100%;
+    font-family: Comic Sans;
+    font-size: 1.1em;
+}
+
+h1 {
+    font-family: Impact;
+}
+
+.title {
+    
+}

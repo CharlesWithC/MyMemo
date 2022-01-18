@@ -57,7 +57,7 @@
     <div id="navigate" style="z-index:100">
         <div class="leftside">
             <div class="sqbtn">
-                <a href="/"><img class="icon"  src="/img/icon.png" style="width:2.2em;height:2.2em"></a>
+                <a href="/home"><img class="icon"  src="/img/icon.png" style="width:2.2em;height:2.2em"></a>
             </div>
         </div>
         <div class="userctrl">
@@ -79,22 +79,27 @@
     </div>
 
     <div class="footer">
-        <div id="footer-icon" style="float:left;margin-top:2em;width:3em">
-            <img class="icon" src="/img/icon.png" style="width:3em;height:3em">
+        <div id="footer-intro" style="float:left;width:80%">
+            <div id="footer-icon" style="float:left;">
+                <img class="icon" src="/img/icon.png" style="width:3em;height:3em;margin-left:0.3em">
+                <p style="color:#aaaaaa">&copy; 2022</p>
+            </div>
+            <div style="float:right;width:calc(100% - 6em)">
+                <p>My Memo</p>
+                <p>A light weight memo website based on Python FastAPI + HTML5 Bootstrap.</p>
+                <p>This is a personal project made with <i class="fa fa-heart"></i></p>
+                <p>You could check <a href="https://github.com/Charles-1414/MyMemo/README.md" 
+                    target="_blank" rel="noopener noreferrer">README</a> if you want to know more about this project.</p>
+            </div>
         </div>
-        <div id="footer-text" style="float:right;width: calc(100% - 5em);">
-            <div style="float:left;margin:1em">
-                <p>Version: <span id="version">v5</span></p>
-                <p>Copyright &copy; 2022 My Memo</p>
-            </div>
-            <div style="float:right;margin:1em">
-                <p>Open sourced at <a href="https://github.com/Charles-1414/MyMemo" target="_blank"
-                        rel="noopener noreferrer"><i class="fa fa-brands fa-github"></i>
-                        GitHub</a></p>
-                <p>Developed by <a href="https://www.charles14.xyz" target="_blank"
-                        rel="noopener noreferrer">Charles</a>
-                </p>
-            </div>
+        <div id="footer-info" style="float:right;">
+            <p>Version: <span id="version">v5</span></p>
+            <p>Open sourced at
+                <a href="https://github.com/Charles-1414/MyMemo/blob/master/README.md" target="_blank" rel="noopener noreferrer">
+                    <i class="fa fa-brands fa-github"></i> GitHub</a></p>
+            <p>Developed by <a href="https://www.charles14.xyz" target="_blank" rel="noopener noreferrer">Charles</a>
+            </p>
+            <p><a href="mailto:memo@charles14.xyz">Contact</a> | <a href="/donate">Donate</a></p>
         </div>
     </div>
 </body>

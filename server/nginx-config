@@ -32,6 +32,8 @@ server {
 		root /var/memo/html;
 		try_files $uri $uri.html $uri/ = 404;
 		limit_req zone=static burst=15 nodelay;
+		sub_filter '</head>' '<script defer src=\'https://static.cloudflareinsights.com/beacon.min.js\' data-cf-beacon=\'{"token": "ef59933c2acd41a2a201eff70da529c8"}\'></script></head>';
+        sub_filter_once on;
 	}
 	location ~ ^/images/(.*) {
 		return 301 /img/$1;

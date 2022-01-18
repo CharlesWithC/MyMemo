@@ -53,11 +53,6 @@ td {
     font-size: 1em;
 }
 
-#footer-text {
-    margin-left: 1em;
-    margin-bottom: 1em;
-}
-
 .noty_theme__mint.noty_bar .noty_body {
     font-size: 0.8em;
 }
@@ -167,4 +162,9 @@ table .btn {
 a.fa-eye,
 a.fa-image {
     margin-right: 0.5em
+}
+
+#footer-text {
+    margin-left: 1em;
+    margin-bottom: 1em;
 }

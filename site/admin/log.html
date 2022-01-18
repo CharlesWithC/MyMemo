@@ -38,7 +38,7 @@
                 },
                 error: function (r, textStatus, errorThrown) {
                     if (r.status == 503) window.location.reload();
-                    else if (r.status == 401) window.location.href = "/";
+                    else if (r.status == 401) window.location.href = '/home';
                 }
             });
 

@@ -133,7 +133,7 @@ function OnSubmit(element, func, needctrl = false) {
 }
 
 function BackToHome() {
-    window.location.href = '/';
+    window.location.href = '/home';
 }
 
 function ClearUserData() {
@@ -380,7 +380,7 @@ function UpdateNavUsername() {
             $(".only-signed-in").show();
             localStorage.setItem("username", r.username);
             if (window.location.pathname.indexOf("/login") != -1) {
-                window.location.href = "/";
+                window.location.href = '/home';
             }
         },
         error: function (r, textStatus, errorThrown) {
@@ -403,7 +403,7 @@ function GeneralUpdateTheme() {
                 navusername = $("#navusername").html();
             }
             $("#navusername").html("");
-            if (window.location.pathname == "/") {
+            if (window.location.pathname == '/home') {
                 $("#progress-div").hide();
                 $(".userctrl").attr("style", "");
             }
@@ -417,14 +417,14 @@ function GeneralUpdateTheme() {
                     navusername = $("#navusername").html();
                 }
                 $("#navusername").html("");
-                if (window.location.pathname == "/") {
+                if (window.location.pathname == '/home') {
                     $("#progress-div").hide();
                     $(".userctrl").attr("style", "");
                 }
             } else if (parseInt(t.slice(0, t.indexOf("px"))) / window.innerWidth > 0.8 && shortUserctrl) {
                 shortUserctrl = false;
                 $("#navusername").html(navusername);
-                if (window.location.pathname == "/") {
+                if (window.location.pathname == '/home') {
                     $("#progress-div").show();
                     $(".userctrl").attr("style", "height:4.5em;min-width: 14em;");
                 }
@@ -476,7 +476,6 @@ function GeneralUpdateTheme() {
             $(".sub-div ").css("background-color", "#eeeeee");
             $("#content a,.container a").css("color", "#222222");
 
-            $("hr").css("background-color", "#222222");
             $(".modal-content").css("background-color", "#ffffff");
             $(".fa-times").css("color", "black");
 
@@ -647,7 +646,11 @@ $(document).ready(function () {
         $(".leftside .sqbtn").css("display", "inline-block");
         $(".userctrl").css("right", "2%");
         $(".leftside hr").remove();
-        $("#footer-text").children().css("float", "none");
+        $("#footer-info").appendTo("#footer-intro");
+        $("#footer-info").css("float","right");
+        $("#footer-info").css("width","calc(100% - 6em)");
+        $("#footer-info").prepend("<hr>")
+        $("#footer-intro").css("width","100%");
 
         $('head').append('<link rel="stylesheet" href="/css/mobile.css" type="text/css" />');
     }

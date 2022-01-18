@@ -1,5 +1,12 @@
 # Update History
 
+## v5.6.17  
+
+*Date: 2021/1/18*  
+1.Updated footer  
+2.Added donation info  
+3.Moved *Memo Home Page* path to /home, / will redirect to /home. *Introduction page* is under construction and it will take the place of / when it's done.
+
 ## v5.6.16
 
 *Date: 2021/1/18*  
