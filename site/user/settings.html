@@ -24,6 +24,10 @@
     <script>
         $(document).ready(function () {
             UpdateSettingsButtons();
+            $('#darkTheme').change(function(){
+                if($("#darkTheme").is(":checked")) UpdateTheme("dark");
+                else UpdateTheme("light");
+            });
         });
     </script>
 </head>
@@ -38,8 +42,7 @@
         <div class="userctrl">
             <a href='/user'><i class="fa fa-user"></i></a> <span id="navusername"><a href='/user/login'>Sign
                     in</a>&nbsp;&nbsp; </span>
-            <a class="only-signed-in" href='/user/events' style="display:none"><i
-                    class="fa fa-bell"></i></a>
+            <a class="only-signed-in" href='/user/events' style="display:none"><i class="fa fa-bell"></i></a>
             <a href='/user/settings'><i class="fa fa-cogs"></i></a>
             <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i
                     class="fa fa-arrow-right-from-bracket"></i></a>
@@ -105,19 +108,19 @@
                     onclick="ClearDeletedQuestionsShow()"><i class="fa fa-trash"></i> Clear Deleted
                     Questions</button>
                 <br>
-                <button id="home-btn" type="button" class="btn btn-primary" onclick="window.location.href='/data/import';"><i
-                        class="fa fa-upload"></i>
+                <button id="home-btn" type="button" class="btn btn-primary"
+                    onclick="window.location.href='/data/import';"><i class="fa fa-upload"></i>
                     Import</button>
-                <button id="home-btn" type="button" class="btn btn-primary" onclick="window.location.href='/data/export';"><i
-                        class="fa fa-download"></i> Export</button>
+                <button id="home-btn" type="button" class="btn btn-primary"
+                    onclick="window.location.href='/data/export';"><i class="fa fa-download"></i> Export</button>
             </div>
             <br>
             <div class="subcontainer sub-div">
                 <h2>Theme</h2>
-                <button id="theme-light-btn" type="button" class="btn theme-btn btn-secondary"
-                    onclick="UpdateTheme('light')">Light</button>
-                <button id="theme-dark-btn" type="button" class="btn theme-btn btn-secondary"
-                    onclick="UpdateTheme('dark')">Dark</button>
+                <div class="form-check form-switch">
+                    <label class="form-check-label" for="darkTheme">Dark Theme</label>
+                    <input class="form-check-input" type="checkbox" role="switch" id="darkTheme" />
+                </div>
             </div>
             <br>
             <div class="subcontainer sub-div">

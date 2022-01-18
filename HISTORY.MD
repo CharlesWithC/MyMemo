@@ -1,5 +1,11 @@
 # Update History
 
+## v5.6.16
+
+*Date: 2021/1/18*  
+1.Added option to modify *email notice on logins (sLoginEmail)* settings  
+2.Improved UI
+
 ## v5.6.15
 
 *Date: 2021/1/17*  

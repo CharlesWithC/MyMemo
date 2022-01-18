@@ -129,7 +129,8 @@ if doinit:
     cur.execute(f"CREATE TABLE UserNameTag (userId INT, tag VARCHAR(32), tagtype VARCHAR(32))")
     # tag: encoded text, like 'Owner'
     # tagtype: tag color
-    cur.execute(f"CREATE TABLE UserSettings (userId INT, sRandom INT, sSwap INT, sShowStatus INT, sMode INT, sAutoPlay INT, sTheme VARCHAR(16))")
+    cur.execute(f"CREATE TABLE UserSettings (userId INT, sRandom INT, sSwap INT, sShowStatus INT, sMode INT, sAutoPlay INT, sTheme VARCHAR(16), sLoginEmail INT)")
+    # sLoginEmail = 0: disable | 1: enable for all | 2:enable for only new ip
     cur.execute(f"CREATE TABLE UserEvent (userId INT, event VARCHAR(32), timestamp INT, msg TEXT)")
     # Available event: register, login, change_password, delete_account, create_book, delete_book, create_group, 
     # delete_group, join_group, quit_group, update_email, update_username, execute_admin_command

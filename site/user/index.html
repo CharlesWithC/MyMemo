@@ -31,10 +31,24 @@
 
     <script>
         $(document).ready(function () {
-            $("#new-goal").keypress(function (e) {
-                if (e.which == 13 || e.which == 13 && e.ctrlKey) {
-                    UpdateGoal();
-                }
+            OnSubmit("#new-goal", UpdateGoal);
+            $('#sLoginEmail').change(function () {
+                $.ajax({
+                    url: '/api/user/settings',
+                    method: 'POST',
+                    async: true,
+                    dataType: "json",
+                    data: {
+                        operation: "updatePartial",
+                        toUpdate: "sLoginEmail",
+                        sLoginEmail: parseInt($("#sLoginEmail").find(":selected").val()),
+                        userId: localStorage.getItem("userId"),
+                        token: localStorage.getItem("token")
+                    },
+                    error: function (r, textStatus, errorThrown) {
+                        AjaxErrorHandler(r, textStatus, errorThrown);
+                    }
+                });
             });
         })
     </script>
@@ -50,8 +64,7 @@
         <div class="userctrl">
             <a href='/user'><i class="fa fa-user"></i></a> <span id="navusername"><a href='/user/login'>Sign
                     in</a>&nbsp;&nbsp; </span>
-            <a class="only-signed-in" href='/user/events' style="display:none"><i
-                    class="fa fa-bell"></i></a>
+            <a class="only-signed-in" href='/user/events' style="display:none"><i class="fa fa-bell"></i></a>
             <a href='/user/settings'><i class="fa fa-cogs"></i></a>
             <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i
                     class="fa fa-arrow-right-from-bracket"></i></a>
@@ -69,14 +82,16 @@
         </div>
         <div id="user-public" class="user-public subcontainer sub-div" style="display:none">
             <h2><span id="username-public">User</span></h2>
-            <p style="font-size:0.8em">ID: <span id="userId-public">0</span> | Account age: <span id="age-public">0 day</span></p>
+            <p style="font-size:0.8em">ID: <span id="userId-public">0</span> | Account age: <span id="age-public">0
+                    day</span></p>
             <p><span id="bio-public"></span></p>
         </div>
         <div class="user">
             <div class="basic-info sub-left">
                 <div class="subcontainer sub-div">
                     <h2><span id="username">User</span></h2>
-                    <p style="font-size:0.8em">ID: <span id="userId">0</span> | Account age: <span id="age">0 day</span></p>
+                    <p style="font-size:0.8em">ID: <span id="userId">0</span> | Account age: <span id="age">0 day</span>
+                    </p>
                     <p><span id="bio"></span></p>
                 </div>
                 <div class="subcontainer sub-div" id="private-chart"></div>
@@ -119,6 +134,15 @@
                 </div>
                 <div class="subcontainer sub-div">
                     <h2>Manage Account</h2>
+                    <div>
+                        <label class="form-check-label" for="sLoginEmail">Email notice on logins:</label>
+                        <select name="sLoginEmail" id="sLoginEmail" class="form-select">
+                            <option value="0">Disabled</option>
+                            <option value="1">Enabled for all logins</option>
+                            <option value="2">Enabled for logins from unknown IPs</option>
+                        </select>
+                    </div>
+                    <hr>
                     <button type="button" class="btn btn-primary" onclick="UpdateProfileShow()">Update Profile</button>
                     <button type="button" class="btn btn-primary" onclick="ChangePasswordShow()">Change
                         Password</button>

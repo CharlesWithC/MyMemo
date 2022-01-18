@@ -276,14 +276,33 @@ async def apiUserSettings(request: Request):
         mode = int(form["mode"])
         ap = int(form["autoPlay"])
         theme = form["theme"]
+        loginEmail = int(form["loginEmail"])
         if not theme in ["light","dark"]:
             return {"success": False, "msg": "Theme can only be light or dark"}
+        if loginEmail == -1:
+            cur.execute(f"SELECT sloginEmail FROM UserSettings WHERE userId = {userId}")
+            t = cur.fetchall()
+            if len(t) == 0:
+                loginEmail = 0
+            else:
+                loginEmail = t[0][0]
 
         cur.execute(f"DELETE FROM UserSettings WHERE userId = {userId}")
-        cur.execute(f"INSERT INTO UserSettings VALUES ({userId}, {rnd}, {swp}, {showStatus}, {mode}, {ap}, '{theme}')")
+        cur.execute(f"INSERT INTO UserSettings VALUES ({userId}, {rnd}, {swp}, {showStatus}, {mode}, {ap}, '{theme}', {loginEmail})")
         conn.commit()
 
         return {"success": True, "msg": "Settings synced!"}
+    
+    elif op == "updatePartial":
+        toUpdate = form["toUpdate"]
+        if not toUpdate.isalnum():
+            return {"success": True, "msg": "Invalid item!"}
+        value = form[toUpdate]
+        
+        cur.execute(f"UPDATE UserSettings SET {toUpdate} = '{value}' WHERE userId = {userId}")
+        conn.commit()
+
+        return {"success": True}
     
     elif op == "download":
         rnd = 0
@@ -302,9 +321,10 @@ async def apiUserSettings(request: Request):
             mode = d[0][4]
             autoPlay = d[0][5]
             theme = d[0][6]
+            loginEmail = d[0][7]
                 
         return {"success": True, "msg": "Settings synced!", "random": rnd, "swap": swp, "showStatus": showStatus,\
-            "mode": mode, "autoPlay": autoPlay, "theme": theme}
+            "mode": mode, "autoPlay": autoPlay, "theme": theme, "loginEmail": loginEmail}
 
 @app.post("/api/user/requestDelete")
 async def apiRequestDeleteAccount(request: Request, background_tasks: BackgroundTasks):

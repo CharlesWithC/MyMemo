@@ -145,6 +145,20 @@ function UpdateUserInfo() {
             }
         }
     });
+    $.ajax({
+        url: "/api/user/settings",
+        method: 'POST',
+        async: true,
+        dataType: "json",
+        data: {
+            operation: "download",
+            userId: localStorage.getItem("userId"),
+            token: localStorage.getItem("token")
+        },
+        success: function (r) {
+            $("#sLoginEmail option[value=" + r.loginEmail + "]").prop('selected', 'selected');
+        }
+    });
 }
 
 function UpdateChart(tuid) {

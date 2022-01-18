@@ -137,7 +137,18 @@ async def apiLogin(request: Request, background_tasks: BackgroundTasks):
     t = cur.fetchall()
     username = decode(t[0][0])
     email = decode(t[0][1])
-    background_tasks.add_task(sendNormal, email, username, f"New login from {ip}", f"A new login has been detected.<br>IP: {ip}<br>If this isn't you, reset your password immediately!")
+    sLoginEmail = 0
+    cur.execute(f"SELECT sLoginEmail FROM UserSettings WHERE userId = {userId}")
+    t = cur.fetchall()
+    if len(t) != 0:
+        sLoginEmail = t[0][0]
+    if sLoginEmail == 1:
+        background_tasks.add_task(sendNormal, email, username, f"New login from {ip}", f"A login has been detected.<br>IP: {ip}<br>If this isn't you, reset your password immediately!<br>You are receiving this email because you enabled email notice on logins.")
+    elif sLoginEmail == 2:
+        cur.execute(f"SELECT ip FROM UserSessionHistory WHERE userId = {userId} AND ip = '{ip}'")
+        t = cur.fetchall()
+        if len(t) == 0:
+            background_tasks.add_task(sendNormal, email, username, f"New login from {ip}", f"A login from a new IP has been detected.<br>IP: {ip}<br>If this isn't you, reset your password immediately!<br>You are receiving this email because you enabled email notice on logins from unknown IPs.")
 
     return {"success": True, "active": True, "userId": userId, "token": token, "isAdmin": isAdmin}
 

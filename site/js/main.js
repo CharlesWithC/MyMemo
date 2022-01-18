@@ -298,7 +298,7 @@ function MemoStart() {
         $("#qa2").css("max-width", "100%");
         $("#qa2").children().css("min-width", "100%");
         $("#qa2").children().css("width", "100%");
-        $(".choice").css("width","100%");
+        $(".choice").css("width", "100%");
     }
     $("#statisticsQuestion").html("");
     $("#statisticsDetail").html("");
@@ -608,15 +608,20 @@ function ChallengeChoice(choiceid) {
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            $(".choice").css("background", "#ff5555");
-            $("#div-choice-" + (r.correct - 1)).css("background", "#55ff55");
+            if (localStorage.getItem("settings-theme") == "dark") {
+                $(".choice").css("background", "#cc0000")
+                $("#div-choice-" + (r.correct - 1)).css("background", "#00b300");
+            } else {
+                $(".choice").css("background", "#ff5555");
+                $("#div-choice-" + (r.correct - 1)).css("background", "#55ff55");
+            }
 
-            if(r.success == false){
+            if (r.success == false) {
                 NotyNotification(r.msg, "error", 10000);
                 BackToHome();
                 return;
             }
-            
+
             if (r.result == -1 && r.expired == true) {
                 $("#challenge-msg").html("Challenge expired!");
                 NotyNotification("Challenge expired!", 'warning');

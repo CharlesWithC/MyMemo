@@ -79,11 +79,9 @@ function UpdateSettingsButtons() {
     $(".theme-btn").removeClass("btn-primary btn-secondary");
     $(".theme-btn").addClass("btn-secondary");
     if (theme == "light") {
-        $("#theme-light-btn").removeClass("btn-secondary");
-        $("#theme-light-btn").addClass("btn-primary");
+        $("#darkTheme").removeAttr("checked");
     } else if (theme == "dark") {
-        $("#theme-dark-btn").removeClass("btn-secondary");
-        $("#theme-dark-btn").addClass("btn-primary");
+        $("#darkTheme").attr('checked','checked');
     }
 
     // Update username
@@ -194,6 +192,7 @@ function SettingsSync(operation) {
                 mode: localStorage.getItem("settings-mode"),
                 autoPlay: localStorage.getItem("settings-auto-play"),
                 theme: localStorage.getItem("settings-theme"),
+                loginEmail: -1,
                 userId: localStorage.getItem("userId"),
                 token: localStorage.getItem("token")
             },
