@@ -111,6 +111,8 @@ td {
     width: 100%;
     min-width: 100%;
     max-width: 100%;
+    padding: .5em;
+    top: 50%;
 }
 
 .notifications {
@@ -145,7 +147,8 @@ table .btn {
     font-size: 0.8em;
 }
 
-.editor-toolbar a,a::before {
+.editor-toolbar a,
+a::before {
     margin: 0.25em;
 }
 

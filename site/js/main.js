@@ -95,9 +95,11 @@ var ccCorrectAudio = new Audio('/audio/correct.mp3');
 var ccWrongAudio = new Audio('/audio/wrong.mp3');
 
 function PageInit() {
-    l = ["Switch", "Practice", "Challenge", "Offline"];
+    l = ["Switch", "Practice", "Challenge"];
     $("#mode").html(l[settings.mode]);
     $("#book-name").html(memo.bookName);
+    if (settings.mode == 2) $("#start-from-div").hide(), $("#start-btn").addClass("btn-lg");
+    else $("#start-from-div").show(), $("#start-btn").removeClass("btn-lg");
 
     if (lsGetItem("userId", -1) != -1) {
         $.ajax({
@@ -165,16 +167,13 @@ function ShowQuestion() {
     if (settings.autoPlay != 0) {
         $(".ap-btn").show();
     }
-    $(".memo-tag").html("Tag <i class='fa fa-star'></i>");
-    $(".memo-delete").html("Delete <i class='fa fa-trash'></i>");
-    if (memo.questionStatus == 2) {
-        $(".memo-tag").html("Untag <i class='fa fa-star-o'></i>");
-    } else if (memo.questionStatus == 3) {
-        $(".memo-delete").html("Undelete <i class='fa fa-undo'></i>");
-    }
     $("#home").hide();
-    $(".title").show();
+    $("#memo-op").fadeIn();
     $("#memo").fadeIn();
+    $(".memo-tag").html("<i style='color:yellow' class='fa-regular fa-star'></i>");
+    $(".memo-delete").html("<i style='color:red' class='fa fa-trash'></i>");
+    if (memo.questionStatus == 2) $(".memo-tag").html("<i style='color:yellow' class='fa-solid fa-star'></i>");
+    else if (memo.questionStatus == 3) $(".memo-delete").html("<i style='color:red' class='fa fa-trash-arrow-up'></i>");
     $(".control").hide();
     if (settings.mode == 0) {
         $("#switch-control").show();
@@ -185,10 +184,10 @@ function ShowQuestion() {
         $("#statistics-btn").hide();
         $("#edit-btn").hide();
     } else if (settings.mode == 2) {
-        $("#challenge-control").show();
         $("#statistics-btn").hide();
         $("#edit-btn").hide();
     }
+    if (isphone) $("#qa1").css("max-width", "100%");
 
     memo.displayingAnswer = 0;
     memo.started = true;
@@ -210,6 +209,8 @@ function ShowQuestion() {
     }
 
     $("#start-btn").html("Go <i class='fa fa-play'></i>");
+
+    MemoStyle();
 }
 
 function DisplayAnswer() {
@@ -271,7 +272,15 @@ function MemoMove(direction) {
                 memo.answer = r.answer;
                 memo.questionStatus = r.status;
                 memo.questionId = r.questionId;
-                ShowQuestion();
+
+                $("#" + tid).animate({
+                    "width": "0"
+                });
+                $("#" + tid).fadeOut("fast");
+                setTimeout(function () {
+                    $("#" + tid).remove();
+                }, 1000);
+
                 if (settings.mode == 1) {
                     memo.practiceStatus = 0;
                     $("#practice-msg").html("Do you remember it?");
@@ -287,6 +296,123 @@ function MemoMove(direction) {
 function AutoPlayer() {
     MemoMove("next");
 }
+
+function MemoStyle() {
+    if (!memo.started) return;
+    if (window.innerWidth / window.innerHeight > 1.5) {
+        $("#div-question").css({
+            "transform": "translateY(-50%)",
+            "position": "absolute",
+            "top": "50%",
+            "float": "left",
+            "width": "45%",
+            "height": "",
+            "max-height": "16em",
+            "white-space": "initial"
+        });
+        $("#div-choices").css({
+            "float": "right",
+            "width": "45%"
+        });
+        $(".choice-text").css({
+            "height": "2.5em",
+            "max-height": "4em"
+        });
+        $(".choice").css({
+            "width": "100%",
+            "height": "22.5%"
+        });
+        $("#memo-op").css({
+            "top": "4em",
+            "left": "5em"
+        });
+        if (isphone) {
+            $("#memo-op").css({
+                "top": "0.5em",
+                "left": "0.5em",
+                "font-size": "0.5em"
+            });
+            $("#div-question").css({
+                "min-width": "45%",
+                "font-size": "0.6em"
+            });
+            $("#div-choices").css({
+                "min-width": "45%",
+                "font-size": "0.4em"
+            });
+            $(".choice-circle-wrap").hide();
+            $(".userctrl,.leftside").hide();
+            $("body").css({
+                "overflow": "hidden"
+            });
+            $(".footer").hide();
+            if (!getFullScreen()) fullscreen();
+        } else {
+            $("#div-question").css({
+                "left": "5%"
+            });
+            $("#div-choice").css({
+                "right": "5%"
+            });
+        }
+    } else {
+        $("#div-question").css({
+            "transform": "",
+            "position": "",
+            "top": "",
+            "float": "",
+            "width": "",
+            "height": "6em",
+            "max-height": "6em"
+        });
+        $("#div-choices").css({
+            "float": "",
+            "width": ""
+        });
+        $(".choice-text").css({
+            "height": "",
+            "max-height": ""
+        });
+        $(".choice").css({
+            "width": "",
+            "height": ""
+        });
+        $("#memo-op").css({
+            "top": "4em",
+            "left": "6em"
+        });
+        if (isphone) {
+            $("#memo-op").css({
+                "top": "4em",
+                "left": "1.5em",
+                "font-size": ""
+            });
+            $("#div-question").css({
+                "min-width": "100%",
+                "font-size": ""
+            });
+            $("#div-choices").css({
+                "min-width": "100%",
+                "font-size": ""
+            });
+            $(".userctrl,.leftside").show();
+            $(".choice-circle-wrap").show();
+            $(".footer").show();
+            $("body").css({
+                "overflow": ""
+            });
+            if (getFullScreen()) fullscreen();
+        } else {
+            $("#div-question").css({
+                "left": ""
+            });
+            $("#div-choice").css({
+                "right": ""
+            });
+        }
+    }
+}
+window.onresize = MemoStyle;
 
 function MemoStart() {
     $("#qa1").show();
@@ -452,7 +578,6 @@ function MemoStart() {
                     return;
                 }
                 ccAnswered = false;
-                $("#challenge-msg").html("Select your answer <i class='fa fa-arrow-up'></i>");
                 $(".choice").css("background", "transparent");
                 $(".choice-circle").css("background", "#dddddd");
 
@@ -504,8 +629,8 @@ function MemoTag() {
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            if (memo.questionStatus != 2) $(".memo-tag").html("Tag <i class='fa fa-star'></i>");
-            else $(".memo-tag").html("Untag <i class='fa fa-star-o'></i>");
+            if (memo.questionStatus != 2) $(".memo-tag").html("<i style='color:yellow' class='fa-regular fa-star'></i>");
+            else $(".memo-tag").html("<i style='color:yellow' class='fa-solid fa-star'></i>");
         },
         error: function (r, textStatus, errorThrown) {
             AjaxErrorHandler(r, textStatus, errorThrown);
@@ -529,8 +654,8 @@ function MemoDelete() {
             token: localStorage.getItem("token")
         },
         success: function (r) {
-            if (memo.questionStatus != 3) $(".memo-delete").html("Delete <i class='fa fa-trash'></i>");
-            else $(".memo-delete").html("Undelete <i class='fa fa-undo'></i>");
+            if (memo.questionStatus != 3) $(".memo-delete").html("<i style='color:red' class='fa fa-trash'></i>");
+            else $(".memo-delete").html("<i style='color:red' class='fa fa-trash-arrow-up'></i>");
         },
         error: function (r, textStatus, errorThrown) {
             AjaxErrorHandler(r, textStatus, errorThrown);
@@ -578,7 +703,6 @@ function ChallengeChoice(choiceid) {
         $("#cc-question").html(marked.parse(memo.question));
         for (var i = 0; i < memo.choices.length; i++)
             $("#choice-" + i).html(marked.parse(memo.choices[i]));
-        $("#challenge-msg").html("Select your answer <i class='fa fa-arrow-up'></i>");
         ShowQuestion();
         $(".choice").css("background", "transparent");
         $(".choice-circle").css("background", "#dddddd");
@@ -591,7 +715,6 @@ function ChallengeChoice(choiceid) {
     }
     choiceid += 1;
 
-    $("#challenge-msg").html("Checking your answer... <i class='fa fa-spinner fa-spin'></i>");
     ccAnswered = true;
     $.ajax({
         url: '/api/question/challenge/check',
@@ -618,14 +741,13 @@ function ChallengeChoice(choiceid) {
 
             if (r.success == false) {
                 NotyNotification(r.msg, "error", 10000);
-                BackToHome();
+                setTimeout(function () {
+                    BackToHome();
+                }, 3000);
                 return;
             }
 
             if (r.result == -1 && r.expired == true) {
-                $("#challenge-msg").html("Challenge expired!");
-                NotyNotification("Challenge expired!", 'warning');
-
                 setTimeout(function () {
                     ccAnswered = false;
                     memo.questionId = -1;
@@ -637,7 +759,6 @@ function ChallengeChoice(choiceid) {
                     for (var i = 0; i < memo.choices.length; i++)
                         $("#choice-" + i).html(marked.parse(memo.choices[i]));
                     memo.challengeToken = r.challengeToken;
-                    $("#challenge-msg").html("Select your answer <i class='fa fa-arrow-up'></i>");
                     ShowQuestion();
                     $(".choice").css("background", "transparent");
                     $(".choice-circle").css("background", "#dddddd");
@@ -646,12 +767,6 @@ function ChallengeChoice(choiceid) {
             }
 
             if (r.result == true) {
-                $("#challenge-msg").html("Answer correct <i class='fa fa-check'></i>");
-                if (r.expired == true) {
-                    $("#challenge-msg").html("Answer is correct but challenge has expired!");
-                    NotyNotification("Challenge expired!", 'warning');
-                }
-
                 chtoday += 1;
                 $("#goal-progress").css("width", Math.min(chtoday / goal * 100, 100) + "%");
                 $("#today-goal").html(chtoday + " / " + goal);
@@ -680,17 +795,11 @@ function ChallengeChoice(choiceid) {
                     for (var i = 0; i < memo.choices.length; i++)
                         $("#choice-" + i).html(marked.parse(memo.choices[i]));
                     memo.challengeToken = r.challengeToken;
-                    $("#challenge-msg").html("Select your answer <i class='fa fa-arrow-up'></i>");
                     ShowQuestion();
                     $(".choice").css("background", "transparent");
                     $(".choice-circle").css("background", "#dddddd");
                 }, 500);
             } else {
-                $("#challenge-msg").html("Wrong answer <i class='fa fa-times'></i>");
-                if (r.expired == true) {
-                    NotyNotification("Challenge expired!", 'warning');
-                    $("#challenge-msg").html("Answer is wrong and challenge has expired!");
-                }
                 ccWrongAudio.pause();
                 ccWrongAudio.currentTime = 0;
                 ccWrongAudio.play();
@@ -818,7 +927,9 @@ function BackToHome() {
     $(".title").hide();
     $("#memo").hide();
     $("#home").fadeIn();
+    $("#memo-op").hide();
     StopAutoPlayer();
+    if (getFullScreen()) fullscreen();
 }
 
 function SelectBook(bookId) {

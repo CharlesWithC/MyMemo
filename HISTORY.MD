@@ -1,45 +1,51 @@
 # Update History
 
+## v5.6.18  
+
+*Date: 2022/1/20*  
+UI Improvements:  
+Improved layout of challenge mode, introduced landscape + fullscreen display for mobile devices  
+
 ## v5.6.17  
 
-*Date: 2021/1/18*  
+*Date: 2022/1/18*  
 1.Updated footer  
 2.Added donation info  
 3.Moved *Memo Home Page* path to /home, / will redirect to /home. *Introduction page* is under construction and it will take the place of / when it's done.
 
 ## v5.6.16
 
-*Date: 2021/1/18*  
+*Date: 2022/1/18*  
 1.Added option to modify *email notice on logins (sLoginEmail)* settings  
 2.Improved UI
 
 ## v5.6.15
 
-*Date: 2021/1/17*  
+*Date: 2022/1/17*  
 Bug Fixes & UI Improvements
 
 ## v5.6.14  
 
-*Date: 2021/1/17*  
+*Date: 2022/1/17*  
 1.Minor UI, performance improvement  
 2.Better user experience: captcha will be asked since the second login attempt  
 
 ## v5.6.13  
 
-*Date: 2021/1/15*  
+*Date: 2022/1/15*  
 1.Bug Fixes & UI Updates  
 2.Added stricter admin permission and allowed site owner to add admins on web cli panel  
 
 ## v5.6.12  
 
-*Date: 2021/1/15*  
+*Date: 2022/1/15*  
 1.Bug Fixes & UI Updates  
 2.Added file log & frontend realtime log  
 3.Added auto "Show More" for user events  
 
 ## v5.6.11
 
-*Date: 2021/1/15*  
+*Date: 2022/1/15*  
 Feature Updates:  
 1.Added preview for book and group before import / join  
 2.Added click to copy for share code and group code  
@@ -48,7 +54,7 @@ Feature Updates:
 
 ## v5.6.10
 
-*Date: 2021/1/14*  
+*Date: 2022/1/14*  
 Bug Fixes:  
 1.Fixed some bugs of challenge mode  
 
@@ -63,7 +69,7 @@ Code Updates:
 
 ## v5.6.9
 
-*Date: 2021/1/8*  
+*Date: 2022/1/8*  
 Feature Updates:  
 1.Better data import & export functions  
 2.Enabled markdown for question & answer  
@@ -72,7 +78,7 @@ Feature Updates:
 
 ## v5.6.8  
 
-*Date: 2021/1/8*  
+*Date: 2022/1/8*  
 Fixed some bugs  
 Optimized code for less code to generate Modal  
 

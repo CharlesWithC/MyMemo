@@ -258,7 +258,7 @@ def getQuestionsInBook(userId, bookId, statusRequirement):
         statusRequirement = "status >= 1"
     conn = newconn()
     cur = conn.cursor()
-    cur.execute(f"SELECT questionId FROM BookData WHERE bookId = {bookId}")
+    cur.execute(f"SELECT questionId FROM BookData WHERE userId = {userId} AND bookId = {bookId}")
     book = cur.fetchall()
     cur.execute(f"SELECT questionId, question, answer, status FROM QuestionList WHERE ({statusRequirement}) AND userId = {userId}")
     questions = cur.fetchall()

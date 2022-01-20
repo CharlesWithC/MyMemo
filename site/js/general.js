@@ -47,8 +47,8 @@ function CopyToClipboard(text) {
     NotyNotification("Copied!");
 }
 
-function GenCPBtn(text){
-    if(text == "@pvtgroup") return "";
+function GenCPBtn(text) {
+    if (text == "@pvtgroup") return "";
     return '<button type="button" class="btn btn-primary btn-sm" onclick="CopyToClipboard(\'' + text + '\')"><i class="fa fa-copy"></i></button>';
 }
 
@@ -342,7 +342,10 @@ function CreateBook(element) {
 }
 
 function LoadShow() {
-    $(".footer").before("<div id='general-loader' class='loader' style='display:none;padding-left:0.5em;padding-top:0.2em'><i class='fa fa-spinner fa-spin'></i></div>");
+    if (isphone && window.innerWidth / window.innerHeight > 1.5)
+        $(".footer").before("<div id='general-loader' class='loader' style='width:0.5em;height:0.5em;padding:0;padding-top:0.01em;padding-left:0.1em;border-bottom-right-radius:0.125em'><p style='font-size:0.3em;'><i class='fa fa-spinner fa-spin'></i></p></div>");
+    else
+        $(".footer").before("<div id='general-loader' class='loader' style='display:none;padding-left:0.5em;padding-top:0.2em'><p><i class='fa fa-spinner fa-spin'></i></p></div>");
     $("#general-loader").fadeIn();
 }
 
@@ -405,7 +408,8 @@ function GeneralUpdateTheme() {
             $("#navusername").html("");
             if (window.location.pathname == '/home') {
                 $("#progress-div").hide();
-                $(".userctrl").attr("style", "");
+                if ($(".userctrl").css("display") == "none") $(".userctrl").attr("style", "display:none");
+                else $(".userctrl").attr("style", "");
             }
             return;
         }
@@ -419,14 +423,16 @@ function GeneralUpdateTheme() {
                 $("#navusername").html("");
                 if (window.location.pathname == '/home') {
                     $("#progress-div").hide();
-                    $(".userctrl").attr("style", "");
+                    if ($(".userctrl").css("display") == "none") $(".userctrl").attr("style", "display:none");
+                    else $(".userctrl").attr("style", "");
                 }
             } else if (parseInt(t.slice(0, t.indexOf("px"))) / window.innerWidth > 0.8 && shortUserctrl) {
                 shortUserctrl = false;
                 $("#navusername").html(navusername);
                 if (window.location.pathname == '/home') {
                     $("#progress-div").show();
-                    $(".userctrl").attr("style", "height:4.5em;min-width: 14em;");
+                    if ($(".userctrl").css("display") == "none") $(".userctrl").attr("style", "display:none;");
+                    else $(".userctrl").attr("style", "height:4.5em;min-width: 14em;");
                 }
             }
         }
@@ -647,10 +653,10 @@ $(document).ready(function () {
         $(".userctrl").css("right", "2%");
         $(".leftside hr").remove();
         $("#footer-info").appendTo("#footer-intro");
-        $("#footer-info").css("float","right");
-        $("#footer-info").css("width","calc(100% - 6em)");
+        $("#footer-info").css("float", "right");
+        $("#footer-info").css("width", "calc(100% - 6em)");
         $("#footer-info").prepend("<hr>")
-        $("#footer-intro").css("width","100%");
+        $("#footer-intro").css("width", "100%");
 
         $('head').append('<link rel="stylesheet" href="/css/mobile.css" type="text/css" />');
     }
@@ -727,4 +733,42 @@ function ShowCaptcha(submitfunc) {
             AjaxErrorHandler(r, textStatus, errorThrown);
         }
     });
+}
+
+function getFullScreen() {
+    var isInFullScreen = (document.fullscreenElement && document.fullscreenElement !== null) ||
+        (document.webkitFullscreenElement && document.webkitFullscreenElement !== null) ||
+        (document.mozFullScreenElement && document.mozFullScreenElement !== null) ||
+        (document.msFullscreenElement && document.msFullscreenElement !== null);
+    return isInFullScreen;
+}
+
+function fullscreen() {
+    var isInFullScreen = (document.fullscreenElement && document.fullscreenElement !== null) ||
+        (document.webkitFullscreenElement && document.webkitFullscreenElement !== null) ||
+        (document.mozFullScreenElement && document.mozFullScreenElement !== null) ||
+        (document.msFullscreenElement && document.msFullscreenElement !== null);
+
+    var docElm = document.documentElement;
+    if (!isInFullScreen) {
+        if (docElm.requestFullscreen) {
+            docElm.requestFullscreen();
+        } else if (docElm.mozRequestFullScreen) {
+            docElm.mozRequestFullScreen();
+        } else if (docElm.webkitRequestFullScreen) {
+            docElm.webkitRequestFullScreen();
+        } else if (docElm.msRequestFullscreen) {
+            docElm.msRequestFullscreen();
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+    }
 }

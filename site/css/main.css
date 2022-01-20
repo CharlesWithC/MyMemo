@@ -18,6 +18,7 @@ body {
     width: 100%;
     font-family: Comic Sans;
     font-size: 1.1em;
+    overflow-x: hidden;
 }
 
 h1 {
@@ -144,6 +145,7 @@ h2 {
     position: relative;
     margin: auto;
     top: calc(50% + 1.5em);
+    left: 0;
     transform: translateY(-50%);
     text-align: center;
 }
@@ -167,10 +169,9 @@ h2 {
     margin: auto;
     position: relative;
     text-align: center;
-    font-size: 3.75em;
-    padding-top: 0.5em;
-    padding-bottom: 0em;
-    margin-bottom: 1.25em;
+    font-size: 5em;
+    padding-top: -1em padding-bottom: 0em;
+    margin-bottom: 0.5em;
 }
 
 .nametag {
@@ -347,7 +348,6 @@ h2 {
 
 
 .footer {
-    z-index: 100;
     position: relative;
     float: left;
     width: 100%;

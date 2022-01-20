@@ -133,6 +133,7 @@ async def apiGetNextChallenge(request: Request):
     choices = []
     for i in range(mixcnt - 1):
         if decode(qs[i][1]) == question:
+            i -= 1
             continue
         choices.append((qs[i][0], decode(qs[i][1]), decode(qs[i][2])))
     choices.append((questionId, question, answer))
@@ -150,10 +151,13 @@ async def apiGetNextChallenge(request: Request):
             ret.append(choices[i][2])
     
     token = random.randint(0, 1000000)
-    cur.execute(f"SELECT * FROM Challenge WHERE userId = {userId}")
-    t = cur.fetchall()
-    if len(t) != 0:
-        cur.execute(f"DELETE FROM Challenge WHERE userId = {userId}")
+    for _ in range(30):
+        cur.execute(f"SELECT * FROM Challenge WHERE userId = {userId} AND token = {token}")
+        t = cur.fetchall()
+        if len(t) != 0:
+            token = random.randint(0, 1000000)
+        else:
+            break
     cur.execute(f"INSERT INTO Challenge VALUES ({userId}, {token}, {bookId}, {questionId}, {key}, {int(time.time()) + 60})")
     conn.commit()
 
@@ -178,7 +182,7 @@ async def apiUpdateChallengeRecord(request: Request):
     if not validateToken(userId, token):
         raise HTTPException(status_code=401)
     
-    cur.execute(f"DELETE FROM Challenge WHERE expire <= {int(time.time()) - 600}")
+    cur.execute(f"DELETE FROM Challenge WHERE expire <= {int(time.time()) - 3600}")
     conn.commit()
 
     expired = False
@@ -193,6 +197,9 @@ async def apiUpdateChallengeRecord(request: Request):
         memorized = -1
         correct = -1
 
+    cur.execute(f"DELETE FROM Challenge WHERE userId = {userId} AND token = {token}")
+    conn.commit()
+
     if not expired:
         bookId = t[0][0]
         questionId = t[0][1]
@@ -202,8 +209,6 @@ async def apiUpdateChallengeRecord(request: Request):
         memorized = False
         if correct == int(form["answer"]):
             memorized = True
-        cur.execute(f"DELETE FROM Challenge WHERE userId = {userId} AND token = {token}")
-        conn.commit()
     
     if not expired:
         ts = int(time.time())
@@ -262,7 +267,7 @@ async def apiUpdateChallengeRecord(request: Request):
 
         questionId = getChallengeQuestionId(userId, bookId)
         if questionId == -1:
-            return {"success": False, "msg": "No more challenge!"}
+            return {"success": False, "result": memorized, "expired": expired, "correct": correct, "msg": "No more challenge!"}
         cur.execute(f"SELECT question, answer, status FROM QuestionList WHERE questionId = {questionId} AND userId = {userId}")
         d = cur.fetchall()
         (question, answer, status) = d[0]
@@ -297,10 +302,13 @@ async def apiUpdateChallengeRecord(request: Request):
                     ret.append(choices[i][2])
             
             token = random.randint(0, 1000000)
-            cur.execute(f"SELECT * FROM Challenge WHERE userId = {userId}")
-            t = cur.fetchall()
-            if len(t) != 0:
-                cur.execute(f"DELETE FROM Challenge WHERE userId = {userId}")
+            for _ in range(30):
+                cur.execute(f"SELECT * FROM Challenge WHERE userId = {userId} AND token = {token}")
+                t = cur.fetchall()
+                if len(t) != 0:
+                    token = random.randint(0, 1000000)
+                else:
+                    break
             cur.execute(f"INSERT INTO Challenge VALUES ({userId}, {token}, {bookId}, {questionId}, {key}, {int(time.time()) + 60})")
             conn.commit()
         
