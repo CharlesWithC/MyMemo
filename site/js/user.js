@@ -444,32 +444,30 @@ function Login() {
                         r = user.username.indexOf('<', user.username.indexOf('<', user.username.indexOf('<') + 1) + 1);
                         $("title").html(user.username.substr(l + 1, r - l - 1) + " - My Memo");
 
-                        if (lsGetItem("first-use","0") != "0") {
-                            $.ajax({
-                                url: '/api/user/settings',
-                                method: 'POST',
-                                async: false,
-                                dataType: "json",
-                                data: {
-                                    operation: "download",
-                                    userId: localStorage.getItem("userId"),
-                                    token: localStorage.getItem("token")
-                                },
-                                success: function (r) {
-                                    if (r.success) {
-                                        localStorage.setItem("settings-random", r.swap);
-                                        localStorage.setItem("settings-swap", r.swap);
-                                        localStorage.setItem("settings-show-status", r.showStatus);
-                                        localStorage.setItem("settings-mode", r.mode);
-                                        localStorage.setItem("settings-auto-play", r.autoPlay);
-                                        localStorage.setItem("settings-theme", r.theme);
-                                    }
-                                },
-                                error: function (r, textStatus, errorThrown) {
-                                    AjaxErrorHandler(r, textStatus, errorThrown);
+                        $.ajax({
+                            url: '/api/user/settings',
+                            method: 'POST',
+                            async: false,
+                            dataType: "json",
+                            data: {
+                                operation: "download",
+                                userId: localStorage.getItem("userId"),
+                                token: localStorage.getItem("token")
+                            },
+                            success: function (r) {
+                                if (r.success) {
+                                    lsSetItem("settings-random", r.swap, true);
+                                    lsSetItem("settings-swap", r.swap, true);
+                                    lsSetItem("settings-show-status", r.showStatus, true);
+                                    lsSetItem("settings-mode", r.mode, true);
+                                    lsSetItem("settings-auto-play", r.autoPlay, true);
+                                    lsSetItem("settings-theme", r.theme, true);
                                 }
-                            });
-                        }
+                            },
+                            error: function (r, textStatus, errorThrown) {
+                                AjaxErrorHandler(r, textStatus, errorThrown);
+                            }
+                        });
 
                         $("#input-username").val("");
                         $("#input-password").val("");

@@ -21,10 +21,8 @@ def create_user(userId, command):
     password = command[3]
     inviter = userId # inviter is admin
 
-    if " " in username or "(" in username or ")" in username or "[" in username or "]" in username or "{" in username or "}" in username \
-        or "<" in username or ">" in username \
-            or "!" in username or "@" in username or "'" in username or '"' in username or "/" in username or "\\" in username :
-        return {"success": False, "msg": "Username must not contain: spaces, ( ) [ ] { } < > ! @ ' \" / \\"}
+    if not username.isalnum():
+        return {"success": False, "msg": "Username must not contain special characters!"}
 
     username = encode(username)
     if validators.email(email) != True:

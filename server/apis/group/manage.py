@@ -113,7 +113,7 @@ async def apiGroup(request: Request):
         if owner != userId:
             return {"success": False, "msg": f"You are not the owner of the group!"}
             
-        cur.execute(f"SELECT * FROM Discovery WHERE publisherId = {userId} AND bookId = {groupId} AND type = 2")
+        cur.execute(f"SELECT * FROM Discovery WHERE bookId = {groupId} AND type = 2")
         if len(cur.fetchall()) != 0:
             return {"success": False, "msg": f"Group published to Discovery! Unpublish it before dismissing it!"}
         
@@ -212,6 +212,10 @@ async def apiManageGroup(request: Request):
             newOwner = decode(t[0][0])
         if newOwner == "@deleted":
             return {"success": False, "msg": f"You cannot transfer ownership to a deleted user!"}
+        
+        cur.execute(f"SELECT * FROM Discovery WHERE bookId = {groupId} AND type = 2")
+        if len(cur.fetchall()) != 0:
+            return {"success": False, "msg": f"Group published to Discovery! Unpublish it before transferring ownership!"}
 
         cur.execute(f"UPDATE GroupInfo SET owner = {uid} WHERE groupId = {groupId}")
         cur.execute(f"UPDATE GroupMember SET isEditor = 1 WHERE groupId = {groupId} and userId = {uid}")

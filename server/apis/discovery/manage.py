@@ -44,11 +44,13 @@ async def apiDiscoveryPublish(request: Request):
     description = encode(form["description"])
     distype = int(form["type"])
 
-    cur.execute(f"SELECT * FROM Discovery WHERE publisherId = {userId} AND bookId = {bookId} AND type = {distype}")
-    if len(cur.fetchall()) != 0:
-        if distype == 1:
+    if distype == 1:
+        cur.execute(f"SELECT * FROM Discovery WHERE publisherId = {userId} AND bookId = {bookId} AND type = 1")
+        if len(cur.fetchall()) != 0:
             return {"success": False, "msg": "Book already published!"}
-        else:
+    elif distype == 2:
+        cur.execute(f"SELECT * FROM Discovery WHERE bookId = {bookId} AND type = 2")
+        if len(cur.fetchall()) != 0:
             return {"success": False, "msg": "Group already published!"}
 
     # get share code

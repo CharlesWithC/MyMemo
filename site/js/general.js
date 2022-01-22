@@ -222,6 +222,11 @@ function lsGetItem(lsItemName, defaultValue = 0) {
     }
 }
 
+function lsSetItem(lsItemName, value, onlyForNull = false){
+    if(onlyForNull && localStorage.getItem(lsItemName) != null) return;
+    localStorage.setItem(lsItemName, value);
+}
+
 bookList = JSON.parse(lsGetItem("book-list", JSON.stringify([])));
 
 function UpdateBookDisplay() {
@@ -277,7 +282,7 @@ function UpdateBookList(async = true) {
     });
 }
 
-if (GetCookie("last-book-update") == undefined || new Date().getTime() - GetCookie("last-book-update") > 600000) {
+if (GetCookie("last-book-update") == undefined || new Date().getTime() - GetCookie("last-book-update") > 600000 || JSON.parse(lsGetItem("book-list",[])).length == 0) {
     UpdateBookList();
     SetCookie("last-book-update", new Date().getTime());
 }

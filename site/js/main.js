@@ -54,7 +54,7 @@ memo.bookName = lsGetItem("memo-book-name", "");
 
 function UpdateBookName() {
     memo.bookList = JSON.parse(lsGetItem("book-list", JSON.stringify([])));
-    if (memo.bookList == []) {
+    if (memo.bookList.length == 0) {
         memo.bookId = 0;
         memo.bookName = "All questions";
         $("#book-name").html(memo.bookName);
@@ -72,7 +72,7 @@ function UpdateBookName() {
     if (!found) {
         memo.bookId = 0;
         localStorage.setItem("memo-book-id", 0);
-        memo.bookName = memo.bookList[0].name;
+        memo.bookName = "All questions"
         $("#book-name").html(memo.bookName);
         localStorage.setItem("memo-book-name", memo.bookName);
     }

@@ -47,10 +47,8 @@ async def apiRegister(request: Request, background_tasks: BackgroundTasks):
     if username is None or email is None or password is None \
         or username.replace(" ","") == "" or email.replace(" ","") == "" or password.replace(" ","") == "":
         return {"success": False, "msg": "Username and email must be filled!"}
-    if " " in username or "(" in username or ")" in username or "[" in username or "]" in username or "{" in username or "}" in username \
-        or "<" in username or ">" in username \
-            or "!" in username or "@" in username or "'" in username or '"' in username or "/" in username or "\\" in username :
-        return {"success": False, "msg": "Username must not contain: spaces, ( ) [ ] { } < > ! @ ' \" / \\"}
+    if not username.isalnum():
+        return {"success": False, "msg": "Username must not contain special characters!"}
     username = encode(username)
     if validators.email(email) != True:
         return {"success": False, "msg": "Invalid email!"}
@@ -239,10 +237,8 @@ async def apiUserPendingUpdateInfo(request: Request, background_tasks: Backgroun
     if username is None or email is None\
         or username.replace(" ","") == "" or email.replace(" ","") == "":
         return {"success": False, "msg": "Username and email must be filled!"}
-    if " " in username or "(" in username or ")" in username or "[" in username or "]" in username or "{" in username or "}" in username \
-        or "<" in username or ">" in username \
-            or "!" in username or "@" in username or "'" in username or '"' in username or "/" in username or "\\" in username :
-        return {"success": False, "msg": "Username must not contain: spaces, ( ) [ ] { } < > ! @ ' \" / \\"}
+    if not username.isalnum():
+        return {"success": False, "msg": "Username must not contain special characters!"}
     username = encode(username)
     if validators.email(email) != True:
         return {"success": False, "msg": "Invalid email!"}
