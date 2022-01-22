@@ -273,14 +273,6 @@ function MemoMove(direction) {
                 memo.questionStatus = r.status;
                 memo.questionId = r.questionId;
 
-                $("#" + tid).animate({
-                    "width": "0"
-                });
-                $("#" + tid).fadeOut("fast");
-                setTimeout(function () {
-                    $("#" + tid).remove();
-                }, 1000);
-
                 if (settings.mode == 1) {
                     memo.practiceStatus = 0;
                     $("#practice-msg").html("Do you remember it?");

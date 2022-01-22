@@ -1,5 +1,10 @@
 # Update History
 
+## v5.6.20
+
+*Date: 2022/1/22*  
+Home Page! It finally came!
+
 ## v5.6.19  
 
 *Date: 2022/1/22*  

@@ -9,7 +9,7 @@
     <script src="https://cdn.charles14.xyz/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.charles14.xyz/js/popper.min.js"></script>
     <script src="https://cdn.charles14.xyz/js/marked.min.js"></script>
-    <script src="/js/general.js"></script>
+    <script src="/js/intro.js"></script>
 
     <link href="https://cdn.charles14.xyz/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.charles14.xyz/css/all.min.css" rel="stylesheet">
@@ -20,16 +20,105 @@
     <link href="/css/main.css" rel="stylesheet">
     <link href="/css/intro.css" rel="stylesheet">
 
-    <script>window.location.href="/home";</script>
-    <!--Introduction page is under construction-->
-
     <link rel="icon" href="/img/icon-sm.png">
+
+    <script>
+        function Go() {
+            if (localStorage.getItem("token") == null) window.location.href = "/user/login";
+            else window.location.href = "/home";
+        }
+        $(document).ready(function () {
+            PageInit();
+        });
+    </script>
 </head>
 
-<body>
-    <div id="content" class="container" style="height:100%">
-        <div class="section">
-            <h1 class="title" style="margin-top:0.7em">My Memo</h1>
+<body style="color:#ffffff;background-color:#333333">
+    <div class="section">
+        <div class="sub-left sub-section" style="background-color:#ffee77;color:black;min-height:25em;padding:3em;">
+            <h1 class="big-title" style="text-align:left">
+                My Memo
+                <img class="icon" src="/img/icon.png" style="width:0.8em;height:0.8em">
+            </h1>
+            <p>A light weight memo website based on Python FastAPI + HTML5 Bootstrap.</p>
+            <p>Developed by <a href="/user/1" target="_blank" rel="noopener noreferrer">Charles</a>
+                and open sourced at <a href="https://github.com/Charles-1414/MyMemo" target="_blank"
+                    rel="noopener noreferrer"><i class="fa fa-brands fa-github"></i> GitHub</a></p>
+            <br>
+            <button type="button" class="btn btn-primary btn-lg" onclick="Go()">Let's Go <i
+                    class='fa fa-play'></i></button>
+        </div>
+        <div class="sub-right sub-section" style="background-color:#444444;color:#ffffff">
+            <div id="div-question"
+                style="height:6em;max-height:6em;margin-bottom:1.5em;text-align:center;overflow:auto">
+                <p id="cc-question" style="font-size:1.6em"></p>
+            </div>
+            <div id="div-choices">
+                <div id="div-choice-0" class="choice" onclick="DemoChallengeChoice(0);">
+                    <div class="choice-circle-wrap">
+                        <div id="choice-circle-0" class="choice-circle"></div>
+                    </div>
+                    <div class="choice-text"><span id="choice-0"></span></div>
+                </div>
+                <div id="div-choice-1" class="choice" onclick="DemoChallengeChoice(1);">
+                    <div class="choice-circle-wrap">
+                        <div id="choice-circle-1" class="choice-circle"></div>
+                    </div>
+                    <div class="choice-text"><span id="choice-1"></span></div>
+                </div>
+                <div id="div-choice-2" class="choice" onclick="DemoChallengeChoice(2);">
+                    <div class="choice-circle-wrap">
+                        <div id="choice-circle-2" class="choice-circle"></div>
+                    </div>
+                    <div class="choice-text"><span id="choice-2"></span></div>
+                </div>
+                <div id="div-choice-3" class="choice" onclick="DemoChallengeChoice(3);">
+                    <div class="choice-circle-wrap">
+                        <div id="choice-circle-3" class="choice-circle"></div>
+                    </div>
+                    <div class="choice-text"><span id="choice-3"></span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="section">
+        <div class="sub-section left-half">
+            <h2><i class="fa fa-book"></i> Be your own book</h2>
+            <p>Write anything you want to your book - words, phrases or even math formulas!</p>
+            <p>You can do that on website, or create a .xlsx table and upload it.</p>
+            <img src="/img/intro2.png" style="width:100%">
+        </div>
+        <div class="sub-section right-half">
+            <img src="/img/intro1.png" style="width:100%">
+        </div>
+    </div>
+    <hr>
+    <div class="section">
+        <div class="sub-section left-half">
+            <h2>More Fun <i class="fa fa-face-grin-wink"></i></h2>
+            <p>Create a group, let your friends join</p>
+            <p>And see each other's progress ~</p>
+        </div>
+        <div class="sub-section right-half">
+            <img src="/img/intro3.png" style="width:100%">
+        </div>
+    </div>
+    <hr>
+    <div class="section">
+        <div class="sub-section sub-center">
+            <h2><i class="fa fa-paper-plane"></i> Community</h2>
+            <p>Post your book to Discovery and let everyone benefit from it</p>
+            <p>Or simply create a private code and share with your friends!</p>
+            <img class="sub-center" style="min-width:100%" src="/img/intro4.png">
+        </div>
+    </div>
+    <hr>
+    <div class="section">
+        <div class="sub-section sub-center">
+            <h2>That's All</h2>
+            <p>Simple but complete</p>
+            <button type="button" class="btn btn-primary btn-lg" onclick="Go()">Let's Go <i
+                class='fa fa-play'></i></button>
         </div>
     </div>
 
@@ -43,8 +132,9 @@
                 <p>My Memo</p>
                 <p>A light weight memo website based on Python FastAPI + HTML5 Bootstrap.</p>
                 <p>This is a personal project made with <i class="fa fa-heart"></i></p>
-                <p>You could check <a href="https://github.com/Charles-1414/MyMemo/blob/master/README.md" 
-                    target="_blank" rel="noopener noreferrer">README</a> if you want to know more about this project.</p>
+                <p>You could check <a href="https://github.com/Charles-1414/MyMemo/blob/master/README.md"
+                        target="_blank" rel="noopener noreferrer">README</a> if you want to know more about this
+                    project.</p>
             </div>
         </div>
         <div id="footer-info" style="float:right;">

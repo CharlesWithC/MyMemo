@@ -222,8 +222,8 @@ function lsGetItem(lsItemName, defaultValue = 0) {
     }
 }
 
-function lsSetItem(lsItemName, value, onlyForNull = false){
-    if(onlyForNull && localStorage.getItem(lsItemName) != null) return;
+function lsSetItem(lsItemName, value, onlyForNull = false) {
+    if (onlyForNull && localStorage.getItem(lsItemName) != null) return;
     localStorage.setItem(lsItemName, value);
 }
 
@@ -282,7 +282,7 @@ function UpdateBookList(async = true) {
     });
 }
 
-if (GetCookie("last-book-update") == undefined || new Date().getTime() - GetCookie("last-book-update") > 600000 || JSON.parse(lsGetItem("book-list",[])).length == 0) {
+if (GetCookie("last-book-update") == undefined || new Date().getTime() - GetCookie("last-book-update") > 600000 || JSON.parse(lsGetItem("book-list", [])).length == 0) {
     UpdateBookList();
     SetCookie("last-book-update", new Date().getTime());
 }
@@ -428,7 +428,7 @@ function GeneralUpdateTheme() {
                 navusername = $("#navusername").html();
             }
             $("#navusername").html("");
-            if (window.location.href == '/home') {
+            if (window.location.pathname == '/home') {
                 $("#progress-div").hide();
                 if ($(".userctrl").css("display") == "none") $(".userctrl").attr("style", "display:none");
                 else $(".userctrl").attr("style", "");
@@ -443,7 +443,7 @@ function GeneralUpdateTheme() {
                     navusername = $("#navusername").html();
                 }
                 $("#navusername").html("");
-                if (window.location.href == '/home') {
+                if (window.location.pathname == '/home') {
                     $("#progress-div").hide();
                     if ($(".userctrl").css("display") == "none") $(".userctrl").attr("style", "display:none");
                     else $(".userctrl").attr("style", "");
@@ -451,7 +451,7 @@ function GeneralUpdateTheme() {
             } else if (parseInt(t.slice(0, t.indexOf("px"))) / window.innerWidth > 0.8 && shortUserctrl) {
                 shortUserctrl = false;
                 $("#navusername").html(navusername);
-                if (window.location.href == '/home') {
+                if (window.location.pathname == '/home') {
                     $("#progress-div").show();
                     if ($(".userctrl").css("display") == "none") $(".userctrl").attr("style", "display:none;");
                     else $(".userctrl").attr("style", "height:4.5em;min-width: 14em;");
