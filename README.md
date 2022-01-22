@@ -1,7 +1,7 @@
 # My Memo
 
 **A light weight memo website based on Python FastAPI + HTML5 Bootstrap.**  
-**Version: v5.6.18**  
+**Version: v5.6.19**  
 *Major development ended, improving it*  
 
 ---

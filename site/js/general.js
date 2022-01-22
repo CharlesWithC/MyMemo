@@ -7,6 +7,24 @@ if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(naviga
     isphone = true;
 }
 
+function SetCookie(cName, cValue, expMinutes) {
+    let date = new Date();
+    date.setTime(date.getTime() + (expMinutes * 60 * 1000));
+    const expires = "expires=" + date.toUTCString();
+    document.cookie = cName + "=" + cValue + "; " + expires + "; path=/";
+}
+
+function GetCookie(cName) {
+    const name = cName + "=";
+    const cDecoded = decodeURIComponent(document.cookie); //to be careful
+    const cArr = cDecoded.split('; ');
+    let res;
+    cArr.forEach(val => {
+        if (val.indexOf(name) === 0) res = val.substring(name.length);
+    })
+    return res;
+}
+
 function NotyNotification(text, type = 'success', timeout = 3000, layout = 'topRight') {
     new Noty({
         theme: 'mint',
@@ -140,7 +158,6 @@ function ClearUserData() {
     theme = localStorage.getItem("settings-theme");
     localStorage.clear();
     localStorage.setItem("first-use", "0");
-    localStorage.setItem("sign-out", "1");
     localStorage.setItem("settings-theme", theme);
 }
 
@@ -260,16 +277,16 @@ function UpdateBookList(async = true) {
     });
 }
 
-if (new Date().getTime() - lsGetItem("last-book-update", 0) > 600000) {
+if (GetCookie("last-book-update") == undefined || new Date().getTime() - GetCookie("last-book-update") > 600000) {
     UpdateBookList();
-    localStorage.setItem("last-book-update", new Date().getTime());
+    SetCookie("last-book-update", new Date().getTime());
 }
 setInterval(function () {
     UpdateBookList();
 }, 300000);
 
 function OpenBook(bookId) {
-    window.location.href = '/book?bookId=' + bookId;
+    window.location.href = '/book/' + bookId;
 }
 
 function ShowBook() {
@@ -382,7 +399,7 @@ function UpdateNavUsername() {
             $("#navusername").html(r.username);
             $(".only-signed-in").show();
             localStorage.setItem("username", r.username);
-            if (window.location.pathname.indexOf("/login") != -1) {
+            if (window.location.href.indexOf("/login") != -1) {
                 window.location.href = '/home';
             }
         },
@@ -406,7 +423,7 @@ function GeneralUpdateTheme() {
                 navusername = $("#navusername").html();
             }
             $("#navusername").html("");
-            if (window.location.pathname == '/home') {
+            if (window.location.href == '/home') {
                 $("#progress-div").hide();
                 if ($(".userctrl").css("display") == "none") $(".userctrl").attr("style", "display:none");
                 else $(".userctrl").attr("style", "");
@@ -421,7 +438,7 @@ function GeneralUpdateTheme() {
                     navusername = $("#navusername").html();
                 }
                 $("#navusername").html("");
-                if (window.location.pathname == '/home') {
+                if (window.location.href == '/home') {
                     $("#progress-div").hide();
                     if ($(".userctrl").css("display") == "none") $(".userctrl").attr("style", "display:none");
                     else $(".userctrl").attr("style", "");
@@ -429,7 +446,7 @@ function GeneralUpdateTheme() {
             } else if (parseInt(t.slice(0, t.indexOf("px"))) / window.innerWidth > 0.8 && shortUserctrl) {
                 shortUserctrl = false;
                 $("#navusername").html(navusername);
-                if (window.location.pathname == '/home') {
+                if (window.location.href == '/home') {
                     $("#progress-div").show();
                     if ($(".userctrl").css("display") == "none") $(".userctrl").attr("style", "display:none;");
                     else $(".userctrl").attr("style", "height:4.5em;min-width: 14em;");
@@ -460,6 +477,10 @@ function GeneralUpdateTheme() {
     }
 
     setInterval(function () {
+        if (localStorage.getItem("settings-theme") == "dark")
+            SetCookie("dark_theme", true);
+        else
+            SetCookie("dark_theme", null);
         $("thead tr").removeClass("table-active");
         $(".fa-picture-o").addClass("fa-image");
         $(".fa-image").removeClass("fa-picture-o");
@@ -522,10 +543,7 @@ function GetUploadResult() {
 }
 
 $(document).ready(function () {
-    if (localStorage.getItem("version") != null) {
-        $("#version").html(localStorage.getItem("version") + '  <i class="fa fa-check-circle"></i>');
-    }
-    if (new Date().getTime() - lsGetItem("version-last-update", 0) > 600000) {
+    if (GetCookie("version") == undefined) {
         $.ajax({
             url: "/api/version",
             method: 'GET',
@@ -533,11 +551,15 @@ $(document).ready(function () {
             dataType: "json",
             success: function (r) {
                 $("#version").html(r.version + '  <i class="fa fa-check-circle"></i>');
-                localStorage.setItem("version", r.version);
-                localStorage.setItem("version-last-update", new Date().getTime());
+                SetCookie("version", r.version, 60);
             }
         });
+    } else {
+        $("#version").html(GetCookie("version") + '  <i class="fa fa-check-circle"></i>');
     }
+
+    if (window.location.href.endsWith("#"))
+        window.history.pushState("My Memo", "My Memo", window.location.href.substr(0, window.location.href.length - 1));
 
     if (localStorage.getItem("username") != null && localStorage.getItem("username") != "") {
         username = localStorage.getItem("username");
@@ -571,7 +593,7 @@ $(document).ready(function () {
     }
 
     if (!isphone) {
-        if (window.location.pathname.indexOf("/book") == -1) {
+        if (window.location.href.indexOf("/book") == -1) {
             $("#navigate").after(`<div id="book-div" class="book-side" style="display:none">
             <div class="book-side-content">
                 <h2 style="float:left">Books</h2>
@@ -600,13 +622,13 @@ $(document).ready(function () {
         }
     }
 
-    if (window.location.pathname.indexOf("/book") == -1) {
+    if (window.location.href.indexOf("/book") == -1) {
         $(".leftside").append(`<div class="sqbtn">
             <a id="book-btn" href="/book"><i class="fa fa-book"></i></a><br>
         </div>`);
     } else {
         $(".leftside").append(`<div class="sqbtn">
-            <a id="book-btn" href="#" onclick="BackToList()"><i class="fa fa-book"></i></a><br>
+            <a id="book-btn" style="cursor:pointer" onclick="BackToList()"><i class="fa fa-book"></i></a><br>
         </div>`);
     }
     if (localStorage.getItem("userId") != null && localStorage.getItem("userId") != "-1") {
@@ -614,13 +636,13 @@ $(document).ready(function () {
             <a href="/share"><i class="fa fa-share-alt"></i></a><br>
         </div>`);
     }
-    if (window.location.pathname.indexOf("/discovery") == -1) {
+    if (window.location.href.indexOf("/discovery") == -1) {
         $(".leftside").append(`<div class="sqbtn">
             <a href="/discovery"><i class="fa fa-paper-plane"></i></a><br>
         </div>`);
     } else {
         $(".leftside").append(`<div class="sqbtn">
-            <a href="#" onclick="BackToList()"><i class="fa fa-paper-plane"></i></a><br>
+            <a style="cursor:pointer" onclick="BackToList()"><i class="fa fa-paper-plane"></i></a><br>
         </div>`);
     }
     if (localStorage.getItem("isAdmin") == true) {

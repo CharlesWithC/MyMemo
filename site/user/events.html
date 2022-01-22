@@ -27,9 +27,8 @@
             setInterval(function AutoUpdate() {
                 ratio = 1;
                 if (isphone) ratio = 2;
-                if ($("body, html")[0].scrollHeight - $("body, html").scrollTop() - 300 * ratio <=
-                    window
-                    .innerHeight && page != -1) ShowMore();
+                if ($("body")[0].scrollHeight - $("body").scrollTop() - 300 * ratio <=
+                    window.innerHeight && page != -1) ShowMore();
             }, 100);
         });
     </script>
@@ -47,7 +46,7 @@
                     in</a>&nbsp;&nbsp; </span>
             <a class="only-signed-in" href='/user/events' style="display:none"><i class="fa fa-bell"></i></a>
             <a href='/user/settings'><i class="fa fa-cogs"></i></a>
-            <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i
+            <a class="only-signed-in" style='cursor:pointer' onclick="SignOut()" style="display:none"><i
                     class="fa fa-arrow-right-from-bracket"></i></a>
         </div>
     </div>
@@ -61,7 +60,7 @@
     </div>
 
     <div class="footer">
-        <div id="footer-intro" style="float:left;width:80%">
+        <div id="footer-intro" style="float:left;width:70%">
             <div id="footer-icon" style="float:left;">
                 <img class="icon" src="/img/icon.png" style="width:3em;height:3em;margin-left:0.3em">
                 <p style="color:#aaaaaa">&copy; 2022</p>

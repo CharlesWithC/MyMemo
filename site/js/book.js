@@ -193,7 +193,7 @@ function OpenBook(bid = null) {
     ShowManage();
     UpdateQuestionList();
 
-    window.history.pushState("My Memo", "My Memo", "/book?bookId=" + bookId);
+    window.history.pushState("My Memo", "My Memo", "/book/" + bookId);
 
     found = false;
 
@@ -242,7 +242,7 @@ function OpenBook(bid = null) {
                 }
             }
             $("#groupCode").html(groupCode + " " + GenCPBtn(groupCode));
-            $("#groupLink").html(GenCPBtn("http://" + window.location.hostname + "/group/join?groupCode=" + groupCode.substr(1)));
+            $("#groupLink").html(GenCPBtn("http://" + window.location.hostname + "/group/join/" + groupCode.substr(1)));
             if(groupCode == "@pvtgroup" || groupCode == "") $(".only-group-public").hide();
             else $(".only-group-public").show();
             discoveryId = bookList[i].discoveryId;
@@ -252,7 +252,7 @@ function OpenBook(bid = null) {
             } else if (discoveryId != -1) {
                 $(".not-published-to-discovery").hide();
                 $(".published-to-discovery").show();
-                $("#go-to-discovery-btn").attr("onclick", "window.location.href='/discovery?discoveryId=" + discoveryId + "'");
+                $("#go-to-discovery-btn").attr("onclick", "window.location.href='/discovery/" + discoveryId + "'");
             }
             if (groupId != -1) {
                 groupDiscoveryId = bookList[i].groupDiscoveryId;
@@ -262,7 +262,7 @@ function OpenBook(bid = null) {
                 } else if (groupDiscoveryId != -1) {
                     $(".group-not-published-to-discovery").hide();
                     $(".group-published-to-discovery").show();
-                    $("#group-go-to-discovery-btn").attr("onclick", "window.location.href='/discovery?discoveryId=" + groupDiscoveryId + "'");
+                    $("#group-go-to-discovery-btn").attr("onclick", "window.location.href='/discovery/" + groupDiscoveryId + "'");
                 }
                 $.ajax({
                     url: "/api/group/info",
@@ -324,8 +324,8 @@ function UpdatePageLimit(pl) {
 function PageInit() {
     InitTable("questionList", [10, 25, 50, 100], 10, UpdatePageLimit, Search);
     InitSorting("questionList", ["question", "answer", "status"], ["asc", undefined, undefined], "BookListSort");
-    bookId = getUrlParameter("bookId");
-
+    bookId = window.location.href.split("/").pop();
+    if (!$.isNumeric(bookId)) bookId = -1;
     $.ajax({
         url: "/api/book",
         method: 'POST',
@@ -831,7 +831,7 @@ function PublishToDiscovery() {
                 discoveryId = r.discoveryId;
                 $(".not-published-to-discovery").hide();
                 $(".published-to-discovery").show();
-                $("#go-to-discovery-btn").attr("onclick", "window.location.href='/discovery?discoveryId=" + discoveryId + "'");
+                $("#go-to-discovery-btn").attr("onclick", "window.location.href='/discovery/" + discoveryId + "'");
 
                 NotyNotification(r.msg);
 
@@ -899,7 +899,7 @@ function GroupPublishToDiscovery() {
                 discoveryId = r.discoveryId;
                 $(".group-not-published-to-discovery").hide();
                 $(".group-published-to-discovery").show();
-                $("#group-go-to-discovery-btn").attr("onclick", "window.location.href='/discovery?discoveryId=" + discoveryId + "'");
+                $("#group-go-to-discovery-btn").attr("onclick", "window.location.href='/discovery/" + discoveryId + "'");
 
                 NotyNotification(r.msg, type = 'success', timeout = 30000);
 
@@ -1031,7 +1031,7 @@ function CreateGroup() {
                         isGroupOwner = r.isGroupOwner;
 
                         $("#groupCode").html(groupCode + " " + GenCPBtn(groupCode));
-                        $("#groupLink").html(GenCPBtn("http://" + window.location.hostname + "/group/join?groupCode=" + groupCode.substr(1)));
+                        $("#groupLink").html(GenCPBtn("http://" + window.location.hostname + "/group/join/" + groupCode.substr(1)));
                         if(groupCode == "@pvtgroup" || groupCode == "") $(".only-group-public").hide();
                         else $(".only-group-public").show();
                         $(".only-group-exist").show();
@@ -1057,7 +1057,7 @@ function CreateGroup() {
 }
 
 function GroupMember() {
-    window.location.href = "/group?groupId=" + groupId;
+    window.location.href = "/group/" + groupId;
 }
 
 function QuitGroupShow() {
@@ -1090,7 +1090,7 @@ function QuitGroup() {
                         isGroupOwner = false;
 
                         $("#groupCode").html(groupCode + " " + GenCPBtn(groupCode));
-                        $("#groupLink").html(GenCPBtn("http://" + window.location.hostname + "/group/join?groupCode=" + groupCode.substr(1)));
+                        $("#groupLink").html(GenCPBtn("http://" + window.location.hostname + "/group/join/" + groupCode.substr(1)));
                         if(groupCode == "@pvtgroup" || groupCode == "") $(".only-group-public").hide();
                         else $(".only-group-public").show();
                         $(".only-group-exist").show();
@@ -1167,7 +1167,7 @@ function GroupInfoUpdate() {
                         $("title").html(bookName + " - My Memo");
                         $("title").html(bookName + " - My Memo");
                         $("#groupCode").html(groupCode + " " + GenCPBtn(groupCode));
-                        $("#groupLink").html(GenCPBtn("http://" + window.location.hostname + "/group/join?groupCode=" + groupCode.substr(1)));
+                        $("#groupLink").html(GenCPBtn("http://" + window.location.hostname + "/group/join/" + groupCode.substr(1)));
                         if(groupCode == "@pvtgroup" || groupCode == "") $(".only-group-public").hide();
                         else $(".only-group-public").show();
                         $(".only-group-exist").show();
@@ -1272,7 +1272,7 @@ function GroupCodeUpdate(operation) {
                         groupCode = r.groupCode;
 
                         $("#groupCode").html(groupCode + " " + GenCPBtn(groupCode));
-                        $("#groupLink").html(GenCPBtn("http://" + window.location.hostname + "/group/join?groupCode=" + groupCode.substr(1)));
+                        $("#groupLink").html(GenCPBtn("http://" + window.location.hostname + "/group/join/" + groupCode.substr(1)));
                         if(groupCode == "@pvtgroup" || groupCode == "") $(".only-group-public").hide();
                         else $(".only-group-public").show();
 
@@ -1334,7 +1334,7 @@ function GroupDismiss() {
                         isGroupOwner = false;
 
                         $("#groupCode").html(groupCode + " " + GenCPBtn(groupCode));
-                        $("#groupLink").html(GenCPBtn("http://" + window.location.hostname + "/group/join?groupCode=" + groupCode.substr(1)));
+                        $("#groupLink").html(GenCPBtn("http://" + window.location.hostname + "/group/join/" + groupCode.substr(1)));
                         if(groupCode == "@pvtgroup" || groupCode == "") $(".only-group-public").hide();
                         else $(".only-group-public").show();
                         $(".only-group-exist").hide();
@@ -1491,7 +1491,7 @@ function ImportShare() {
             if (r.success == false) {
                 NotyNotification(r.msg, type = 'error');
             } else {
-                window.location.href = "/share/import?shareCode=" + shareCode;
+                window.location.href = "/share/import/" + shareCode;
             }
         }
     });
@@ -1514,7 +1514,7 @@ function JoinGroup() {
             if (r.success == false) {
                 NotyNotification(r.msg, type = 'error');
             } else {
-                window.location.href = "/group/join?groupCode=" + groupCode;
+                window.location.href = "/group/join/" + groupCode;
             }
         }
     });

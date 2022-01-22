@@ -99,7 +99,7 @@
                             gototail = false;
                             ratio = 1;
                             if (isphone) ratio = 4;
-                            if ($("body, html")[0].scrollHeight - $("body, html").scrollTop() -
+                            if ($("body")[0].scrollHeight - $("body").scrollTop() -
                                 300 * ratio <= window.innerHeight)
                                 gototail = true;
 

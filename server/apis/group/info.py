@@ -125,9 +125,9 @@ async def apiGroupMember(request: Request):
             cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {uid}")
             t = cur.fetchall()
             if len(t) > 0:
-                username = f"<a href='/user?userId={uid}'><span class='username' style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
+                username = f"<a href='/user/{uid}'><span class='username' style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
             else:
-                username = f"<a href='/user?userId={uid}'><span class='username'>{username}</span></a>"
+                username = f"<a href='/user/{uid}'><span class='username'>{username}</span></a>"
             ret.append({"userId": uid, "username": username, "plain_username": plain_username, "progress": pgs})
         elif info[2] == 1:
             ret.append({"userId": 0, "username": "Anonymous", "plain_username": "Anonymous", "progress": pgs})
@@ -230,9 +230,9 @@ async def apiGroupPreview(request: Request):
         cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {abs(owner)}")
         t = cur.fetchall()
         if len(t) > 0:
-            ownerUsername = f"<a href='/user?userId={owner}'><span class='username' style='color:{t[0][1]}'>{ownerUsername}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
+            ownerUsername = f"<a href='/user/{owner}'><span class='username' style='color:{t[0][1]}'>{ownerUsername}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
         else:
-            ownerUsername = f"<a href='/user?userId={owner}'><span class='username'>{ownerUsername}</span></a>"
+            ownerUsername = f"<a href='/user/{owner}'><span class='username'>{ownerUsername}</span></a>"
     
     cur.execute(f"SELECT question, answer FROM GroupQuestion WHERE groupId = {groupId}")
     d = cur.fetchall()

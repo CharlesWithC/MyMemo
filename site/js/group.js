@@ -178,12 +178,13 @@ function GroupOperation(operation, uid) {
 }
 
 function PageInit() {
-    groupId = getUrlParameter("groupId");
+    groupId = window.location.href.split("/").pop();
+    if (!$.isNumeric(groupId)) groupId = -1;
     UpdateGroupMember();
 }
 
 function JoinPageInit() {
-    groupCode = getUrlParameter("groupCode");
+    groupCode = window.location.href.split("/").pop();
     if (groupCode.startsWith("@")) groupCode = groupCode.substr(1);
     $.ajax({
         url: "/api/group/preview",
@@ -212,7 +213,7 @@ function JoinPageInit() {
             $("#member-count").html(r.memberCount);
 
             $("#groupCode").html("@" + groupCode + " " + GenCPBtn("@" + groupCode));
-            $("#groupLink").html(GenCPBtn("http://" + window.location.hostname + "/group/join?groupCode=" + groupCode));
+            $("#groupLink").html(GenCPBtn("http://" + window.location.hostname + "/group/join/" + groupCode));
 
             questionList = r.preview;
 
@@ -242,7 +243,7 @@ function JoinGroup() {
             if (r.success == true) {
                 NotyNotification('Joined ' + bookName + '!');
                 setTimeout(function () {
-                    window.location.href = "/book?bookId=" + r.bookId;
+                    window.location.href = "/book/" + r.bookId;
                 }, 3000);
             } else {
                 NotyNotification(r.msg, type = 'error');

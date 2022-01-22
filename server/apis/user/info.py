@@ -66,9 +66,9 @@ async def apiGetUserInfo(request: Request):
     cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {userId}")
     t = cur.fetchall()
     if len(t) > 0:
-        username = f"<a href='/user?userId={userId}'><span class='username' style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
+        username = f"<a href='/user/{userId}'><span class='username' style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
     else:
-        username = f"<a href='/user?userId={userId}'><span class='username'>{username}</span></a>"
+        username = f"<a href='/user/{userId}'><span class='username'>{username}</span></a>"
 
     goal = 99999
     cur.execute(f"SELECT goal FROM UserInfo WHERE userId = {userId}")
@@ -154,9 +154,9 @@ async def apiGetUserPublicInfo(uid: int, request: Request):
     cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {uid}")
     t = cur.fetchall()
     if len(t) > 0:
-        username = f"<a href='/user?userId={uid}'><span class='username' style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
+        username = f"<a href='/user/{uid}'><span class='username' style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
     else:
-        username = f"<a href='/user?userId={uid}'><span class='username'>{username}</span></a>"
+        username = f"<a href='/user/{uid}'><span class='username'>{username}</span></a>"
 
     return {"success": True, "username": username, "bio": bio, "cnt": cnt, "tagcnt": tagcnt, "delcnt": delcnt, "chcnt": chcnt, "age": CalculateAge(regts), "isAdmin": isAdmin}   
 

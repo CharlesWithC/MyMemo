@@ -28,13 +28,29 @@ real_ip_header CF-Connecting-IP;
 
 server {
 	server_name memo.charles14.xyz;
-	location / {
-		root /var/memo/html;
-		try_files $uri $uri.html $uri/ = 404;
-		limit_req zone=static burst=15 nodelay;
-		sub_filter '</head>' '<script defer src=\'https://static.cloudflareinsights.com/beacon.min.js\' data-cf-beacon=\'{"token": "ef59933c2acd41a2a201eff70da529c8"}\'></script></head>';
-        sub_filter_once on;
+
+	set $body_style "";
+	set $subdiv_style "background-color:#eeeeee";
+	if ($http_cookie ~ dark_theme=true) {
+		set $body_style "color:#ffffff;background-color:#333333";
+		set $subdiv_style "background-color:#444444";
 	}
+	
+	location / {
+		rewrite ^/user/([0-9]+) /user/index.html?userId=$1 break; 
+		rewrite ^/book/([0-9]+) /book.html?bookId=$1 break; 
+		rewrite ^/group/([0-9]+) /group/index.html?groupId=$1 break; 
+		rewrite ^/discovery/([0-9]+) /discovery.html?discoveryId=$1 break; 
+		rewrite ^/share/import/(.*) /share/import.html?shareCode=$1 break; 
+		rewrite ^/group/join/(.*) /group/join.html?groupCode=$1 break; 
+		root /var/memo/html;
+		try_files $uri $uri.html $uri/ =404;
+		limit_req zone=static burst=15 nodelay;
+		sub_filter '</head>' '    <script defer src=\'https://static.cloudflareinsights.com/beacon.min.js\' data-cf-beacon=\'{"token": "ef59933c2acd41a2a201eff70da529c8"}\'></script>\n    <style>.sub-div{$subdiv_style}</style>\n</head>';
+		sub_filter '<body>' '<body style="$body_style">';
+		sub_filter_once on;
+	}
+
 	location ~ ^/images/(.*) {
 		return 301 /img/$1;
 	}
@@ -50,17 +66,14 @@ server {
 		root /var/memo/html;
 		try_files $uri $uri.html $uri/ = 404;
 		limit_req zone=admin burst=5 nodelay;
+		sub_filter '</head>' '    <style>.sub-div{$subdiv_style}</style>\n</head>';
+		sub_filter '<body>' '<body style="$body_style">';
+		sub_filter_once on;
 	}
 	location /api/admin {
 		proxy_pass http://127.0.0.1:8888/api/admin;
 		limit_req zone=api burst=5 nodelay;
 	}
 
-	error_page 401 /error.html?code=401;
-	error_page 403 /error.html?code=403;
-	error_page 404 /error.html?code=404;
-	error_page 500 /error.html?code=500;
-	error_page 502 /error.html?code=502;
-	error_page 503 /error.html?code=503;
-	error_page 504 /error.html?code=504;
+	error_page 401 403 404 500 502 503 504 /error.html;
 }

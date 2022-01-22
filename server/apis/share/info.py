@@ -48,9 +48,9 @@ async def apiSharePreview(request: Request):
         cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {abs(sharerUserId)}")
         t = cur.fetchall()
         if len(t) > 0:
-            sharerUsername = f"<a href='/user?userId={sharerUserId}'><span class='username' style='color:{t[0][1]}'>{sharerUsername}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
+            sharerUsername = f"<a href='/user/{sharerUserId}'><span class='username' style='color:{t[0][1]}'>{sharerUsername}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
         else:
-            sharerUsername = f"<a href='/user?userId={sharerUserId}'><span class='username'>{sharerUsername}</span></a>"
+            sharerUsername = f"<a href='/user/{sharerUserId}'><span class='username'>{sharerUsername}</span></a>"
 
     name = encode(sharerUsername + "'s book")
     if bookId != 0:

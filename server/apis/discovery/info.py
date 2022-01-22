@@ -85,9 +85,9 @@ async def apiDiscovery(request: Request):
         cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {dd[3]}")
         t = cur.fetchall()
         if len(t) > 0:
-            publisher = f"<a href='/user?userId={dd[3]}'><span class='username' style='color:{t[0][1]}'>{publisher}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
+            publisher = f"<a href='/user/{dd[3]}'><span class='username' style='color:{t[0][1]}'>{publisher}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
         else:
-            publisher = f"<a href='/user?userId={dd[3]}'><span class='username'>{publisher}</span></a>"
+            publisher = f"<a href='/user/{dd[3]}'><span class='username'>{publisher}</span></a>"
 
         top.append({"discoveryId": dd[0], "title": decode(dd[1]), "description": decode(dd[2]), \
             "publisher": publisher, "type": dd[4], "views": views, "likes": likes, "imports": imports, "pinned": pinned})
@@ -179,9 +179,9 @@ async def apiDiscovery(request: Request):
         cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {dd[3]}")
         t = cur.fetchall()
         if len(t) > 0:
-            publisher = f"<a href='/user?userId={dd[3]}'><span class='username' style='color:{t[0][1]}'>{publisher}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
+            publisher = f"<a href='/user/{dd[3]}'><span class='username' style='color:{t[0][1]}'>{publisher}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
         else:
-            publisher = f"<a href='/user?userId={dd[3]}'><span class='username'>{publisher}</span></a>"
+            publisher = f"<a href='/user/{dd[3]}'><span class='username'>{publisher}</span></a>"
 
         dis.append({"discoveryId": dd[0], "title": decode(dd[1]), "description": decode(dd[2]), \
             "publisher": publisher, "type": dd[4], "views": views, "likes": likes, "imports": imports, "pinned": pinned})
@@ -387,9 +387,9 @@ async def apiDiscoveryData(discoveryId: int, request: Request):
     cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {uid}")
     t = cur.fetchall()
     if len(t) > 0:
-        publisher = f"<a href='/user?userId={uid}'><span class='username' style='color:{t[0][1]}'>{publisher}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
+        publisher = f"<a href='/user/{uid}'><span class='username' style='color:{t[0][1]}'>{publisher}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
     else:
-        publisher = f"<a href='/user?userId={uid}'><span class='username'>{publisher}</span></a>"
+        publisher = f"<a href='/user/{uid}'><span class='username'>{publisher}</span></a>"
 
     return {"success": True, "title": title, "description": description, "preview": questions, \
         "shareCode": shareCode, "type": distype, "publisher": publisher, "isPublisher": isPublisher, \

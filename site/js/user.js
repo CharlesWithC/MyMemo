@@ -69,6 +69,9 @@ function UpdateUserInfo() {
             token: localStorage.getItem("token")
         },
         success: function (r) {
+            $(".user-public").remove();
+            $(".user").show();
+
             user.userId = localStorage.getItem("userId");
             user.username = r.username;
             user.bio = r.bio;
@@ -441,7 +444,7 @@ function Login() {
                         r = user.username.indexOf('<', user.username.indexOf('<', user.username.indexOf('<') + 1) + 1);
                         $("title").html(user.username.substr(l + 1, r - l - 1) + " - My Memo");
 
-                        if (localStorage.getItem("first-use") != "0" || localStorage.getItem("sign-out") == "1") {
+                        if (lsGetItem("first-use","0") != "0") {
                             $.ajax({
                                 url: '/api/user/settings',
                                 method: 'POST',
@@ -943,7 +946,8 @@ function SessionDetail(i) {
 }
 
 $(document).ready(function () {
-    uid = getUrlParameter("userId");
+    uid = window.location.href.split("/").pop();
+    if (!$.isNumeric(uid)) uid = -1;
     if (uid != -1 && uid != localStorage.getItem("userId")) {
         $.ajax({
             url: "/api/user/publicInfo/" + uid,
@@ -964,8 +968,8 @@ $(document).ready(function () {
                         user.age = r.age;
                         user.isAdmin = r.isAdmin;
 
-                        $(".user-public").show();
                         $(".user").remove();
+                        $(".user-public").show();
                         $("#signout-btn").show();
                         l = user.username.indexOf('>', user.username.indexOf('>') + 1);
                         r = user.username.indexOf('<', user.username.indexOf('<', user.username.indexOf('<') + 1) + 1);

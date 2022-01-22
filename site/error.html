@@ -23,29 +23,49 @@
 
     <script>
         $(document).ready(function () {
-            errorCode = parseInt(getUrlParameter("code"));
-            if(errorCode == 401){
-                $("#title").html("401 Unauthorized");
-                $("#description").html("That's a gate with an access control panel. Uncover it and enter your password to continue!");
-            } else if(errorCode == 403){
-                $("#title").html("403 Forbidden");
-                $("#description").html("You are accessing something that doesn't belong to you, go back!");
-            } else if(errorCode == 404){
-                $("#title").html("404 Not Found");
-                $("#description").html("The page has been taken away by aliens!");
-            } else if(errorCode == 500){
-                $("#title").html("500 Internal Server Error");
-                $("#description").html("Aliens sabotaged the server. Hope it will just be a temporary issue. Please try again later!");
-            } else if(errorCode == 502){
-                $("#title").html("502 Bad Gateway");
-                $("#description").html("Aliens broke your connection to the server. Try again later!");
-            } else if(errorCode == 503){
-                $("#title").html("503 Service Unavailable");
-                $("#description").html("Aliens are attacking the server! Such issues should not persist long. Please try again later!");
-            } else if(errorCode == 504){
-                $("#title").html("504 Gateway Timeout");
-                $("#description").html("The server is responding too slowly! This should be a temporary issue. Please try again later!");
-            }
+            if (window.location.pathname.startsWith("/error")) window.location.href = "/home";
+            $.ajax({
+                url: window.location.href,
+                method: 'GET',
+                success: function (r) {
+                    window.location.reload();
+                },
+                error: function (r) {
+                    errorCode = r.status;
+                    if (errorCode == 401) {
+                        $("#title").html("401 Unauthorized");
+                        $("#description").html(
+                            "That's a gate with an access control panel. Uncover it and enter your password to continue!"
+                        );
+                    } else if (errorCode == 403) {
+                        $("#title").html("403 Forbidden");
+                        $("#description").html(
+                            "You are accessing something that doesn't belong to you, go back!");
+                    } else if (errorCode == 404) {
+                        $("#title").html("404 Not Found");
+                        $("#description").html("The page has been taken away by aliens!");
+                    } else if (errorCode == 500) {
+                        $("#title").html("500 Internal Server Error");
+                        $("#description").html(
+                            "Aliens sabotaged the server. Hope it will just be a temporary issue. Please try again later!"
+                        );
+                    } else if (errorCode == 502) {
+                        $("#title").html("502 Bad Gateway");
+                        $("#description").html(
+                            "Aliens broke your connection to the server. Try again later!");
+                    } else if (errorCode == 503) {
+                        $("#title").html("503 Service Unavailable");
+                        $("#description").html(
+                            "Aliens are attacking the server! Such issues should not persist long. Please try again later!"
+                        );
+                    } else if (errorCode == 504) {
+                        $("#title").html("504 Gateway Timeout");
+                        $("#description").html(
+                            "The server is responding too slowly! This should be a temporary issue. Please try again later!"
+                        );
+                    }
+                }
+            }, )
         });
     </script>
 </head>
@@ -54,26 +74,28 @@
     <div id="navigate" style="z-index:100">
         <div class="leftside">
             <div class="sqbtn">
-                <a href="/home"><img class="icon"  src="/img/icon.png" style="width:2.2em;height:2.2em"></a>
+                <a href="/home"><img class="icon" src="/img/icon.png" style="width:2.2em;height:2.2em"></a>
             </div>
         </div>
         <div class="userctrl">
-            <a href='/user'><i class="fa fa-user"></i></a> <span id="navusername"><a href='/user/login'>Sign in</a>&nbsp;&nbsp; </span>
+            <a href='/user'><i class="fa fa-user"></i></a> <span id="navusername"><a href='/user/login'>Sign
+                    in</a>&nbsp;&nbsp; </span>
             <a class="only-signed-in" href='/user/events' style="display:none"><i class="fa fa-bell"></i></a>
             <a href='/user/settings'><i class="fa fa-cogs"></i></a>
-            <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i class="fa fa-arrow-right-from-bracket"></i></a>
+            <a class="only-signed-in" style='cursor:pointer' onclick="SignOut()" style="display:none"><i
+                    class="fa fa-arrow-right-from-bracket"></i></a>
         </div>
     </div>
 
-    <div id="content" class="container">
+    <div id="content" class="container" style="height:100%">
         <div id="home" class="center">
-            <h1 id="big-title"></h1>
+            <h1 id="title" class="big-title"></h1>
             <h2 id="description"></h2>
         </div>
     </div>
 
     <div class="footer">
-        <div id="footer-intro" style="float:left;width:80%">
+        <div id="footer-intro" style="float:left;width:70%">
             <div id="footer-icon" style="float:left;">
                 <img class="icon" src="/img/icon.png" style="width:3em;height:3em;margin-left:0.3em">
                 <p style="color:#aaaaaa">&copy; 2022</p>
@@ -82,8 +104,9 @@
                 <p>My Memo</p>
                 <p>A light weight memo website based on Python FastAPI + HTML5 Bootstrap.</p>
                 <p>This is a personal project made with <i class="fa fa-heart"></i></p>
-                <p>You could check <a href="https://github.com/Charles-1414/MyMemo/blob/master/README.md" 
-                    target="_blank" rel="noopener noreferrer">README</a> if you want to know more about this project.</p>
+                <p>You could check <a href="https://github.com/Charles-1414/MyMemo/blob/master/README.md"
+                        target="_blank" rel="noopener noreferrer">README</a> if you want to know more about this
+                    project.</p>
             </div>
         </div>
         <div id="footer-info" style="float:right;">

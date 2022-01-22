@@ -52,7 +52,7 @@ function RefreshDiscovery(p = -1) {
                     }
                     btns += '&nbsp;&nbsp;<button id="admin-delete-' + discoveryList[i].discoveryId + '" class="btn btn-danger btn-sm" type="button" onclick="AdminUnpublishDiscoveryConfirm(' + discoveryList[i].discoveryId + ')"><i class="fa fa-trash"></i> Delete</button>';
                 }
-                atitle = "<a href='#' onclick='ShowDiscovery(" + discoveryList[i].discoveryId + ")'>" + discoveryList[i].title + "</a>"
+                atitle = "<a style='cursor:pointer' onclick='ShowDiscovery(" + discoveryList[i].discoveryId + ")'>" + discoveryList[i].title + "</a>"
                 pin = '';
                 if (discoveryList[i].pinned) pin = '<i class="fa fa-thumbtack"></i> ';
                 AppendTableData("discoveryList", [pin, atitle, discoveryList[i].publisher, discoveryList[i].views, discoveryList[i].likes, btns], discoveryList[i].discoveryId)
@@ -80,7 +80,7 @@ function RefreshDiscovery(p = -1) {
                 title = toplist[i].title;
                 description = toplist[i].description;
                 info = toplist[i].views + " <i class='fa fa-eye'></i> " + toplist[i].likes + " <i class='fa fa-heart'></i>";
-                $("#top-post").append(`<div class="rect discovery-top" href="#" onclick="ShowDiscovery(` + toplist[i].discoveryId + `);">
+                $("#top-post").append(`<div class="rect discovery-top" style="cursor:pointer" onclick="ShowDiscovery(` + toplist[i].discoveryId + `);">
                         <p class="rect-title">` + title + `</p>
                         ` + marked.parse(description) + `
                         <p class="rect-content">&nbsp;&nbsp;` + info + `</p>
@@ -191,9 +191,9 @@ function UpdateDiscoveryQuestionList() {
             description = r.description;
             liked = r.liked;
             if (liked) {
-                $(".title").html(r.title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart" style="color:red"></i></a>');
+                $(".title").html(r.title + ' <a style="cursor:pointer" onclick="LikePost()"><i class="fa fa-heart" style="color:red"></i></a>');
             } else {
-                $(".title").html(r.title + ' <a href="#" onclick="LikePost()"><i class="far fa-heart" style="color:red"></i></a>');
+                $(".title").html(r.title + ' <a style="cursor:pointer" onclick="LikePost()"><i class="far fa-heart" style="color:red"></i></a>');
             }
             $("#detail-publisher").html(r.publisher);
             $("#detail-name").html(r.title);
@@ -208,8 +208,8 @@ function UpdateDiscoveryQuestionList() {
             }
 
             shareCode = r.shareCode;
-            shareLink = "http://" + window.location.hostname + "/share/import?shareCode=" + shareCode.substr(1);
-            groupLink = "http://" + window.location.hostname + "/group/join?groupCOde=" + shareCode.substr(1);
+            shareLink = "http://" + window.location.hostname + "/share/import/" + shareCode.substr(1);
+            groupLink = "http://" + window.location.hostname + "/group/join/" + shareCode.substr(1);
             $("#shareCode").html(shareCode + " " + GenCPBtn(shareCode));
             $("#shareLink").html(GenCPBtn(shareLink));
             $("#groupCode").html(shareCode + " " + GenCPBtn(shareCode));
@@ -264,7 +264,7 @@ function ImportBook() {
             if (r.success == true) {
                 NotyNotification('Imported ' + bookName + '!');
                 setTimeout(function () {
-                    window.location.href = "/book?bookId=" + r.bookId;
+                    window.location.href = "/book/" + r.bookId;
                 }, 3000);
             } else {
                 NotyNotification(r.msg, type = 'error');
@@ -291,7 +291,7 @@ function JoinGroup() {
             if (r.success == true) {
                 NotyNotification('Joined ' + bookName + '!');
                 setTimeout(function () {
-                    window.location.href = "/book?bookId=" + r.bookId;
+                    window.location.href = "/book/" + r.bookId;
                 }, 3000);
             } else {
                 NotyNotification(r.msg, type = 'error');
@@ -309,7 +309,7 @@ function ShowDiscovery(disid) {
     $("#top-post").hide();
     $(".discovery-detail").fadeIn();
     UpdateDiscoveryQuestionList();
-    window.history.pushState("My Memo", "My Memo", "/discovery?discoveryId=" + disid);
+    window.history.pushState("My Memo", "My Memo", "/discovery/" + disid);
 }
 
 function BackToList() {
@@ -361,9 +361,9 @@ function UpdateInformation() {
         success: function (r) {
             if (r.success == true) {
                 if (liked) {
-                    $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart" style="color:red"></i></a>');
+                    $(".title").html(title + ' <a style="cursor:pointer" onclick="LikePost()"><i class="fa fa-heart" style="color:red"></i></a>');
                 } else {
-                    $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="far fa-heart" style="color:red"></i></a>');
+                    $(".title").html(title + ' <a style="cursor:pointer" onclick="LikePost()"><i class="far fa-heart" style="color:red"></i></a>');
                 }
                 $("#detail-description").html(marked.parse(description));
 
@@ -382,9 +382,9 @@ function UpdateInformation() {
 function LikePost() {
     liked = 1 - liked;
     if (liked) {
-        $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart" style="color:red"></i></a>');
+        $(".title").html(title + ' <a style="cursor:pointer" onclick="LikePost()"><i class="fa fa-heart" style="color:red"></i></a>');
     } else {
-        $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="far fa-heart" style="color:red"></i></a>');
+        $(".title").html(title + ' <a style="cursor:pointer" onclick="LikePost()"><i class="far fa-heart" style="color:red"></i></a>');
     }
     $.ajax({
         url: '/api/discovery/like',
@@ -400,9 +400,9 @@ function LikePost() {
             if (r.success == true) {
                 liked = r.liked;
                 if (liked) {
-                    $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart" style="color:red"></i></a>');
+                    $(".title").html(title + ' <a style="cursor:pointer" onclick="LikePost()"><i class="fa fa-heart" style="color:red"></i></a>');
                 } else {
-                    $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="far fa-heart" style="color:red"></i></a>');
+                    $(".title").html(title + ' <a style="cursor:pointer" onclick="LikePost()"><i class="far fa-heart" style="color:red"></i></a>');
                 }
 
                 NotyNotification(r.msg);
@@ -413,9 +413,9 @@ function LikePost() {
         error: function (r, textStatus, errorThrown) {
             liked = 1 - liked;
             if (liked) {
-                $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="fa fa-heart" style="color:red"></i></a>');
+                $(".title").html(title + ' <a style="cursor:pointer" onclick="LikePost()"><i class="fa fa-heart" style="color:red"></i></a>');
             } else {
-                $(".title").html(title + ' <a href="#" onclick="LikePost()"><i class="far fa-heart" style="color:red"></i></a>');
+                $(".title").html(title + ' <a style="cursor:pointer" onclick="LikePost()"><i class="far fa-heart" style="color:red"></i></a>');
             }
         }
     });
@@ -450,7 +450,8 @@ function PageInit() {
     InitTable("discoveryList", [10, 25, 50, 100], 10, UpdatePageLimit, Search);
     InitSorting("discoveryList", ["title", "publisher", "views", "likes"], ["asc", undefined, undefined, undefined], "DiscoveryListSort");
 
-    discoveryId = getUrlParameter("discoveryId");
+    discoveryId = window.location.href.split("/").pop();
+    if (!$.isNumeric(discoveryId)) discoveryId = -1;
     if (discoveryId == -1) {
         RefreshDiscovery();
         $(".discovery-list").show();

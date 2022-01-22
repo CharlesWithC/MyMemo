@@ -132,17 +132,17 @@ async def apiAdminUserList(request: Request):
             cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {abs(dd[0])}")
             t = cur.fetchall()
             if len(t) > 0:
-                username = f"<a href='/user?userId={dd[0]}'><span class='username' style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
+                username = f"<a href='/user/{dd[0]}'><span class='username' style='color:{t[0][1]}'>{username}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
             else:
-                username = f"<a href='/user?userId={dd[0]}'><span class='username'>{username}</span></a>"
+                username = f"<a href='/user/{dd[0]}'><span class='username'>{username}</span></a>"
 
         if dd[3] != 0:
             cur.execute(f"SELECT tag, tagtype FROM UserNameTag WHERE userId = {abs(dd[3])}")
             t = cur.fetchall()
             if len(t) > 0:
-                inviterUsername = f"<a href='/user?userId={dd[3]}'><span class='username' style='color:{t[0][1]}'>{inviterUsername}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
+                inviterUsername = f"<a href='/user/{dd[3]}'><span class='username' style='color:{t[0][1]}'>{inviterUsername}</span></a> <span class='nametag' style='background-color:{t[0][1]}'>{decode(t[0][0])}</span>"
             else:
-                inviterUsername = f"<a href='/user?userId={dd[3]}'><span class='username'>{inviterUsername}</span></a>"
+                inviterUsername = f"<a href='/user/{dd[3]}'><span class='username'>{inviterUsername}</span></a>"
         
         inviterInfo = f"{inviterUsername} (UID: {dd[3]})"
         if inviterUsername == "default":

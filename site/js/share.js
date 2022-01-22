@@ -39,7 +39,7 @@ function UpdateShareList() {
                 btns = '<button type="button" class="btn btn-warning btn-sm" onclick="Unshare(\'' + shareList[i].shareCode + '\')"><i class="fa fa-trash"></i></button>';
                 var time = new Date(parseInt(shareList[i].timestamp) * 1000);
                 AppendTableData("shareList", [shareList[i].name, shareList[i].shareCode + " " + GenCPBtn(shareList[i].shareCode),
-                    GenCPBtn("http://" + window.location.hostname + "/share/import?shareCode=" + shareList[i].shareCode.substr(1)),
+                    GenCPBtn("http://" + window.location.hostname + "/share/import/" + shareList[i].shareCode.substr(1)),
                     shareList[i].importCount, time.toLocaleString(), btns
                 ], shareList[i].bookId);
             }
@@ -166,7 +166,7 @@ function Share() {
 }
 
 function ImportPageInit() {
-    shareCode = getUrlParameter("shareCode");
+    shareCode = window.location.href.split("/").pop();
     if (shareCode.startsWith("!")) shareCode = shareCode.substr(1);
     $.ajax({
         url: "/api/share/preview",
@@ -194,7 +194,7 @@ function ImportPageInit() {
             $("#import-count").html(r.importCount);
 
             $("#shareCode").html("!" + shareCode + " "+GenCPBtn("!" + shareCode));
-            $("#shareLink").html(GenCPBtn("http://" + window.location.hostname + "/share/import?shareCode=" + shareCode));
+            $("#shareLink").html(GenCPBtn("http://" + window.location.hostname + "/share/import/" + shareCode));
 
             questionList = r.preview;
 
@@ -224,7 +224,7 @@ function ImportBook() {
             if (r.success == true) {
                 NotyNotification('Imported ' + bookName + '!');
                 setTimeout(function () {
-                    window.location.href = "/book?bookId=" + r.bookId;
+                    window.location.href = "/book/" + r.bookId;
                 }, 3000);
             } else {
                 NotyNotification(r.msg, type = 'error');

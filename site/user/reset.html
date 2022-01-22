@@ -94,7 +94,7 @@
             <a class="only-signed-in" href='/user/events' style="display:none"><i
                     class="fa fa-bell"></i></a>
             <a href='/user/settings'><i class="fa fa-cogs"></i></a>
-            <a class="only-signed-in" href='#' onclick="SignOut()" style="display:none"><i
+            <a class="only-signed-in" style='cursor:pointer' onclick="SignOut()" style="display:none"><i
                     class="fa fa-arrow-right-from-bracket"></i></a>
         </div>
     </div>
@@ -110,13 +110,13 @@
                 </div>
                 <button style="width:6em;float:right" id="submit" type="button" class="btn btn-primary"
                     onclick="UpdatePassword()">Reset</button>
+                <p id="msg" style="margin:auto;margin-top:5em;max-width:20em;text-align:center;margin-top:4em"></p>
             </div>
-            <p id="msg" style="margin:auto;margin-top:5em;max-width:20em;text-align:center;margin-top:4em"></p>
         </div>
     </div>
 
     <div class="footer">
-        <div id="footer-intro" style="float:left;width:80%">
+        <div id="footer-intro" style="float:left;width:70%">
             <div id="footer-icon" style="float:left;">
                 <img class="icon" src="/img/icon.png" style="width:3em;height:3em;margin-left:0.3em">
                 <p style="color:#aaaaaa">&copy; 2022</p>

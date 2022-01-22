@@ -1,5 +1,12 @@
 # Update History
 
+## v5.6.19  
+
+*Date: 2022/1/22*  
+*Improvements made by updating nginx config*  
+1.Get dark themed page request by adding dark_theme=true in cookie, to prevent white page flashing when loading  
+2.Beautified URL, e.g. /user/?userId=1 to /user/1  
+
 ## v5.6.18  
 
 *Date: 2022/1/20*  
