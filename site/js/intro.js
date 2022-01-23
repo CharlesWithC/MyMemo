@@ -108,6 +108,11 @@ function GetCookie(cName) {
 
 function PageInit() {
     if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        $("#footer-info").appendTo("#footer-intro");
+        $("#footer-info").css("float", "right");
+        $("#footer-info").css("width", "calc(100% - 6em)");
+        $("#footer-info").prepend("<hr>")
+        $("#footer-intro").css("width", "100%");
         $('head').append('<link rel="stylesheet" href="/css/mobile.css" type="text/css" />');
     }
     if (GetCookie("version") == undefined) {
