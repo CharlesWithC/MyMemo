@@ -1,8 +1,13 @@
 # My Memo
 
+**This project has ended due to lack of user and support, the original website memo.charles14.xyz (or memo.charlws.com) has been closed.**  
+**Thanks for everyone who once supported me.**  
+**If you want to set it up on your own server, you can email me for help.**
+
+---
+
 **A light weight memo website based on Python FastAPI + HTML5 Bootstrap.**  
 **Version: v5.6.20**  
-*Major development ended, improving it*  
 
 ---
 
